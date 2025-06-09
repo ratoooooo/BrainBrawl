@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- SingIn -->
+    <string name="app_name">Pergunta ó Luso</string>
+    <string name="insira_nome">Enter your name</string>
+    <string name="insira_password">Enter your password</string>
+    <string name="entrar">Login</string>
+    <string name="registar">Register</string>
+    <string name="entrar_sem_conta">Enter without account</string>
+
+    <!-- SendQuestion -->
+    <string name="adicionar_nova_pergunta">Add New Question</string>
+    <string name="insira_nome_categoria">Enter category name</string>
+    <string name="hint_nova_categoria">Name of the new category</string>
+    <string name="pergunta_label">Question:</string>
+    <string name="insira_pergunta">Enter the question</string>
+    <string name="opcoes_label">Options:</string>
+    <string name="opcao_a">Option A</string>
+    <string name="hint_opcao_a">Enter Option A</string>
+    <string name="opcao_b">Option B</string>
+    <string name="hint_opcao_b">Enter Option B</string>
+    <string name="opcao_c">Option C</string>
+    <string name="hint_opcao_c">Enter Option C</string>
+    <string name="opcao_d">Option D</string>
+    <string name="hint_opcao_d">Enter Option D</string>
+    <string name="enviar_pergunta">Send Question</string>
+    <string name="comecar_jogo">Start game</string>
+
+    <!-- Results -->
+    <string name="medalha_primeiro">1</string>
+    <string name="medalha_segundo">2</string>
+    <string name="medalha_terceiro">3</string>
+    <string name="voltar">Back</string>
+
+    <!-- Main -->
+    <string name="bem_vindo">Welcome</string>
+    <string name="codigo_sala_nenhum">Room Code: N/A</string>
+    <string name="criar_sala">Create Room</string>
+    <string name="entrar_sala">Join a Room</string>
+    <string name="iniciar_jogo">Start Game</string>
+
+    <!-- JoinRoom -->
+    <string name="entrar_numa_sala">Join a Room</string>
+    <string name="insira_codigo_sala">Enter the room code</string>
+    <string name="insira_seu_nome">Enter your name</string>
+    <string name="entrar_sala_jogo">Enter</string>
+
+    <!-- Game -->
+    <string name="progresso_pergunta">Question %1$d/%2$d</string>
+    <string name="carregar_perguntas">Loading questions...</string>
+    <string name="cronometro_inicial">20.00</string>
+
+    <!-- ChoseCategory -->
+    <string name="escolha_categoria">Choose a Category</string>
+    <string name="categoria_historia">History</string>
+    <string name="categoria_geografia">Geography</string>
+    <string name="categoria_desporto">Sports</string>
+    <string name="categoria_cultura_geral">General Culture</string>
+    <string name="criar_categoria">Create Category</string>
+
+    <!-- EscolherModo -->
+    <string name="escolher_modo_jogo">Choose Mode</string>
+    <string name="modo_classico">Classic</string>
+    <string name="modo_eliminatorias">Elimination</string>
+    <string name="modo_solo">Solo</string>
+    <string name="selecionar_modo_classico">Select Classic mode</string>
+    <string name="selecionar_modo_eliminatorias">Select Elimination mode</string>
+    <string name="voltar_para_main_activity">Back to main screen</string>
+    <string name="modo_caotico">Chaotic</string>
+    <string name="info_todos">See explanation of all modes</string>
+    <string name="info_todos_modos">
+        • <b>Classic Mode:</b> Answer questions from the chosen category. Play with others and the one with the most points wins!
+
+        • <b>Chaotic Mode:</b> Questions from all categories appear randomly. Challenge yourself and your friends in an unpredictable experience!
+
+        • <b>Elimination Mode:</b> Made a mistake? You are eliminated! The last survivor wins. Be quick and accurate.
+    </string>
+
+    <!-- Tipos Modo Classico -->
+    <string name="escolher_tipo_modo_classico">Choose Game Mode Type</string>
+    <string name="modo_1x1">1x1 Mode</string>
+    <string name="modo_2x2">2x2 Mode</string>
+    <string name="modo_todos">All</string>
+    <string name="info_todos_modos_classico">
+    • <b>1x1 Mode:</b> Direct duel between two players! Answer the same questions as your opponent and whoever scores more wins.
+
+    • <b>2x2 Mode:</b> Play in teams! Two duos compete, adding points together. Cooperate with your partner and challenge another duo!
+
+    • <b>Group Mode:</b> Everyone plays against everyone in a classic competition. Show what you know and conquer the leaderboard!
+</string>
+
+    <!-- Categorias -->
+    <string name="categoria1">History</string>
+    <string name="categoria2">Geography</string>
+    <string name="categoria3">Sports</string>
+    <string name="categoria4">General Culture</string>
+</resources>

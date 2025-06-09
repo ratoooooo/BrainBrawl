@@ -1,0 +1,199 @@
+package com.example.brainbrawl
+
+import Pergunta
+import android.content.Intent
+import android.os.Bundle
+import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.databinding.ActivityMainBinding
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
+
+class MainActivity : AppCompatActivity() {
+    private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    private val database = FirebaseDatabase.getInstance().reference
+
+    private var nomeCategoria: String? = null
+    private var codigoSala: String? = null
+    private var nomeUtilizador: String? = null
+    private var modoJogo: String? = null
+    private var admin = false
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(binding.root)
+
+        // Recuperar dados do savedInstanceState ou do intent se for a primeira vez
+        nomeUtilizador = savedInstanceState?.getString("nomeUtilizador")
+            ?: intent.getStringExtra("nomeUtilizador")
+        nomeCategoria = savedInstanceState?.getString("nomeCategoria")
+            ?: intent.getStringExtra("nomeCategoria")
+        codigoSala = savedInstanceState?.getString("codigoSala")
+            ?: intent.getStringExtra("codigoSala")
+        modoJogo = savedInstanceState?.getString("modoJogo")
+            ?: intent.getStringExtra("modoJogo")
+
+        if (nomeUtilizador != null) {
+            binding.txtBoasVindas.text = "Bem-vindo, $nomeUtilizador!"
+            binding.btnAddAmigo.visibility = View.VISIBLE
+            binding.btnAddAmigo.setOnClickListener {
+                val intent = Intent(this, AmigosActivity::class.java)
+                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                startActivity(intent)
+            }
+        } else {
+            binding.btnAddAmigo.visibility = View.GONE
+        }
+
+        // Mostrar código da sala se já estiver criado e configurar perguntas
+        if (codigoSala != null && modoJogo != null) {
+            binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+            binding.btnIniciarJogo.visibility = View.VISIBLE
+
+            if (modoJogo == "caotico") {
+                obterPerguntas(isCaotico = true)
+            } else {
+                obterPerguntas(isCaotico = false)
+            }
+        } else {
+            binding.txtCodigoSala.text = "Nenhuma sala criada"
+            binding.btnIniciarJogo.visibility = View.GONE
+        }
+
+        // Botão criar sala
+        binding.btnCriarSala.setOnClickListener {
+            if (codigoSala != null) {
+                Toast.makeText(this, "Uma sala já foi criada!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val intent = Intent(this, EscolherModoActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            startActivity(intent)
+        }
+
+        // Botão entrar em sala
+        binding.btnEntrarSala.setOnClickListener {
+            val intent = Intent(this, SalaDeEsperaActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            startActivity(intent)
+        }
+
+        // Botão iniciar jogo
+        binding.btnIniciarJogo.setOnClickListener {
+            if (codigoSala == null || modoJogo == null) {
+                Toast.makeText(this, "Erro: Dados da sala inválidos", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            database.child("salas").child(codigoSala!!).child("estado").setValue("em_jogo")
+
+            val intent = Intent(this, JogoActivity::class.java)
+            admin = true
+            intent.putExtra("codigoSala", codigoSala)
+            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            intent.putExtra("nomeCategoria", nomeCategoria)
+            intent.putExtra("modoJogo", modoJogo)
+            intent.putExtra("admin", admin)
+            startActivity(intent)
+
+            codigoSala = null
+            binding.txtCodigoSala.text = "Nenhuma sala criada"
+            binding.btnIniciarJogo.visibility = View.GONE
+        }
+
+        // Botão voltar
+        binding.btnVoltar.setOnClickListener {
+            startActivity(Intent(this, LoginActivity::class.java))
+            finish()
+        }
+    }
+
+    // Guardar estado para rotações/dispositivo
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putString("nomeUtilizador", nomeUtilizador)
+        outState.putString("nomeCategoria", nomeCategoria)
+        outState.putString("codigoSala", codigoSala)
+        outState.putString("modoJogo", modoJogo)
+    }
+
+    private fun obterPerguntas(isCaotico: Boolean) {
+        if (codigoSala == null || modoJogo == null || (!isCaotico && nomeCategoria == null)) {
+            Toast.makeText(this, "Erro: Dados da sala inválidos", Toast.LENGTH_SHORT).show()
+            return
+        }
+        val listaPerguntas = mutableListOf<Pergunta>()
+        val perguntasRef = if (isCaotico) {
+            database.child("categorias")
+        } else {
+            database.child("categorias").child(nomeCategoria!!).child("perguntas")
+        }
+        perguntasRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                listaPerguntas.clear()
+                if (isCaotico) {
+                    for (categoriaSnapshot in snapshot.children) {
+                        val perguntasSnapshot = categoriaSnapshot.child("perguntas")
+                        for (perguntaSnapshot in perguntasSnapshot.children) {
+                            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
+                            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
+                            val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
+                            val opcoes = mutableListOf<String>()
+                            opcoesSnapshot.forEach { opcao ->
+                                opcoes.add(opcao.getValue(String::class.java) ?: "")
+                            }
+                            if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
+                                listaPerguntas.add(Pergunta(pergunta, respostaCorreta, opcoes))
+                            }
+                        }
+                    }
+                } else {
+                    for (perguntaSnapshot in snapshot.children) {
+                        val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java) ?: ""
+                        val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java) ?: ""
+                        val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
+                        val opcoes = mutableListOf<String>()
+                        opcoesSnapshot.forEach { opcao ->
+                            opcoes.add(opcao.getValue(String::class.java) ?: "")
+                        }
+                        if (pergunta.isNotEmpty() && respostaCorreta.isNotEmpty() && opcoes.size == 4) {
+                            listaPerguntas.add(Pergunta(pergunta, respostaCorreta, opcoes))
+                        }
+                    }
+                }
+                val perguntasSelecionadas = listaPerguntas.shuffled().take(15)
+                if (perguntasSelecionadas.isNotEmpty()) {
+                    val salaData = mapOf(
+                        "horaCriacao" to System.currentTimeMillis(),
+                        "admin" to "Admin",
+                        "estado" to "em_espera",
+                        "modoJogo" to modoJogo,
+                        "jogadores" to emptyMap<String, Any>(),
+                        "categoria" to if (isCaotico) "Todas as categorias" else nomeCategoria,
+                        "perguntas" to perguntasSelecionadas.map { pergunta ->
+                            mapOf(
+                                "pergunta" to pergunta.pergunta,
+                                "respostaCorreta" to pergunta.respostaCorreta,
+                                "opcoes" to pergunta.opcoes
+                            )
+                        }
+                    )
+                    database.child("salas").child(codigoSala!!).setValue(salaData)
+                        .addOnSuccessListener {
+                            Toast.makeText(this@MainActivity, "Sala criada com sucesso!", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { error ->
+                            Toast.makeText(this@MainActivity, "Erro ao criar sala: ${error.message}", Toast.LENGTH_SHORT).show()
+                        }
+                } else {
+                    Toast.makeText(this@MainActivity, "Nenhuma pergunta encontrada", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@MainActivity, "Erro ao carregar perguntas: ${error.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+}

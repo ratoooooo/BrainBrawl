@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#FFC400"
+    android:gravity="center_horizontal">
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pódio"
+        android:textStyle="bold"
+        android:textSize="26sp"
+        android:textColor="#222"
+        android:layout_marginBottom="32dp"
+        android:fontFamily="sans-serif-black"/>
+
+    <!-- Layout onde cada posição será adicionada dinamicamente pelo Kotlin -->
+    <LinearLayout
+        android:id="@+id/layoutPodio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginBottom="32dp" />
+
+    <Button
+        android:id="@+id/btn_voltar"
+        android:layout_width="200dp"
+        android:layout_height="56dp"
+        android:background="@drawable/botao_voltar"
+        android:text="Voltar"
+        android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        android:padding="12dp"
+        android:layout_gravity="center_horizontal" />
+
+</LinearLayout>

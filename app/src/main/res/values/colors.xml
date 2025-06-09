@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="red">#FF0000</color>
+    <color name="vermelho">#F44336</color>
+    <color name="verde">#4CAF50</color>
+    <color name="blue_dark">#003087</color>
+    <color name="black">#FF000000</color>
+    <color name="cinzento">#5C7080</color>
+
+    <color name="classic_color">#457B9D</color>
+    <color name="chaos_color">#E63946</color>
+    <color name="elimination_color">#2A9D8F</color>
+    <color name="teal_700">#018786</color>
+</resources>

@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    // SingIn
+    <string name="app_name">Pergunta ó Luso</string>
+    <string name="insira_nome">Insira o seu nome</string>
+    <string name="insira_password">Insira a sua password</string>"
+    <string name="entrar">Entrar</string>
+    <string name="registar">Registe-se</string>">
+    <string name="entrar_sem_conta">Entrar sem conta</string>">
+
+    //SendQuestion
+    <string name="adicionar_nova_pergunta">Adicionar Nova Pergunta</string>
+    <string name="insira_nome_categoria">Insira o nome da categoria</string>
+    <string name="hint_nova_categoria">Nome da nova categoria</string>
+    <string name="pergunta_label">Pergunta:</string>
+    <string name="insira_pergunta">Insira a pergunta</string>
+    <string name="opcoes_label">Opções:</string>
+    <string name="opcao_a">Opção A</string>
+    <string name="hint_opcao_a">Digite a Opção A</string>
+    <string name="opcao_b">Opção B</string>
+    <string name="hint_opcao_b">Digite a Opção B</string>
+    <string name="opcao_c">Opção C</string>
+    <string name="hint_opcao_c">Digite a Opção C</string>
+    <string name="opcao_d">Opção D</string>
+    <string name="hint_opcao_d">Digite a Opção D</string>
+    <string name="enviar_pergunta">Enviar Pergunta</string>
+    <string name="comecar_jogo">Começar jogo</string>
+
+    //Results
+    <string name="medalha_primeiro">1</string>
+    <string name="medalha_segundo">2</string>
+    <string name="medalha_terceiro">3</string>
+    <string name="voltar">Voltar</string>
+
+    //Main
+    <string name="bem_vindo">Bem-Vindo</string>
+    <string name="codigo_sala_nenhum">Código da Sala: N/A</string>
+    <string name="criar_sala">Criar Sala</string>
+    <string name="entrar_sala">Entrar numa Sala</string>
+    <string name="iniciar_jogo">Iniciar Jogo</string>
+
+    //JoinRoom
+    <string name="entrar_numa_sala">Entrar numa Sala</string>
+    <string name="insira_codigo_sala">Insira o código da sala</string>
+    <string name="insira_seu_nome">Insira o seu nome</string>
+    <string name="entrar_sala_jogo">Entrar</string>
+
+    //Game
+    <string name="progresso_pergunta">Pergunta %1$d/%2$d</string>
+    <string name="carregar_perguntas">A carregar perguntas...</string>
+    <string name="cronometro_inicial">20.00</string>
+
+    //ChoseCategory
+    <string name="escolha_categoria">Escolher uma Categoria</string>
+    <string name="categoria_historia">História</string>
+    <string name="categoria_geografia">Geografia</string>
+    <string name="categoria_desporto">Desporto</string>
+    <string name="categoria_cultura_geral">Cultura Geral</string>
+    <string name="criar_categoria">Criar Categoria</string>
+    <string name="escolher_todas_categorias">Todas as Categorias</string>
+
+    //EscolherModo
+    <string name="escolher_modo_jogo">Escolher Modo</string>
+    <string name="modo_classico">Clássico</string>
+    <string name="modo_eliminatorias">Eliminatórias</string>
+    <string name="modo_solo">Solo</string>
+    <string name="selecionar_modo_classico">Selecionar modo Clássico</string>
+    <string name="selecionar_modo_eliminatorias">Selecionar modo Eliminatórias</string>
+    <string name="voltar_para_main_activity">Voltar para a tela principal</string>
+    <string name="modo_caotico">Caótico</string>
+    <string name="info_todos">Ver explicação de todos os modos</string>
+    <string name="info_todos_modos">
+        • <b>Modo Clássico:</b> Responde a perguntas da categoria escolhida. Joga com outros jogadores e vence quem tiver mais pontos!
+
+        • <b>Modo Caótico:</b> Perguntas de todas as categorias aparecem de forma aleatória. Desafia-te e aos teus amigos numa experiência imprevisível!
+
+        • <b>Modo Eliminatórias:</b> Erraste? És eliminado logo! O último sobrevivente vence. Sê rápido e preciso.
+
+    </string>
+
+    //Tipos Modo Classico
+    <string name="escolher_tipo_modo_classico">Escolher Modo de Jogo</string>
+    <string name="modo_1x1">Modo 1x1</string>
+    <string name="modo_2x2">Modo 2x2</string>
+    <string name="modo_todos">Todos</string>
+    <string name="info_todos_modos_classico">
+    • <b>Modo 1x1:</b> Duelo direto entre dois jogadores! Responde às mesmas perguntas que o teu adversário e vence quem somar mais pontos.
+
+    • <b>Modo 2x2:</b> Joga em equipa! Duas duplas competem entre si, somando pontos em conjunto. Coopera com o teu parceiro e desafia outra dupla!
+
+    • <b>Modo Grupo:</b> Todos jogam contra todos numa competição clássica. Mostra quem sabe mais e conquista o topo da tabela!
+</string>
+
+
+    //Categorias
+    <string name="categoria1">Historia</string>
+    <string name="categoria2">Geografia</string>
+    <string name="categoria3">Desporto</string>
+    <string name="categoria4">Cultura Geral</string>
+    <string name="categoria5">Todas as Categorias</string>
+    <string name="categoria6">Gentílicos</string>
+</resources>

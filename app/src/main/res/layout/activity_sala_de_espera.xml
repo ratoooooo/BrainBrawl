@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFC400"
+    android:padding="24dp">
+
+    <!-- Guideline para centralização vertical -->
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/gl_center"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.3" />
+
+    <!-- Título -->
+    <TextView
+        android:id="@+id/txt_titulo_entrar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/entrar_numa_sala"
+        android:textSize="36sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
+        android:textColor="#FFFFFF"
+        android:letterSpacing="0.05"
+        app:layout_constraintTop_toTopOf="@id/gl_center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Campo para inserir o código da sala -->
+    <EditText
+        android:id="@+id/edt_codigo_sala"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/insira_codigo_sala"
+        android:inputType="text"
+        android:textSize="16sp"
+        android:background="@drawable/edt_borda_preta"
+        android:padding="12dp"
+        android:textColor="#0D0D0D"
+        android:textColorHint="#6C757D"
+        app:layout_constraintTop_toBottomOf="@id/txt_titulo_entrar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.85"
+        android:layout_marginTop="40dp" />
+
+    <!-- Campo para inserir o nome do jogador -->
+    <EditText
+        android:id="@+id/edt_nome_jogador"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:hint="@string/insira_seu_nome"
+        android:inputType="text"
+        android:textSize="16sp"
+        android:background="@drawable/edt_borda_preta"
+        android:padding="12dp"
+        android:textColor="#0D0D0D"
+        android:textColorHint="#6C757D"
+        app:layout_constraintTop_toBottomOf="@id/edt_codigo_sala"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.85"
+        android:layout_marginTop="16dp" />
+
+    <!-- Botão Entrar -->
+    <Button
+        android:id="@+id/btn_entrar_sala"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:text="@string/entrar_sala_jogo"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:background="@drawable/botao_branco_arredondado"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        style="@android:style/Widget.Button"
+        app:layout_constraintTop_toBottomOf="@id/edt_nome_jogador"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.85"
+        android:layout_marginTop="32dp"
+        android:paddingVertical="14dp" />
+
+    <!-- Botão Entrar -->
+    <Button
+        android:id="@+id/btn_voltar"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:text="@string/voltar"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:background="@drawable/botao_voltar"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        style="@android:style/Widget.Button"
+        app:layout_constraintTop_toBottomOf="@id/btn_entrar_sala"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.85"
+        android:layout_marginTop="32dp"
+        android:paddingVertical="14dp" />
+
+    <!-- Texto de estado -->
+    <TextView
+        android:id="@+id/txt_estado"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=""
+        android:textSize="16sp"
+        android:textColor="#000000"
+        app:layout_constraintTop_toBottomOf="@id/btn_entrar_sala"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="16dp"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

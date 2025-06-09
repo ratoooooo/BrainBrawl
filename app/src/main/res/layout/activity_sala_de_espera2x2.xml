@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="32dp"
+    android:background="#FFC400">
+
+    <TextView
+        android:id="@+id/txtTituloSala"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Sala de Espera 2x2"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:fontFamily="sans-serif-black"
+        android:textColor="#FFFFFF"
+        android:layout_marginBottom="12dp" />
+
+    <TextView
+        android:id="@+id/txtCodigoSala"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Código da sala: XXXXXX"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:fontFamily="sans-serif-black"
+        android:layout_marginBottom="18dp" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="2"
+        android:gravity="center"
+        android:layout_marginBottom="24dp">
+
+        <!-- Equipa A -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/txtEquipaA"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Equipa A"
+                android:textStyle="bold"
+                android:textColor="#1976D2"
+                android:textSize="20sp"
+                android:layout_marginBottom="8dp" />
+
+            <!-- Jogador 1 Equipa A -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="#1976D2" />
+                <TextView
+                    android:id="@+id/txtJogadorA1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aguardando..."
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:layout_marginLeft="8dp"/>
+            </LinearLayout>
+
+            <!-- Jogador 2 Equipa A -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="#1976D2" />
+                <TextView
+                    android:id="@+id/txtJogadorA2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aguardando..."
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:layout_marginLeft="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Barra divisória -->
+        <View
+            android:layout_width="2dp"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="16dp"
+            android:layout_marginRight="16dp"
+            android:background="#000000" />
+
+        <!-- Equipa B -->
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:gravity="center">
+
+            <TextView
+                android:id="@+id/txtEquipaB"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Equipa B"
+                android:textStyle="bold"
+                android:textColor="#D32F2F"
+                android:textSize="20sp"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Jogador 1 Equipa B -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:layout_marginBottom="8dp">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="#D32F2F" />
+                <TextView
+                    android:id="@+id/txtJogadorB1"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aguardando..."
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:layout_marginLeft="8dp"/>
+            </LinearLayout>
+
+            <!-- Jogador 2 Equipa B -->
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical">
+                <ImageView
+                    android:layout_width="32dp"
+                    android:layout_height="32dp"
+                    android:src="@android:drawable/ic_menu_myplaces"
+                    app:tint="#D32F2F" />
+                <TextView
+                    android:id="@+id/txtJogadorB2"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Aguardando..."
+                    android:textColor="#000000"
+                    android:textSize="16sp"
+                    android:layout_marginLeft="8dp"/>
+            </LinearLayout>
+        </LinearLayout>
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/btnIniciarJogo"
+        android:layout_width="220dp"
+        android:layout_height="56dp"
+        android:text="Iniciar Jogo"
+        android:enabled="false"
+        android:textColor="#000000"
+        android:background="@drawable/botao_branco_arredondado"
+        android:textSize="18sp"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        android:layout_marginTop="24dp" />
+
+</LinearLayout>
