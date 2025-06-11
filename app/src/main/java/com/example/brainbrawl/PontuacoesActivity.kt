@@ -1,7 +1,10 @@
 package com.example.brainbrawl
 
 import android.content.Intent
+import android.graphics.Color
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
 import com.google.firebase.database.DataSnapshot
@@ -24,6 +27,7 @@ class PontuacoesActivity : AppCompatActivity() {
     private var totalPontos: Double = 0.0
     private var respostasCertas: Int = 0
     private var totalPerguntas: Int = 1
+    private var totalRespostasCertas = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,6 +41,7 @@ class PontuacoesActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         respostasCertas = intent.getIntExtra("respostasCertas", 0)
         totalPerguntas = intent.getIntExtra("totalPerguntas", 1)
+        totalRespostasCertas = intent.getIntExtra("totalPerguntascertas", 0)
 
         // Chamar a função para carregar pontuação da sala
         carregarPontuacaoSala()
@@ -49,6 +54,16 @@ class PontuacoesActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+
+        // Configurar o botão de jogar novamente
+        binding.btnJogarNovamente.setOnClickListener {
+            // Exemplo simples: volta ao MainActivity e já pede para criar nova sala
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            intent.putExtra("acao", "jogar_novamente")
+            startActivity(intent)
+            finish()
+        }
     }
 
     // Função para carrear a pontuação da sala
@@ -57,67 +72,76 @@ class PontuacoesActivity : AppCompatActivity() {
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     // Mapa para armazenar os jogadores e as suas pontuações
-                    val jogadores = mutableListOf<Pair<String, Double>>() // Jogador, Pontos
-                    //Percorrer os filhos do snapshot para obter os jogadores e as suas pontuações
+                    val jogadores = mutableListOf<Triple<String, Double, Int>>() // Jogador, Pontos, totalPerguntasCertas
+                    // Percorrer os filhos do snapshot para obter os jogadores e as suas pontuações
                     for (childSnapshot in snapshot.children) {
                         val jogadorNome = childSnapshot.key ?: "Desconhecido"
-                        val jogadorPontos = if (childSnapshot.child("pontuacao").exists()) {
-                            childSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                        } else {
-                            childSnapshot.getValue(Double::class.java) ?: 0.0
-                        }
-                        jogadores.add(Pair(jogadorNome, jogadorPontos))
+                        val pontos = childSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
+                        val certas = childSnapshot.child("totalPerguntasCertas").getValue(Int::class.java) ?: 0
+                        jogadores.add(Triple(jogadorNome, pontos, certas))
                     }
+                    // Ordenar os jogadores por pontuação (maior para menor)
                     jogadores.sortByDescending { it.second }
+
+                    // Guardar o máximo de respostas certas
+                    val maxCertas = jogadores.maxOfOrNull { it.third } ?: 0
+                    // Guardar o(s) MVP(s) (jogador(es) com mais respostas certas)
+                    val mvps = jogadores.filter { it.third == maxCertas && maxCertas > 0 }.map { it.first }
 
                     // Limpar o layout antes de adicionar as pontuações
                     binding.layoutPodio.removeAllViews()
+                    val inflater = LayoutInflater.from(this@PontuacoesActivity)
 
-                    // Mostrar a lista de jogadores e suas pontuações
+                    // Mostrar a lista de jogadores e suas pontuações usando o item_podio.xml
                     for ((index, jogador) in jogadores.withIndex()) {
-                        val posicao = index + 1
-                        val nome = jogador.first
-                        val pontos = jogador.second
+                        // Inflar o layout customizado para cada linha do pódio
+                        val view = inflater.inflate(R.layout.item_podio, binding.layoutPodio, false)
+                        val txtMedalha = view.findViewById<TextView>(R.id.txt_medalha)
+                        val txtNome = view.findViewById<TextView>(R.id.txt_nome_jogador)
+                        val txtPontos = view.findViewById<TextView>(R.id.txt_pontos)
 
-                        // Escolhe o emoji para o pódio (top 3) e mostra número nas restantes
-                        val prefixo = when (posicao) {
-                            1 -> "🥇"
-                            2 -> "🥈"
-                            3 -> "🥉"
-                            else -> "$posicao"
+                        // Definir medalha e cor consoante a posição
+                        when (index) {
+                            0 -> { txtMedalha.text = "🥇"; txtMedalha.setTextColor(Color.parseColor("#FFC400")) }
+                            1 -> { txtMedalha.text = "🥈"; txtMedalha.setTextColor(Color.parseColor("#b0b0b0")) }
+                            2 -> { txtMedalha.text = "🥉"; txtMedalha.setTextColor(Color.parseColor("#ad7e54")) }
+                            else -> { txtMedalha.text = "${index+1}"; txtMedalha.setTextColor(Color.parseColor("#222")) }
                         }
 
-                        // Cria uma TextView simples para cada linha do pódio
-                        val textView = android.widget.TextView(this@PontuacoesActivity)
-                        textView.text = "$prefixo  $nome  -  $pontos"
-                        textView.textSize = 18f
-                        textView.setPadding(0, 8, 0, 8)
-                        textView.setTextColor(android.graphics.Color.BLACK)
-                        textView.setTypeface(null, android.graphics.Typeface.BOLD)
-                        binding.layoutPodio.addView(textView)
+                        // Adicionar tag de MVP se aplicável
+                        val isMVP = mvps.contains(jogador.first)
+                        val mvpTag = if (isMVP) " 🏆 MVP" else ""
+                        txtNome.text = jogador.first + mvpTag
+
+                        // Mostrar pontos
+                        txtPontos.text = jogador.second.toInt().toString()
+
+                        // Adicionar a view ao layout do pódio
+                        binding.layoutPodio.addView(view)
                     }
 
                     // Se não houver jogadores
                     if (jogadores.isEmpty()) {
-                        val textView = android.widget.TextView(this@PontuacoesActivity)
+                        val textView = TextView(this@PontuacoesActivity)
                         textView.text = "Sem jogadores na sala."
                         textView.textSize = 16f
-                        textView.setTextColor(android.graphics.Color.BLACK)
+                        textView.setTextColor(Color.BLACK)
                         binding.layoutPodio.addView(textView)
                     }
 
                     // Atualizar estatísticas para jogadores registados
                     if (nomeUtilizador.isNotEmpty()) {
-                        val ficouEmPrimeiro = false
+                        // Verifica se ficou em primeiro lugar
+                        val ficouEmPrimeiro = jogadores.firstOrNull()?.first == nomeUtilizador
                         atualizarEstatisticasJogador(respostasCertas, totalPerguntas, ficouEmPrimeiro)
                     }
                 }
                 override fun onCancelled(error: DatabaseError) {
                     binding.layoutPodio.removeAllViews()
-                    val textView = android.widget.TextView(this@PontuacoesActivity)
+                    val textView = TextView(this@PontuacoesActivity)
                     textView.text = "Erro ao carregar resultados"
                     textView.textSize = 16f
-                    textView.setTextColor(android.graphics.Color.BLACK)
+                    textView.setTextColor(Color.BLACK)
                     binding.layoutPodio.addView(textView)
                 }
             })

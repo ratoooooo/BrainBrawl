@@ -51,8 +51,8 @@ class JogoActivity : AppCompatActivity() {
     private var admin = false
     // Respostas certas seguidas
     private var numeroPerguntasCertas = 0
-    // Total de perguntas respondidas
-    private var totalPerguntasRespondidas = 0
+    // Total de perguntas respondidas corretamente
+    private var totalPerguntascertas = 0
     // Valor base do bónus de streak
     private var bonus = 50
     // Handler para o cronómetro
@@ -141,7 +141,6 @@ class JogoActivity : AppCompatActivity() {
             })
     }
 
-
     // Mostra a próxima pergunta e inicia cronómetro
     private fun mostrarResposta() {
         tempoIniciado = System.currentTimeMillis()
@@ -220,10 +219,10 @@ class JogoActivity : AppCompatActivity() {
 
         // Só contam para estatísticas quem não for admin
         if (!admin) {
-            totalPerguntasRespondidas++
             if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
                 definirCorBotao(botaoSelecionado, "#81C784")
                 numeroPerguntasCertas++
+                totalPerguntascertas++
                 atualizarPontuacao()
             } else if (botaoSelecionado != null) {
                 definirCorBotao(botaoSelecionado, "#E57373") // vermelho para errada
@@ -254,6 +253,9 @@ class JogoActivity : AppCompatActivity() {
             // Grava a pontuação final na base de dados
             database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador)
                 .child("pontuacao").setValue(totalPontos)
+            // Gracva o total de perguntas certas
+            database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador)
+                .child("totalPerguntasCertas").setValue(totalPerguntascertas)
 
             // Verifica estado da sala antes de enviar para pontuações
             database.child("salas").child(codigoSala).child("estado")
@@ -429,6 +431,7 @@ class JogoActivity : AppCompatActivity() {
         intent.putExtra("modoJogo", modoJogo)
         intent.putExtra("admin", admin)
         intent.putExtra("respostasCertas", numeroPerguntasCertas)
+        intent.putExtra("totalPerguntascertas", totalPerguntascertas)
         intent.putExtra("totalPerguntas", perguntas.size)
         startActivity(intent)
         finish()
