@@ -22,6 +22,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar dados passados do intent
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria")
 
@@ -30,6 +31,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
             // Ao desafiar um amigo, criar convite e sala 1x1
             val salaId = Uteis.gerarCodigoSala()
             val salaRef = database.child("sala_1x1").child(salaId)
+
 
             salaRef.setValue(
                 mapOf(

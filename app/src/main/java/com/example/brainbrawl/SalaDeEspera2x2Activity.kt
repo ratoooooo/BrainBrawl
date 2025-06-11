@@ -10,10 +10,13 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class SalaDeEspera2x2Activity : AppCompatActivity() {
+    // Acessar os elementos do layout
     private val binding by lazy {
         ActivitySalaDeEspera2x2Binding.inflate(layoutInflater)
     }
+    // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
+    // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private var jogadoresNaSala = mutableListOf<String>()
@@ -24,16 +27,18 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Receber dados passados do intent
         codigoSala = intent.getStringExtra("salaId") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria")
 
+        // Mostrar o código da sala
         binding.txtCodigoSala.text = "Código da sala: $codigoSala"
 
         // Adicionar o jogador à sala
         database.child("sala_2x2").child(codigoSala).child("jogadores").child(nomeUtilizador).setValue(true)
 
-        // Verifica quem é o admin
+        // Verificar se o jogador é o administrador (primeiro a entrar na sala)
         database.child("sala_2x2").child(codigoSala).child("jogadores")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -54,16 +59,17 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                         jogadoresNaSala.add(child.key ?: "")
                     }
 
-                    // Divide equipas A e B (primeiros 2 nomes = Equipa A, últimos 2 = Equipa B)
+                    // Divide os jogadores em duas equipas ( 2 rimeiros A e os dois últimos B )
                     val equipaA = jogadoresNaSala.take(2)
                     val equipaB = jogadoresNaSala.drop(2).take(2)
 
+                    // Atualiza os TextViews com os nomes dos jogadores
                     binding.txtJogadorA1.text = equipaA.getOrNull(0) ?: "Aguardando..."
                     binding.txtJogadorA2.text = equipaA.getOrNull(1) ?: "Aguardando..."
                     binding.txtJogadorB1.text = equipaB.getOrNull(0) ?: "Aguardando..."
                     binding.txtJogadorB2.text = equipaB.getOrNull(1) ?: "Aguardando..."
 
-                    // Só admin pode iniciar e só com 4 jogadores
+                    // Permite ao administrador iniciar o jogo quando houver 4 jogadores
                     binding.btnIniciarJogo.isEnabled = (admin && jogadoresNaSala.size == 4)
 
                     // Se ainda não existirem os nós de equipa, cria-os quando 4 jogadores estiverem presentes
@@ -80,7 +86,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Listener de estado para ambos entrarem juntos
+        // Listener do estado da sala para iniciar o jogo
         database.child("sala_2x2").child(codigoSala).child("estado")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -97,7 +103,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Botão iniciar jogo
+        // Configurar botão de Iniciar Jogo
         binding.btnIniciarJogo.setOnClickListener {
             if (admin && jogadoresNaSala.size == 4) {
                 database.child("sala_2x2").child(codigoSala).child("estado").setValue("em_jogo")

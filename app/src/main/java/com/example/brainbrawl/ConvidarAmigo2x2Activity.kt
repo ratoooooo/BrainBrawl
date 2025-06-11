@@ -22,6 +22,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar dados passados do intent
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria")
 
@@ -37,12 +38,13 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
                 Toast.makeText(this, "Seleciona entre 2 e 3 amigos!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            // Chama a função para enviar convite 2x2
             enviarConvite2x2(selecionados)
         }
 
+        // Chama a função para carregar a lista de amigos
         carregarListaAmigos()
     }
-
 
     // Função para enviar convites para o modo 2x2
     private fun enviarConvite2x2(amigosSelecionados: List<String>) {
@@ -55,6 +57,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             jogadores[amigo] = true
         }
 
+        // Cria a sala 2x2 no Firebase
         database.child("sala_2x2").child(salaId).setValue(
             mapOf(
                 "jogadores" to jogadores,
@@ -62,6 +65,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
                 "categoria" to (categoria ?: "Todas as categorias"),
             )
         )
+        // Mapa de dados do convite
         val conviteData = mapOf(
             "estado" to "pendente",
             "salaId" to salaId,

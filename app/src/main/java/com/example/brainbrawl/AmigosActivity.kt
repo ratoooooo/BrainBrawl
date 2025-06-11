@@ -10,7 +10,10 @@ import com.example.brainbrawl.databinding.ActivityAmigosBinding
 import com.google.firebase.database.FirebaseDatabase
 
 class AmigosActivity : AppCompatActivity() {
-    private val binding by lazy { ActivityAmigosBinding.inflate(layoutInflater) }
+    // Acessar os elementos do layout
+    private val binding by lazy {
+        ActivityAmigosBinding.inflate(layoutInflater)
+    }
     private val database = FirebaseDatabase.getInstance().reference
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()

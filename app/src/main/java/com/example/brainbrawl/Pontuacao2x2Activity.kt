@@ -11,30 +11,30 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class Pontuacao2x2Activity : AppCompatActivity() {
-
+    // Acessar os elementos do layout
     private val binding by lazy {
         ActivityPontuacaoMultiBinding.inflate(layoutInflater)
     }
-
+    // Acessar a base de dados
+    private val database = FirebaseDatabase.getInstance().reference
+    // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String
     private lateinit var nomeCategoria: String
     private lateinit var nomeJogador: String
     private lateinit var nomeUtilizador: String
-
     private var totalPontos: Double = 0.0
     private var admin = false
-
-    private val database = FirebaseDatabase.getInstance().reference
 
     // Novos dados do jogo
     private var respostasCertas: Int = 0
     private var totalPerguntas: Int = 1
-    private var equipa: String? = null // para 2x2
+    private var equipa: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar dados passados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeJogador = intent.getStringExtra("nomeJogador") ?: "Jogador"
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
@@ -43,12 +43,15 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         admin = intent.getBooleanExtra("admin", false)
         equipa = intent.getStringExtra("equipa")
 
+        // Chamar a função para carregar pontuação da sala 2x2
         carregarPontuacao2x2()
 
+        // Exibir os dados do jogador
         if (nomeUtilizador.isNotEmpty()) {
             adicionarPontuacaoJogadorRegistado()
         }
 
+        // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
             database.child("sala_2x2").child(codigoSala).removeValue()
             val intent = Intent(this, MainActivity::class.java)
@@ -58,7 +61,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         }
     }
 
-    // Lógica para mostrar o pódio 2x2, sempre exibindo os dois da equipa vencedora primeiro!
+    // Função para carregar a pontuação da sala 2x2
     private fun carregarPontuacao2x2() {
         val equipaA = mutableListOf<Pair<String, Double>>() // Jogador, Pontos
         val equipaB = mutableListOf<Pair<String, Double>>() // Jogador, Pontos
@@ -77,19 +80,21 @@ class Pontuacao2x2Activity : AppCompatActivity() {
                             val pontos = child.getValue(Double::class.java) ?: 0.0
                             equipaB.add(Pair(nome, pontos))
                         }
+                        // Ordenar as equipas por pontos
                         equipaA.sortByDescending { it.second }
                         equipaB.sortByDescending { it.second }
 
+                        // Calcular o total de pontos de cada equipa
                         val totalA = equipaA.sumOf { it.second }
                         val totalB = equipaB.sumOf { it.second }
 
-                        // Lista final: equipa vencedora primeiro, depois perdedora
+                        // Apresentar as equipas e os seus pontos
                         val podio = if (totalA >= totalB)
                             equipaA + equipaB
                         else
                             equipaB + equipaA
 
-                        // Preenche os 4 lugares do layout (podes ajustar para menos/jogadores faltantes)
+                        // Preenche os 4 lugares do layout
                         if (podio.size > 0) {
                             binding.txtNomeJogador1.text = podio.getOrNull(0)?.first ?: ""
                             binding.txtPontos1.text = podio.getOrNull(0)?.second?.toInt()?.toString() ?: ""
@@ -114,10 +119,13 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         })
     }
 
+    // Função para adicionar a pontuação do jogador registado
     private fun adicionarPontuacaoJogadorRegistado() {
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                // Guardar a pontuação que esta guardada na base de dados
                 val pontuacaoGuardada = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
+                // Atualizar a pontuação do jogador caso seja maior que a guardada
                 if (totalPontos > pontuacaoGuardada) {
                     database.child("jogadores").child(nomeUtilizador).child("pontuacao").setValue(totalPontos)
                     Toast.makeText(this@Pontuacao2x2Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()

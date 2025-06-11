@@ -6,10 +6,10 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.databinding.ActivityEscolhaCategoriaModosBinding
 
 class EscolhaCategoriaModosActivity : AppCompatActivity() {
+    // Acessar os elementos do layout
     private val binding by lazy {
         ActivityEscolhaCategoriaModosBinding.inflate(layoutInflater)
     }
-    private lateinit var codigoSala: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,6 +23,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
             return
         }
 
+        // Configurar os botões de categoria
         binding.btnCategoria1.setOnClickListener {
             abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria1))
         }
@@ -35,11 +36,15 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         binding.btnCategoria4.setOnClickListener {
             abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria4))
         }
+        binding.btnCategoria6.setOnClickListener {
+            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria6))
+        }
         binding.btnCategoria5.setOnClickListener {
             abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria5))
         }
     }
 
+    // Função para abrir a próxima activity dependendo do modo de jogo selecionado
     private fun abrirProximaActivity(modoJogo: String, nomeUtilizador: String?, categoria: String) {
         val intent = when (modoJogo) {
             "1x1" -> Intent(this, ConvidarAmigo1x1Activity::class.java)
@@ -52,6 +57,5 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         startActivity(intent)
         finish()
     }
-
 
 }

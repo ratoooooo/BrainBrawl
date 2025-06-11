@@ -1,7 +1,6 @@
 package com.example.brainbrawl
 
 import Pergunta
-import android.content.Intent
 import android.icu.text.DecimalFormat
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -9,6 +8,10 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.Uteis.atualizarPontuacao
+import com.example.brainbrawl.Uteis.definirCorBotao
+import com.example.brainbrawl.Uteis.enviarPontuacaoActivity
+import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
 import com.example.brainbrawl.databinding.ActivityJogo1x1Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -115,11 +118,13 @@ class Jogo1x1Activity : AppCompatActivity() {
     }
     override fun onDestroy() {
         super.onDestroy()
+        // Libertar recursos do handler e do media player
         handler.removeCallbacksAndMessages(null)
         mediaPlayer?.release()
         mediaPlayer = null
     }
 
+    // Função que configura os listeners dos botões de opções
     private fun configurarBotoes() {
         binding.btnOpcao1.setOnClickListener { verificarResposta(0) }
         binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
@@ -127,6 +132,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         binding.btnOpcao4.setOnClickListener { verificarResposta(3) }
     }
 
+    // Função que busca as perguntas aleatórias da categoria selecionada ou de todas as categorias
     private fun buscarPerguntasAleatorias(onComplete: (List<Pergunta>) -> Unit) {
         val categoriaEscolhida = categoria
         database.child("categorias")
@@ -134,7 +140,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val todas = mutableListOf<Pergunta>()
                     for (categoriaSnapshot in snapshot.children) {
-                        // Só busca perguntas da categoria selecionada, se houver
+                        // Verifica se a categoria é a escolhida ou se é "Todas as categorias"
                         if (categoriaEscolhida == "Todas as categorias" || categoriaEscolhida.isEmpty() ||
                             categoriaSnapshot.key == categoriaEscolhida) {
                             val perguntasSnapshot = categoriaSnapshot.child("perguntas")
@@ -146,12 +152,14 @@ class Jogo1x1Activity : AppCompatActivity() {
                                 opcoesSnapshot.forEach { opcao ->
                                     opcoes.add(opcao.getValue(String::class.java) ?: "")
                                 }
+                                // Verifica se a pergunta, resposta correta e opções estão preenchidas
                                 if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
                                     todas.add(Pergunta(pergunta, respostaCorreta, opcoes))
                                 }
                             }
                         }
                     }
+                    // Embaralha e seleciona 15 perguntas aleatórias
                     val escolhidas = todas.shuffled().take(15)
                     onComplete(escolhidas)
                 }
@@ -162,12 +170,7 @@ class Jogo1x1Activity : AppCompatActivity() {
             })
     }
 
-    private fun obterOpcoesAleatorias(pergunta: Pergunta): List<String> {
-        val opcoes = pergunta.opcoes.toMutableList()
-        opcoes.shuffle()
-        return opcoes
-    }
-
+    // Função que a pergunta atual e redefine o cronómetro
     private fun mostrarPergunta() {
         tempoIniciado = System.currentTimeMillis()
         if (perguntaAtualIndex >= perguntas.size) {
@@ -185,6 +188,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         binding.btnOpcao3.text = opcoesAtuais[2]
         binding.btnOpcao4.text = opcoesAtuais[3]
 
+        // Reset visual dos botões
         definirCorBotao(binding.btnOpcao1, "#E0E0E0")
         definirCorBotao(binding.btnOpcao2, "#E0E0E0")
         definirCorBotao(binding.btnOpcao3, "#E0E0E0")
@@ -194,13 +198,9 @@ class Jogo1x1Activity : AppCompatActivity() {
         iniciarCronometro()
     }
 
-    private fun definirCorBotao(botao: android.widget.Button, cor: String) {
-        botao.backgroundTintList = android.content.res.ColorStateList.valueOf(
-            android.graphics.Color.parseColor(cor)
-        )
-    }
-
+    // Função que verefica se a resposta está correta e atualiza pontuação
     private fun verificarResposta(numeroOpcao: Int) {
+        // Parar som se estiver a tocar
         if (somTocar) {
             mediaPlayer?.stop()
             mediaPlayer?.release()
@@ -237,19 +237,21 @@ class Jogo1x1Activity : AppCompatActivity() {
             else -> null
         }
 
-        definirCorBotao(botaoCorreto!!, "#81C784")
+        definirCorBotao(botaoCorreto!!, "#81C784") // Verde para a resposta correta
 
         // Estatísticas
         totalPerguntasRespondidas++
         if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
-            definirCorBotao(botaoSelecionado, "#81C784")
+            definirCorBotao(botaoSelecionado, "#81C784") // Verde para a resposta correta
             numeroPerguntasCertas++
-            atualizarPontuacao()
+            val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
+            totalPontos += pontos
         } else if (botaoSelecionado != null) {
-            definirCorBotao(botaoSelecionado, "#E57373")
+            definirCorBotao(botaoSelecionado, "#E57373") // Vermelho para a resposta errada
             numeroPerguntasCertas = 0
         }
 
+        // Delay para mostrar feedback antes da próxima pergunta
         val tempoAteProxima = ((tempoIniciado + 15000) - System.currentTimeMillis()).coerceAtLeast(0)
         handler.postDelayed({
             perguntaAtualIndex++
@@ -257,6 +259,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         }, tempoAteProxima + 1200)
     }
 
+    // Função para finalizar o jogo e guardar pontuação
     private fun finalizarJogo() {
         tempoDecorrido = false
         progressBarAtivo = false
@@ -266,7 +269,7 @@ class Jogo1x1Activity : AppCompatActivity() {
             .child("pontuacoes").child(nomeUtilizador)
             .setValue(totalPontos)
             .addOnSuccessListener {
-                enviarPontuacaoActivity()
+                enviarPontuacaoActivity(this, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, numeroPerguntasCertas, perguntas.size)
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Erro ao guardar pontuação!", Toast.LENGTH_SHORT).show()
@@ -274,23 +277,8 @@ class Jogo1x1Activity : AppCompatActivity() {
             }
     }
 
-    private fun atualizarPontuacao() {
-        val tempoUsado = (15 - tempoRestante).toInt()
-        var pontuacao = (15 - tempoUsado) * 10
 
-        if (numeroPerguntasCertas == 2) {
-            pontuacao += bonus
-            Toast.makeText(this, "Bónus de sequência! +$bonus pontos", Toast.LENGTH_SHORT).show()
-        } else if (numeroPerguntasCertas == 3) {
-            pontuacao += bonus + 25
-            Toast.makeText(this, "Bónus de sequência! +${bonus + 25} pontos", Toast.LENGTH_SHORT).show()
-        } else if (numeroPerguntasCertas >= 4) {
-            pontuacao += bonus + 100
-            Toast.makeText(this, "Bónus de sequência! +${bonus + 50} pontos", Toast.LENGTH_SHORT).show()
-        }
-        totalPontos += pontuacao
-    }
-
+    // Função que inicia o cronómetro visual e sonoro da pergunta
     private fun iniciarCronometro() {
         tempoDecorrido = true
         progressBarAtivo = true
@@ -303,6 +291,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         val runnable = object : Runnable {
             override fun run() {
 
+                // Toca som nos últimos 5 segundos
                 if (tempoRestante <= 5 && !somTocar) {
                     mediaPlayer = MediaPlayer.create(this@Jogo1x1Activity, R.raw.som)
                     mediaPlayer?.isLooping = true
@@ -315,6 +304,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                     somTocar = false
                 }
 
+                // Ativar botões só na primeira atualização
                 if (primeiraAtualizacao) {
                     binding.btnOpcao1.isEnabled = true
                     binding.btnOpcao2.isEnabled = true
@@ -322,6 +312,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                     binding.btnOpcao4.isEnabled = true
                     primeiraAtualizacao = false
                 }
+                // Atualiza tempo restante
                 val tempoAtual = System.currentTimeMillis()
                 tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
                 if (tempoDecorrido) {
@@ -347,19 +338,4 @@ class Jogo1x1Activity : AppCompatActivity() {
         handler.postDelayed(runnable, 200)
     }
 
-    private fun enviarPontuacaoActivity() {
-        // Redireciona para o ecrã de pontuação
-        val intent = Intent(this, Pontuacao1x1Activity::class.java)
-        intent.putExtra("codigoSala", salaId)
-        intent.putExtra("nomeJogador", nomeUtilizador)
-        intent.putExtra("totalPontos", totalPontos)
-        intent.putExtra("nomeCategoria", categoria)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("modoJogo", "1x1")
-        intent.putExtra("admin", false)
-        intent.putExtra("respostasCertas", numeroPerguntasCertas)
-        intent.putExtra("totalPerguntas", perguntas.size)
-        startActivity(intent)
-        finish()
-    }
 }

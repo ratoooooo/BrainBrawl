@@ -19,7 +19,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        //Receber dados passados do intent
+        // Guardar o código da sala
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
 
@@ -41,15 +41,12 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         binding.btnCategoria4.setOnClickListener {
                 abrirMainActivity(this, getString(R.string.categoria4), modoJogo, nomeUtilizador)
         }
-        binding.btnCategoria5.setOnClickListener {
-                abrirMainActivity(this, getString(R.string.categoria6), modoJogo, nomeUtilizador)
-        }
         binding.btnCriarCategoria.setOnClickListener {
                 abrirAdicionarPerguntaActivity(modoJogo, nomeUtilizador)
         }
     }
 
-    //Abrir a AdicionarPerguntaActivity
+    //Função para abrir a AdicionarPerguntaActivity
     private fun abrirAdicionarPerguntaActivity(modo: String, nome: String?) {
         codigoSala = gerarCodigoSala()
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)

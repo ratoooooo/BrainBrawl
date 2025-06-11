@@ -12,7 +12,6 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityAdicionarPerguntaBinding.inflate(layoutInflater)
     }
-
     // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
 
@@ -39,47 +38,47 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
                 else -> ""
             }
 
-            //Verificar se a categoria é permitida
+            // Verificar se a categoria é permitida
             if (nomeCategoria == getString(R.string.categoria1) || nomeCategoria == getString(R.string.categoria2) ||
                 nomeCategoria == getString(R.string.categoria3) || nomeCategoria == getString(R.string.categoria4)) {
                 Toast.makeText(this, "Categoria não permitida", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            //Verificar os tamanhos dos campos
+            // Verificar os tamanhos dos campos
             if (nomeCategoria.length > 50 || pergunta.length > 200 || opcaoA.length > 100 || opcaoB.length > 100 || opcaoC.length > 100 || opcaoD.length > 100) {
                 Toast.makeText(this, "Campos excedem o tamanho máximo permitido", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            //Verificar se as respostas estão preenchidas
+            // Verificar se as respostas estão preenchidas
             if (listOf(opcaoA, opcaoB, opcaoC, opcaoD).distinct().size != 4) {
                 Toast.makeText(this, "As opções devem ser todas diferentes", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            //Verificar se os campos estão preenchidos
+            // Verificar se os campos estão preenchidos
             if (nomeCategoria.isEmpty() || pergunta.isEmpty() || opcaoA.isEmpty() || opcaoB.isEmpty() || opcaoC.isEmpty() || opcaoD.isEmpty() || respostaCorreta.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            //Criar um mapa com os dados da pergunta
+            // Criar um mapa com os dados da pergunta
             val perguntasData = mapOf(
                 "pergunta" to pergunta,
                 "respostaCorreta" to respostaCorreta,
                 "opcoes" to listOf(opcaoA, opcaoB, opcaoC, opcaoD)
             )
 
-            //Adicionar a pergunta a base de dados
+            // Adicionar a pergunta a base de dados
             database.child("categorias").child(nomeCategoria).child("perguntas").push().setValue(perguntasData)
-                //Verificar se a pergunta foi adicionada com sucesso
+                // Verificar se a pergunta foi adicionada com sucesso
                 .addOnSuccessListener {
-                    //Exibir mensagem de sucesso
+                    // Exibir mensagem de sucesso
                     Toast.makeText(this, "Pergunta adicionada com sucesso!", Toast.LENGTH_SHORT).show()
                 }
                 .addOnFailureListener { error ->
-                    //Exibir mensagem de erro
+                    // Exibir mensagem de erro
                     Toast.makeText(this, "Erro ao adicionar pergunta: ${error.message}", Toast.LENGTH_SHORT).show()
                 }
 

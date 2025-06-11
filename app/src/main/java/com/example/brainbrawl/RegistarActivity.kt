@@ -13,7 +13,6 @@ class RegistarActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityRegistarBinding.inflate(layoutInflater)
     }
-
     // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
 
@@ -23,11 +22,13 @@ class RegistarActivity : AppCompatActivity() {
 
         // Configurar botão de registo
         binding.btnRegistar.setOnClickListener {
-            //GGuardar os dados inseridos nos campos de texto
+            // GGuardar os dados inseridos nos campos de texto
             val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
             val password = binding.edtPasswordJogador.text.toString().trim()
 
+            // Validar os campos
             val erro = Uteis.validarCampos(nomeUtilizador, password)
+            // Verificar se há erros
             if (erro != null) {
                 Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -38,13 +39,14 @@ class RegistarActivity : AppCompatActivity() {
                 .addOnSuccessListener { snapshot ->
                     //Verificar se jogador já existe
                     if (snapshot.exists()) {
-                        // Exibir mensagem de erro
                         Toast.makeText(this, "Jogador já existe", Toast.LENGTH_SHORT).show()
                     } else {
-                        // Adicionar jogador ao Firebase
+                        //Chamar a função para adicionar o jogador
                         adicionarJogador(nomeUtilizador, password)
-                        // Abrir LoginActivity
-                        startActivity(Intent(this, LoginActivity::class.java))
+                        // Abrir LoginActivity e passar o nome do utilizador
+                        var intent = Intent(this, LoginActivity::class.java)
+                        intent.putExtra("nomeUtilizador", nomeUtilizador)
+                        startActivity(intent)
                         finish()
                     }
                 }
@@ -61,17 +63,14 @@ class RegistarActivity : AppCompatActivity() {
         }
     }
 
-    // Adicionar jogador ao Firebase com senha encriptada
+    // Função para adicionar o jogador ao Firebase com senha encriptada
     private fun adicionarJogador(nomeUtilizador: String, password: String) {
         val hashedPassword = hashPassword(password)
         val jogadorData = mapOf(
             "password" to hashedPassword,
             "pontuacao" to 0.0,
             "totalJogos" to 0,
-            "totalVitorias" to 0,
-            "totalRespostasCertas" to 0,
-            "totalPerguntasRespondidas" to 0,
-            "taxaAcertos" to 0.0,
+            "totalVitorias" to 0
         )
         database.child("jogadores").child(nomeUtilizador).setValue(jogadorData)
     }

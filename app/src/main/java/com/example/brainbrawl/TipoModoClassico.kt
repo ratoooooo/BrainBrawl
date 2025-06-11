@@ -12,7 +12,6 @@ class TipoModoClassico : AppCompatActivity() {
     private val binding by lazy {
         ActivityTipoModoClassicoBinding.inflate(layoutInflater)
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -22,32 +21,12 @@ class TipoModoClassico : AppCompatActivity() {
 
         // Configurar o botao para o modo 1x1
         binding.btnModo1x1.setOnClickListener {
-            // Verifica se o jogador esta logado
-            if (nomeUtilizador.isNullOrEmpty()) {
-                mostrarMensagemLoginObrigatorio()
-            } else {
-                // Redireciona para a EscolhaCategoriaModosActivity com o modo 1x1
-                val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
-                // Passa o modo de jogo e o nome do utilizador
-                intent.putExtra("modoJogo", "1x1")
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
-                startActivity(intent)
-            }
+            iniciarModoCompetitivo("1x1", nomeUtilizador)
         }
 
         // Configurar o botao para o modo 2x2
         binding.btnModo2x2.setOnClickListener {
-            // Verifica se o jogador esta logado
-            if (nomeUtilizador.isNullOrEmpty()) {
-                mostrarMensagemLoginObrigatorio()
-            } else {
-                // Redireciona para a EscolhaCategoriaModosActivity com o modo 2x2
-                val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
-                // Passa o modo de jogo e o nome do utilizador
-                intent.putExtra("modoJogo", "2x2")
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
-                startActivity(intent)
-            }
+            iniciarModoCompetitivo("2x2", nomeUtilizador)
         }
 
         // Configurar o botao para o modo de grupo
@@ -85,5 +64,18 @@ class TipoModoClassico : AppCompatActivity() {
             .setMessage(mensagem)
             .setPositiveButton("OK", null)
             .show()
+    }
+
+    private fun iniciarModoCompetitivo(modo: String, nomeUtilizador: String?) {
+        // Verifica se o jogador está logado
+        if (nomeUtilizador.isNullOrEmpty()) {
+            mostrarMensagemLoginObrigatorio()
+        } else {
+            // Redireciona para a EscolherCategoriaActivity com o modo de jogo selecionado
+            val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
+            intent.putExtra("modoJogo", modo)
+            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            startActivity(intent)
+        }
     }
 }

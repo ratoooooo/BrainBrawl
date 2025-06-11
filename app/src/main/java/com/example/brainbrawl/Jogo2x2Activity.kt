@@ -1,7 +1,6 @@
 package com.example.brainbrawl
 
 import Pergunta
-import android.content.Intent
 import android.icu.text.DecimalFormat
 import android.media.MediaPlayer
 import android.os.Bundle
@@ -9,6 +8,10 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.Uteis.atualizarPontuacao
+import com.example.brainbrawl.Uteis.definirCorBotao
+import com.example.brainbrawl.Uteis.enviarPontuacaoActivity
+import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -18,15 +21,18 @@ import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 
 class Jogo2x2Activity : AppCompatActivity() {
+    // Aceder aos elementos do layout
     private val binding by lazy {
         ActivityJogo2x2Binding.inflate(layoutInflater)
     }
+    // Variáveis para dados do jogo e jogador
     private lateinit var salaId: String
     private lateinit var nomeUtilizador: String
     private lateinit var perguntaAtual: Pergunta
     private lateinit var categoria: String
 
-    private var mediaPlayer: MediaPlayer? = null
+    // Variáveis de lógica de jogo
+    private var mediaPlayer: MediaPlayer? = null // Para som de contagem decrescente
     private var somTocar = false
     private var perguntaAtualIndex = 0
     private var totalPontos = 0.0
@@ -44,13 +50,14 @@ class Jogo2x2Activity : AppCompatActivity() {
     private val database = FirebaseDatabase.getInstance().reference
     private val perguntas = mutableListOf<Pergunta>()
 
-    // Para saber a equipa do jogador
-    private var equipaDoJogador: String = "" // "A" ou "B"
+    // Variável para saber a equipa do jogador ("A" ou "B")
+    private var equipaDoJogador: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Obter dados do intent
         salaId = intent.getStringExtra("salaId") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria") ?: "Todas as categorias"
@@ -74,13 +81,14 @@ class Jogo2x2Activity : AppCompatActivity() {
         })
     }
 
+    // Função que carrega as perguntas da sala ou as cria se for o primeiro jogador
     private fun carregarOuCriarPerguntas() {
-        // Busca ou cria perguntas (idêntico ao 1x1, mas usa sala_2x2)
         database.child("sala_2x2").child(salaId).child("perguntas")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     perguntas.clear()
                     if (snapshot.exists()) {
+                        // Perguntas já existem na sala
                         for (perguntaSnapshot in snapshot.children) {
                             val pergunta = perguntaSnapshot.getValue(Pergunta::class.java)
                             if (pergunta != null) perguntas.add(pergunta)
@@ -90,7 +98,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                         }
                         configurarBotoes()
                     } else {
-                        // Só o primeiro a entrar cria as perguntas - garante justiça com transaction!
+                        // Só o primeiro jogador a entrar cria as perguntas (usando transaction para garantir que só um cria)
                         buscarPerguntasAleatorias { perguntasAleatorias ->
                             database.child("sala_2x2").child(salaId).child("perguntas")
                                 .runTransaction(object : Transaction.Handler {
@@ -138,11 +146,13 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        // Libertar recursos do handler e do media player
         handler.removeCallbacksAndMessages(null)
         mediaPlayer?.release()
         mediaPlayer = null
     }
 
+    // Função que configura os listeners dos botões de opções
     private fun configurarBotoes() {
         binding.btnOpcao1.setOnClickListener { verificarResposta(0) }
         binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
@@ -150,6 +160,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         binding.btnOpcao4.setOnClickListener { verificarResposta(3) }
     }
 
+    // Função que busca as perguntas aleatórias da categoria selecionada ou de todas as categorias
     private fun buscarPerguntasAleatorias(onComplete: (List<Pergunta>) -> Unit) {
         val categoriaEscolhida = categoria
         database.child("categorias")
@@ -157,7 +168,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val todas = mutableListOf<Pergunta>()
                     for (categoriaSnapshot in snapshot.children) {
-                        // Só busca perguntas da categoria selecionada, se houver
+                        // Verifica se a categoria é a escolhida ou se é "Todas as categorias"
                         if (categoriaEscolhida == "Todas as categorias" || categoriaEscolhida.isEmpty() ||
                             categoriaSnapshot.key == categoriaEscolhida) {
                             val perguntasSnapshot = categoriaSnapshot.child("perguntas")
@@ -166,6 +177,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                                 val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
                                 val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
                                 val opcoes = mutableListOf<String>()
+                                // Verifica se a pergunta, resposta correta e opções estão presentes
                                 opcoesSnapshot.forEach { opcao ->
                                     opcoes.add(opcao.getValue(String::class.java) ?: "")
                                 }
@@ -175,6 +187,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                             }
                         }
                     }
+                    // Embaralha e seleciona 15 perguntas aleatórias
                     val escolhidas = todas.shuffled().take(15)
                     onComplete(escolhidas)
                 }
@@ -185,12 +198,7 @@ class Jogo2x2Activity : AppCompatActivity() {
             })
     }
 
-    private fun obterOpcoesAleatorias(pergunta: Pergunta): List<String> {
-        val opcoes = pergunta.opcoes.toMutableList()
-        opcoes.shuffle()
-        return opcoes
-    }
-
+    // Função que a pergunta atual e redefine o cronómetro
     private fun mostrarPergunta() {
         tempoIniciado = System.currentTimeMillis()
         if (perguntaAtualIndex >= perguntas.size) {
@@ -208,6 +216,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         binding.btnOpcao3.text = opcoesAtuais[2]
         binding.btnOpcao4.text = opcoesAtuais[3]
 
+        // Reset visual dos botões
         definirCorBotao(binding.btnOpcao1, "#E0E0E0")
         definirCorBotao(binding.btnOpcao2, "#E0E0E0")
         definirCorBotao(binding.btnOpcao3, "#E0E0E0")
@@ -217,13 +226,9 @@ class Jogo2x2Activity : AppCompatActivity() {
         iniciarCronometro()
     }
 
-    private fun definirCorBotao(botao: android.widget.Button, cor: String) {
-        botao.backgroundTintList = android.content.res.ColorStateList.valueOf(
-            android.graphics.Color.parseColor(cor)
-        )
-    }
-
+    // Função que verefica se a resposta está correta e atualiza pontuação
     private fun verificarResposta(numeroOpcao: Int) {
+        // Parar som se estiver a tocar
         if (somTocar) {
             mediaPlayer?.stop()
             mediaPlayer?.release()
@@ -237,6 +242,7 @@ class Jogo2x2Activity : AppCompatActivity() {
             binding.txtCronometro.text = "0.0"
         }
 
+        // Desativar botões após resposta
         binding.btnOpcao1.isEnabled = false
         binding.btnOpcao2.isEnabled = false
         binding.btnOpcao3.isEnabled = false
@@ -260,24 +266,26 @@ class Jogo2x2Activity : AppCompatActivity() {
             else -> null
         }
 
-        definirCorBotao(botaoCorreto!!, "#81C784")
+        definirCorBotao(botaoCorreto!!, "#81C784") // Verde para correta
 
-        // Estatísticas
+        // Atualiza estatísticas de respostas
         totalPerguntasRespondidas++
         if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
             definirCorBotao(botaoSelecionado, "#81C784")
             numeroPerguntasCertas++
-            atualizarPontuacao()
+            val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
+            totalPontos += pontos
         } else if (botaoSelecionado != null) {
-            definirCorBotao(botaoSelecionado, "#E57373")
+            definirCorBotao(botaoSelecionado, "#E57373") // Vermelho para errada
             numeroPerguntasCertas = 0
         }
 
-        // Guarda resposta do jogador no nó da sala
+        // Guarda resposta do jogador na base de dados
         val respostaRef = database.child("sala_2x2").child(salaId)
             .child("respostas").child(nomeUtilizador).child(perguntaAtualIndex.toString())
         respostaRef.setValue(opcaoEscolhida)
 
+        // Delay para mostrar feedback antes da próxima pergunta
         val tempoAteProxima = ((tempoIniciado + 15000) - System.currentTimeMillis()).coerceAtLeast(0)
         handler.postDelayed({
             perguntaAtualIndex++
@@ -285,6 +293,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         }, tempoAteProxima + 1200)
     }
 
+    // Função para finalizar o jogo e guardar pontuação
     private fun finalizarJogo() {
         tempoDecorrido = false
         progressBarAtivo = false
@@ -298,26 +307,13 @@ class Jogo2x2Activity : AppCompatActivity() {
                 .setValue(totalPontos)
         }
 
-        enviarPontuacaoActivity()
+        // Chama a activity de pontuação
+        enviarPontuacaoActivity(this, "2x2", nomeUtilizador, totalPontos, categoria, nomeUtilizador, numeroPerguntasCertas, perguntas.size, equipaDoJogador)
+       finish()
     }
 
-    private fun atualizarPontuacao() {
-        val tempoUsado = (15 - tempoRestante).toInt()
-        var pontuacao = (15 - tempoUsado) * 10
 
-        if (numeroPerguntasCertas == 2) {
-            pontuacao += bonus
-            Toast.makeText(this, "Bónus de sequência! +$bonus pontos", Toast.LENGTH_SHORT).show()
-        } else if (numeroPerguntasCertas == 3) {
-            pontuacao += bonus + 25
-            Toast.makeText(this, "Bónus de sequência! +${bonus + 25} pontos", Toast.LENGTH_SHORT).show()
-        } else if (numeroPerguntasCertas >= 4) {
-            pontuacao += bonus + 100
-            Toast.makeText(this, "Bónus de sequência! +${bonus + 50} pontos", Toast.LENGTH_SHORT).show()
-        }
-        totalPontos += pontuacao
-    }
-
+    // Função que inicia o cronómetro visual e sonoro da pergunta
     private fun iniciarCronometro() {
         tempoDecorrido = true
         progressBarAtivo = true
@@ -330,6 +326,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         val runnable = object : Runnable {
             override fun run() {
 
+                // Toca som nos últimos 5 segundos
                 if (tempoRestante <= 5 && !somTocar) {
                     mediaPlayer = MediaPlayer.create(this@Jogo2x2Activity, R.raw.som)
                     mediaPlayer?.isLooping = true
@@ -342,6 +339,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                     somTocar = false
                 }
 
+                // Ativar botões só na primeira atualização
                 if (primeiraAtualizacao) {
                     binding.btnOpcao1.isEnabled = true
                     binding.btnOpcao2.isEnabled = true
@@ -349,6 +347,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                     binding.btnOpcao4.isEnabled = true
                     primeiraAtualizacao = false
                 }
+                // Atualiza tempo restante
                 val tempoAtual = System.currentTimeMillis()
                 tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
                 if (tempoDecorrido) {
@@ -374,20 +373,4 @@ class Jogo2x2Activity : AppCompatActivity() {
         handler.postDelayed(runnable, 200)
     }
 
-    private fun enviarPontuacaoActivity() {
-        // Redireciona para o ecrã de pontuação (adapta a activity se necessário)
-        val intent = Intent(this, Pontuacao2x2Activity::class.java)
-        intent.putExtra("codigoSala", salaId)
-        intent.putExtra("nomeJogador", nomeUtilizador)
-        intent.putExtra("totalPontos", totalPontos)
-        intent.putExtra("nomeCategoria", categoria)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("modoJogo", "2x2")
-        intent.putExtra("admin", false)
-        intent.putExtra("respostasCertas", numeroPerguntasCertas)
-        intent.putExtra("totalPerguntas", perguntas.size)
-        intent.putExtra("equipa", equipaDoJogador)
-        startActivity(intent)
-        finish()
-    }
 }

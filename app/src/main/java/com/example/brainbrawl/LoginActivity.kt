@@ -17,13 +17,8 @@ class LoginActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityLoginBinding.inflate(layoutInflater)
     }
-
     // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
-
-    // Armazenar nome de utilizador e senha
-    private var nomeUtilizador = ""
-    private var password = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,10 +27,13 @@ class LoginActivity : AppCompatActivity() {
 
         // Configurar botão de login
         binding.btnEntrar.setOnClickListener {
-            nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
-            password = binding.edtPasswordJogador.text.toString().trim()
+            // Guarda os valores inseridos nos campos
+            var nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
+            var password = binding.edtPasswordJogador.text.toString().trim()
 
+            // Faz a validação dos campos
             val erro = Uteis.validarCampos(nomeUtilizador, password)
+            // Se existir erro exibir mensagem
             if (erro != null) {
                 Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener

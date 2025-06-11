@@ -11,15 +11,16 @@ class Convidar2x2AmigoAdapter(
     private val amigos: List<String>
 ) : RecyclerView.Adapter<Convidar2x2AmigoAdapter.AmigoViewHolder>() {
 
+    // Conjunto para armazenar os amigos selecionados
     private val selecionados = mutableSetOf<String>()
 
-    // ViewHolder para cada item da lista de amigos
+    // ViewHolder para cad a amigo na lista de amigos
     inner class AmigoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val txtNomeAmigo: TextView = view.findViewById(R.id.txtNomeAmigo)
         val checkBox: CheckBox = view.findViewById(R.id.checkBoxSelecionarAmigo)
     }
 
-    // Cria a ViewHolder para cada item da lista
+    // Cria a ViewHolder para cada amigo na lista de amigos
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AmigoViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.lista_multi_jogadores, parent, false)
@@ -46,7 +47,9 @@ class Convidar2x2AmigoAdapter(
         }
     }
 
+    // Retorna o número de amigos na lista
     override fun getItemCount() = amigos.size
 
+    // Retorna a lista de amigos selecionados
     fun getSelecionados(): List<String> = selecionados.toList()
 }

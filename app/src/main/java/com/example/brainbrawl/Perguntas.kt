@@ -1,4 +1,4 @@
-
+// Classe Perguntas
 data class Pergunta(
     val pergunta: String = "",
     val respostaCorreta: String = "",

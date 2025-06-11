@@ -1,6 +1,6 @@
 package com.example.brainbrawl
 
-// Data class simples para representar um convite 1x1
+// Classe Convite1x1  que serve para o 2x1
 data class Convite1x1(
     val nomeAmigo: String,
     val salaId: String,

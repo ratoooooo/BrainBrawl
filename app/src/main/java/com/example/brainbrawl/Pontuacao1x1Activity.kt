@@ -11,10 +11,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class Pontuacao1x1Activity : AppCompatActivity() {
-
+    // Acessar os elementos do layout
     private val binding by lazy {
         ActivityPontuacao1x1Binding.inflate(layoutInflater)
     }
+    // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
     private lateinit var codigoSala: String
     private lateinit var nomeJogador: String
@@ -25,13 +26,17 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar dados passados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeJogador = intent.getStringExtra("nomeJogador") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
 
-        carregarPodio1x1()
+        // Chamar a função para carregar pontuação da sala 2x2
+        carregarPontuacao1x1()
 
+
+        // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
             database.child("sala_1x1").child(codigoSala).removeValue()
             startActivity(Intent(this, MainActivity::class.java).apply {
@@ -41,16 +46,18 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         }
     }
 
-    private fun carregarPodio1x1() {
+    // Função para carregar a pontuação da sala 2x2
+    private fun carregarPontuacao1x1() {
         database.child("sala_1x1").child(codigoSala).child("pontuacoes")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val jogadores = mutableListOf<Pair<String, Double>>()
+                    val jogadores = mutableListOf<Pair<String, Double>>() // Jogador, Pontos
                     for (child in snapshot.children) {
                         val nome = child.key ?: "Desconhecido"
                         val pontos = child.getValue(Double::class.java) ?: 0.0
                         jogadores.add(Pair(nome, pontos))
                     }
+                    // Ordena os jogadores por poNTUaçãO
                     jogadores.sortByDescending { it.second }
 
                     // Preenche o layout
@@ -67,6 +74,11 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                         binding.txtNomeJogador2.text = ""
                         binding.txtPontos2.text = ""
                     }
+
+                    if (nomeUtilizador.isNotEmpty()) {
+                        val ficouEmPrimeiro = jogadores.isNotEmpty() && jogadores[0].first == nomeUtilizador
+                        atualizarEstatisticasJogador(ficouEmPrimeiro)
+                    }
                 }
                 override fun onCancelled(error: DatabaseError) {
                     Toast.makeText(this@Pontuacao1x1Activity, "Erro ao carregar pontuação", Toast.LENGTH_SHORT).show()
@@ -74,18 +86,21 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             })
     }
 
-    private fun adicionarPontuacaoJogadorRegistado() {
+    // Função para adicionar a pontuação do jogador registado
+    private fun atualizarEstatisticasJogador(ficouEmPrimeiro: Boolean) {
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val pontuacaoGuardada = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                if (totalPontos > pontuacaoGuardada) {
-                    database.child("jogadores").child(nomeUtilizador).child("pontuacao").setValue(totalPontos)
-                    Toast.makeText(this@Pontuacao1x1Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()
+                val totalJogos = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
+                val totalVitorias = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
+                val updates = mutableMapOf<String, Any>(
+                    "totalJogos" to (totalJogos + 1)
+                )
+                if (ficouEmPrimeiro) {
+                    updates["totalVitorias"] = totalVitorias + 1
                 }
+                database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
             }
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@Pontuacao1x1Activity, "Erro ao carregar pontuação", Toast.LENGTH_SHORT).show()
-            }
+            override fun onCancelled(error: DatabaseError) {}
         })
     }
 }

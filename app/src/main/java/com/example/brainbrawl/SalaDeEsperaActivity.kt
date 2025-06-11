@@ -27,7 +27,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         val modoJogo = intent.getStringExtra("modoJogo")
 
         // Exibir nome do utilizador, se disponível
-        if (nomeUtilizador.isNullOrEmpty()) {
+        if (!nomeUtilizador.isNullOrEmpty()) {
             binding.edtNomeJogador.setText(nomeUtilizador)
         }
 
@@ -104,10 +104,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         )
 
         // Salvar jogador na sala no Firebase
-        database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador)
-            .setValue(jogadorData)
-
-
+        database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador).setValue(jogadorData)
     }
 
     // Função para monitorar o estado da sala e iniciar o jogo quando o administrador der início

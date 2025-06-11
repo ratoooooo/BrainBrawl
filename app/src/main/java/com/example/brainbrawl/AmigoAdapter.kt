@@ -12,19 +12,19 @@ class AmigoAdapter(
     private val nomeUtilizador: String
 ) : RecyclerView.Adapter<AmigoAdapter.AmigoViewHolder>() {
 
-    // ViewHolder para cada item da lista de amigos
+    // ViewHolder para cada amigo da lista de amigos
     inner class AmigoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val txtNomeAmigo: TextView = view.findViewById(R.id.txtNomeAmigo)
     }
 
-    // Cria o ViewHolder para cada item da lista
+    // Cria o ViewHolder para cada amigop da lista de amigos
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AmigoViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_amigo, parent, false)
         return AmigoViewHolder(view)
     }
 
-    // Abrir o perfil do amigo ao clicar no item
+    // Abrir o perfil do amigo ao clicar no amigo
     override fun onBindViewHolder(holder: AmigoViewHolder, position: Int) {
         // Obtém o amigo na posição atual e define o nome no TextView
         val amigo = amigos[position]
@@ -36,7 +36,6 @@ class AmigoAdapter(
             holder.itemView.context.startActivity(intent)
         }
     }
-
 
     // Retorna o número de amigos na lista
     override fun getItemCount() = amigos.size

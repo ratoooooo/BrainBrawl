@@ -13,9 +13,11 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class MainActivity : AppCompatActivity() {
+    // Acessar os elementos do layout
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+    // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
-
+    // Variáveis para armazenar informações do utilizador e da sala
     private var nomeCategoria: String? = null
     private var codigoSala: String? = null
     private var nomeUtilizador: String? = null
@@ -36,6 +38,7 @@ class MainActivity : AppCompatActivity() {
         modoJogo = savedInstanceState?.getString("modoJogo")
             ?: intent.getStringExtra("modoJogo")
 
+        // Se o utilizador estiver autenticado, mostrar mensagem de boas-vindas e botão de amigos
         if (nomeUtilizador != null) {
             binding.txtBoasVindas.text = "Bem-vindo, $nomeUtilizador!"
             binding.btnAddAmigo.visibility = View.VISIBLE
@@ -48,11 +51,12 @@ class MainActivity : AppCompatActivity() {
             binding.btnAddAmigo.visibility = View.GONE
         }
 
-        // Mostrar código da sala se já estiver criado e configurar perguntas
+        // Verificar se existe uma sala criada e configurar perguntas
         if (codigoSala != null && modoJogo != null) {
             binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
             binding.btnIniciarJogo.visibility = View.VISIBLE
 
+            // Se o modo de jogo for caótico, buscar perguntas de todas as categorias
             if (modoJogo == "caotico") {
                 obterPerguntas(isCaotico = true)
             } else {
@@ -63,7 +67,7 @@ class MainActivity : AppCompatActivity() {
             binding.btnIniciarJogo.visibility = View.GONE
         }
 
-        // Botão criar sala
+        // Botão para criar nova sala
         binding.btnCriarSala.setOnClickListener {
             if (codigoSala != null) {
                 Toast.makeText(this, "Uma sala já foi criada!", Toast.LENGTH_SHORT).show()
@@ -74,21 +78,23 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Botão entrar em sala
+        // Botão para entrar numa sala existente
         binding.btnEntrarSala.setOnClickListener {
             val intent = Intent(this, SalaDeEsperaActivity::class.java)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
             startActivity(intent)
         }
 
-        // Botão iniciar jogo
+        // Botão para iniciar o jogo (apenas disponível se houver sala)
         binding.btnIniciarJogo.setOnClickListener {
             if (codigoSala == null || modoJogo == null) {
                 Toast.makeText(this, "Erro: Dados da sala inválidos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            // Atualizar estado da sala para 'em_jogo'
             database.child("salas").child(codigoSala!!).child("estado").setValue("em_jogo")
 
+            // Iniciar atividade do jogo
             val intent = Intent(this, JogoActivity::class.java)
             admin = true
             intent.putExtra("codigoSala", codigoSala)
@@ -98,19 +104,20 @@ class MainActivity : AppCompatActivity() {
             intent.putExtra("admin", admin)
             startActivity(intent)
 
+            // Limpar código da sala e esconder botão de início
             codigoSala = null
             binding.txtCodigoSala.text = "Nenhuma sala criada"
             binding.btnIniciarJogo.visibility = View.GONE
         }
 
-        // Botão voltar
+        // Botão para voltar ao ecrã de login
         binding.btnVoltar.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
 
-    // Guardar estado para rotações/dispositivo
+    // Guardar estado da activity para rotações/dispositivo
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString("nomeUtilizador", nomeUtilizador)
@@ -119,6 +126,7 @@ class MainActivity : AppCompatActivity() {
         outState.putString("modoJogo", modoJogo)
     }
 
+    // Função para obter as perguntas do Firebase e preparar a sala
     private fun obterPerguntas(isCaotico: Boolean) {
         if (codigoSala == null || modoJogo == null || (!isCaotico && nomeCategoria == null)) {
             Toast.makeText(this, "Erro: Dados da sala inválidos", Toast.LENGTH_SHORT).show()
@@ -134,6 +142,7 @@ class MainActivity : AppCompatActivity() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 listaPerguntas.clear()
                 if (isCaotico) {
+                    // Buscar perguntas de todas as categorias para o modo caótico
                     for (categoriaSnapshot in snapshot.children) {
                         val perguntasSnapshot = categoriaSnapshot.child("perguntas")
                         for (perguntaSnapshot in perguntasSnapshot.children) {
@@ -150,6 +159,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 } else {
+                    // Buscar perguntas apenas da categoria selecionada
                     for (perguntaSnapshot in snapshot.children) {
                         val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java) ?: ""
                         val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java) ?: ""
@@ -163,11 +173,13 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
                 }
+                // Selecionar 15 perguntas aleatórias
                 val perguntasSelecionadas = listaPerguntas.shuffled().take(15)
                 if (perguntasSelecionadas.isNotEmpty()) {
+                    // Criar a sala no Firebase com as perguntas selecionadas
                     val salaData = mapOf(
                         "horaCriacao" to System.currentTimeMillis(),
-                        "admin" to "Admin",
+                        "admin" to (nomeUtilizador ?: "Admin"),
                         "estado" to "em_espera",
                         "modoJogo" to modoJogo,
                         "jogadores" to emptyMap<String, Any>(),
