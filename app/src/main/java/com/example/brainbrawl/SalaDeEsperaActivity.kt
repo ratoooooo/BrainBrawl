@@ -61,8 +61,19 @@ class SalaDeEsperaActivity : AppCompatActivity() {
                                     Toast.makeText(this@SalaDeEsperaActivity, "Nome de jogador já existe na sala", Toast.LENGTH_SHORT).show()
                                     return
                                 } else {
-                                    // Chama a função para adicionar jogador à sala
-                                    adicionarJogador(nomeJogador, codSala, nomeCategoria)
+                                    // Contar o total de jogadores na sala
+                                    val totalJogadores = snapshot.child("jogadores").childrenCount
+                                    // Verificar se a sala já está cheia
+                                    if (totalJogadores > 10)
+                                    {
+                                        Toast.makeText(this@SalaDeEsperaActivity, "Sala cheia! Não é possível adicionar mais jogadores", Toast.LENGTH_SHORT).show()
+                                        return
+                                    }
+                                    else
+                                    {
+                                        // Chama a função para adicionar jogador à sala
+                                        adicionarJogador(nomeJogador, codSala, nomeCategoria)
+                                    }
 
                                     // Desativar os campos apos o jogador ser adicionado
                                     binding.btnEntrarSala.isEnabled = false
