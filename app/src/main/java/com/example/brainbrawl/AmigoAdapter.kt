@@ -4,16 +4,19 @@ import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class AmigoAdapter(
     private val amigos: List<String>,
+    private val avatares: List<String>,
     private val nomeUtilizador: String
 ) : RecyclerView.Adapter<AmigoAdapter.AmigoViewHolder>() {
 
     // ViewHolder para cada amigo da lista de amigos
     inner class AmigoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val imgAvatarAmigo: ImageView = view.findViewById(R.id.imgAvatarAmigo)
         val txtNomeAmigo: TextView = view.findViewById(R.id.txtNomeAmigo)
     }
 
@@ -26,9 +29,14 @@ class AmigoAdapter(
 
     // Abrir o perfil do amigo ao clicar no amigo
     override fun onBindViewHolder(holder: AmigoViewHolder, position: Int) {
-        // Obtém o amigo na posição atual e define o nome no TextView
         val amigo = amigos[position]
         holder.txtNomeAmigo.text = amigo
+
+        val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
+        val context = holder.itemView.context
+        val resId = context.resources.getIdentifier(avatarName, "drawable", context.packageName)
+        holder.imgAvatarAmigo.setImageResource(resId)
+
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, PerfilAmigoActivity::class.java)
             intent.putExtra("nomeAmigo", amigo)

@@ -8,12 +8,13 @@ import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.google.firebase.database.FirebaseDatabase
 
 class PerfilAmigoActivity : AppCompatActivity() {
-    /// Acessar os elementos do layout
+    // Acessar os elementos do layout
     private val binding by lazy {
         ActivityPerfilAmigoBinding.inflate(layoutInflater)
     }
     // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -22,6 +23,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
         val nomeAmigo = intent.getStringExtra("nomeAmigo") ?: "Amigo Desconhecido"
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
+        // Buscar os dados do amigo na base de dados
         database.child("jogadores").child(nomeAmigo).get().addOnSuccessListener { dataSnapshot ->
             // Verifica se o amigo existe na base de dados
             if (dataSnapshot.exists()) {
@@ -30,6 +32,11 @@ class PerfilAmigoActivity : AppCompatActivity() {
                 val totalJogos = dataSnapshot.child("totalJogos").getValue(Int::class.java) ?: 0
                 val totalVitorias = dataSnapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
                 val taxaVitorias = if (totalJogos > 0) ((totalVitorias.toDouble() / totalJogos) * 100).toInt() else 0
+
+                // Buscar o nome do avatar guardado na base de dados
+                val nomeAvatar = dataSnapshot.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
+                val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
+                binding.imgAvatarAmigo.setImageResource(resId)
 
                 // Mostrar os dados do amigo no layout
                 binding.txtNomeAmigo.text = nomeAmigo
@@ -58,8 +65,9 @@ class PerfilAmigoActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 }
-            }
-            else {
+            } else {
+                // Se não existir, mostrar valores default
+                binding.imgAvatarAmigo.setImageResource(R.drawable.avatar_1_playstore)
                 binding.txtNomeAmigo.text = nomeAmigo
                 binding.txtPontuacao.text = "Pontuação: 0"
                 binding.txtTotalJogos.text = "Total de Jogos: 0"

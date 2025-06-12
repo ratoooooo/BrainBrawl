@@ -18,6 +18,7 @@ class AmigosActivity : AppCompatActivity() {
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()
     private lateinit var amigoAdapter: AmigoAdapter
+    private val avataresAmigos = mutableListOf<String>()
 
     // Lista de convites recebidos
     private val convitesRecebidos = mutableListOf<Convite1x1>()
@@ -30,7 +31,7 @@ class AmigosActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
         // Adapter para amigos
-        amigoAdapter = AmigoAdapter(amigos, nomeUtilizador)
+        amigoAdapter = AmigoAdapter(amigos, avataresAmigos, nomeUtilizador)
         binding.recyclerAmigos.layoutManager = LinearLayoutManager(this)
         binding.recyclerAmigos.adapter = amigoAdapter
 
@@ -76,15 +77,38 @@ class AmigosActivity : AppCompatActivity() {
         }
     }
 
-    // Carregar amigos da base de dados
     private fun carregarListaAmigos() {
         amigos.clear()
+        avataresAmigos.clear()
         database.child("jogadores").child(nomeUtilizador).child("amigos")
             .get().addOnSuccessListener { snapshot ->
-                for (child in snapshot.children) {
-                    amigos.add(child.key ?: "")
+                val amigosTemp = mutableListOf<String>()
+                val avataresTemp = mutableListOf<String>()
+
+                val tasks = snapshot.children.map { child ->
+                    val nomeAmigo = child.key ?: ""
+                    amigosTemp.add(nomeAmigo)
+                    // Busca o avatar de cada amigo individualmente
+                    database.child("jogadores").child(nomeAmigo).child("avatar").get()
+                        .addOnSuccessListener { avatarSnapshot ->
+                            val nomeAvatar = avatarSnapshot.getValue(String::class.java) ?: "avatar_1_playstore"
+                            avataresTemp.add(nomeAvatar)
+                            // Só atualiza se já buscou todos
+                            if (avataresTemp.size == amigosTemp.size) {
+                                amigos.clear()
+                                amigos.addAll(amigosTemp)
+                                avataresAmigos.clear()
+                                avataresAmigos.addAll(avataresTemp)
+                                amigoAdapter.notifyDataSetChanged()
+                            }
+                        }
                 }
-                amigoAdapter.notifyDataSetChanged()
+                // Se não houver amigos
+                if (tasks.isEmpty()) {
+                    amigos.clear()
+                    avataresAmigos.clear()
+                    amigoAdapter.notifyDataSetChanged()
+                }
             }
     }
 
