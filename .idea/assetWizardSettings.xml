@@ -79,7 +79,7 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\Users\dinis\Downloads\logoPerguntaOluso.png" />
+                                                <entry key="imagePath" value="C:\Users\dinis\Downloads\Img\zecaafonso.png" />
                                               </map>
                                             </option>
                                           </PersistentState>
@@ -111,6 +111,7 @@
                                   </option>
                                   <option name="values">
                                     <map>
+                                      <entry key="outputName" value="avatar_14" />
                                       <entry key="previewDensity" value="mdpi" />
                                     </map>
                                   </option>

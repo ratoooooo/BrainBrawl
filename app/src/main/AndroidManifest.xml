@@ -12,9 +12,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BrainBrawl">
         <activity
-            android:name=".MainActivity2"
-            android:exported="false" />
-        <activity
             android:name=".EscolhaCategoriaModosActivity"
             android:exported="false" />
         <activity
@@ -77,10 +74,6 @@
             android:screenOrientation="portrait" />
         <activity
             android:name=".AmigosActivity"
-            android:exported="false"
-            android:screenOrientation="portrait" />
-        <activity
-            android:name=".Desafio1x1Activity"
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity

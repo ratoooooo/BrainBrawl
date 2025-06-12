@@ -5,6 +5,11 @@
       <config />
     </shared>
     <layouts>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/avatar_circular_background.xml">
+        <config>
+          <theme>@style/Theme.BrainBrawl</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bordas.xml">
         <config>
           <theme>@style/Theme.BrainBrawl</theme>
@@ -240,11 +245,6 @@
           <theme>@style/Theme.BrainBrawl</theme>
         </config>
       </layout>
-      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_main2.xml">
-        <config>
-          <theme>@style/Theme.BrainBrawl</theme>
-        </config>
-      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml">
         <config>
           <theme>@style/Theme.BrainBrawl</theme>
@@ -290,6 +290,11 @@
           <theme>@style/Theme.BrainBrawl</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/dialog_selecionar_avatar.xml">
+        <config>
+          <theme>@style/Theme.BrainBrawl</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/item_amigo.xml">
         <config>
           <theme>@style/Theme.BrainBrawl</theme>
@@ -326,14 +331,27 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita:Agora a sala de Espera é limitada a 10">
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_podio.xml" afterDir="false" />
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita: Agora o jogador com mais resostas corretas vai ser reconhecido com o MVP">
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AvatarGridAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_10_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_11_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_12_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_13_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_1_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_2_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_3_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_4_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_5_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_6_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_7_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_9_playstore.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_circular_background.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/layout/dialog_selecionar_avatar.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/assetWizardSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/assetWizardSettings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -446,7 +464,7 @@
     &quot;git-widget-placeholder&quot;: &quot;main&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/xampp/htdocs/PAP/Documentos/imagens&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/dinis/AndroidStudioProjects/BrainBrawl/app/src/main/res/drawable&quot;,
     &quot;project.structure.last.edited&quot;: &quot;SDK Location&quot;,
     &quot;project.structure.proportion&quot;: &quot;0.17&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
@@ -460,8 +478,8 @@
 }</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\values" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
     </key>
@@ -472,6 +490,8 @@
       <recent name="com.example.brainbrawl" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\raw" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
     </key>
@@ -822,14 +842,23 @@
       <option name="project" value="LOCAL" />
       <updated>1749653173420</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="Alterações feita: Agora o jogador com mais resostas corretas vai ser reconhecido com o MVP">
+      <option name="closed" value="true" />
+      <created>1749657609456</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1749657609457</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Initial commit" />
     <MESSAGE value="Alterações feitam em todos os ficheiros, alteração principal feita foi a adição de comentarios" />
     <MESSAGE value="Alterações feita:Agora a sala de Espera é limitada a 10" />
-    <option name="LAST_COMMIT_MESSAGE" value="Alterações feita:Agora a sala de Espera é limitada a 10" />
+    <MESSAGE value="Alterações feita: Agora o jogador com mais resostas corretas vai ser reconhecido com o MVP" />
+    <option name="LAST_COMMIT_MESSAGE" value="Alterações feita: Agora o jogador com mais resostas corretas vai ser reconhecido com o MVP" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
