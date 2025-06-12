@@ -11,13 +11,15 @@ import androidx.recyclerview.widget.RecyclerView
 class AmigoAdapter(
     private val amigos: List<String>,
     private val avatares: List<String>,
-    private val nomeUtilizador: String
+    private val estados: List<String>,
+    private val nomeUtilizador: String,
 ) : RecyclerView.Adapter<AmigoAdapter.AmigoViewHolder>() {
 
     // ViewHolder para cada amigo da lista de amigos
     inner class AmigoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imgAvatarAmigo: ImageView = view.findViewById(R.id.imgAvatarAmigo)
         val txtNomeAmigo: TextView = view.findViewById(R.id.txtNomeAmigo)
+        val viewEstadoAmigo: View = view.findViewById(R.id.viewEstadoAmigo)
     }
 
     // Cria o ViewHolder para cada amigop da lista de amigos
@@ -32,10 +34,16 @@ class AmigoAdapter(
         val amigo = amigos[position]
         holder.txtNomeAmigo.text = amigo
 
+        // Avatar do amigo
         val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
         val context = holder.itemView.context
         val resId = context.resources.getIdentifier(avatarName, "drawable", context.packageName)
         holder.imgAvatarAmigo.setImageResource(resId)
+
+        // Estado (verde se "on", cinza se "off" ou outro)
+        val estado = estados.getOrNull(position) ?: "off"
+        val cor = if (estado == "on") 0xFF43A047.toInt() else 0xFFBDBDBD.toInt() // verde ou cinza
+        holder.viewEstadoAmigo.background.setTint(cor)
 
         holder.itemView.setOnClickListener {
             val intent = Intent(holder.itemView.context, PerfilAmigoActivity::class.java)

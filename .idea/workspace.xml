@@ -10,6 +10,11 @@
           <theme>@style/Theme.BrainBrawl</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bg_estado_circle.xml">
+        <config>
+          <theme>@style/Theme.BrainBrawl</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/drawable/bordas.xml">
         <config>
           <theme>@style/Theme.BrainBrawl</theme>
@@ -331,13 +336,12 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita: Agora o jogador pode escolher o seu avatar de perfil">
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita: Agora o jogador pode ver o avatar dos amigos e quando abre o perfil do mesmo tambem consgue ver">
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/bg_estado_circle.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigoAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigoAdapter.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_amigo.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -853,7 +857,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749727389825</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Alterações feita: Agora o jogador pode ver o avatar dos amigos e quando abre o perfil do mesmo tambem consgue ver">
+      <option name="closed" value="true" />
+      <created>1749732616362</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1749732616362</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -862,7 +874,8 @@
     <MESSAGE value="Alterações feita:Agora a sala de Espera é limitada a 10" />
     <MESSAGE value="Alterações feita: Agora o jogador com mais resostas corretas vai ser reconhecido com o MVP" />
     <MESSAGE value="Alterações feita: Agora o jogador pode escolher o seu avatar de perfil" />
-    <option name="LAST_COMMIT_MESSAGE" value="Alterações feita: Agora o jogador pode escolher o seu avatar de perfil" />
+    <MESSAGE value="Alterações feita: Agora o jogador pode ver o avatar dos amigos e quando abre o perfil do mesmo tambem consgue ver" />
+    <option name="LAST_COMMIT_MESSAGE" value="Alterações feita: Agora o jogador pode ver o avatar dos amigos e quando abre o perfil do mesmo tambem consgue ver" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">

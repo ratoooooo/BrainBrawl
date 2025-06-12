@@ -19,6 +19,7 @@ class AmigosActivity : AppCompatActivity() {
     private val amigos = mutableListOf<String>()
     private lateinit var amigoAdapter: AmigoAdapter
     private val avataresAmigos = mutableListOf<String>()
+    private val estadoAmigos = mutableListOf<String>()
 
     // Lista de convites recebidos
     private val convitesRecebidos = mutableListOf<Convite1x1>()
@@ -31,7 +32,7 @@ class AmigosActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
         // Adapter para amigos
-        amigoAdapter = AmigoAdapter(amigos, avataresAmigos, nomeUtilizador)
+        amigoAdapter = AmigoAdapter(amigos, avataresAmigos,estadoAmigos, nomeUtilizador)
         binding.recyclerAmigos.layoutManager = LinearLayoutManager(this)
         binding.recyclerAmigos.adapter = amigoAdapter
 
@@ -80,34 +81,40 @@ class AmigosActivity : AppCompatActivity() {
     private fun carregarListaAmigos() {
         amigos.clear()
         avataresAmigos.clear()
+        estadoAmigos.clear()
+
         database.child("jogadores").child(nomeUtilizador).child("amigos")
             .get().addOnSuccessListener { snapshot ->
                 val amigosTemp = mutableListOf<String>()
                 val avataresTemp = mutableListOf<String>()
+                val estadosTemp = mutableListOf<String>()
 
-                val tasks = snapshot.children.map { child ->
-                    val nomeAmigo = child.key ?: ""
+                val children = snapshot.children.toList()
+                if (children.isEmpty()) {
+                    amigoAdapter.notifyDataSetChanged()
+                    return@addOnSuccessListener
+                }
+
+                var loaded = 0
+                for (child in children) {
+                    val nomeAmigo = child.key ?: continue
                     amigosTemp.add(nomeAmigo)
-                    // Busca o avatar de cada amigo individualmente
-                    database.child("jogadores").child(nomeAmigo).child("avatar").get()
-                        .addOnSuccessListener { avatarSnapshot ->
-                            val nomeAvatar = avatarSnapshot.getValue(String::class.java) ?: "avatar_1_playstore"
+                    // Busca avatar e estado deste amigo
+                    database.child("jogadores").child(nomeAmigo).get()
+                        .addOnSuccessListener { amigoSnap ->
+                            val nomeAvatar = amigoSnap.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
+                            val estado = amigoSnap.child("estado").getValue(String::class.java) ?: "off"
                             avataresTemp.add(nomeAvatar)
-                            // Só atualiza se já buscou todos
-                            if (avataresTemp.size == amigosTemp.size) {
-                                amigos.clear()
-                                amigos.addAll(amigosTemp)
-                                avataresAmigos.clear()
-                                avataresAmigos.addAll(avataresTemp)
+                            estadosTemp.add(estado)
+
+                            loaded++
+                            if (loaded == children.size) {
+                                amigos.clear(); amigos.addAll(amigosTemp)
+                                avataresAmigos.clear(); avataresAmigos.addAll(avataresTemp)
+                                estadoAmigos.clear(); estadoAmigos.addAll(estadosTemp)
                                 amigoAdapter.notifyDataSetChanged()
                             }
                         }
-                }
-                // Se não houver amigos
-                if (tasks.isEmpty()) {
-                    amigos.clear()
-                    avataresAmigos.clear()
-                    amigoAdapter.notifyDataSetChanged()
                 }
             }
     }

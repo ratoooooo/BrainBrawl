@@ -112,6 +112,8 @@ class MainActivity : AppCompatActivity() {
 
         // Botão para voltar ao ecrã de login
         binding.btnVoltar.setOnClickListener {
+            // Mudar estado do jogador para 'off' no Firebase
+            database.child("jogadores").child(nomeUtilizador.toString()).child("estado").setValue("off")
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }

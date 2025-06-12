@@ -50,6 +50,8 @@ class LoginActivity : AppCompatActivity() {
                         val inputHash = hashPassword(password)
                         // Verificar se a palavra passe é válida
                         if (savedHash == inputHash) {
+                            // Alterar o estado do jogador para on
+                            database.child("jogadores").child(nomeUtilizador).child("estado").setValue("on")
                             Toast.makeText(this@LoginActivity, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show()
                             // Criar um intent para a MainActivity
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
