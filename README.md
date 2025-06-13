@@ -7,7 +7,7 @@
 ## 📱 Funcionalidades
 
 - 👤 **Criação de Conta e Login**
-- 🎭 **Escolha de Avatar** (14 opções disponíveis)
+- 🎭 **Escolha de Avatar** (12 opções disponíveis)
 - 🧩 **Modos de Jogo:**  
   - **Clássico por categoria**
     - Jogador vs Jogador (1x1)
