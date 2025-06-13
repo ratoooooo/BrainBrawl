@@ -89,7 +89,7 @@ object Uteis {
         return opcoes
     }
 
-    fun enviarPontuacaoActivity(context: Context, modoJogo: String, nomeUtilizador: String, pontuacao: Double, nomeCategoria: String, nomeJogador: String, totalPerguntascertas: Int,  numeroPerguntasCertas: Int,totalPerguntas: Int,equipa: String? = null) {
+    fun enviarPontuacaoActivity(context: Context,codigoSala: String, modoJogo: String, nomeUtilizador: String, pontuacao: Double, nomeCategoria: String, nomeJogador: String, totalPerguntascertas: Int,  numeroPerguntasCertas: Int,totalPerguntas: Int,equipa: String? = null) {
             val destino = when (modoJogo) {
             "1x1" -> Pontuacao1x1Activity::class.java
             "2x2" -> Pontuacao2x2Activity::class.java
@@ -97,6 +97,7 @@ object Uteis {
         }
 
         val intent = Intent(context, destino::class.java)
+        intent.putExtra("codigoSala", codigoSala)
         intent.putExtra("modoJogo", modoJogo)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
         intent.putExtra("totalPontos", pontuacao)

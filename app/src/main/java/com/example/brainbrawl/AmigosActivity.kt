@@ -124,17 +124,15 @@ class AmigosActivity : AppCompatActivity() {
         convitesRecebidos.clear()
         database.child("jogadores").child(nomeUtilizador).child("convites_recebidos")
             .get().addOnSuccessListener { snapshot ->
-                // Percorrer os convites recebidos
                 for (convite in snapshot.children) {
                     val nomeAmigo = convite.key ?: continue
                     val estado = convite.child("estado").getValue(String::class.java) ?: ""
-                    val salaId = convite.child("salaId").getValue(String::class.java) ?: ""
+                    val codigoSala = convite.child("codigoSala").getValue(String::class.java) ?: ""
                     val modo = convite.child("modo").getValue(String::class.java) ?: "1x1"
                     if (estado == "pendente") {
-                        convitesRecebidos.add(Convite1x1(nomeAmigo, salaId, modo))
+                        convitesRecebidos.add(Convite1x1(nomeAmigo, codigoSala, modo))
                     }
                 }
-                // Mostrar apenas se houver convites recebidos
                 binding.txtConvites.visibility = if (convitesRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
                 binding.recyclerConvites.visibility = if (convitesRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
                 conviteAdapter.notifyDataSetChanged()
@@ -164,20 +162,18 @@ class AmigosActivity : AppCompatActivity() {
         }
     }
 
-    // Função para aceitar pedido
+    // Função utilizada para aceitar convite
     private fun aceitarConvite(convite: Convite1x1) {
-        // Atualiza o estado do convite para aceite
         database.child("jogadores").child(nomeUtilizador).child("convites_recebidos").child(convite.nomeAmigo).child("estado").setValue("aceite")
         database.child("jogadores").child(convite.nomeAmigo).child("convites_enviados").child(nomeUtilizador).child("estado").setValue("aceite")
         Toast.makeText(this, "Convite aceite!", Toast.LENGTH_SHORT).show()
 
-        // Redirecionamento correto para 1x1 ou 2x2
         val intent = when (convite.modo) {
             "2x2" -> Intent(this, SalaDeEspera2x2Activity::class.java)
             else -> Intent(this, SalaDeEspera1x1Activity::class.java)
         }
         intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("salaId", convite.salaId)
+        intent.putExtra("codigoSala", convite.codigoSala)
         startActivity(intent)
         finish()
     }

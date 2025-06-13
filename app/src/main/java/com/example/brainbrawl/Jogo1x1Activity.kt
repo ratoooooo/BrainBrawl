@@ -56,7 +56,7 @@ class Jogo1x1Activity : AppCompatActivity() {
 
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        categoria = intent.getStringExtra("categoria") ?: "Todas as categorias"
+        categoria = intent.getStringExtra("nomeCategoria") ?: "Todas as categorias"
 
         // Buscar ou criar perguntas (garantindo que ambos os jogadores jogam as MESMAS perguntas)
         database.child("sala_1x1").child(codigoSala).child("perguntas")
@@ -281,9 +281,9 @@ class Jogo1x1Activity : AppCompatActivity() {
             .child("pontuacoes").child(nomeUtilizador)
             .setValue(totalPontos)
             .addOnSuccessListener {
-                // envia também o total de respostas certas deste jogo!
+                // envia também o total de respostas certas deste jogo
                 enviarPontuacaoActivity(
-                    this, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
+                    this,codigoSala, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
                 )
             }
             .addOnFailureListener {

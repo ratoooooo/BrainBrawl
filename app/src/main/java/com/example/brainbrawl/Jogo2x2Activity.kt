@@ -327,7 +327,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         }
 
         // Chama a activity de pontuação
-        enviarPontuacaoActivity(this, "2x2", nomeUtilizador, totalPontos, categoria, nomeUtilizador,totalPerguntascertas, numeroPerguntasCertas, perguntas.size, equipaDoJogador)
+        enviarPontuacaoActivity(this, codigoSala, "2x2", nomeUtilizador, totalPontos, categoria, nomeUtilizador,totalPerguntascertas, numeroPerguntasCertas, perguntas.size, equipaDoJogador)
        finish()
     }
 

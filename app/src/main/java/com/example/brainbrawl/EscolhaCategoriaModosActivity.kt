@@ -45,7 +45,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
     }
 
     // Função para abrir a próxima activity dependendo do modo de jogo selecionado
-    private fun abrirProximaActivity(modoJogo: String, nomeUtilizador: String?, categoria: String) {
+    private fun abrirProximaActivity(modoJogo: String, nomeUtilizador: String?, nomeCategoria: String) {
         val intent = when (modoJogo) {
             "1x1" -> Intent(this, ConvidarAmigo1x1Activity::class.java)
             "2x2" -> Intent(this, ConvidarAmigo2x2Activity::class.java)
@@ -53,7 +53,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         }
         intent.putExtra("modoJogo", modoJogo)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("categoria", categoria)
+        intent.putExtra("nomeCategoria", nomeCategoria)
         startActivity(intent)
         finish()
     }

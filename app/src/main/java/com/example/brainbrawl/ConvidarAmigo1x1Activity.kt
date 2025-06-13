@@ -16,7 +16,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()
     private lateinit var convidarAmigoAdapter: Convidar1x1AmigoAdapter
-    private var categoria: String? = null
+    private var nomeCategoria: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +24,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
 
         // Guardar dados passados do intent
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        categoria = intent.getStringExtra("categoria")
+        nomeCategoria = intent.getStringExtra("nomeCategoria")
 
         // Adapter para mostrar amigos com botão desafiar
         convidarAmigoAdapter = Convidar1x1AmigoAdapter(amigos) { amigoSelecionado ->
@@ -36,17 +36,17 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                 mapOf(
                     "jogadores" to mapOf(nomeUtilizador to true, amigoSelecionado to true),
                     "estado" to "em_espera",
-                    "categoria" to (categoria ?: "Todas as categorias")
+                    "nomeCategoria" to (nomeCategoria ?: "Todas as categorias")
                 )
             )
 
             val conviteData = mapOf(
                 "estado" to "pendente",
                 "codigoSala" to codigoSala,
-                "categoria" to (categoria ?: "Todas as categorias")
+                "nomeCategoria" to (nomeCategoria ?: "Todas as categorias")
             )
 
-            // Adicionar convite para o amigo
+            // Adicionar convite para o amigo (Jogador B)
             database.child("jogadores").child(amigoSelecionado)
                 .child("convites_recebidos").child(nomeUtilizador)
                 .setValue(conviteData)
@@ -56,11 +56,11 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                 .setValue(conviteData)
             Toast.makeText(this, "Convite enviado para $amigoSelecionado!", Toast.LENGTH_SHORT).show()
 
-            // Iniciar a atividade de sala de espera 1x1
+            // Iniciar a atividade de sala de espera 1x1 para o Jogador A
             val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
             intent.putExtra("codigoSala", codigoSala)
             intent.putExtra("nomeUtilizador", nomeUtilizador)
-            intent.putExtra("categoria", categoria ?: "Todas as categorias")
+            intent.putExtra("nomeCategoria", nomeCategoria ?: "Todas as categorias")
             startActivity(intent)
             finish()
         }

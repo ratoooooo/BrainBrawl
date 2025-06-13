@@ -16,7 +16,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()
     private lateinit var convidarAmigoAdapter: Convidar2x2AmigoAdapter
-    private var categoria: String? = null
+    private var nomeCategoria: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -24,7 +24,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
 
         // Guardar dados passados do intent
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        categoria = intent.getStringExtra("categoria")
+        nomeCategoria = intent.getStringExtra("nomeCategoria")
 
         // Adapter para selecioar varios amigos
         convidarAmigoAdapter = Convidar2x2AmigoAdapter(amigos)
@@ -62,7 +62,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             mapOf(
                 "jogadores" to jogadores,
                 "estado" to "em_espera",
-                "categoria" to (categoria ?: "Todas as categorias"),
+                "nomeCategoria" to (nomeCategoria ?: "Todas as categorias"),
             )
         )
         // Mapa de dados do convite
@@ -70,7 +70,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             "estado" to "pendente",
             "codigoSala" to codigoSala,
             "modo" to "2x2",
-            "categoria" to (categoria ?: "Todas as categorias")
+            "nomeCategoria" to (nomeCategoria ?: "Todas as categorias")
         )
 
         // Adiciona convite para cada amigo
@@ -87,7 +87,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
         intent.putExtra("codigoSala", codigoSala)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("categoria", categoria ?: "Todas as categorias")
+        intent.putExtra("nomeCategoria", nomeCategoria ?: "Todas as categorias")
         startActivity(intent)
         finish()
     }

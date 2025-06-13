@@ -11,17 +11,18 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class Pontuacao1x1Activity : AppCompatActivity() {
-    // Acessar os elementos do layout
     private val binding by lazy {
         ActivityPontuacao1x1Binding.inflate(layoutInflater)
     }
-    // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
     private lateinit var codigoSala: String
-    private lateinit var nomeJogador: String
     private lateinit var nomeUtilizador: String
     private var totalPontos: Double = 0.0
     private var totalRespostasCertas: Int = 0
+    private var nomeCategoria: String = ""
+
+    // Listener para desforra em tempo real
+    private var desforraListener: ValueEventListener? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -29,15 +30,13 @@ class Pontuacao1x1Activity : AppCompatActivity() {
 
         // Guardar dados passados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
         totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
+        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
 
-        // Chamar a função para carregar pontuação da sala 1x1
         carregarPontuacao1x1()
 
-        // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
             database.child("sala_1x1").child(codigoSala).removeValue()
             startActivity(Intent(this, MainActivity::class.java).apply {
@@ -45,9 +44,54 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             })
             finish()
         }
+
+        // Ao pedir desforra, vai para uma nova sala de espera, com novo código
+        binding.btnDesforra.setOnClickListener {
+            pedirDesforra()
+        }
     }
 
-    // Função para carregar a pontuação da sala 1x1
+    override fun onDestroy() {
+        super.onDestroy()
+        removerListenerDesforra()
+    }
+
+    private fun pedirDesforra() {
+        // Marca pedido de desforra no Firebase
+        database.child("sala_1x1").child(codigoSala).child("jogadores").child(nomeUtilizador).child("desforra").setValue(true)
+        // Adiciona listener para saber quando o outro jogador aceitar
+        if (desforraListener == null) {
+            val desforraRef = database.child("sala_1x1").child(codigoSala).child("jogadores")
+            desforraListener = object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    var desforraAceita = false
+                    for (child in snapshot.children) {
+                        if (child.key != nomeUtilizador && child.child("desforra").getValue(Boolean::class.java) == true) {
+                            desforraAceita = true
+                            break
+                        }
+                    }
+                    if (desforraAceita) {
+                        removerListenerDesforra()
+                        iniciarJogoDesforra()
+                    } else {
+                        Toast.makeText(this@Pontuacao1x1Activity, "Aguardando o outro jogador aceitar desforra", Toast.LENGTH_SHORT).show()
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+            }
+            desforraRef.addValueEventListener(desforraListener as ValueEventListener)
+        }
+    }
+
+    private fun removerListenerDesforra() {
+        desforraListener?.let {
+            database.child("sala_1x1").child(codigoSala).child("jogadores").removeEventListener(it)
+            desforraListener = null
+        }
+    }
+
     private fun carregarPontuacao1x1() {
         database.child("sala_1x1").child(codigoSala).child("pontuacoes")
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -58,10 +102,8 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                         val pontos = child.getValue(Double::class.java) ?: 0.0
                         jogadores.add(Pair(nome, pontos))
                     }
-                    // Ordena os jogadores por pontuação
                     jogadores.sortByDescending { it.second }
 
-                    // Preenche o layout
                     if (jogadores.isNotEmpty()) {
                         binding.txtNomeJogador1.text = jogadores[0].first
                         binding.txtPontos1.text = jogadores[0].second.toInt().toString()
@@ -70,13 +112,11 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                         binding.txtNomeJogador2.text = jogadores[1].first
                         binding.txtPontos2.text = jogadores[1].second.toInt().toString()
                     }
-                    // Se só tem 1 jogador
                     if (jogadores.size <= 1) {
                         binding.txtNomeJogador2.text = ""
                         binding.txtPontos2.text = ""
                     }
 
-                    // Atualizar estatísticas do jogador registado
                     if (nomeUtilizador.isNotEmpty()) {
                         val ficouEmPrimeiro = jogadores.isNotEmpty() && jogadores[0].first == nomeUtilizador
                         atualizarEstatisticasJogador(ficouEmPrimeiro)
@@ -88,7 +128,6 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             })
     }
 
-    // Função para atualizar as estatísticas do jogador registado
     private fun atualizarEstatisticasJogador(ficouEmPrimeiro: Boolean) {
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -109,5 +148,18 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             }
             override fun onCancelled(error: DatabaseError) {}
         })
+    }
+
+    private fun iniciarJogoDesforra() {
+        // Limpa a sala antiga
+        database.child("sala_1x1").child(codigoSala).removeValue()
+        // Gera um novo código de sala e volta para a sala de espera
+        val novoCodigoSala = Uteis.gerarCodigoSala()
+        val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
+        intent.putExtra("codigoSala", novoCodigoSala)
+        intent.putExtra("nomeUtilizador", nomeUtilizador)
+        intent.putExtra("nomeCategoria", nomeCategoria)
+        startActivity(intent)
+        finish()
     }
 }
