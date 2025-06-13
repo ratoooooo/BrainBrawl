@@ -33,15 +33,20 @@ class PontuacoesActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar dados passados do intent
+        // Guarda o codigo da sala que foi jogado
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
+        // Guarda o nome do jogador que jogou (quando não é registado)
         nomeJogador = intent.getStringExtra("nomeJogador") ?: "Jogador"
+        // Guarda a pontuação do jogador no jogo
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
+        // Guarda o nome da categoria que foi jogada
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
+        // Guarda o nome do utilizador que jogou (quando é registado)
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        respostasCertas = intent.getIntExtra("respostasCertas", 0)
+        // Guarda o total de perguntas que havia no jogo
         totalPerguntas = intent.getIntExtra("totalPerguntas", 1)
-        totalRespostasCertas = intent.getIntExtra("totalPerguntascertas", 0)
+        // Guarda o total de respostas certas que o jogador acertou
+        totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
 
         // Chamar a função para carregar pontuação da sala
         carregarPontuacaoSala()
@@ -133,7 +138,7 @@ class PontuacoesActivity : AppCompatActivity() {
                     if (nomeUtilizador.isNotEmpty()) {
                         // Verifica se ficou em primeiro lugar
                         val ficouEmPrimeiro = jogadores.firstOrNull()?.first == nomeUtilizador
-                        atualizarEstatisticasJogador(respostasCertas, totalPerguntas, ficouEmPrimeiro)
+                        atualizarEstatisticasJogador(respostasCertas, ficouEmPrimeiro)
                     }
                 }
                 override fun onCancelled(error: DatabaseError) {
@@ -148,31 +153,25 @@ class PontuacoesActivity : AppCompatActivity() {
     }
 
     // Função para atualizar as estatísticas do jogador
-    private fun atualizarEstatisticasJogador(respostasCertas: Int, totalPerguntas: Int, ficouEmPrimeiro: Boolean) {
+    private fun atualizarEstatisticasJogador(respostasCertas: Int, ficouEmPrimeiro: Boolean) {
         if (nomeUtilizador.isEmpty()) return
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 // Guardar os valores que estão guardados na base de dados
                 val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
                 val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val taxaAcertosAnterior = snapshot.child("taxaAcertos").getValue(Double::class.java) ?: 0.0
+                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
 
                 // Calcular os novos valores
                 val novoTotalJogos = totalJogosAnterior + 1
                 val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
-                val percentagemEsteJogo = if (totalPerguntas > 0) (respostasCertas.toDouble() / totalPerguntas) * 100 else 0.0
-
-                val novaTaxa = if (totalJogosAnterior == 0) {
-                    percentagemEsteJogo
-                } else {
-                    ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
-                }
+                val novoTotalRespostasCertas = totalRespostasCertasAnterior + respostasCertas
 
                 // Criar um mapa com os novos valores
                 val updates = mapOf(
                     "totalJogos" to novoTotalJogos,
                     "totalVitorias" to novoTotalVitorias,
-                    "taxaAcertos" to novaTaxa
+                    "totalRespostasCertas" to novoTotalRespostasCertas
                 )
                 database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
             }

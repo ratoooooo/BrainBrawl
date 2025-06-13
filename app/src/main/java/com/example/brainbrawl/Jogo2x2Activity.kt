@@ -44,6 +44,8 @@ class Jogo2x2Activity : AppCompatActivity() {
     private var numeroPerguntasCertas = 0
     private var totalPerguntasRespondidas = 0
     private var bonus = 50
+    // Total de perguntas respondidas corretamente
+    private var totalPerguntascertas = 0
 
     private val handler = Handler(Looper.getMainLooper())
     private val formatoDecimal = DecimalFormat("#.#")
@@ -272,7 +274,10 @@ class Jogo2x2Activity : AppCompatActivity() {
         totalPerguntasRespondidas++
         if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
             definirCorBotao(botaoSelecionado, "#81C784")
+            // Guardar o numero de respostas certas em squencia
             numeroPerguntasCertas++
+            // Guardar o total de perguntas certas ao longo do jogo
+            totalPerguntascertas++
             val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
             totalPontos += pontos
         } else if (botaoSelecionado != null) {
@@ -305,13 +310,17 @@ class Jogo2x2Activity : AppCompatActivity() {
                 .child("pontuacoes_${equipaDoJogador}")
                 .child(nomeUtilizador)
                 .setValue(totalPontos)
+            // Gracva o total de perguntas certas
+            database.child("sala_2x2").child(salaId)
+                .child("totalPerguntasCertas_${equipaDoJogador}")
+                .child(nomeUtilizador)
+                .setValue(totalPerguntascertas)
         }
 
         // Chama a activity de pontuação
-        enviarPontuacaoActivity(this, "2x2", nomeUtilizador, totalPontos, categoria, nomeUtilizador, numeroPerguntasCertas, perguntas.size, equipaDoJogador)
+        enviarPontuacaoActivity(this, "2x2", nomeUtilizador, totalPontos, categoria, nomeUtilizador,totalPerguntascertas, numeroPerguntasCertas, perguntas.size, equipaDoJogador)
        finish()
     }
-
 
     // Função que inicia o cronómetro visual e sonoro da pergunta
     private fun iniciarCronometro() {

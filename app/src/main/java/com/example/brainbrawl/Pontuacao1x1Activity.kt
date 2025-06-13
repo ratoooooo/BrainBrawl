@@ -21,6 +21,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     private lateinit var nomeJogador: String
     private lateinit var nomeUtilizador: String
     private var totalPontos: Double = 0.0
+    private var totalRespostasCertas: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,10 +32,10 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         nomeJogador = intent.getStringExtra("nomeJogador") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
+        totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
 
-        // Chamar a função para carregar pontuação da sala 2x2
+        // Chamar a função para carregar pontuação da sala 1x1
         carregarPontuacao1x1()
-
 
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
@@ -46,7 +47,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         }
     }
 
-    // Função para carregar a pontuação da sala 2x2
+    // Função para carregar a pontuação da sala 1x1
     private fun carregarPontuacao1x1() {
         database.child("sala_1x1").child(codigoSala).child("pontuacoes")
             .addListenerForSingleValueEvent(object : ValueEventListener {
@@ -57,7 +58,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                         val pontos = child.getValue(Double::class.java) ?: 0.0
                         jogadores.add(Pair(nome, pontos))
                     }
-                    // Ordena os jogadores por poNTUaçãO
+                    // Ordena os jogadores por pontuação
                     jogadores.sortByDescending { it.second }
 
                     // Preenche o layout
@@ -75,6 +76,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                         binding.txtPontos2.text = ""
                     }
 
+                    // Atualizar estatísticas do jogador registado
                     if (nomeUtilizador.isNotEmpty()) {
                         val ficouEmPrimeiro = jogadores.isNotEmpty() && jogadores[0].first == nomeUtilizador
                         atualizarEstatisticasJogador(ficouEmPrimeiro)
@@ -86,18 +88,23 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             })
     }
 
-    // Função para adicionar a pontuação do jogador registado
+    // Função para atualizar as estatísticas do jogador registado
     private fun atualizarEstatisticasJogador(ficouEmPrimeiro: Boolean) {
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val totalJogos = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                val totalVitorias = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val updates = mutableMapOf<String, Any>(
-                    "totalJogos" to (totalJogos + 1)
+                val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
+                val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
+                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
+
+                val novoTotalJogos = totalJogosAnterior + 1
+                val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
+                val novoTotalRespostasCertas = totalRespostasCertasAnterior + totalRespostasCertas
+
+                val updates = mapOf(
+                    "totalJogos" to novoTotalJogos,
+                    "totalVitorias" to novoTotalVitorias,
+                    "totalRespostasCertas" to novoTotalRespostasCertas
                 )
-                if (ficouEmPrimeiro) {
-                    updates["totalVitorias"] = totalVitorias + 1
-                }
                 database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
             }
             override fun onCancelled(error: DatabaseError) {}

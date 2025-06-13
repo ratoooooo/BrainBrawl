@@ -2,50 +2,64 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
+import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.google.firebase.database.FirebaseDatabase
 
 class PerfilAmigoActivity : AppCompatActivity() {
-    // Acessar os elementos do layout
+
     private val binding by lazy {
         ActivityPerfilAmigoBinding.inflate(layoutInflater)
     }
-    // Acessar a base de dados
+
     private val database = FirebaseDatabase.getInstance().reference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar dados passados do intent
         val nomeAmigo = intent.getStringExtra("nomeAmigo") ?: "Amigo Desconhecido"
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
-        // Buscar os dados do amigo na base de dados
         database.child("jogadores").child(nomeAmigo).get().addOnSuccessListener { dataSnapshot ->
-            // Verifica se o amigo existe na base de dados
             if (dataSnapshot.exists()) {
-                // Guardar os dados do amigo
                 val pontuacao = dataSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
                 val totalJogos = dataSnapshot.child("totalJogos").getValue(Int::class.java) ?: 0
                 val totalVitorias = dataSnapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
+                val respostasCertas = dataSnapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
                 val taxaVitorias = if (totalJogos > 0) ((totalVitorias.toDouble() / totalJogos) * 100).toInt() else 0
 
-                // Buscar o nome do avatar guardado na base de dados
+                getBadgeDrawable(totalJogos, jogosBadges)?.let {
+                    binding.imgTotalJogos.setImageResource(it)
+                } ?: run {
+                    binding.imgTotalJogos.visibility = View.GONE
+                }
+
+                getBadgeDrawable(totalVitorias, vitoriaBadges)?.let {
+                    binding.imgTotalVitorias.setImageResource(it)
+                } ?: run {
+                    binding.imgTotalVitorias.visibility = View.GONE
+                }
+
+                getBadgeDrawable(respostasCertas, respostasBadges)?.let {
+                    binding.imgTotalRespostasCertas.setImageResource(it)
+                } ?: run {
+                    binding.imgTotalRespostasCertas.visibility = View.GONE
+                }
+
                 val nomeAvatar = dataSnapshot.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
                 val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
                 binding.imgAvatarAmigo.setImageResource(resId)
 
-                // Mostrar os dados do amigo no layout
                 binding.txtNomeAmigo.text = nomeAmigo
                 binding.txtPontuacao.text = "Pontuação: $pontuacao"
                 binding.txtTotalJogos.text = "Total de Jogos: $totalJogos"
                 binding.txtTotalVitorias.text = "Total de Vitórias: $totalVitorias"
                 binding.txtTaxaAcertos.text = "Taxa de Vitória: $taxaVitorias%"
 
-                // Configurar o botão para remover amigo
                 binding.btnRemoverAmigo.setOnClickListener {
                     database.child("jogadores").child(nomeUtilizador).child("amigos")
                         .child(nomeAmigo).removeValue().addOnSuccessListener {
@@ -58,7 +72,6 @@ class PerfilAmigoActivity : AppCompatActivity() {
                     binding.btnRemoverAmigo.isEnabled = false
                 }
 
-                // Configurar o botão de voltar
                 binding.btnVoltarPerfil.setOnClickListener {
                     val intent = Intent(this, AmigosActivity::class.java)
                     intent.putExtra("nomeUtilizador", nomeUtilizador)
@@ -66,7 +79,6 @@ class PerfilAmigoActivity : AppCompatActivity() {
                     finish()
                 }
             } else {
-                // Se não existir, mostrar valores default
                 binding.imgAvatarAmigo.setImageResource(R.drawable.avatar_1_playstore)
                 binding.txtNomeAmigo.text = nomeAmigo
                 binding.txtPontuacao.text = "Pontuação: 0"
@@ -75,5 +87,33 @@ class PerfilAmigoActivity : AppCompatActivity() {
                 binding.txtTaxaAcertos.text = "Taxa de Vitória: 0%"
             }
         }
+    }
+
+
+    private val jogosBadges = listOf(
+        100 to R.drawable.j100,
+        50 to R.drawable.j50,
+        25 to R.drawable.j25,
+        10 to R.drawable.j10
+    )
+
+    private val vitoriaBadges = listOf(
+        100 to R.drawable.v100,
+        50 to R.drawable.v50,
+        25 to R.drawable.v25,
+        5 to R.drawable.v5
+    )
+
+    private val respostasBadges = listOf(
+        1000 to R.drawable.rc1000,
+        500 to R.drawable.rc500,
+        200 to R.drawable.rc200,
+        100 to R.drawable.rc100,
+        50 to R.drawable.rc50
+    )
+
+    @DrawableRes
+    private fun getBadgeDrawable(value: Int, thresholds: List<Pair<Int, Int>>): Int? {
+        return thresholds.firstOrNull { value >= it.first }?.second
     }
 }

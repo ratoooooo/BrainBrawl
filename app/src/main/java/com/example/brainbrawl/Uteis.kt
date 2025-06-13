@@ -11,8 +11,8 @@ object Uteis {
 
     // Login e Registo
     // Função para validar campos
-    fun validarCampos(nome: String, senha: String? = null): String? {
-        if (nome.isEmpty() || (senha != null && senha.isEmpty())) {
+    fun validarCampos(nome: String, password: String? = null): String? {
+        if (nome.isEmpty() || (password != null && password.isEmpty())) {
             return "Preencha todos os campos"
         }
 
@@ -24,8 +24,8 @@ object Uteis {
             return "O nome só pode conter letras, números e underscores"
         }
 
-        if (senha != null) {
-            if (senha.length < 8 || senha.length > 20) {
+        if (password != null) {
+            if (password.length < 8 || password.length > 20) {
                 return "A senha deve ter entre 8 e 20 caracteres"
             }
         }
@@ -88,7 +88,7 @@ object Uteis {
         return opcoes
     }
 
-    fun enviarPontuacaoActivity(context: Context, modoJogo: String, nomeUtilizador: String, pontuacao: Double, nomeCategoria: String, nomeJogador: String,  numeroPerguntasCertas: Int,totalPerguntas: Int,equipa: String? = null) {
+    fun enviarPontuacaoActivity(context: Context, modoJogo: String, nomeUtilizador: String, pontuacao: Double, nomeCategoria: String, nomeJogador: String, totalPerguntascertas: Int,  numeroPerguntasCertas: Int,totalPerguntas: Int,equipa: String? = null) {
             val destino = when (modoJogo) {
             "1x1" -> Pontuacao1x1Activity::class.java
             "2x2" -> Pontuacao2x2Activity::class.java
@@ -102,6 +102,7 @@ object Uteis {
         intent.putExtra("nomeCategoria", nomeCategoria)
         intent.putExtra("nomeJogador", nomeJogador)
         intent.putExtra("respostasCertas", numeroPerguntasCertas)
+        intent.putExtra("totalRespostasCertas", totalPerguntascertas)
         intent.putExtra("totalPerguntas", totalPerguntas)
         if (equipa != null) {
             intent.putExtra("equipa", equipa)

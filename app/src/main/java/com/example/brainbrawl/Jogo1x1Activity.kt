@@ -39,6 +39,8 @@ class Jogo1x1Activity : AppCompatActivity() {
     private var opcoesAtuais: List<String> = emptyList()
     private var numeroPerguntasCertas = 0
     private var totalPerguntasRespondidas = 0
+    // Total de perguntas respondidas corretamente
+    private var totalPerguntascertas = 0
     private var bonus = 50
 
     private val handler = Handler(Looper.getMainLooper())
@@ -244,6 +246,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
             definirCorBotao(botaoSelecionado, "#81C784") // Verde para a resposta correta
             numeroPerguntasCertas++
+            totalPerguntascertas++ // <-- incrementa total de respostas certas deste jogo
             val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
             totalPontos += pontos
         } else if (botaoSelecionado != null) {
@@ -269,14 +272,24 @@ class Jogo1x1Activity : AppCompatActivity() {
             .child("pontuacoes").child(nomeUtilizador)
             .setValue(totalPontos)
             .addOnSuccessListener {
-                enviarPontuacaoActivity(this, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, numeroPerguntasCertas, perguntas.size)
+                // envia também o total de respostas certas deste jogo!
+                enviarPontuacaoActivity(
+                    this,
+                    "1x1",
+                    nomeUtilizador,
+                    totalPontos,
+                    categoria,
+                    nomeUtilizador,
+                    totalPerguntascertas, // total de respostas certas neste jogo!
+                    numeroPerguntasCertas, // streak
+                    perguntas.size
+                )
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Erro ao guardar pontuação!", Toast.LENGTH_SHORT).show()
                 finish()
             }
     }
-
 
     // Função que inicia o cronómetro visual e sonoro da pergunta
     private fun iniciarCronometro() {
@@ -290,7 +303,6 @@ class Jogo1x1Activity : AppCompatActivity() {
         tempoIniciado = System.currentTimeMillis()
         val runnable = object : Runnable {
             override fun run() {
-
                 // Toca som nos últimos 5 segundos
                 if (tempoRestante <= 5 && !somTocar) {
                     mediaPlayer = MediaPlayer.create(this@Jogo1x1Activity, R.raw.som)
@@ -337,5 +349,4 @@ class Jogo1x1Activity : AppCompatActivity() {
         }
         handler.postDelayed(runnable, 200)
     }
-
 }

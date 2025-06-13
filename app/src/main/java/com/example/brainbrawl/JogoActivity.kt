@@ -9,6 +9,7 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.Uteis.definirCorBotao
 import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.google.firebase.database.DataSnapshot
@@ -169,13 +170,6 @@ class JogoActivity : AppCompatActivity() {
         iniciarCronometro()
     }
 
-    // Define cor do botão (útil para respostas certas/erradas)
-    private fun definirCorBotao(botao: android.widget.Button, cor: String) {
-        botao.backgroundTintList = android.content.res.ColorStateList.valueOf(
-            android.graphics.Color.parseColor(cor)
-        )
-    }
-
     // Verifica a resposta do jogador, contabiliza pontos e prepara próxima pergunta
     private fun verificarResposta(numeroOpcao: Int) {
         // Parar som se estiver a tocar
@@ -221,7 +215,9 @@ class JogoActivity : AppCompatActivity() {
         if (!admin) {
             if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
                 definirCorBotao(botaoSelecionado, "#81C784")
+                // Guardar o numero de respostas certas em squencia
                 numeroPerguntasCertas++
+                // Guardar o total de perguntas certas ao longo do jogo
                 totalPerguntascertas++
                 atualizarPontuacao()
             } else if (botaoSelecionado != null) {
@@ -255,7 +251,7 @@ class JogoActivity : AppCompatActivity() {
                 .child("pontuacao").setValue(totalPontos)
             // Gracva o total de perguntas certas
             database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador)
-                .child("totalPerguntasCertas").setValue(totalPerguntascertas)
+                .child("totalRespostasCertas").setValue(totalPerguntascertas)
 
             // Verifica estado da sala antes de enviar para pontuações
             database.child("salas").child(codigoSala).child("estado")
@@ -423,15 +419,23 @@ class JogoActivity : AppCompatActivity() {
     // Envia o jogador para o ecrã de pontuações no fim do jogo
     private fun enviarPontuacaoActivity() {
         val intent = Intent(this, PontuacoesActivity::class.java)
+        //codigo da sala
         intent.putExtra("codigoSala", codigoSala)
+        // O nome do jogador  que jogou o jogo (quando não é registado)
         intent.putExtra("nomeJogador", nomeJogador)
+        // A pontuação total do jogador no jogo
         intent.putExtra("totalPontos", totalPontos)
+        // A categoria das perguntas deste jogo
         intent.putExtra("nomeCategoria", nomeCategoria)
+        // O nome do utilizador que jogou o jogo (quando é registado)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
+        // O modo de jogo
         intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("admin", admin)
+        // Número de respostas certas seguidas ao longo do jogo
         intent.putExtra("respostasCertas", numeroPerguntasCertas)
-        intent.putExtra("totalPerguntascertas", totalPerguntascertas)
+        // Total de respostas certas do jogador neste jogo
+        intent.putExtra("totalRespostasCertas", totalPerguntascertas)
+        // Total de perguntas do jogo (útil para calcular percentagens)
         intent.putExtra("totalPerguntas", perguntas.size)
         startActivity(intent)
         finish()

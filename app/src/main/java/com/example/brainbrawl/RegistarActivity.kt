@@ -102,7 +102,8 @@ class RegistarActivity : AppCompatActivity() {
             "avatar" to nomeAvatar,
             "pontuacao" to 0.0,
             "totalJogos" to 0,
-            "totalVitorias" to 0
+            "totalVitorias" to 0,
+            "totalRespostasCertas" to 0
         )
         database.child("jogadores").child(nomeUtilizador).setValue(jogadorData)
     }

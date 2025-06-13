@@ -35,7 +35,7 @@
                 android:id="@+id/imgAvatarAmigo"
                 android:layout_width="110dp"
                 android:layout_height="110dp"
-                android:layout_marginBottom="16dp"
+                android:layout_marginBottom="12dp"
                 android:scaleType="centerCrop"
                 android:contentDescription="Avatar do amigo" />
 
@@ -50,6 +50,84 @@
                 android:textColor="#222222"
                 android:textSize="26sp"
                 android:textStyle="bold" />
+
+
+            <!-- Linha das Conquistas -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginBottom="4dp">
+
+                <!-- Total de Jogos -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/imgTotalJogos"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:contentDescription="Total de Jogos" />
+                    <TextView
+                        android:id="@+id/txtTotalJogosConquista"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Jogos"
+                        android:textSize="12sp"
+                        android:textColor="#222"
+                        android:gravity="center"/>
+                </LinearLayout>
+
+                <!-- Total de Vitórias -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center"
+                    android:layout_marginStart="32dp"
+                    android:layout_marginEnd="32dp">
+
+                    <ImageView
+                        android:id="@+id/imgTotalVitorias"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:contentDescription="Total de Vitórias" />
+                    <TextView
+                        android:id="@+id/txtTotalVitoriasConquista"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Vitórias"
+                        android:textSize="12sp"
+                        android:textColor="#222"
+                        android:gravity="center"/>
+                </LinearLayout>
+
+                <!-- Total de Respostas Certas -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/imgTotalRespostasCertas"
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:contentDescription="Total de Respostas Certas" />
+                    <TextView
+                        android:id="@+id/txtTotalRespostasCertasConquista"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Respostas Certas"
+                        android:textSize="12sp"
+                        android:textColor="#222"
+                        android:gravity="center"/>
+                </LinearLayout>
+            </LinearLayout>
 
             <!-- Pontuação -->
             <LinearLayout

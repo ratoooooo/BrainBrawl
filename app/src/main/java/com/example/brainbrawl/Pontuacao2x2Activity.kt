@@ -29,6 +29,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private var respostasCertas: Int = 0
     private var totalPerguntas: Int = 1
     private var equipa: String? = null
+    private var totalRespostasCertas: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -42,13 +43,16 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         admin = intent.getBooleanExtra("admin", false)
         equipa = intent.getStringExtra("equipa")
+        respostasCertas = intent.getIntExtra("respostasCertas", 0)
+        totalPerguntas = intent.getIntExtra("totalPerguntas", 1)
+        totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
 
         // Chamar a função para carregar pontuação da sala 2x2
         carregarPontuacao2x2()
 
-        // Exibir os dados do jogador
+        // Atualizar estatísticas do jogador registado (após carregar o pódio)
         if (nomeUtilizador.isNotEmpty()) {
-            adicionarPontuacaoJogadorRegistado()
+            atualizarEstatisticasJogador()
         }
 
         // Configurar o botão de voltar
@@ -95,7 +99,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
                             equipaB + equipaA
 
                         // Preenche os 4 lugares do layout
-                        if (podio.size > 0) {
+                        if (podio.isNotEmpty()) {
                             binding.txtNomeJogador1.text = podio.getOrNull(0)?.first ?: ""
                             binding.txtPontos1.text = podio.getOrNull(0)?.second?.toInt()?.toString() ?: ""
                         }
@@ -119,17 +123,49 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         })
     }
 
-    // Função para adicionar a pontuação do jogador registado
-    private fun adicionarPontuacaoJogadorRegistado() {
+    // Função para atualizar as estatísticas do jogador registado
+    private fun atualizarEstatisticasJogador() {
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // Guardar a pontuação que esta guardada na base de dados
                 val pontuacaoGuardada = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                // Atualizar a pontuação do jogador caso seja maior que a guardada
-                if (totalPontos > pontuacaoGuardada) {
-                    database.child("jogadores").child(nomeUtilizador).child("pontuacao").setValue(totalPontos)
-                    Toast.makeText(this@Pontuacao2x2Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()
-                }
+                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
+                val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
+                val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
+
+                val novoTotalRespostasCertas = totalRespostasCertasAnterior + totalRespostasCertas
+                val novoTotalJogos = totalJogosAnterior + 1
+
+                // Verifica se a equipa ganhou (pontos da equipa vs equipa adversária)
+                val salaRef = database.child("sala_2x2").child(codigoSala)
+                salaRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(salaSnapshot: DataSnapshot) {
+                        val equipaA = salaSnapshot.child("pontuacoes_A").children.map { it.getValue(Double::class.java) ?: 0.0 }
+                        val equipaB = salaSnapshot.child("pontuacoes_B").children.map { it.getValue(Double::class.java) ?: 0.0 }
+                        val totalA = equipaA.sum()
+                        val totalB = equipaB.sum()
+
+                        var ganhou = false
+                        if (equipa == "A" && totalA >= totalB) ganhou = true
+                        if (equipa == "B" && totalB > totalA) ganhou = true
+
+                        val novoTotalVitorias = totalVitoriasAnterior + if (ganhou) 1 else 0
+
+                        // Atualizar tudo na base de dados
+                        val updates = mapOf(
+                            "pontuacao" to if (totalPontos > pontuacaoGuardada) totalPontos else pontuacaoGuardada,
+                            "totalRespostasCertas" to novoTotalRespostasCertas,
+                            "totalJogos" to novoTotalJogos,
+                            "totalVitorias" to novoTotalVitorias
+                        )
+                        database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
+
+                        // Notifica se for novo record
+                        if (totalPontos > pontuacaoGuardada) {
+                            Toast.makeText(this@Pontuacao2x2Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    override fun onCancelled(error: DatabaseError) {}
+                })
             }
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(this@Pontuacao2x2Activity, "Erro ao carregar pontuação", Toast.LENGTH_SHORT).show()
