@@ -48,7 +48,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
 
     // Função para enviar convites para o modo 2x2
     private fun enviarConvite2x2(amigosSelecionados: List<String>) {
-        val salaId = Uteis.gerarCodigoSala()
+        val codigoSala = Uteis.gerarCodigoSala()
         val jogadores = hashMapOf<String, Any>()
         jogadores[nomeUtilizador] = true
 
@@ -58,7 +58,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         }
 
         // Cria a sala 2x2 no Firebase
-        database.child("sala_2x2").child(salaId).setValue(
+        database.child("sala_2x2").child(codigoSala).setValue(
             mapOf(
                 "jogadores" to jogadores,
                 "estado" to "em_espera",
@@ -68,7 +68,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         // Mapa de dados do convite
         val conviteData = mapOf(
             "estado" to "pendente",
-            "salaId" to salaId,
+            "codigoSala" to codigoSala,
             "modo" to "2x2",
             "categoria" to (categoria ?: "Todas as categorias")
         )
@@ -85,7 +85,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         Toast.makeText(this, "Convite 2x2 enviado!", Toast.LENGTH_SHORT).show()
         // Vai para sala de espera 2x2
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
-        intent.putExtra("salaId", salaId)
+        intent.putExtra("codigoSala", codigoSala)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
         intent.putExtra("categoria", categoria ?: "Todas as categorias")
         startActivity(intent)

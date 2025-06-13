@@ -37,6 +37,9 @@ class TipoModoClassico : AppCompatActivity() {
 
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
+            var inteny = Intent(this, EscolherModoActivity::class.java)
+            inteny.putExtra("nomeUtilizador", nomeUtilizador)
+            startActivity(inteny)
             finish()
         }
 

@@ -338,31 +338,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita: Agora o jogador pode ver as conquistas de outros jogadores">
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/j10.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/j100.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/j25.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/j50.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/rc100.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/rc1000.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/rc200.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/rc50.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/rc500.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/v10.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/v100.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/v25.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/v5.png" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app/src/main/res/drawable/v50.png" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/raw/certo.mp3" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/raw/errado.mp3" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Uteis.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Uteis.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_modo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_modo.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -501,9 +491,9 @@
       <recent name="com.example.brainbrawl" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\raw" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\raw" />
       <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
     </key>
     <key name="android.template.-1398991510">
@@ -893,7 +883,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749734859409</updated>
     </task>
-    <option name="localTasksCounter" value="8" />
+    <task id="LOCAL-00008" summary="Alterações feita: Agora o jogador pode ver as conquistas de outros jogadores">
+      <option name="closed" value="true" />
+      <created>1749808483083</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1749808483083</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -906,30 +904,6 @@
     <MESSAGE value="Alterações feita: Agora o jogador pode ver o estados de outros jogadores ente off e on" />
     <MESSAGE value="Alterações feita: Agora o jogador pode ver as conquistas de outros jogadores" />
     <option name="LAST_COMMIT_MESSAGE" value="Alterações feita: Agora o jogador pode ver as conquistas de outros jogadores" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="kotlin-function">
-          <url>file://$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt</url>
-          <line>419</line>
-          <properties class="com.example.brainbrawl.JogoActivity" method="enviarPontuacaoActivity">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-function">
-          <url>file://$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt</url>
-          <line>265</line>
-          <properties class="com.example.brainbrawl.Jogo1x1Activity" method="finalizarJogo">
-            <option name="EMULATED" value="true" />
-            <option name="WATCH_EXIT" value="false" />
-          </properties>
-          <option name="timeStamp" value="3" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">

@@ -12,6 +12,7 @@ import com.example.brainbrawl.Uteis.atualizarPontuacao
 import com.example.brainbrawl.Uteis.definirCorBotao
 import com.example.brainbrawl.Uteis.enviarPontuacaoActivity
 import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
+import com.example.brainbrawl.Uteis.tocarSom
 import com.example.brainbrawl.databinding.ActivityJogo1x1Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -24,7 +25,7 @@ class Jogo1x1Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivityJogo1x1Binding.inflate(layoutInflater)
     }
-    private lateinit var salaId: String
+    private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private lateinit var perguntaAtual: Pergunta
 
@@ -53,12 +54,12 @@ class Jogo1x1Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        salaId = intent.getStringExtra("salaId") ?: ""
+        codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria") ?: "Todas as categorias"
 
         // Buscar ou criar perguntas (garantindo que ambos os jogadores jogam as MESMAS perguntas)
-        database.child("sala_1x1").child(salaId).child("perguntas")
+        database.child("sala_1x1").child(codigoSala).child("perguntas")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     perguntas.clear()
@@ -74,7 +75,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                     } else {
                         // Só o primeiro a entrar cria as perguntas - garante justiça com transaction!
                         buscarPerguntasAleatorias { perguntasAleatorias ->
-                            database.child("sala_1x1").child(salaId).child("perguntas")
+                            database.child("sala_1x1").child(codigoSala).child("perguntas")
                                 .runTransaction(object : Transaction.Handler {
                                     override fun doTransaction(currentData: MutableData): Transaction.Result {
                                         if (currentData.value == null) {
@@ -89,7 +90,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                                         currentData: DataSnapshot?
                                     ) {
                                         // Volta a escutar até existirem perguntas
-                                        database.child("sala_1x1").child(salaId).child("perguntas")
+                                        database.child("sala_1x1").child(codigoSala).child("perguntas")
                                             .addListenerForSingleValueEvent(object : ValueEventListener {
                                                 override fun onDataChange(snapshot: DataSnapshot) {
                                                     perguntas.clear()
@@ -244,12 +245,20 @@ class Jogo1x1Activity : AppCompatActivity() {
         // Estatísticas
         totalPerguntasRespondidas++
         if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
+            // Chamar a função para tocar som de resposta correta
+            tocarSom(this, R.raw.certo)
+            somTocar = true
+
             definirCorBotao(botaoSelecionado, "#81C784") // Verde para a resposta correta
             numeroPerguntasCertas++
             totalPerguntascertas++ // <-- incrementa total de respostas certas deste jogo
             val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
             totalPontos += pontos
         } else if (botaoSelecionado != null) {
+            // Chamar a função para tocar som de resposta errada
+            tocarSom(this, R.raw.errado)
+            somTocar = true
+
             definirCorBotao(botaoSelecionado, "#E57373") // Vermelho para a resposta errada
             numeroPerguntasCertas = 0
         }
@@ -268,21 +277,13 @@ class Jogo1x1Activity : AppCompatActivity() {
         progressBarAtivo = false
         handler.removeCallbacksAndMessages(null)
 
-        database.child("sala_1x1").child(salaId)
+        database.child("sala_1x1").child(codigoSala)
             .child("pontuacoes").child(nomeUtilizador)
             .setValue(totalPontos)
             .addOnSuccessListener {
                 // envia também o total de respostas certas deste jogo!
                 enviarPontuacaoActivity(
-                    this,
-                    "1x1",
-                    nomeUtilizador,
-                    totalPontos,
-                    categoria,
-                    nomeUtilizador,
-                    totalPerguntascertas, // total de respostas certas neste jogo!
-                    numeroPerguntasCertas, // streak
-                    perguntas.size
+                    this, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
                 )
             }
             .addOnFailureListener {

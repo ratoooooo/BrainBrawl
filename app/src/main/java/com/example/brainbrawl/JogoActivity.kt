@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.Uteis.definirCorBotao
 import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
+import com.example.brainbrawl.Uteis.tocarSom
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -214,6 +215,10 @@ class JogoActivity : AppCompatActivity() {
         // Só contam para estatísticas quem não for admin
         if (!admin) {
             if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
+                // Chamar a função para tocar som de resposta correta
+                tocarSom(this, R.raw.certo)
+                somTocar = true
+
                 definirCorBotao(botaoSelecionado, "#81C784")
                 // Guardar o numero de respostas certas em squencia
                 numeroPerguntasCertas++
@@ -221,6 +226,10 @@ class JogoActivity : AppCompatActivity() {
                 totalPerguntascertas++
                 atualizarPontuacao()
             } else if (botaoSelecionado != null) {
+                // Chamar a função para tocar som de resposta errada
+                tocarSom(this, R.raw.certo)
+                somTocar = true
+
                 definirCorBotao(botaoSelecionado, "#E57373") // vermelho para errada
                 numeroPerguntasCertas = 0
             }

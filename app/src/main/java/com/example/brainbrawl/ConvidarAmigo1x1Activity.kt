@@ -29,9 +29,8 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
         // Adapter para mostrar amigos com botão desafiar
         convidarAmigoAdapter = Convidar1x1AmigoAdapter(amigos) { amigoSelecionado ->
             // Ao desafiar um amigo, criar convite e sala 1x1
-            val salaId = Uteis.gerarCodigoSala()
-            val salaRef = database.child("sala_1x1").child(salaId)
-
+            val codigoSala = Uteis.gerarCodigoSala()
+            val salaRef = database.child("sala_1x1").child(codigoSala)
 
             salaRef.setValue(
                 mapOf(
@@ -43,7 +42,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
 
             val conviteData = mapOf(
                 "estado" to "pendente",
-                "salaId" to salaId,
+                "codigoSala" to codigoSala,
                 "categoria" to (categoria ?: "Todas as categorias")
             )
 
@@ -59,7 +58,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
 
             // Iniciar a atividade de sala de espera 1x1
             val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
-            intent.putExtra("salaId", salaId)
+            intent.putExtra("codigoSala", codigoSala)
             intent.putExtra("nomeUtilizador", nomeUtilizador)
             intent.putExtra("categoria", categoria ?: "Todas as categorias")
             startActivity(intent)

@@ -12,6 +12,7 @@ import com.example.brainbrawl.Uteis.atualizarPontuacao
 import com.example.brainbrawl.Uteis.definirCorBotao
 import com.example.brainbrawl.Uteis.enviarPontuacaoActivity
 import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
+import com.example.brainbrawl.Uteis.tocarSom
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -26,7 +27,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         ActivityJogo2x2Binding.inflate(layoutInflater)
     }
     // Variáveis para dados do jogo e jogador
-    private lateinit var salaId: String
+    private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private lateinit var perguntaAtual: Pergunta
     private lateinit var categoria: String
@@ -60,12 +61,12 @@ class Jogo2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Obter dados do intent
-        salaId = intent.getStringExtra("salaId") ?: ""
+        codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria") ?: "Todas as categorias"
 
         // --- Identifica a equipa deste jogador ---
-        database.child("sala_2x2").child(salaId).addListenerForSingleValueEvent(object : ValueEventListener {
+        database.child("sala_2x2").child(codigoSala).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val equipaA = snapshot.child("equipaA").children.mapNotNull { it.key }
                 val equipaB = snapshot.child("equipaB").children.mapNotNull { it.key }
@@ -85,7 +86,7 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     // Função que carrega as perguntas da sala ou as cria se for o primeiro jogador
     private fun carregarOuCriarPerguntas() {
-        database.child("sala_2x2").child(salaId).child("perguntas")
+        database.child("sala_2x2").child(codigoSala).child("perguntas")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     perguntas.clear()
@@ -102,7 +103,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                     } else {
                         // Só o primeiro jogador a entrar cria as perguntas (usando transaction para garantir que só um cria)
                         buscarPerguntasAleatorias { perguntasAleatorias ->
-                            database.child("sala_2x2").child(salaId).child("perguntas")
+                            database.child("sala_2x2").child(codigoSala).child("perguntas")
                                 .runTransaction(object : Transaction.Handler {
                                     override fun doTransaction(currentData: MutableData): Transaction.Result {
                                         if (currentData.value == null) {
@@ -116,7 +117,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                                         committed: Boolean,
                                         currentData: DataSnapshot?
                                     ) {
-                                        database.child("sala_2x2").child(salaId).child("perguntas")
+                                        database.child("sala_2x2").child(codigoSala).child("perguntas")
                                             .addListenerForSingleValueEvent(object : ValueEventListener {
                                                 override fun onDataChange(snapshot: DataSnapshot) {
                                                     perguntas.clear()
@@ -273,7 +274,11 @@ class Jogo2x2Activity : AppCompatActivity() {
         // Atualiza estatísticas de respostas
         totalPerguntasRespondidas++
         if (botaoSelecionado != null && opcaoEscolhida == perguntaAtual.respostaCorreta) {
+            // Chamar a função para tocar som de resposta correta
+            tocarSom(this, R.raw.certo)
+            somTocar = true
             definirCorBotao(botaoSelecionado, "#81C784")
+
             // Guardar o numero de respostas certas em squencia
             numeroPerguntasCertas++
             // Guardar o total de perguntas certas ao longo do jogo
@@ -281,12 +286,16 @@ class Jogo2x2Activity : AppCompatActivity() {
             val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
             totalPontos += pontos
         } else if (botaoSelecionado != null) {
+            // Chamar a função para tocar som de resposta errada
+            tocarSom(this, R.raw.errado)
+            somTocar = true
+
             definirCorBotao(botaoSelecionado, "#E57373") // Vermelho para errada
             numeroPerguntasCertas = 0
         }
 
         // Guarda resposta do jogador na base de dados
-        val respostaRef = database.child("sala_2x2").child(salaId)
+        val respostaRef = database.child("sala_2x2").child(codigoSala)
             .child("respostas").child(nomeUtilizador).child(perguntaAtualIndex.toString())
         respostaRef.setValue(opcaoEscolhida)
 
@@ -306,12 +315,12 @@ class Jogo2x2Activity : AppCompatActivity() {
 
         // Guarda pontuação do jogador no nó da sua equipa
         if (equipaDoJogador == "A" || equipaDoJogador == "B") {
-            database.child("sala_2x2").child(salaId)
+            database.child("sala_2x2").child(codigoSala)
                 .child("pontuacoes_${equipaDoJogador}")
                 .child(nomeUtilizador)
                 .setValue(totalPontos)
             // Gracva o total de perguntas certas
-            database.child("sala_2x2").child(salaId)
+            database.child("sala_2x2").child(codigoSala)
                 .child("totalPerguntasCertas_${equipaDoJogador}")
                 .child(nomeUtilizador)
                 .setValue(totalPerguntascertas)

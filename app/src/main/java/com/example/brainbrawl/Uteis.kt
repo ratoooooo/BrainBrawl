@@ -3,6 +3,7 @@ package com.example.brainbrawl
 import Pergunta
 import android.content.Context
 import android.content.Intent
+import android.media.MediaPlayer
 import android.widget.Toast
 import java.security.MessageDigest
 import kotlin.random.Random
@@ -129,5 +130,14 @@ object Uteis {
                 Toast.makeText(context, "Bónus de sequência! +${bonus + 50} pontos", Toast.LENGTH_SHORT).show()
             }
             return pontuacao
+    }
+
+    // Função para tocar som
+    fun tocarSom(context: Context, resourceId: Int) {
+        val mediaPlayer = MediaPlayer.create(context, resourceId)
+        mediaPlayer?.setOnCompletionListener {
+            it.release()
+        }
+        mediaPlayer?.start()
     }
 }

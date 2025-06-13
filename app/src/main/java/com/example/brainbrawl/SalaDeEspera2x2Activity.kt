@@ -28,7 +28,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Receber dados passados do intent
-        codigoSala = intent.getStringExtra("salaId") ?: ""
+        codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria")
 
@@ -93,7 +93,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                     val estado = snapshot.getValue(String::class.java)
                     if (estado == "em_jogo") {
                         val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
-                        intent.putExtra("salaId", codigoSala)
+                        intent.putExtra("codigoSala", codigoSala)
                         intent.putExtra("nomeUtilizador", nomeUtilizador)
                         intent.putExtra("categoria", categoria)
                         startActivity(intent)

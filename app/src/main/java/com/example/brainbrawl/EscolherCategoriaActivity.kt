@@ -30,16 +30,29 @@ class EscolherCategoriaActivity : AppCompatActivity() {
 
         //Configurar os botões para abrir a MainActivity com a categoria correspondente
         binding.btnCategoria1.setOnClickListener {
-                abrirMainActivity(this, getString(R.string.categoria1), modoJogo, nomeUtilizador)
+            binding.btnCategoria1.isEnabled = false
+            // Chamar a função para abrir a MainActivity com a categoria 1
+            abrirMainActivity(this, getString(R.string.categoria1), modoJogo, nomeUtilizador)
         }
         binding.btnCategoria2.setOnClickListener {
-                abrirMainActivity(this, getString(R.string.categoria2), modoJogo, nomeUtilizador)
+            binding.btnCategoria2.isEnabled = false
+            // Chamar a função para abrir a MainActivity com a categoria 2
+            abrirMainActivity(this, getString(R.string.categoria2), modoJogo, nomeUtilizador)
         }
         binding.btnCategoria3.setOnClickListener {
-                abrirMainActivity(this, getString(R.string.categoria3), modoJogo, nomeUtilizador)
+            binding.btnCategoria3.isEnabled = false
+            // Chamar a função para abrir a MainActivity com a categoria 3
+            abrirMainActivity(this, getString(R.string.categoria3), modoJogo, nomeUtilizador)
         }
         binding.btnCategoria4.setOnClickListener {
-                abrirMainActivity(this, getString(R.string.categoria4), modoJogo, nomeUtilizador)
+            binding.btnCategoria4.isEnabled = false
+            // Chamar a função para abrir a MainActivity com a categoria 4
+            abrirMainActivity(this, getString(R.string.categoria4), modoJogo, nomeUtilizador)
+        }
+        binding.btnCategoria5.setOnClickListener {
+            binding.btnCategoria5.isEnabled = false
+            // Chamar a função para abrir a MainActivity com a categoria 5
+            abrirMainActivity(this, getString(R.string.categoria6), modoJogo, nomeUtilizador)
         }
         binding.btnCriarCategoria.setOnClickListener {
                 abrirAdicionarPerguntaActivity(modoJogo, nomeUtilizador)

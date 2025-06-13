@@ -17,7 +17,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
     // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
     // Variáveis para armazenar informações da sala e do jogador
-    private lateinit var salaId: String
+    private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private var jogadoresNaSala = mutableListOf<String>()
     private var admin = false
@@ -28,18 +28,18 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Receber dados passados do intent
-        salaId = intent.getStringExtra("salaId") ?: ""
+        codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         categoria = intent.getStringExtra("categoria") ?: "Todas as categorias"
 
         // Mostrar o código da sala
-        binding.txtCodigoSala.text = "Código da sala: $salaId"
+        binding.txtCodigoSala.text = "Código da sala: $codigoSala"
 
         // Adicionar o jogador à sala
-        database.child("sala_1x1").child(salaId).child("jogadores").child(nomeUtilizador).setValue(true)
+        database.child("sala_1x1").child(codigoSala).child("jogadores").child(nomeUtilizador).setValue(true)
 
         // Verificar se o jogador é o administrador (primeiro a entrar na sala)
-        database.child("sala_1x1").child(salaId).child("jogadores")
+        database.child("sala_1x1").child(codigoSala).child("jogadores")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val nomes = snapshot.children.map { it.key ?: "" }
@@ -52,7 +52,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
             })
 
         // Listener para jogadores na sala (ativa botão quando forem 4 e define as equipas)
-        database.child("sala_1x1").child(salaId).child("jogadores")
+        database.child("sala_1x1").child(codigoSala).child("jogadores")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     jogadoresNaSala.clear()
@@ -69,13 +69,13 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
             })
 
         // Listener do estado da sala para iniciar o jogo
-        database.child("sala_1x1").child(salaId).child("estado")
+        database.child("sala_1x1").child(codigoSala).child("estado")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val estado = snapshot.getValue(String::class.java)
                     if (estado == "em_jogo") {
                         val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
-                        intent.putExtra("salaId", salaId)
+                        intent.putExtra("codigoSala", codigoSala)
                         intent.putExtra("nomeUtilizador", nomeUtilizador)
                         intent.putExtra("categoria", categoria)
                         startActivity(intent)
@@ -88,7 +88,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         // Configurar botão de Iniciar Jogo
         binding.btnIniciarJogo.setOnClickListener {
             if (jogadoresNaSala.size == 2) {
-                database.child("sala_1x1").child(salaId).child("estado").setValue("em_jogo")
+                database.child("sala_1x1").child(codigoSala).child("estado").setValue("em_jogo")
             }
         }
     }
