@@ -29,7 +29,7 @@ class RegistarActivity : AppCompatActivity() {
             R.drawable.avatar_4_playstore,
             R.drawable.avatar_5_playstore,
             R.drawable.avatar_6_playstore,
-            R.drawable.avatar_7_playstore,
+            //R.drawable.avatar_7_playstore,
             R.drawable.avatar_9_playstore,
             R.drawable.avatar_10_playstore,
             R.drawable.avatar_11_playstore,

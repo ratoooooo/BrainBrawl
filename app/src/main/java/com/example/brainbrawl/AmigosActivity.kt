@@ -16,6 +16,7 @@ class AmigosActivity : AppCompatActivity() {
     }
     private val database = FirebaseDatabase.getInstance().reference
     private var nomeUtilizador: String = ""
+    private var nomeJogador: String = ""
     private val amigos = mutableListOf<String>()
     private lateinit var amigoAdapter: AmigoAdapter
     private val avataresAmigos = mutableListOf<String>()

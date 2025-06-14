@@ -291,6 +291,11 @@
           <theme>@style/Theme.BrainBrawl</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera_grupo.xml">
+        <config>
+          <theme>@style/Theme.BrainBrawl</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/activity_tipo_modo_classico.xml">
         <config>
           <theme>@style/Theme.BrainBrawl</theme>
@@ -316,6 +321,11 @@
           <theme>@style/Theme.BrainBrawl</theme>
         </config>
       </layout>
+      <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/item_jogador_sala.xml">
+        <config>
+          <theme>@style/Theme.BrainBrawl</theme>
+        </config>
+      </layout>
       <layout url="file://$PROJECT_DIR$/app/src/main/res/layout/item_podio.xml">
         <config>
           <theme>@style/Theme.BrainBrawl</theme>
@@ -337,18 +347,26 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita: Agora DURANTE O JOGO O JOGDOR HOUVE UM SOM DE CORRETO OU ERRADO A RESPONDER A PERGUNTA">
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Alterações feita: Agora no fim do jogo, no modo 1x1 um jogador pode pedir a desforra">
+      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogadoresSalaAdapter.kt" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_jogador_sala.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Convite.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Convite.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Uteis.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Uteis.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao1x1.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_11_playstore.png" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_11_playstore.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_2_playstore.png" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_2_playstore.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_5_playstore.png" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_5_playstore.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/avatar_7_playstore.png" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -474,34 +492,40 @@
   }
 }</component>
   <component name="RecentsManager">
-    <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\values" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
-    </key>
     <key name="android.template.839174981">
       <recent name="com.example.brainbrawl" />
     </key>
-    <key name="android.template.1223085282">
-      <recent name="com.example.brainbrawl" />
-    </key>
-    <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\raw" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
-      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
-    </key>
     <key name="android.template.-1398991510">
-      <recent name="com.example.brainbrawl" />
-    </key>
-    <key name="android.template.-1409156144">
       <recent name="com.example.brainbrawl" />
     </key>
     <key name="android.template.-688012493">
       <recent name="com.example.brainbrawl" />
     </key>
     <key name="android.template.1381059976">
+      <recent name="com.example.brainbrawl" />
+    </key>
+    <key name="android.template.-289841002">
+      <recent name="com.example.brainbrawl" />
+    </key>
+    <key name="android.template.2069915232">
+      <recent name="com.example.brainbrawl" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\values" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
+    </key>
+    <key name="android.template.1223085282">
+      <recent name="com.example.brainbrawl" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\drawable" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\raw" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app\src\main\res\layout" />
+      <recent name="C:\Users\dinis\AndroidStudioProjects\BrainBrawl\app" />
+    </key>
+    <key name="android.template.-1409156144">
       <recent name="com.example.brainbrawl" />
     </key>
     <key name="android.template.-1080880296">
@@ -511,9 +535,6 @@
       <recent name="com.example.brainbrawl" />
     </key>
     <key name="android.template.1877625666">
-      <recent name="com.example.brainbrawl" />
-    </key>
-    <key name="android.template.-289841002">
       <recent name="com.example.brainbrawl" />
     </key>
   </component>
@@ -895,7 +916,15 @@
       <option name="project" value="LOCAL" />
       <updated>1749814131997</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="Alterações feita: Agora no fim do jogo, no modo 1x1 um jogador pode pedir a desforra">
+      <option name="closed" value="true" />
+      <created>1749827930038</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1749827930038</updated>
+    </task>
+    <option name="localTasksCounter" value="11" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -908,19 +937,20 @@
     <MESSAGE value="Alterações feita: Agora o jogador pode ver o estados de outros jogadores ente off e on" />
     <MESSAGE value="Alterações feita: Agora o jogador pode ver as conquistas de outros jogadores" />
     <MESSAGE value="Alterações feita: Agora DURANTE O JOGO O JOGDOR HOUVE UM SOM DE CORRETO OU ERRADO A RESPONDER A PERGUNTA" />
-    <option name="LAST_COMMIT_MESSAGE" value="Alterações feita: Agora DURANTE O JOGO O JOGDOR HOUVE UM SOM DE CORRETO OU ERRADO A RESPONDER A PERGUNTA" />
+    <MESSAGE value="Alterações feita: Agora no fim do jogo, no modo 1x1 um jogador pode pedir a desforra" />
+    <option name="LAST_COMMIT_MESSAGE" value="Alterações feita: Agora no fim do jogo, no modo 1x1 um jogador pode pedir a desforra" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
       <map>
         <entry key="com.example.brainbrawl">
           <value>
-            <CheckInfo lastCheckTimestamp="1749728754976" />
+            <CheckInfo lastCheckTimestamp="1749938486198" />
           </value>
         </entry>
         <entry key="com.example.brainbrawl.test">
           <value>
-            <CheckInfo lastCheckTimestamp="1749728754976" />
+            <CheckInfo lastCheckTimestamp="1749938486200" />
           </value>
         </entry>
       </map>

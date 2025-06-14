@@ -94,7 +94,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             //Guardar os dados dos editTexts
             val nomeCategoria = binding.edtNovaCategoria.text.toString().trim()
             //Criar um intent para a MainActivity
-            val intent = Intent(this, MainActivity::class.java)
+            val intent = Intent(this, SalaDeEsperaGrupoActivity::class.java)
             //Passar os dados para a MainActivity
             intent.putExtra("nomeCategoria", nomeCategoria)
             intent.putExtra("codigoSala", codigoSala)

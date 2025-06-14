@@ -107,17 +107,33 @@ class JogoActivity : AppCompatActivity() {
     }
 
     // Configura os botões e visibilidade consoante se é admin
+// Configura os botões e visibilidade consoante se é admin
     private fun configurarUIPorAdmin() {
         if (admin) {
-            binding.btnOpcao1.visibility = android.view.View.GONE
-            binding.btnOpcao2.visibility = android.view.View.GONE
-            binding.btnOpcao3.visibility = android.view.View.GONE
-            binding.btnOpcao4.visibility = android.view.View.GONE
+            // O admin apenas vê as opções, mas não pode responder
+            binding.btnOpcao1.isEnabled = false
+            binding.btnOpcao2.isEnabled = false
+            binding.btnOpcao3.isEnabled = false
+            binding.btnOpcao4.isEnabled = false
+        } else {
+            // Jogador: ativa os botões (serão ativados/desativados durante o jogo)
+            binding.btnOpcao1.isEnabled = true
+            binding.btnOpcao2.isEnabled = true
+            binding.btnOpcao3.isEnabled = true
+            binding.btnOpcao4.isEnabled = true
+
+            binding.btnOpcao1.setOnClickListener { verificarResposta(0) }
+            binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
+            binding.btnOpcao3.setOnClickListener { verificarResposta(2) }
+            binding.btnOpcao4.setOnClickListener { verificarResposta(3) }
         }
-        binding.btnOpcao1.setOnClickListener { verificarResposta(0) }
-        binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
-        binding.btnOpcao3.setOnClickListener { verificarResposta(2) }
-        binding.btnOpcao4.setOnClickListener { verificarResposta(3) }
+        // Para garantir que não há listeners ativos para o admin:
+        if (admin) {
+            binding.btnOpcao1.setOnClickListener(null)
+            binding.btnOpcao2.setOnClickListener(null)
+            binding.btnOpcao3.setOnClickListener(null)
+            binding.btnOpcao4.setOnClickListener(null)
+        }
     }
 
     // Carrega as perguntas desta sala do Firebase
@@ -227,7 +243,7 @@ class JogoActivity : AppCompatActivity() {
                 atualizarPontuacao()
             } else if (botaoSelecionado != null) {
                 // Chamar a função para tocar som de resposta errada
-                tocarSom(this, R.raw.certo)
+                tocarSom(this, R.raw.errado)
                 somTocar = true
 
                 definirCorBotao(botaoSelecionado, "#E57373") // vermelho para errada

@@ -18,6 +18,7 @@ class TipoModoClassico : AppCompatActivity() {
         // Receber dados passados do intent
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         val modoJogo = intent.getStringExtra("modoJogo")
+        val nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
 
         // Configurar o botao para o modo 1x1
         binding.btnModo1x1.setOnClickListener {
@@ -32,7 +33,7 @@ class TipoModoClassico : AppCompatActivity() {
         // Configurar o botao para o modo de grupo
         binding.btnModoGrupo.setOnClickListener {
             // Chama a função para abrir a EscolherCategoriaActivity com o modo de jogo selecionado
-            abrirEscolherCategoriaActivity(this, modoJogo.toString(), nomeUtilizador)
+            abrirEscolherCategoriaActivity(this, modoJogo.toString(), nomeUtilizador, nomeJogador, true)
         }
 
         // Configurar o botão de voltar

@@ -80,7 +80,15 @@ class LoginActivity : AppCompatActivity() {
         }
         // Configurar botão de iniciar jogo sem conta
         binding.btnIniciarJogo.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
+            val nomeJogador = binding.edtNomeJogador.text.toString().trim()
+            if (nomeJogador.isEmpty()) {
+                Toast.makeText(this, "Insira um nome de jogador!", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val intent = Intent(this, MainActivity::class.java)
+            intent.putExtra("nomeJogador", nomeJogador)
+            startActivity(intent)
+            finish()
         }
     }
 
