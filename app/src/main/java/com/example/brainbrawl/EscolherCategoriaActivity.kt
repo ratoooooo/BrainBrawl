@@ -119,12 +119,12 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     }
 
     //Função para abrir a AdicionarPerguntaActivity
-    private fun abrirAdicionarPerguntaActivity(modo: String, nome: String?) {
+    private fun abrirAdicionarPerguntaActivity(modo: String, nomeUtilizador: String?) {
         codigoSala = gerarCodigoSala()
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("modoJogo", modo)
-        intent.putExtra("nomeUtilizador", nome)
+        codigoSala.let { intent.putExtra("codigoSala", it) }
+        modo.let { intent.putExtra("modoJogo", it) }
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
         startActivity(intent)
         finish()
     }

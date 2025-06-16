@@ -47,8 +47,8 @@ class EscolherModoActivity : AppCompatActivity() {
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
-            intent.putExtra("nomeJogador", nomeJogador)
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
             startActivity(intent)
             finish()
         }
@@ -61,10 +61,10 @@ class EscolherModoActivity : AppCompatActivity() {
     // Função para abrir o TipoModoClassico com o modo de jogo selecionado
     private fun abrirTipoModoClassico(modo: String) {
         val intent = Intent(this, TipoModoClassico::class.java)
-        intent.putExtra("modoJogo", modo)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("nomeJogador", nomeJogador)
-        intent.putExtra("codigoSala", gerarCodigoSala())
+        modo.let { intent.putExtra("modoJogo", it) }
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+        gerarCodigoSala().let { intent.putExtra("codigoSala", it) }
         startActivity(intent)
         finish()
     }

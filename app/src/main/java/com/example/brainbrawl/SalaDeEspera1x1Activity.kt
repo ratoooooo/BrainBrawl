@@ -70,9 +70,9 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
                     val estado = snapshot.getValue(String::class.java)
                     if (estado == "em_jogo") {
                         val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
-                        intent.putExtra("codigoSala", codigoSala)
-                        intent.putExtra("nomeUtilizador", nomeUtilizador)
-                        intent.putExtra("nomeCategoria", nomeCategoria)
+                        codigoSala?.let { intent.putExtra("codigoSala", it) }
+                        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+                        nomeCategoria?.let { intent.putExtra("nomeCategoria", it) }
                         startActivity(intent)
                         finish()
                     }

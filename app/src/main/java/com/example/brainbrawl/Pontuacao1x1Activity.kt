@@ -156,9 +156,9 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         // Gera um novo código de sala e volta para a sala de espera
         val novoCodigoSala = Uteis.gerarCodigoSala()
         val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
-        intent.putExtra("codigoSala", novoCodigoSala)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("nomeCategoria", nomeCategoria)
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        nomeCategoria?.let { intent.putExtra("nomeCategoria", it) }
+        novoCodigoSala.let { intent.putExtra("codigoSala", it) }
         startActivity(intent)
         finish()
     }

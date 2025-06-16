@@ -38,9 +38,9 @@ class TipoModoClassico : AppCompatActivity() {
 
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
-            var inteny = Intent(this, EscolherModoActivity::class.java)
-            inteny.putExtra("nomeUtilizador", nomeUtilizador)
-            startActivity(inteny)
+            var intent = Intent(this, EscolherModoActivity::class.java)
+            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+            startActivity(intent)
             finish()
         }
 
@@ -77,8 +77,8 @@ class TipoModoClassico : AppCompatActivity() {
         } else {
             // Redireciona para a EscolherCategoriaActivity com o modo de jogo selecionado
             val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
-            intent.putExtra("modoJogo", modo)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            modo.let { intent.putExtra("modoJogo", it) }
+            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
             startActivity(intent)
         }
     }

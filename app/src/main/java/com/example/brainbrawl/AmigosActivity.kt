@@ -173,8 +173,8 @@ class AmigosActivity : AppCompatActivity() {
             "2x2" -> Intent(this, SalaDeEspera2x2Activity::class.java)
             else -> Intent(this, SalaDeEspera1x1Activity::class.java)
         }
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("codigoSala", convite.codigoSala)
+        nomeUtilizador?.let { intent.putExtra("nomeJogador", it) }
+        convite.codigoSala?.let { intent.putExtra("codigoSala", it) }
         startActivity(intent)
         finish()
     }

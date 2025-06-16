@@ -56,7 +56,7 @@ class LoginActivity : AppCompatActivity() {
                             // Criar um intent para a MainActivity
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
                             // Passar o nome de utilizador para a MainActivity
-                            intent.putExtra("nomeUtilizador", nomeUtilizador)
+                            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
                             // Abrir a MainActivity
                             startActivity(intent)
                             finish()
@@ -86,7 +86,7 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("nomeJogador", nomeJogador)
+            nomeJogador.let { intent.putExtra("nomeJogador", it) }
             startActivity(intent)
             finish()
         }

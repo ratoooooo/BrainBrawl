@@ -15,6 +15,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar os valores passados pela Intent
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
 
@@ -51,9 +52,9 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
             "2x2" -> Intent(this, ConvidarAmigo2x2Activity::class.java)
             else -> return
         }
-        intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("nomeCategoria", nomeCategoria)
+        modoJogo.let { intent.putExtra("modoJogo", it) }
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
         startActivity(intent)
         finish()
     }

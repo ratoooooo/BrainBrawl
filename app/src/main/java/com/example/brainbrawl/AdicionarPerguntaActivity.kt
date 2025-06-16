@@ -96,9 +96,9 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             //Criar um intent para a MainActivity
             val intent = Intent(this, SalaDeEsperaGrupoActivity::class.java)
             //Passar os dados para a MainActivity
-            intent.putExtra("nomeCategoria", nomeCategoria)
-            intent.putExtra("codigoSala", codigoSala)
-            intent.putExtra("modoJogo", modoJogo)
+            nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
+            codigoSala?.let { intent.putExtra("codigoSala", it) }
+            modoJogo?.let { intent.putExtra("modoJogo", it) }
             //Abrir a MainActivity
             startActivity(intent)
             //Fechar a AdicionarPerguntaActivity

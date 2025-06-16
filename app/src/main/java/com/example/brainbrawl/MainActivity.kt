@@ -43,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             binding.btnAddAmigo.visibility = View.VISIBLE
             binding.btnAddAmigo.setOnClickListener {
                 val intent = Intent(this, AmigosActivity::class.java)
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                nomeUtilizador?.let { intent.putExtra("nomeJogador", it) }
                 startActivity(intent)
             }
         } else if (nomeJogador != null) {

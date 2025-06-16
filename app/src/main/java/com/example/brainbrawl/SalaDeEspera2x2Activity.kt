@@ -93,9 +93,9 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                     val estado = snapshot.getValue(String::class.java)
                     if (estado == "em_jogo") {
                         val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
-                        intent.putExtra("codigoSala", codigoSala)
-                        intent.putExtra("nomeUtilizador", nomeUtilizador)
-                        intent.putExtra("categoria", categoria)
+                        codigoSala.let { intent.putExtra("codigoSala", it) }
+                        nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+                        categoria?.let { intent.putExtra("categoria", it) }
                         startActivity(intent)
                         finish()
                     }

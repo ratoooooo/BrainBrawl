@@ -445,23 +445,23 @@ class JogoActivity : AppCompatActivity() {
     private fun enviarPontuacaoActivity() {
         val intent = Intent(this, PontuacoesActivity::class.java)
         //codigo da sala
-        intent.putExtra("codigoSala", codigoSala)
+        codigoSala?.let { intent.putExtra("codigoSala", it) }
         // O nome do jogador  que jogou o jogo (quando não é registado)
-        intent.putExtra("nomeJogador", nomeJogador)
+        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
         // A pontuação total do jogador no jogo
-        intent.putExtra("totalPontos", totalPontos)
+        totalPontos.let { intent.putExtra("totalPontos", it) }
         // A categoria das perguntas deste jogo
-        intent.putExtra("nomeCategoria", nomeCategoria)
+        nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
         // O nome do utilizador que jogou o jogo (quando é registado)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
         // O modo de jogo
-        intent.putExtra("modoJogo", modoJogo)
+        modoJogo?.let { intent.putExtra("modoJogo", it) }
         // Número de respostas certas seguidas ao longo do jogo
-        intent.putExtra("respostasCertas", numeroPerguntasCertas)
+        numeroPerguntasCertas?.let { intent.putExtra("numeroPerguntasCertas", it) }
         // Total de respostas certas do jogador neste jogo
-        intent.putExtra("totalRespostasCertas", totalPerguntascertas)
+        totalPerguntascertas?.let { intent.putExtra("totalPerguntascertas", it) }
         // Total de perguntas do jogo (útil para calcular percentagens)
-        intent.putExtra("totalPerguntas", perguntas.size)
+        perguntas.size.let { intent.putExtra("totalPerguntas", it) }
         startActivity(intent)
         finish()
     }
