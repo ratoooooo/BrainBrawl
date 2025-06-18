@@ -42,36 +42,21 @@ object Uteis {
         return digest.joinToString("") { "%02x".format(it) }
     }
 
+    // Função utilizada para gerar o código da sala
+    fun gerarCodigoSala(): String {
+        return Random.nextInt(1000, 9999).toString()
+    }
 
     // Função para abrir activity de categoria
     fun abrirEscolherCategoriaActivity(context: Context, modoJogo: String, nomeUtilizador: String?, nomeJogador: String?, admin: Boolean) {
         val intent = Intent(context, EscolherCategoriaActivity::class.java)
-        modoJogo.let { intent.putExtra("modoJogo", it) }
-        admin.let { intent.putExtra("admin", it) }
+        intent.putExtra("modoJogo", modoJogo)
+        intent.putExtra("admin", admin)
         nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
         nomeJogador?.let { intent.putExtra("nomeJogador", it) }
         context.startActivity(intent)
     }
 
-    // Função para abrir a sala de espera em modos de grupo
-    fun abrirSalaDeEsperaGrupo(
-        context: Context,
-        codigoSala: String,
-        nomeUtilizador: String?,
-        nomeJogador: String,
-        nomeCategoria: String,
-        admin: Boolean,
-        modoJogo: String
-    ) {
-        val intent = Intent(context, SalaDeEsperaGrupoActivity::class.java)
-        codigoSala.let { intent.putExtra("codigoSala", it) }
-        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-        nomeJogador.let { intent.putExtra("nomeJogador", it) }
-        nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
-        admin.let { intent.putExtra("admin", it) }
-        modoJogo.let { intent.putExtra("modoJogo", it) }
-        context.startActivity(intent)
-    }
 
     // Função para enviar o jogador para a activity de pontuação correta
     fun enviarPontuacaoActivity(
@@ -110,15 +95,28 @@ object Uteis {
         context.startActivity(intent)
     }
 
-    // Função utilizada para gerar o código da sala
-    fun gerarCodigoSala(): String {
-        return Random.nextInt(1000, 9999).toString()
+    // Função para abrir a sala de espera em modos de grupo
+    fun abrirSalaDeEsperaGrupo(context: Context, codigoSala: String, nomeUtilizador: String?, nomeJogador: String?, nomeCategoria: String, admin: Boolean, modoJogo: String) {
+        val intent = Intent(context, SalaDeEsperaGrupoActivity::class.java)
+        intent.putExtra("codigoSala", codigoSala)
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+        intent.putExtra("nomeCategoria", nomeCategoria)
+        intent.putExtra("admin", admin)
+        intent.putExtra("modoJogo", modoJogo)
+        context.startActivity(intent)
     }
 
     // Funçº utilizada para criar uma sala caótica e ir buscar todas as perguntas de todas as categorias
-    fun criarSalaCaoticaEEntrar(context: Context,  nomeUtilizador: String?,  nomeJogador: String, onError: (String) -> Unit = {}) {
+    fun criarSalaCaoticaEEntrar(context: Context, nomeUtilizador: String?, nomeJogador: String?, onError: (String) -> Unit = {}) {
         val database = FirebaseDatabase.getInstance().reference
         val codigoSala = gerarCodigoSala()
+        // Determina o nome do admin e do jogador principal
+        val nomeAdmin = nomeUtilizador ?: nomeJogador
+        if (nomeAdmin == null) {
+            onError("Nome de utilizador ou jogador não fornecido!")
+            return
+        }
         database.child("categorias").get().addOnSuccessListener { snapshot ->
             val todasPerguntas = mutableListOf<Map<String, Any>>()
             snapshot.children.forEach { catSnap ->
@@ -135,10 +133,12 @@ object Uteis {
             val perguntasRandom = todasPerguntas.shuffled().take(15)
             val salaData = mapOf(
                 "horaCriacao" to System.currentTimeMillis(),
-                "admin" to nomeJogador,
+                "admin" to nomeAdmin,
                 "estado" to "em_espera",
                 "modoJogo" to "caotico",
-                "jogadores" to mapOf<String, Any>(nomeJogador to mapOf("nome" to nomeJogador, "pontuacao" to 0.0)),
+                "jogadores" to mapOf<String, Any>(
+                    nomeAdmin to mapOf("nome" to nomeAdmin, "pontuacao" to 0.0)
+                ),
                 "categoria" to "Todas as categorias",
                 "perguntas" to perguntasRandom
             )
@@ -153,13 +153,18 @@ object Uteis {
         context: Context,
         codigoSala: String,
         nomeUtilizador: String?,
-        nomeJogador: String,
+        nomeJogador: String?,
         nomeCategoria: String,
         admin: Boolean,
         modoJogo: String,
         onError: (String) -> Unit = {}
     ) {
         val database = FirebaseDatabase.getInstance().reference
+        val nomeAdmin = nomeUtilizador ?: nomeJogador
+        if (nomeAdmin == null) {
+            onError("Nome de utilizador ou jogador não fornecido!")
+            return
+        }
         database.child("categorias").child(nomeCategoria).child("perguntas").get().addOnSuccessListener { snapshot ->
             val perguntas = mutableListOf<Map<String, Any>>()
             snapshot.children.forEach { perguntaSnap ->
@@ -173,10 +178,10 @@ object Uteis {
             val perguntasRandom = perguntas.shuffled().take(15)
             val salaData = mapOf(
                 "horaCriacao" to System.currentTimeMillis(),
-                "admin" to nomeJogador,
+                "admin" to nomeAdmin,
                 "estado" to "em_espera",
                 "modoJogo" to modoJogo,
-                "jogadores" to mapOf<String, Any>(nomeJogador to mapOf("nome" to nomeJogador, "pontuacao" to 0.0)),
+                "jogadores" to mapOf<String, Any>(),
                 "categoria" to nomeCategoria,
                 "perguntas" to perguntasRandom
             )
@@ -227,4 +232,28 @@ object Uteis {
         }
         mediaPlayer?.start()
     }
+
+    // Perfil
+    // Thresholds para atribuir badges de acordo com estatísticas
+     val jogosBadges = listOf(
+        100 to R.drawable.j100,
+        50 to R.drawable.j50,
+        25 to R.drawable.j25,
+        10 to R.drawable.j10
+    )
+
+     val vitoriaBadges = listOf(
+        100 to R.drawable.v100,
+        50 to R.drawable.v50,
+        25 to R.drawable.v25,
+        5 to R.drawable.v5
+    )
+
+     val respostasBadges = listOf(
+        1000 to R.drawable.rc1000,
+        500 to R.drawable.rc500,
+        200 to R.drawable.rc200,
+        100 to R.drawable.rc100,
+        50 to R.drawable.rc50
+    )
 }

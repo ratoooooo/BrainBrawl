@@ -3,7 +3,6 @@ package com.example.brainbrawl
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.databinding.ActivityMainBinding
 import com.google.firebase.database.FirebaseDatabase
@@ -43,7 +42,7 @@ class MainActivity : AppCompatActivity() {
             binding.btnAddAmigo.visibility = View.VISIBLE
             binding.btnAddAmigo.setOnClickListener {
                 val intent = Intent(this, AmigosActivity::class.java)
-                nomeUtilizador?.let { intent.putExtra("nomeJogador", it) }
+                intent.putExtra("nomeUtilizador", nomeUtilizador)
                 startActivity(intent)
             }
         } else if (nomeJogador != null) {
@@ -54,25 +53,26 @@ class MainActivity : AppCompatActivity() {
             binding.btnAddAmigo.visibility = View.GONE
         }
 
-        // Não mostrar lógica de iniciar jogo aqui, só criar ou entrar em sala!
         binding.txtCodigoSala.text = if (codigoSala != null) "Código da Sala: $codigoSala" else "Nenhuma sala criada"
         binding.btnIniciarJogo.visibility = View.GONE
 
-        // Botão para criar nova sala
+        // Botão para criar nova sala (admin = true pois é o criador)
         binding.btnCriarSala.setOnClickListener {
-            if (codigoSala != null) {
-                Toast.makeText(this, "Uma sala já foi criada!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
             val intent = Intent(this, EscolherModoActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            if (nomeUtilizador != null) {
+                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                intent.putExtra("admin", true)
+            } else if (nomeJogador != null) {
+                intent.putExtra("nomeJogador", nomeJogador)
+                intent.putExtra("admin", true)
+            }
             startActivity(intent)
         }
 
-        // Botão para entrar numa sala existente
+        // NOVO: Botão para ENTRAR numa sala já criada
         binding.btnEntrarSala.setOnClickListener {
             val intent = Intent(this, SalaDeEsperaActivity::class.java)
+            // Passa o nome do utilizador ou jogador (se já estiver preenchido)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
             nomeJogador?.let { intent.putExtra("nomeJogador", it) }
             startActivity(intent)

@@ -1,3 +1,4 @@
+// MANO O CODIGO NAO AVANÇA NA MESMA PARA A PROXIMA PERGUNTA EU NAO ENTENDO O PROBLEMA
 package com.example.brainbrawl
 
 import android.content.Intent
@@ -22,11 +23,13 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        val modoJogo = intent.getStringExtra("modoJogo")
+        val nomeJogador = intent.getStringExtra("nomeJogador")
 
-        // Corrigido: só preenche se houver nome
-        if (!nomeUtilizador.isNullOrEmpty()) {
-            binding.edtNomeJogador.setText(nomeUtilizador)
+        // Verifica e preenche o EditText com nomeUtilizador ou nomeJogador
+        when {
+            !nomeUtilizador.isNullOrEmpty() -> binding.edtNomeJogador.setText(nomeUtilizador)
+            !nomeJogador.isNullOrEmpty() -> binding.edtNomeJogador.setText(nomeJogador)
+            else -> binding.edtNomeJogador.setText("") // Deixa vazio se nenhum for passado
         }
 
         binding.btnEntrarSala.setOnClickListener {
@@ -43,28 +46,25 @@ class SalaDeEsperaActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
+            // Vai buscar os dados da sala ao Firebase só pelo código
             database.child("salas").child(codSala)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.exists()) {
-                            val nomeCategoria = snapshot.child("categoria").getValue(String::class.java)
-                            if (nomeCategoria == null) {
-                                Toast.makeText(this@SalaDeEsperaActivity, "Erro: Categoria da sala não encontrada", Toast.LENGTH_SHORT).show()
-                                binding.btnEntrarSala.isEnabled = true
-                                return
-                            }
+                            // Não precisamos de modo nem categoria: só garantir que a sala existe!
                             if (snapshot.child("jogadores").hasChild(nomeJogador)) {
                                 Toast.makeText(this@SalaDeEsperaActivity, "Nome de jogador já existe na sala", Toast.LENGTH_SHORT).show()
                                 binding.btnEntrarSala.isEnabled = true
                                 return
                             } else {
-                                adicionarJogador(nomeJogador, codSala, nomeCategoria)
+                                // Adiciona o jogador à sala no Firebase
+                                adicionarJogador(nomeJogador, codSala)
                                 binding.btnEntrarSala.isEnabled = false
                                 binding.edtCodigoSala.isEnabled = false
                                 binding.edtNomeJogador.isEnabled = false
                                 Toast.makeText(this@SalaDeEsperaActivity, "Jogador adicionado com sucesso!", Toast.LENGTH_SHORT).show()
                                 codigoSalaListener = codSala
-                                esperarAdminIniciarJogo(codSala, nomeCategoria, nomeUtilizador, modoJogo)
+                                irParaSalaDeEsperaGrupo(codSala, nomeJogador, nomeUtilizador)
                             }
                         } else {
                             Toast.makeText(this@SalaDeEsperaActivity, "Código da sala inválido", Toast.LENGTH_SHORT).show()
@@ -79,39 +79,29 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         }
 
         binding.btnVoltar.setOnClickListener {
-            finish() // apenas termina a activity, navegação natural do Android
+            finish()
         }
     }
 
-    private fun adicionarJogador(nomeJogador: String, codigoSala: String, nomeCategoria: String) {
+    // Função que adiciona o jogador à sala no Firebase
+    private fun adicionarJogador(nomeJogador: String, codigoSala: String) {
         val jogadorData = mapOf(
             "nome" to nomeJogador,
-            "pontuacao" to 0,
+            "pontuacao" to 0
         )
         database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador).setValue(jogadorData)
     }
 
-    private fun esperarAdminIniciarJogo(codigoSala: String, nomeCategoria: String, nomeUtilizador: String?, modoJogo: String?) {
-        estadoSalaListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val estado = snapshot.getValue(String::class.java)
-                if (estado == "em_jogo") {
-                    val intent = Intent(this@SalaDeEsperaActivity, JogoActivity::class.java)
-                    var nomeJogador = binding.edtNomeJogador.text.toString()
-                    codigoSala.let { intent.putExtra("codigoSala", it) }
-                    nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
-                    nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
-                    modoJogo?.let { intent.putExtra("modoJogo", it) }
-                    nomeJogador.let { intent.putExtra("nomeJogador", it) }
-                    startActivity(intent)
-                    finish()
-                }
-            }
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@SalaDeEsperaActivity, "Erro ao esperar o jogo: ${error.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-        database.child("salas").child(codigoSala).child("estado").addValueEventListener(estadoSalaListener!!)
+    // Função que leva SEMPRE para a sala de espera de grupo
+    private fun irParaSalaDeEsperaGrupo(codigoSala: String, nomeJogador: String, nomeUtilizador: String?) {
+        val intent = Intent(this, SalaDeEsperaGrupoActivity::class.java)
+        intent.putExtra("codigoSala", codigoSala)
+        intent.putExtra("nomeJogador", nomeJogador)
+        intent.putExtra("admin", false) // convidados nunca são admin
+        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        // As próximas activities podem ir buscar categoria/modo ao Firebase se precisarem
+        startActivity(intent)
+        finish()
     }
 
     override fun onDestroy() {

@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
                 android:fontFamily="sans-serif-black"
-                android:text="@string/nome_amigo"
+                android:text="Nome Utilizador"
                 android:textColor="#222222"
                 android:textSize="26sp"
                 android:textStyle="bold" />
@@ -149,7 +149,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Pontuação"
+                    android:contentDescription="@string/pontuacao"
                     android:src="@drawable/ic_star" />
 
                 <TextView
@@ -157,7 +157,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:text="Pontuação: 0"
+                    android:text="@string/pontuacao"
                     android:textColor="#111111"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -175,7 +175,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Jogos"
+                    android:contentDescription="@string/jogos"
                     android:src="@drawable/ic_sport" />
 
                 <TextView
@@ -183,7 +183,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:text="Total de Jogos: 0"
+                    android:text="@string/total_de_jogos"
                     android:textColor="#111111"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -201,7 +201,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Vitórias"
+                    android:contentDescription="@string/vit_rias"
                     android:src="@drawable/ic_trophy" />
 
                 <TextView
@@ -209,7 +209,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:text="Total de Vitórias: 0"
+                    android:text="@string/total_de_vit_rias_0"
                     android:textColor="#111111"
                     android:textSize="20sp" />
             </LinearLayout>
@@ -227,7 +227,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Taxa de Acertos"
+                    android:contentDescription="@string/taxa_de_acertos"
                     android:src="@drawable/ic_percent" />
 
                 <TextView
@@ -235,26 +235,10 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
-                    android:text="Taxa de Vitória: 0%"
+                    android:text="@string/taxa_de_vit_ria"
                     android:textColor="#111111"
                     android:textSize="20sp" />
             </LinearLayout>
-
-            <!-- Botão Remover Amigo dentro do card -->
-            <Button
-                android:id="@+id/btnRemoverAmigo"
-                android:layout_width="wrap_content"
-                android:layout_height="48dp"
-                android:layout_marginTop="24dp"
-                android:backgroundTint="#E53935"
-                android:text="Remover Amigo"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif"
-                android:textStyle="bold"
-                android:drawableStart="@drawable/ic_delete"
-                android:paddingStart="24dp"
-                android:paddingEnd="24dp"/>
         </LinearLayout>
     </androidx.cardview.widget.CardView>
 
@@ -265,7 +249,7 @@
         android:layout_height="56dp"
         android:background="@drawable/botao_voltar"
         android:paddingVertical="14dp"
-        android:text="Voltar"
+        android:text="@string/voltar"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"

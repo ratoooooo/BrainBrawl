@@ -68,7 +68,7 @@
             android:id="@+id/btnAdicionarAmigo"
             android:layout_width="match_parent"
             android:layout_height="48dp"
-            android:text="Adicionar Amigo"
+            android:text="@string/adicionar_amigo"
             android:background="@drawable/botao_branco_arredondado"
             android:textColor="#000000"
             android:textStyle="bold"
@@ -80,7 +80,7 @@
         android:id="@+id/txtConvites"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Convites Recebidos:"
+        android:text="@string/convites_recebidos"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
         android:textColor="#FFFFFF"
@@ -98,7 +98,7 @@
         android:id="@+id/txtSeusAmigos"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Seus Amigos:"
+        android:text="@string/teus_amigos"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
         android:textColor="#FFFFFF"
@@ -110,4 +110,33 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:paddingTop="6dp"/>
+
+    <!-- Botão Voltar -->
+    <LinearLayout
+        android:id="@+id/btn_voltar"
+        android:layout_width="match_parent"
+        android:layout_height="56dp"
+        android:layout_marginHorizontal="8dp"
+        android:background="@drawable/botao_voltar"
+        android:clickable="true"
+        android:focusable="true"
+        android:gravity="center"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="12dp"
+            android:src="@drawable/ic_back" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/voltar"
+            android:textColor="#FFFFFF"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
 </LinearLayout>

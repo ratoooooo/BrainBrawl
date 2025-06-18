@@ -6,24 +6,25 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.Uteis.abrirEscolherCategoriaActivity
+import com.example.brainbrawl.Uteis.criarSalaCaoticaEEntrar
 import com.example.brainbrawl.Uteis.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityEscolherModoBinding
 
 class EscolherModoActivity : AppCompatActivity() {
     // Acessar os elementos do layout
-    private val binding by lazy {
-        ActivityEscolherModoBinding.inflate(layoutInflater)
-    }
+    private val binding by lazy { ActivityEscolherModoBinding.inflate(layoutInflater) }
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
+    private var admin: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar o nome do utilizador e do jogador passado pelo Intent
+        // Guardar o nome do utilizador, do jogador e admin passado pelo Intent
         nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         nomeJogador = intent.getStringExtra("nomeJogador")
+        admin = intent.getBooleanExtra("admin", false)
 
         // Configurar o botao do modo clássico
         binding.btnModoClassico.setOnClickListener {
@@ -36,19 +37,23 @@ class EscolherModoActivity : AppCompatActivity() {
         }
         //Configurar o botão do modo caótico
         binding.btnModoCaotico.setOnClickListener {
-            if (nomeJogador.isNullOrEmpty()) {
-                // Pede o nome se não estiver preenchido
-                Toast.makeText(this, "Por favor insere o teu nome!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
+            // Se existir nomeUtilizador (registado), usa esse. Senão, usa nomeJogador (convidado).
+            if (nomeUtilizador != null) {
+                criarSalaCaoticaEEntrar(this, nomeUtilizador, null)
+            } else if (nomeJogador != null) {
+                criarSalaCaoticaEEntrar(this, null, nomeJogador)
+            } else {
+                Toast.makeText(this, "Indique o seu nome!", Toast.LENGTH_SHORT).show()
             }
-            Uteis.criarSalaCaoticaEEntrar(this, nomeUtilizador, nomeJogador!!)
             finish()
         }
+
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
             nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            intent.putExtra("admin", false)
             startActivity(intent)
             finish()
         }
@@ -61,10 +66,11 @@ class EscolherModoActivity : AppCompatActivity() {
     // Função para abrir o TipoModoClassico com o modo de jogo selecionado
     private fun abrirTipoModoClassico(modo: String) {
         val intent = Intent(this, TipoModoClassico::class.java)
-        modo.let { intent.putExtra("modoJogo", it) }
+        intent.putExtra("modoJogo", modo)
         nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
         nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-        gerarCodigoSala().let { intent.putExtra("codigoSala", it) }
+        intent.putExtra("admin", true)
+        intent.putExtra("codigoSala", gerarCodigoSala())
         startActivity(intent)
         finish()
     }

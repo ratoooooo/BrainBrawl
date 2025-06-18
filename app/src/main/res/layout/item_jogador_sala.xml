@@ -13,7 +13,7 @@
         android:layout_height="48dp"
         android:layout_marginEnd="10dp"
         android:scaleType="centerCrop"
-        android:contentDescription="Avatar do jogador"/>
+        android:contentDescription="@string/avatar_do_jogador"/>
 
     <!-- Estado -->
     <View
@@ -29,7 +29,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Nome do jogador"
+        android:text="@string/nome_jogador"
         android:textSize="18sp"
         android:textColor="#000"
         android:fontFamily="sans-serif-black"

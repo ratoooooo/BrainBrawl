@@ -22,19 +22,19 @@ class AmigoAdapter(
         val viewEstadoAmigo: View = view.findViewById(R.id.viewEstadoAmigo)
     }
 
-    // Cria o ViewHolder para cada amigop da lista de amigos
+    // Cria o ViewHolder para cada amigo da lista de amigos
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AmigoViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_amigo, parent, false)
         return AmigoViewHolder(view)
     }
 
-    // Abrir o perfil do amigo ao clicar no amigo
+    // Liga os dados do amigo ao ViewHolder
     override fun onBindViewHolder(holder: AmigoViewHolder, position: Int) {
         val amigo = amigos[position]
         holder.txtNomeAmigo.text = amigo
 
-        // Avatar do amigo
+        // Define o avatar do amigo (ou avatar default)
         val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
         val context = holder.itemView.context
         val resId = context.resources.getIdentifier(avatarName, "drawable", context.packageName)
@@ -45,11 +45,21 @@ class AmigoAdapter(
         val cor = if (estado == "on") 0xFF43A047.toInt() else 0xFFBDBDBD.toInt() // verde ou cinza
         holder.viewEstadoAmigo.background.setTint(cor)
 
-        holder.itemView.setOnClickListener {
-            val intent = Intent(holder.itemView.context, PerfilAmigoActivity::class.java)
-            intent.putExtra("nomeAmigo", amigo)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
-            holder.itemView.context.startActivity(intent)
+        // Se o amigo for o próprio utilizador, abre o perfil pessoal
+        if (amigo == nomeUtilizador) {
+            holder.itemView.setOnClickListener {
+                val intent = Intent(context, MeuPerfilActivity::class.java)
+                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                context.startActivity(intent)
+            }
+        } else {
+            // Caso contrário, abre o perfil do amigo
+            holder.itemView.setOnClickListener {
+                val intent = Intent(context, PerfilAmigoActivity::class.java)
+                intent.putExtra("nomeAmigo", amigo)
+                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                context.startActivity(intent)
+            }
         }
     }
 

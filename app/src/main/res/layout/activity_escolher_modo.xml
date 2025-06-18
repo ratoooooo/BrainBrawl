@@ -159,7 +159,7 @@
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:src="@drawable/ic_eye"
-        android:contentDescription="@string/info_todos"
+        android:contentDescription="@string/info_todos_modos"
         android:padding="8dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

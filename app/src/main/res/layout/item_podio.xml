@@ -31,7 +31,7 @@
         android:layout_weight="1"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:text="Nome Jogador"
+        android:text="@string/nome_jogador"
         android:textSize="20sp"
         android:textColor="#222"
         android:fontFamily="sans-serif-black"

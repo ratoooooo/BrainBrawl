@@ -10,10 +10,7 @@ import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
 
 class EscolherCategoriaActivity : AppCompatActivity() {
     // Acessar os elementos do layout
-    private val binding by lazy {
-        ActivityEscolherCategoriaBinding.inflate(layoutInflater)
-    }
-    //Armazenar código da sala, modo de jogo e nome do utilizador
+    private val binding by lazy { ActivityEscolherCategoriaBinding.inflate(layoutInflater) }
     private lateinit var codigoSala: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +20,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         // Guardar o código da sala
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        val nomeJogador = intent.getStringExtra("nomeJogador") ?: ""
+        val nomeJogador = intent.getStringExtra("nomeJogador")
         val admin = intent.getBooleanExtra("admin", false)
 
         if (modoJogo == null) {
@@ -31,99 +28,59 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             return
         }
 
-        // Gerar código da sala só aqui
         codigoSala = gerarCodigoSala()
-        // Mapa para converter nome visível em chave Firebase
         val categoriaFirebase = mapOf(
             getString(R.string.categoria1) to "Historia",
             getString(R.string.categoria2) to "Geografia",
             getString(R.string.categoria3) to "Desporto",
             getString(R.string.categoria4) to "Cultura Geral",
-            getString(R.string.categoria5) to "Todas as categorias"
+            getString(R.string.categoria5) to "Gentílicos"
         )
 
-        // Para cada botão, usa o texto visível para ir buscar a chave Firebase correta:
+        val criarSala = { categoriaEscolhida: String ->
+            criarSalaComCategoriaEEntrar(
+                this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo
+            ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
+        }
+
         binding.btnCategoria1.setOnClickListener {
             binding.btnCategoria1.isEnabled = false
-            val categoriaEscolhida = categoriaFirebase[getString(R.string.categoria1)] ?: "Historia"
-            criarSalaComCategoriaEEntrar(
-                context = this,
-                codigoSala = codigoSala,
-                nomeUtilizador = nomeUtilizador,
-                nomeJogador = nomeJogador,
-                nomeCategoria = categoriaEscolhida,
-                admin = admin,
-                modoJogo = modoJogo,
-                onError = { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
-            )
+            criarSala(categoriaFirebase[getString(R.string.categoria1)] ?: "Historia")
         }
         binding.btnCategoria2.setOnClickListener {
             binding.btnCategoria2.isEnabled = false
-            val categoriaEscolhida = categoriaFirebase[getString(R.string.categoria2)] ?: "Geografia"
-            criarSalaComCategoriaEEntrar(
-                context = this,
-                codigoSala = codigoSala,
-                nomeUtilizador = nomeUtilizador,
-                nomeJogador = nomeJogador,
-                nomeCategoria = categoriaEscolhida,
-                admin = admin,
-                modoJogo = modoJogo,
-                onError = { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
-            )
+            criarSala(categoriaFirebase[getString(R.string.categoria2)] ?: "Geografia")
         }
         binding.btnCategoria3.setOnClickListener {
             binding.btnCategoria3.isEnabled = false
-            val categoriaEscolhida = categoriaFirebase[getString(R.string.categoria3)] ?: "Desporto"
-            criarSalaComCategoriaEEntrar(
-                context = this,
-                codigoSala = codigoSala,
-                nomeUtilizador = nomeUtilizador,
-                nomeJogador = nomeJogador,
-                nomeCategoria = categoriaEscolhida,
-                admin = admin,
-                modoJogo = modoJogo,
-                onError = { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
-            )
+            criarSala(categoriaFirebase[getString(R.string.categoria3)] ?: "Desporto")
         }
         binding.btnCategoria4.setOnClickListener {
             binding.btnCategoria4.isEnabled = false
-            val categoriaEscolhida = categoriaFirebase[getString(R.string.categoria4)] ?: "Cultura Geral"
-            criarSalaComCategoriaEEntrar(
-                context = this,
-                codigoSala = codigoSala,
-                nomeUtilizador = nomeUtilizador,
-                nomeJogador = nomeJogador,
-                nomeCategoria = categoriaEscolhida,
-                admin = admin,
-                modoJogo = modoJogo,
-                onError = { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
-            )
+            criarSala(categoriaFirebase[getString(R.string.categoria4)] ?: "Cultura Geral")
         }
         binding.btnCategoria5.setOnClickListener {
             binding.btnCategoria5.isEnabled = false
-            val categoriaEscolhida = categoriaFirebase[getString(R.string.categoria6)] ?: "Gentílicos"
-            criarSalaComCategoriaEEntrar(
-                context = this,
-                codigoSala = codigoSala,
-                nomeUtilizador = nomeUtilizador,
-                nomeJogador = nomeJogador,
-                nomeCategoria = categoriaEscolhida,
-                admin = admin,
-                modoJogo = modoJogo,
-                onError = { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
-            )
+            criarSala(categoriaFirebase[getString(R.string.categoria5)] ?: "Gentílicos")
         }
         binding.btnCriarCategoria.setOnClickListener {
             abrirAdicionarPerguntaActivity(modoJogo, nomeUtilizador)
         }
+        binding.btnVoltar.setOnClickListener {
+            val intent = Intent(this, EscolherModoActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            intent.putExtra("admin", admin)
+            startActivity(intent)
+            finish()
+        }
     }
 
-    //Função para abrir a AdicionarPerguntaActivity
     private fun abrirAdicionarPerguntaActivity(modo: String, nomeUtilizador: String?) {
         codigoSala = gerarCodigoSala()
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
-        codigoSala.let { intent.putExtra("codigoSala", it) }
-        modo.let { intent.putExtra("modoJogo", it) }
+        intent.putExtra("codigoSala", codigoSala)
+        intent.putExtra("modoJogo", modo)
         nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
         startActivity(intent)
         finish()

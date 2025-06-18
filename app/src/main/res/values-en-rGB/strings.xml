@@ -1,36 +1,36 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- SingIn -->
+    <!-- SignIn -->
     <string name="app_name">Pergunta ó Luso</string>
     <string name="insira_nome">Enter your name</string>
     <string name="insira_password">Enter your password</string>
     <string name="entrar">Login</string>
     <string name="registar">Register</string>
-    <string name="entrar_sem_conta">Enter without account</string>
+    <string name="entrar_sem_conta">Continue without account</string>
 
     <!-- SendQuestion -->
     <string name="adicionar_nova_pergunta">Add New Question</string>
-    <string name="insira_nome_categoria">Enter category name</string>
-    <string name="hint_nova_categoria">Name of the new category</string>
+    <string name="insira_nome_categoria">Enter the category name</string>
+    <string name="hint_nova_categoria">New category name</string>
     <string name="pergunta_label">Question:</string>
     <string name="insira_pergunta">Enter the question</string>
     <string name="opcoes_label">Options:</string>
     <string name="opcao_a">Option A</string>
-    <string name="hint_opcao_a">Enter Option A</string>
+    <string name="hint_opcao_a">Type Option A</string>
     <string name="opcao_b">Option B</string>
-    <string name="hint_opcao_b">Enter Option B</string>
+    <string name="hint_opcao_b">Type Option B</string>
     <string name="opcao_c">Option C</string>
-    <string name="hint_opcao_c">Enter Option C</string>
+    <string name="hint_opcao_c">Type Option C</string>
     <string name="opcao_d">Option D</string>
-    <string name="hint_opcao_d">Enter Option D</string>
+    <string name="hint_opcao_d">Type Option D</string>
     <string name="enviar_pergunta">Send Question</string>
-    <string name="comecar_jogo">Start game</string>
+    <string name="comecar_jogo">Start Game</string>
 
     <!-- Results -->
     <string name="medalha_primeiro">1</string>
     <string name="medalha_segundo">2</string>
     <string name="medalha_terceiro">3</string>
     <string name="voltar">Back</string>
+    <string name="jogar_novamente">Play Again</string>
 
     <!-- Main -->
     <string name="bem_vindo">Welcome</string>
@@ -43,7 +43,7 @@
     <string name="entrar_numa_sala">Join a Room</string>
     <string name="insira_codigo_sala">Enter the room code</string>
     <string name="insira_seu_nome">Enter your name</string>
-    <string name="entrar_sala_jogo">Enter</string>
+    <string name="entrar_sala_jogo">Join</string>
 
     <!-- Game -->
     <string name="progresso_pergunta">Question %1$d/%2$d</string>
@@ -55,43 +55,84 @@
     <string name="categoria_historia">History</string>
     <string name="categoria_geografia">Geography</string>
     <string name="categoria_desporto">Sports</string>
-    <string name="categoria_cultura_geral">General Culture</string>
+    <string name="categoria_cultura_geral">General Knowledge</string>
     <string name="criar_categoria">Create Category</string>
+    <string name="escolher_todas_categorias">All Categories</string>
 
     <!-- EscolherModo -->
     <string name="escolher_modo_jogo">Choose Mode</string>
     <string name="modo_classico">Classic</string>
     <string name="modo_eliminatorias">Elimination</string>
     <string name="modo_solo">Solo</string>
-    <string name="selecionar_modo_classico">Select Classic mode</string>
-    <string name="selecionar_modo_eliminatorias">Select Elimination mode</string>
+    <string name="selecionar_modo_classico">Select Classic Mode</string>
+    <string name="selecionar_modo_eliminatorias">Select Elimination Mode</string>
     <string name="voltar_para_main_activity">Back to main screen</string>
     <string name="modo_caotico">Chaotic</string>
     <string name="info_todos">See explanation of all modes</string>
-    <string name="info_todos_modos">
-        • <b>Classic Mode:</b> Answer questions from the chosen category. Play with others and the one with the most points wins!
-
-        • <b>Chaotic Mode:</b> Questions from all categories appear randomly. Challenge yourself and your friends in an unpredictable experience!
-
-        • <b>Elimination Mode:</b> Made a mistake? You are eliminated! The last survivor wins. Be quick and accurate.
-    </string>
 
     <!-- Tipos Modo Classico -->
-    <string name="escolher_tipo_modo_classico">Choose Game Mode Type</string>
-    <string name="modo_1x1">1x1 Mode</string>
-    <string name="modo_2x2">2x2 Mode</string>
-    <string name="modo_todos">All</string>
-    <string name="info_todos_modos_classico">
-    • <b>1x1 Mode:</b> Direct duel between two players! Answer the same questions as your opponent and whoever scores more wins.
-
-    • <b>2x2 Mode:</b> Play in teams! Two duos compete, adding points together. Cooperate with your partner and challenge another duo!
-
-    • <b>Group Mode:</b> Everyone plays against everyone in a classic competition. Show what you know and conquer the leaderboard!
-</string>
+    <string name="escolher_tipo_modo_classico">Choose Game Mode</string>
+    <string name="modo_1x1">1v1 Mode</string>
+    <string name="modo_2x2">2v2 Mode</string>
+    <string name="modo_todos">Everyone</string>
+    <string name="info_todos_modos_classico">&lt;b&gt;1v1 Mode:&lt;/b&gt; Direct duel between two players! Answer the same questions as your opponent and win by scoring the most points.\n\n&lt;b&gt;2v2 Mode:&lt;/b&gt; Play in teams! Two pairs compete with each other, adding points together. Cooperate with your partner and challenge another pair!\n\n&lt;b&gt;Group Mode:&lt;/b&gt; Everyone plays against everyone in a classic competition. Show who knows more and reach the top of the leaderboard!</string>
 
     <!-- Categorias -->
     <string name="categoria1">History</string>
     <string name="categoria2">Geography</string>
     <string name="categoria3">Sports</string>
-    <string name="categoria4">General Culture</string>
+    <string name="categoria4">General Knowledge</string>
+    <string name="categoria5">All Categories</string>
+    <string name="categoria6">Gentilics</string>
+
+    <!-- item lista jogadores sala -->
+    <string name="nome_amigo">Friends name</string>
+
+    <!-- item podio -->
+    <string name="nome_jogador">Player Name</string>
+
+    <!-- item jogador sala -->
+    <string name="avatar_do_jogador">Player avatar</string>
+
+    <!-- item convite -->
+    <string name="aceitar">Accept</string>
+    <string name="convite_de">Invite from:</string>
+
+    <!-- item convidar amigo -->
+    <string name="desafiar_1x1">Challenge 1v1</string>
+    <string name="c_digo_da_sala">Room Code:</string>
+    <string name="total_de_jogadores">Total players:</string>
+    <string name="jogadores_na_sala">Players in Room:</string>
+    <string name="sair_da_sala">Leave Room</string>
+    <string name="sala_de_espera_grupo">Waiting Room (Group)</string>
+    <string name="sala_de_espera_1x1">Waiting Room 1v1</string>
+    <string name="aguardando_jogadores">Waiting for players...</string>
+    <string name="sala_de_espera_2x2">Waiting Room 2v2</string>
+    <string name="equipa_a">Team A</string>
+    <string name="aguardando">Waiting...</string>
+    <string name="criar_conta">Create Account</string>
+    <string name="avatar_selecionado">Selected avatar</string>
+    <string name="nome_jogador_1_equipa_a">Player 1 Name - Team A</string>
+    <string name="nome_jogador_2_equipa_a">Player 2 Name - Team A</string>
+    <string name="nome_jogador_3_equipa_b">Player 3 Name - Team B</string>
+    <string name="nome_jogador_4_equipa_b">Player 4 Name - Team B</string>
+    <string name="pedir_desforra">Request Rematch</string>
+    <string name="nome_jogador_2">Player 2 Name</string>
+    <string name="nome_jogador_1">Player 1 Name</string>
+    <string name="p_dio">Podium</string>
+    <string name="total_de_jogos">Total Games</string>
+    <string name="taxa_de_vit_ria">Win Rate:</string>
+    <string name="total_de_vit_rias_0">Total Wins:</string>
+    <string name="vit_rias">Wins</string>
+    <string name="jogos">Games</string>
+    <string name="pontuacao">Score:</string>
+    <string name="respostas_certas">Correct Answers</string>
+    <string name="total_de_respostas_certas">Total Correct Answers</string>
+    <string name="total_de_vitorias">Total Wins</string>
+    <string name="taxa_de_acertos">Accuracy Rate</string>
+    <string name="convidar_para_2x2">Invite to 2v2</string>
+    <string name="adicionar_amigo">Add Friend</string>
+    <string name="convites_recebidos">Received Invites:</string>
+    <string name="teus_amigos">Your Friends:</string>
+    <string name="convidar_amigo">Invite friend</string>
 </resources>

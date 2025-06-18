@@ -9,16 +9,16 @@ import com.example.brainbrawl.databinding.ActivityTipoModoClassicoBinding
 
 class TipoModoClassico : AppCompatActivity() {
     // Acessar os elementos do layout
-    private val binding by lazy {
-        ActivityTipoModoClassicoBinding.inflate(layoutInflater)
-    }
+    private val binding by lazy { ActivityTipoModoClassicoBinding.inflate(layoutInflater) }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
         // Receber dados passados do intent
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
+        val admin = intent.getBooleanExtra("admin", false)
 
         // Configurar o botao para o modo 1x1
         binding.btnModo1x1.setOnClickListener {
@@ -38,15 +38,15 @@ class TipoModoClassico : AppCompatActivity() {
 
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
-            var intent = Intent(this, EscolherModoActivity::class.java)
-            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+            val intent = Intent(this, EscolherModoActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            intent.putExtra("admin", false)
             startActivity(intent)
             finish()
         }
 
         // Configurar o botão de informação sobre todos os modos de jogo
         binding.infoTodos.setOnClickListener {
-            // Chama a função para mostrar explicação de todos os modos de jogo
             mostrarExplicacaoTodosModos()
         }
     }
@@ -71,14 +71,13 @@ class TipoModoClassico : AppCompatActivity() {
     }
 
     private fun iniciarModoCompetitivo(modo: String, nomeUtilizador: String?) {
-        // Verifica se o jogador está logado
         if (nomeUtilizador.isNullOrEmpty()) {
             mostrarMensagemLoginObrigatorio()
         } else {
-            // Redireciona para a EscolherCategoriaActivity com o modo de jogo selecionado
             val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
-            modo.let { intent.putExtra("modoJogo", it) }
-            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+            intent.putExtra("modoJogo", modo)
+            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            intent.putExtra("admin", true)
             startActivity(intent)
         }
     }

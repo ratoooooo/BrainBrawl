@@ -76,7 +76,6 @@
         • <b>Modo Caótico:</b> Perguntas de todas as categorias aparecem de forma aleatória. Desafia-te e aos teus amigos numa experiência imprevisível!
 
         • <b>Modo Eliminatórias:</b> Erraste? És eliminado logo! O último sobrevivente vence. Sê rápido e preciso.
-
     </string>
 
     //Tipos Modo Classico
@@ -92,7 +91,6 @@
     • <b>Modo Grupo:</b> Todos jogam contra todos numa competição clássica. Mostra quem sabe mais e conquista o topo da tabela!
 </string>
 
-
     //Categorias
     <string name="categoria1">Historia</string>
     <string name="categoria2">Geografia</string>
@@ -100,4 +98,57 @@
     <string name="categoria4">Cultura Geral</string>
     <string name="categoria5">Todas as Categorias</string>
     <string name="categoria6">Gentílicos</string>
+
+    // item lista jogadores sala
+    <string name="nome_amigo">Nome do amigo</string>
+
+    // item podio
+    <string name="nome_jogador">Nome Jogador</string>
+
+    // item jogador sala
+    <string name="avatar_do_jogador">Avatar do jogador</string>
+
+    // item convite
+    <string name="aceitar">Aceitar</string>
+    <string name="convite_de">Convite de:</string>
+
+    // item convidar amigo
+    <string name="desafiar_1x1">Desafiar 1x1</string>
+    <string name="nome_do_amigo">Nome do amigo</string>
+    <string name="c_digo_da_sala">Código da Sala:</string>
+    <string name="total_de_jogadores">Total de jogadores:</string>
+    <string name="jogadores_na_sala">Jogadores na Sala:</string>
+    <string name="sair_da_sala">Sair da Sala</string>
+    <string name="sala_de_espera_grupo">Sala de Espera (Grupo)</string>
+    <string name="sala_de_espera_1x1">Sala de Espera 1x1</string>
+    <string name="aguardando_jogadores">Aguardando jogadores...</string>
+    <string name="sala_de_espera_2x2">Sala de Espera 2x2</string>
+    <string name="equipa_a">Equipa A</string>
+    <string name="aguardando">Aguardando...</string>
+    <string name="criar_conta">Criar Conta</string>
+    <string name="avatar_selecionado">Avatar selecionado</string>
+    <string name="nome_jogador_1_equipa_a">Nome Jogador 1 - Equipa A</string>
+    <string name="nome_jogador_2_equipa_a">Nome Jogador 2 - Equipa A</string>
+    <string name="nome_jogador_3_equipa_b">Nome Jogador 3 - Equipa B</string>
+    <string name="nome_jogador_4_equipa_b">Nome Jogador 4 - Equipa B</string>
+    <string name="pedir_desforra">Pedir Desforra</string>
+    <string name="nome_jogador_2">Nome Jogador 2</string>
+    <string name="nome_jogador_1">Nome Jogador 1</string>
+    <string name="p_dio">Pódio</string>
+    <string name="avatar_do_amigo">Avatar do amigo</string>
+    <string name="total_de_jogos">Total de Jogos</string>
+    <string name="taxa_de_vit_ria">Taxa de Vitória:</string>
+    <string name="total_de_vit_rias_0">Total de Vitórias:</string>
+    <string name="vit_rias">Vitórias</string>
+    <string name="jogos">Jogos</string>
+    <string name="pontuacao">Pontuação:</string>
+    <string name="respostas_certas">Respostas Certas</string>
+    <string name="total_de_respostas_certas">Total de Respostas Certas</string>
+    <string name="total_de_vitorias">Total de Vitórias</string>
+    <string name="taxa_de_acertos">Taxa de Acertos</string>
+    <string name="convidar_para_2x2">Convidar para 2x2</string>
+    <string name="adicionar_amigo">Adicionar Amigo</string>
+    <string name="convites_recebidos">Convites Recebidos:</string>
+    <string name="teus_amigos">Os Teus Amigos:</string>
+    <string name="convidar_amigo">Convidar amigo</string>
 </resources>

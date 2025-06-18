@@ -1,10 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- SingIn -->
+    <!-- SignIn -->
     <string name="app_name">Pergunta ó Luso</string>
     <string name="insira_nome">Geben Sie Ihren Namen ein</string>
     <string name="insira_password">Geben Sie Ihr Passwort ein</string>
-    <string name="entrar">Anmelden</string>
+    <string name="entrar">Einloggen</string>
     <string name="registar">Registrieren</string>
     <string name="entrar_sem_conta">Ohne Konto fortfahren</string>
 
@@ -31,6 +30,7 @@
     <string name="medalha_segundo">2</string>
     <string name="medalha_terceiro">3</string>
     <string name="voltar">Zurück</string>
+    <string name="jogar_novamente">Nochmal spielen</string>
 
     <!-- Main -->
     <string name="bem_vindo">Willkommen</string>
@@ -51,47 +51,103 @@
     <string name="cronometro_inicial">20.00</string>
 
     <!-- ChoseCategory -->
-    <string name="escolha_categoria">Wählen Sie eine Kategorie</string>
+    <string name="escolha_categoria">Kategorie auswählen</string>
     <string name="categoria_historia">Geschichte</string>
     <string name="categoria_geografia">Geografie</string>
     <string name="categoria_desporto">Sport</string>
     <string name="categoria_cultura_geral">Allgemeinwissen</string>
     <string name="criar_categoria">Kategorie erstellen</string>
+    <string name="escolher_todas_categorias">Alle Kategorien</string>
 
     <!-- EscolherModo -->
-    <string name="escolher_modo_jogo">Modus wählen</string>
+    <string name="escolher_modo_jogo">Modus auswählen</string>
     <string name="modo_classico">Klassisch</string>
-    <string name="modo_eliminatorias">K.O.-Runde</string>
+    <string name="modo_eliminatorias">K.O.-Modus</string>
     <string name="modo_solo">Solo</string>
     <string name="selecionar_modo_classico">Klassischen Modus wählen</string>
-    <string name="selecionar_modo_eliminatorias">K.O.-Runden-Modus wählen</string>
+    <string name="selecionar_modo_eliminatorias">K.O.-Modus wählen</string>
     <string name="voltar_para_main_activity">Zurück zum Hauptbildschirm</string>
     <string name="modo_caotico">Chaotisch</string>
-    <string name="info_todos">Alle Modi erklären</string>
+    <string name="info_todos">Erklärung aller Modi anzeigen</string>
     <string name="info_todos_modos">
-        • <b>Klassischer Modus:</b> Beantworte Fragen aus der gewählten Kategorie. Spiele mit anderen und der Punktbeste gewinnt!
+        • <b>Klassischer Modus:</b> Beantworte Fragen aus der gewählten Kategorie. Spiele mit anderen und gewinne mit den meisten Punkten!
 
-        • <b>Chaotischer Modus:</b> Fragen aus allen Kategorien erscheinen zufällig. Fordere dich und deine Freunde in einem unvorhersehbaren Erlebnis heraus!
+        • <b>Chaotischer Modus:</b> Fragen aus allen Kategorien erscheinen zufällig. Fordere dich und deine Freunde in einem unvorhersehbaren Kampf heraus!
 
-        • <b>K.O.-Runden-Modus:</b> Fehler gemacht? Sofort ausgeschieden! Der letzte Überlebende gewinnt. Sei schnell und präzise.
+        • <b>K.O.-Modus:</b> Falsch geantwortet? Du bist sofort raus! Der letzte Überlebende gewinnt. Sei schnell und präzise.
     </string>
 
     <!-- Tipos Modo Classico -->
     <string name="escolher_tipo_modo_classico">Spielmodus wählen</string>
-    <string name="modo_1x1">1x1 Modus</string>
-    <string name="modo_2x2">2x2 Modus</string>
+    <string name="modo_1x1">1-gegen-1-Modus</string>
+    <string name="modo_2x2">2-gegen-2-Modus</string>
     <string name="modo_todos">Alle</string>
     <string name="info_todos_modos_classico">
-    • <b>1x1 Modus:</b> Direktes Duell zwischen zwei Spielern! Beantworte dieselben Fragen wie dein Gegner und wer mehr Punkte sammelt, gewinnt.
+    • <b>1-gegen-1-Modus:</b> Direktes Duell zwischen zwei Spielern! Beantworte die gleichen Fragen wie dein Gegner und gewinne mit den meisten Punkten.
 
-    • <b>2x2 Modus:</b> Spiele im Team! Zwei Teams treten gegeneinander an, Punkte werden zusammengezählt. Arbeite mit deinem Partner zusammen und fordere ein anderes Team heraus!
+    • <b>2-gegen-2-Modus:</b> Spiele im Team! Zwei Paare treten gegeneinander an und sammeln gemeinsam Punkte. Arbeite mit deinem Partner zusammen und fordere ein anderes Team heraus!
 
-    • <b>Gruppenmodus:</b> Jeder spielt gegen jeden in einem klassischen Wettbewerb. Zeig dein Wissen und erobere die Rangliste!
-</string>
+    • <b>Gruppenmodus:</b> Alle spielen gegeneinander in einem klassischen Wettbewerb. Zeige, wer am meisten weiß, und erobere die Spitze der Rangliste!
+    </string>
 
-    <!-- Categorias -->
+    <!-- Kategorien -->
     <string name="categoria1">Geschichte</string>
     <string name="categoria2">Geografie</string>
     <string name="categoria3">Sport</string>
     <string name="categoria4">Allgemeinwissen</string>
+    <string name="categoria5">Alle Kategorien</string>
+    <string name="categoria6">Gentilize</string>
+
+    <!-- item lista jogadores sala -->
+    <string name="nome_amigo">Name des Freundes</string>
+
+    <!-- item podio -->
+    <string name="nome_jogador">Spielername</string>
+
+    <!-- item jogador sala -->
+    <string name="avatar_do_jogador">Spieler-Avatar</string>
+
+    <!-- item convite -->
+    <string name="aceitar">Akzeptieren</string>
+    <string name="convite_de">Einladung von:</string>
+
+    <!-- item convidar amigo -->
+    <string name="desafiar_1x1">1-gegen-1 herausfordern</string>
+    <string name="nome_do_amigo">Name des Freundes</string>
+    <string name="c_digo_da_sala">Raumcode:</string>
+    <string name="total_de_jogadores">Gesamtanzahl Spieler:</string>
+    <string name="jogadores_na_sala">Spieler im Raum:</string>
+    <string name="sair_da_sala">Raum verlassen</string>
+    <string name="sala_de_espera_grupo">Warteraum (Gruppe)</string>
+    <string name="sala_de_espera_1x1">Warteraum 1-gegen-1</string>
+    <string name="aguardando_jogadores">Warte auf Spieler...</string>
+    <string name="sala_de_espera_2x2">Warteraum 2-gegen-2</string>
+    <string name="equipa_a">Team A</string>
+    <string name="aguardando">Warten...</string>
+    <string name="criar_conta">Konto erstellen</string>
+    <string name="avatar_selecionado">Avatar ausgewählt</string>
+    <string name="nome_jogador_1_equipa_a">Spieler 1 Name - Team A</string>
+    <string name="nome_jogador_2_equipa_a">Spieler 2 Name - Team A</string>
+    <string name="nome_jogador_3_equipa_b">Spieler 3 Name - Team B</string>
+    <string name="nome_jogador_4_equipa_b">Spieler 4 Name - Team B</string>
+    <string name="pedir_desforra">Revanche anfordern</string>
+    <string name="nome_jogador_2">Spieler 2 Name</string>
+    <string name="nome_jogador_1">Spieler 1 Name</string>
+    <string name="p_dio">Podium</string>
+    <string name="avatar_do_amigo">Avatar des Freundes</string>
+    <string name="total_de_jogos">Gesamtzahl Spiele</string>
+    <string name="taxa_de_vit_ria">Siegquote:</string>
+    <string name="total_de_vit_rias_0">Gesamtsiege:</string>
+    <string name="vit_rias">Siege</string>
+    <string name="jogos">Spiele</string>
+    <string name="pontuacao">Punkte:</string>
+    <string name="respostas_certas">Richtige Antworten</string>
+    <string name="total_de_respostas_certas">Gesamtzahl richtiger Antworten</string>
+    <string name="total_de_vitorias">Gesamtsiege</string>
+    <string name="taxa_de_acertos">Trefferquote</string>
+    <string name="convidar_para_2x2">Zu 2-gegen-2 einladen</string>
+    <string name="adicionar_amigo">Freund hinzufügen</string>
+    <string name="convites_recebidos">Erhaltene Einladungen:</string>
+    <string name="teus_amigos">Deine Freunde:</string>
+    <string name="convidar_amigo">Freund einladen</string>
 </resources>

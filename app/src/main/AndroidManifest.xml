@@ -12,6 +12,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BrainBrawl">
         <activity
+            android:name=".MeuPerfilActivity"
+            android:exported="false" />
+        <activity
             android:name=".SalaDeEsperaGrupoActivity"
             android:exported="false" />
         <activity

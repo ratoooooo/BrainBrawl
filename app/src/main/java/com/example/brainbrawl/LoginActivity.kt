@@ -63,6 +63,7 @@ class LoginActivity : AppCompatActivity() {
                         } else {
                             // Exibir mensagem de erro
                             Toast.makeText(this@LoginActivity, "Senha incorreta", Toast.LENGTH_SHORT).show()
+                            binding.edtPasswordJogador.text.clear()
                         }
                     } else {
                         // Exibir mensagem de erro
