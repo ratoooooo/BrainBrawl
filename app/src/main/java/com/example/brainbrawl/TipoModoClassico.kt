@@ -4,7 +4,7 @@ import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.abrirEscolherCategoriaActivity
+import com.example.brainbrawl.UteisNavegacao.abrirEscolherCategoriaActivity
 import com.example.brainbrawl.databinding.ActivityTipoModoClassicoBinding
 
 class TipoModoClassico : AppCompatActivity() {

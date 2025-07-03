@@ -53,8 +53,6 @@ class MainActivity : AppCompatActivity() {
             binding.btnAddAmigo.visibility = View.GONE
         }
 
-        binding.txtCodigoSala.text = if (codigoSala != null) "Código da Sala: $codigoSala" else "Nenhuma sala criada"
-        binding.btnIniciarJogo.visibility = View.GONE
 
         // Botão para criar nova sala (admin = true pois é o criador)
         binding.btnCriarSala.setOnClickListener {

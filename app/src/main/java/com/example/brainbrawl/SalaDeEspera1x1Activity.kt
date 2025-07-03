@@ -2,77 +2,84 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class SalaDeEspera1x1Activity : AppCompatActivity() {
-    private val binding by lazy {
-        ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
-    }
-    private val database = FirebaseDatabase.getInstance().reference
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
-    private var jogadoresNaSala = mutableListOf<String>()
-    private var admin = false
-    private var nomeCategoria: String? = null
+    private lateinit var nomeCategoria: String
+    private val database = FirebaseDatabase.getInstance().reference
+
+    private lateinit var txtCodigoSala: TextView
+    private lateinit var txtListaJogadores: TextView
+    private lateinit var btnIniciarJogo: Button
+
+    private var jogadoresNaSala: List<String> = emptyList()
+    private var admin: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(binding.root)
+        setContentView(R.layout.activity_sala_de_espera_1x1)
 
-        // Receber dados passados do intent
+        txtCodigoSala = findViewById(R.id.txtCodigoSala)
+        txtListaJogadores = findViewById(R.id.txtListaJogadores)
+        btnIniciarJogo = findViewById(R.id.btnIniciarJogo)
+
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: "Todas as categorias"
+        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: getString(R.string.categoria5)
 
-        // Mostrar o código da sala
-        binding.txtCodigoSala.text = "Código da sala: $codigoSala"
+        txtCodigoSala.text = "Código da Sala: $codigoSala"
 
-        // Adicionar o jogador à sala correta com o código recebido
+        // Adiciona este jogador à sala (garante que está no nó jogadores)
         database.child("sala_1x1").child(codigoSala).child("jogadores").child(nomeUtilizador).setValue(true)
+        // Marca este jogador como pronto na sala
+        database.child("sala_1x1").child(codigoSala).child("prontos").child(nomeUtilizador).setValue(true)
 
-        // Verificar se o jogador é o administrador (primeiro a entrar na sala)
+        // Verifica se és admin (primeiro jogador na lista)
         database.child("sala_1x1").child(codigoSala).child("jogadores")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val nomes = snapshot.children.map { it.key ?: "" }
-                    if (nomes.isNotEmpty() && nomes[0] == nomeUtilizador) {
-                        admin = true
-                        binding.btnIniciarJogo.isEnabled = false // Só ativa com 2 jogadores
-                    }
+                    val nomes = snapshot.children.mapNotNull { it.key }
+                    admin = nomes.isNotEmpty() && nomes[0] == nomeUtilizador
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Listener para jogadores na sala
+        // Observa os jogadores da sala e atualiza a lista no ecrã
         database.child("sala_1x1").child(codigoSala).child("jogadores")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    jogadoresNaSala.clear()
-                    for (child in snapshot.children) {
-                        jogadoresNaSala.add(child.key ?: "")
+                    val nomes = snapshot.children.mapNotNull { it.key }
+                    jogadoresNaSala = nomes
+                    txtListaJogadores.text = if (nomes.isEmpty()) {
+                        "Aguardando jogadores..."
+                    } else {
+                        nomes.joinToString(separator = "\n")
                     }
-
-                    binding.txtListaJogadores.text = jogadoresNaSala.joinToString("\n")
-                    binding.btnIniciarJogo.isEnabled = (admin && jogadoresNaSala.size == 2)
+                    btnIniciarJogo.isEnabled = (admin && nomes.size == 2)
                 }
-                override fun onCancelled(error: DatabaseError) {}
+                override fun onCancelled(error: DatabaseError) {
+                }
             })
 
-        // Listener do estado da sala para iniciar o jogo
+        // Listener sincronizado do estado da sala
         database.child("sala_1x1").child(codigoSala).child("estado")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val estado = snapshot.getValue(String::class.java)
                     if (estado == "em_jogo") {
                         val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
-                        codigoSala?.let { intent.putExtra("codigoSala", it) }
-                        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-                        nomeCategoria?.let { intent.putExtra("nomeCategoria", it) }
+                        intent.putExtra("codigoSala", codigoSala)
+                        intent.putExtra("nomeUtilizador", nomeUtilizador)
+                        intent.putExtra("nomeCategoria", nomeCategoria)
                         startActivity(intent)
                         finish()
                     }
@@ -80,11 +87,28 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
                 override fun onCancelled(error: DatabaseError) {}
             })
 
-        // Configurar botão de Iniciar Jogo
-        binding.btnIniciarJogo.setOnClickListener {
-            if (jogadoresNaSala.size == 2) {
-                database.child("sala_1x1").child(codigoSala).child("estado").setValue("em_jogo")
+        btnIniciarJogo.setOnClickListener {
+            if (admin && jogadoresNaSala.size == 2) {
+                verificarProntosEAvancar()
+            } else {
+                Toast.makeText(this, "Ainda a aguardar o adversário!", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+
+    private fun verificarProntosEAvancar() {
+        database.child("sala_1x1").child(codigoSala).child("prontos")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val prontos = snapshot.children.mapNotNull { it.key }
+                    if (prontos.size == 2 && jogadoresNaSala.size == 2) {
+                        // Sincroniza o início para os dois
+                        database.child("sala_1x1").child(codigoSala).child("estado").setValue("em_jogo")
+                    } else {
+                        Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos têm de estar prontos!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                override fun onCancelled(error: DatabaseError) {}
+            })
     }
 }

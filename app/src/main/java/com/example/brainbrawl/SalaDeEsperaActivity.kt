@@ -5,6 +5,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -39,7 +40,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
             val codSala = binding.edtCodigoSala.text.toString().trim()
             val nomeJogador = binding.edtNomeJogador.text.toString().trim()
 
-            val erro = Uteis.validarCampos(nomeJogador)
+            val erro = validarCampos(nomeJogador)
             if (erro != null) {
                 Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
                 binding.btnEntrarSala.isEnabled = true

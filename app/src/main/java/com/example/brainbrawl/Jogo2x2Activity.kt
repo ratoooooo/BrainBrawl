@@ -8,11 +8,11 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.atualizarPontuacao
-import com.example.brainbrawl.Uteis.definirCorBotao
-import com.example.brainbrawl.Uteis.enviarPontuacaoActivity
-import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
-import com.example.brainbrawl.Uteis.tocarSom
+import com.example.brainbrawl.UteisJogo.atualizarPontuacao
+import com.example.brainbrawl.UteisJogo.definirCorBotao
+import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
+import com.example.brainbrawl.UteisJogo.tocarSom
+import com.example.brainbrawl.UteisNavegacao.enviarPontuacaoActivity
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -63,8 +63,22 @@ class Jogo2x2Activity : AppCompatActivity() {
         // Obter dados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        categoria = intent.getStringExtra("categoria") ?: "Todas as categorias"
 
+        // Lê a categoria REAL da sala do Firebase para garantir filtragem correta
+        database.child("sala_2x2").child(codigoSala).child("nomeCategoria")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    categoria = snapshot.getValue(String::class.java) ?: getString(R.string.categoria5)
+                    identificarEquipaECarregarPerguntas()
+                }
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@Jogo2x2Activity, "Erro ao ler categoria!", Toast.LENGTH_SHORT).show()
+                    finish()
+                }
+            })
+    }
+
+    private fun identificarEquipaECarregarPerguntas() {
         // --- Identifica a equipa deste jogador ---
         database.child("sala_2x2").child(codigoSala).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -165,28 +179,24 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     // Função que busca as perguntas aleatórias da categoria selecionada ou de todas as categorias
     private fun buscarPerguntasAleatorias(onComplete: (List<Pergunta>) -> Unit) {
-        val categoriaEscolhida = categoria
-        database.child("categorias")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
+        val categoriasRef = database.child("categorias")
+        if (categoria == getString(R.string.categoria5) || categoria.isEmpty()) {
+            // Busca perguntas de todas as categorias
+            categoriasRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val todas = mutableListOf<Pergunta>()
                     for (categoriaSnapshot in snapshot.children) {
-                        // Verifica se a categoria é a escolhida ou se é "Todas as categorias"
-                        if (categoriaEscolhida == "Todas as categorias" || categoriaEscolhida.isEmpty() ||
-                            categoriaSnapshot.key == categoriaEscolhida) {
-                            val perguntasSnapshot = categoriaSnapshot.child("perguntas")
-                            for (perguntaSnapshot in perguntasSnapshot.children) {
-                                val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
-                                val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
-                                val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
-                                val opcoes = mutableListOf<String>()
-                                // Verifica se a pergunta, resposta correta e opções estão presentes
-                                opcoesSnapshot.forEach { opcao ->
-                                    opcoes.add(opcao.getValue(String::class.java) ?: "")
-                                }
-                                if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                                    todas.add(Pergunta(pergunta, respostaCorreta, opcoes))
-                                }
+                        val perguntasSnapshot = categoriaSnapshot.child("perguntas")
+                        for (perguntaSnapshot in perguntasSnapshot.children) {
+                            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
+                            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
+                            val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
+                            val opcoes = mutableListOf<String>()
+                            opcoesSnapshot.forEach { opcao ->
+                                opcoes.add(opcao.getValue(String::class.java) ?: "")
+                            }
+                            if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
+                                todas.add(Pergunta(pergunta, respostaCorreta, opcoes))
                             }
                         }
                     }
@@ -199,6 +209,33 @@ class Jogo2x2Activity : AppCompatActivity() {
                     finish()
                 }
             })
+        } else {
+            // Busca perguntas só da categoria escolhida
+            categoriasRef.child(categoria).child("perguntas")
+                .addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val perguntas = mutableListOf<Pergunta>()
+                        for (perguntaSnapshot in snapshot.children) {
+                            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
+                            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
+                            val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
+                            val opcoes = mutableListOf<String>()
+                            opcoesSnapshot.forEach { opcao ->
+                                opcoes.add(opcao.getValue(String::class.java) ?: "")
+                            }
+                            if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
+                                perguntas.add(Pergunta(pergunta, respostaCorreta, opcoes))
+                            }
+                        }
+                        val escolhidas = perguntas.shuffled().take(15)
+                        onComplete(escolhidas)
+                    }
+                    override fun onCancelled(error: DatabaseError) {
+                        Toast.makeText(this@Jogo2x2Activity, "Erro ao buscar perguntas!", Toast.LENGTH_SHORT).show()
+                        finish()
+                    }
+                })
+        }
     }
 
     // Função que a pergunta atual e redefine o cronómetro
@@ -309,6 +346,13 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     // Função para finalizar o jogo e guardar pontuação
     private fun finalizarJogo() {
+        if (mediaPlayer != null) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            somTocar = false
+        }
+
         tempoDecorrido = false
         progressBarAtivo = false
         handler.removeCallbacksAndMessages(null)
@@ -319,7 +363,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                 .child("pontuacoes_${equipaDoJogador}")
                 .child(nomeUtilizador)
                 .setValue(totalPontos)
-            // Gracva o total de perguntas certas
+            // Grava o total de perguntas certas
             database.child("sala_2x2").child(codigoSala)
                 .child("totalPerguntasCertas_${equipaDoJogador}")
                 .child(nomeUtilizador)
@@ -327,8 +371,20 @@ class Jogo2x2Activity : AppCompatActivity() {
         }
 
         // Chama a activity de pontuação
-        enviarPontuacaoActivity(this, codigoSala, "2x2", nomeUtilizador, totalPontos, categoria, nomeUtilizador,totalPerguntascertas, numeroPerguntasCertas, perguntas.size, equipaDoJogador)
-       finish()
+        enviarPontuacaoActivity(
+            this,
+            codigoSala,
+            "2x2",
+            nomeUtilizador,
+            totalPontos,
+            categoria,
+            nomeUtilizador,
+            totalPerguntascertas,
+            numeroPerguntasCertas,
+            perguntas.size,
+            equipaDoJogador
+        )
+        finish()
     }
 
     // Função que inicia o cronómetro visual e sonoro da pergunta
@@ -390,5 +446,4 @@ class Jogo2x2Activity : AppCompatActivity() {
         }
         handler.postDelayed(runnable, 200)
     }
-
 }

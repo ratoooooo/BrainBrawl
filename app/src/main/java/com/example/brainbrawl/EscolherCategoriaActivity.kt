@@ -4,8 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.criarSalaComCategoriaEEntrar
-import com.example.brainbrawl.Uteis.gerarCodigoSala
+import com.example.brainbrawl.UteisSala.criarSalaComCategoriaEEntrar
+import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
 
 class EscolherCategoriaActivity : AppCompatActivity() {

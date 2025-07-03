@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityConvidarAmigo2x2Binding
 import com.google.firebase.database.FirebaseDatabase
 
@@ -48,7 +49,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
 
     // Função para enviar convites para o modo 2x2
     private fun enviarConvite2x2(amigosSelecionados: List<String>) {
-        val codigoSala = Uteis.gerarCodigoSala()
+        val codigoSala = gerarCodigoSala()
         val jogadores = hashMapOf<String, Any>()
         jogadores[nomeUtilizador] = true
 
@@ -62,7 +63,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             mapOf(
                 "jogadores" to jogadores,
                 "estado" to "em_espera",
-                "nomeCategoria" to (nomeCategoria ?: "Todas as categorias"),
+                "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5) ),
             )
         )
         // Mapa de dados do convite
@@ -70,7 +71,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             "estado" to "pendente",
             "codigoSala" to codigoSala,
             "modo" to "2x2",
-            "nomeCategoria" to (nomeCategoria ?: "Todas as categorias")
+            "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5) )
         )
 
         // Adiciona convite para cada amigo
@@ -87,7 +88,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
         intent.putExtra("codigoSala", codigoSala)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("nomeCategoria", nomeCategoria ?: "Todas as categorias")
+        intent.putExtra("nomeCategoria", nomeCategoria ?: getString(R.string.categoria5) )
         startActivity(intent)
         finish()
     }

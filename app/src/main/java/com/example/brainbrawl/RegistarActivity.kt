@@ -4,7 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.hashPassword
+import com.example.brainbrawl.UteisValidacao.hashPassword
+import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.databinding.ActivityRegistarBinding
 import com.google.firebase.database.FirebaseDatabase
 
@@ -34,7 +35,7 @@ class RegistarActivity : AppCompatActivity() {
             R.drawable.avatar_10_playstore,
             R.drawable.avatar_11_playstore,
             R.drawable.avatar_12_playstore,
-            R.drawable.avatar_13_playstore
+            R.drawable.avatar_8_playstore
         )
 
         // Adapter para o GridView
@@ -57,7 +58,7 @@ class RegistarActivity : AppCompatActivity() {
             val password = binding.edtPasswordJogador.text.toString().trim()
 
             // Validar os campos
-            val erro = Uteis.validarCampos(nomeUtilizador, password)
+            val erro = validarCampos(nomeUtilizador, password)
             // Verificar se há erros
             if (erro != null) {
                 Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
@@ -103,10 +104,11 @@ class RegistarActivity : AppCompatActivity() {
             "pontuacao" to 0.0,
             "totalJogos" to 0,
             "totalVitorias" to 0,
-            "totalRespostasCertas" to 0
+            "totalRespostasCertas" to 0,
+            "totalVitoriasModo2x2" to 0,
+            "totalVitoriasModo1x1" to 0,
+            "totalVitoriasModoSolo" to 0
         )
         database.child("jogadores").child(nomeUtilizador).setValue(jogadorData)
     }
-
-
 }

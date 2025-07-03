@@ -147,6 +147,7 @@ class PontuacoesActivity : AppCompatActivity() {
                 val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
                 val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
                 val taxaAcertosAnterior = snapshot.child("taxaAcertos").getValue(Double::class.java) ?: 0.0
+                val totalVitoriasModoSoloAnterior = snapshot.child("totalVitoriasModoSolo").getValue(Int::class.java) ?: 0 // Novo campo
 
                 // Calcular os novos valores
                 val novoTotalJogos = totalJogosAnterior + 1
@@ -159,11 +160,14 @@ class PontuacoesActivity : AppCompatActivity() {
                     ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
                 }
 
+                val novoTotalVitoriasModoSolo = totalVitoriasModoSoloAnterior + if (ficouEmPrimeiro) 1 else 0
+
                 // Criar um mapa com os novos valores
                 val updates = mapOf(
                     "totalJogos" to novoTotalJogos,
                     "totalVitorias" to novoTotalVitorias,
-                    "taxaAcertos" to novaTaxa
+                    "taxaAcertos" to novaTaxa,
+                    "totalVitoriasModoSolo" to novoTotalVitoriasModoSolo
                 )
                 database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
             }

@@ -10,9 +10,9 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.definirCorBotao
-import com.example.brainbrawl.Uteis.obterOpcoesAleatorias
-import com.example.brainbrawl.Uteis.tocarSom
+import com.example.brainbrawl.UteisJogo.definirCorBotao
+import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
+import com.example.brainbrawl.UteisJogo.tocarSom
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -281,6 +281,14 @@ class JogoActivity : AppCompatActivity() {
                         binding.btnOpcao2.isEnabled = false
                         binding.btnOpcao3.isEnabled = false
                         binding.btnOpcao4.isEnabled = false
+
+                        // NOVO: Se for admin, avança automaticamente para a próxima pergunta
+                        if (admin) {
+                            handler.postDelayed({
+                                perguntaAtualIndex++
+                                mostrarResposta()
+                            }, 2000) // Espera 2 segundos antes de avançar, ajusta se quiseres
+                        }
                     }
                 }
 

@@ -10,7 +10,6 @@ import com.example.brainbrawl.databinding.ActivityAmigosBinding
 import com.google.firebase.database.FirebaseDatabase
 
 class AmigosActivity : AppCompatActivity() {
-    // Acessar os elementos do layout
     private val binding by lazy {
         ActivityAmigosBinding.inflate(layoutInflater)
     }
@@ -21,9 +20,11 @@ class AmigosActivity : AppCompatActivity() {
     private val avataresAmigos = mutableListOf<String>()
     private val estadoAmigos = mutableListOf<String>()
 
-    // Lista de convites recebidos
     private val convitesRecebidos = mutableListOf<Convite1x1>()
     private lateinit var conviteAdapter: ConviteAdapter
+
+    private val pedidosAmizadeRecebidos = mutableListOf<String>()
+    private lateinit var pedidoAdapter: PedidoAmizadeAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -31,59 +32,54 @@ class AmigosActivity : AppCompatActivity() {
 
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
-        // Adapter para amigos
         amigoAdapter = AmigoAdapter(amigos, avataresAmigos, estadoAmigos, nomeUtilizador)
         binding.recyclerAmigos.layoutManager = LinearLayoutManager(this)
         binding.recyclerAmigos.adapter = amigoAdapter
 
-        // Adapter para convites recebidos
         conviteAdapter = ConviteAdapter(convitesRecebidos) { convite ->
             aceitarConvite(convite)
         }
         binding.recyclerConvites.layoutManager = LinearLayoutManager(this)
         binding.recyclerConvites.adapter = conviteAdapter
 
-        // Carregar amigos e convites
+        pedidoAdapter = PedidoAmizadeAdapter(pedidosAmizadeRecebidos) { nomeOutro ->
+            aceitarPedidoAmizade(nomeOutro)
+        }
+        binding.recyclerPedidosAmizade.layoutManager = LinearLayoutManager(this)
+        binding.recyclerPedidosAmizade.adapter = pedidoAdapter
+
         carregarListaAmigos()
         carregarConvitesRecebidos()
+        carregarPedidosAmizadeRecebidos()
 
-        // Pesquisa ao clicar na lupa
         binding.btnPesquisar.setOnClickListener {
             val nomePesquisa = binding.edtPesquisar.text.toString().trim()
             pesquisarUtilizador(nomePesquisa)
         }
-
-        // Pesquisa ao carregar em "Pesquisar" no teclado
         binding.edtPesquisar.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || actionId == EditorInfo.IME_ACTION_DONE) {
                 pesquisarUtilizador(binding.edtPesquisar.text.toString().trim())
                 true
             } else false
         }
-
-        // Botão de adicionar amigo
         binding.btnAdicionarAmigo.setOnClickListener {
             val nomeNovoAmigo = binding.edtPesquisar.text.toString().trim()
-            // Impede adicionar-se a si próprio
             if (nomeNovoAmigo.isEmpty() || nomeNovoAmigo == nomeUtilizador) return@setOnClickListener
-            // Impede adicionar repetido
             if (amigos.contains(nomeNovoAmigo)) {
                 Toast.makeText(this, "Já é teu amigo!", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            database.child("jogadores").child(nomeUtilizador).child("amigos").child(nomeNovoAmigo).setValue(true)
+            val pedido = mapOf("estado" to "pendente")
+            database.child("jogadores").child(nomeNovoAmigo).child("pedidos_amizade").child(nomeUtilizador).setValue(pedido)
                 .addOnSuccessListener {
-                    Toast.makeText(this, "Amigo adicionado!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Pedido de amizade enviado!", Toast.LENGTH_SHORT).show()
                     binding.layoutAddAmigo.visibility = android.view.View.GONE
                     binding.edtPesquisar.text.clear()
-                    carregarListaAmigos()
                 }
                 .addOnFailureListener {
-                    Toast.makeText(this, "Erro ao adicionar amigo", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Erro ao enviar pedido", Toast.LENGTH_SHORT).show()
                 }
         }
-
-        // Botão voltar - sempre envia nomeUtilizador de volta!
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             intent.putExtra("nomeUtilizador", nomeUtilizador)
@@ -96,21 +92,15 @@ class AmigosActivity : AppCompatActivity() {
         amigos.clear()
         avataresAmigos.clear()
         estadoAmigos.clear()
-
-        // Adiciona o próprio utilizador logo no início da lista
         amigos.add(nomeUtilizador)
-        avataresAmigos.add("avatar_1_playstore") // Ou vais buscar o avatar correto já a seguir na BD
-        estadoAmigos.add("on") // Ou vais buscar o estado correto já a seguir na BD
-
-        // Atualiza o avatar e estado do próprio utilizador
+        avataresAmigos.add("avatar_1_playstore")
+        estadoAmigos.add("on")
         database.child("jogadores").child(nomeUtilizador).get()
             .addOnSuccessListener { meSnap ->
                 val nomeAvatar = meSnap.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
                 val estado = meSnap.child("estado").getValue(String::class.java) ?: "on"
                 avataresAmigos[0] = nomeAvatar
                 estadoAmigos[0] = estado
-
-                // Agora carrega os restantes amigos normalmente
                 database.child("jogadores").child(nomeUtilizador).child("amigos")
                     .get().addOnSuccessListener { snapshot ->
                         val amigosTemp = mutableListOf<String>()
@@ -124,10 +114,8 @@ class AmigosActivity : AppCompatActivity() {
                         var loaded = 0
                         for (child in children) {
                             val nomeAmigo = child.key ?: continue
-                            // Não adiciona a si próprio (caso esteja na BD, por erro antigo)
                             if (nomeAmigo == nomeUtilizador) continue
                             amigosTemp.add(nomeAmigo)
-                            // Busca avatar e estado deste amigo
                             database.child("jogadores").child(nomeAmigo).get()
                                 .addOnSuccessListener { amigoSnap ->
                                     val nomeAvatar = amigoSnap.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
@@ -143,7 +131,6 @@ class AmigosActivity : AppCompatActivity() {
                                     }
                                 }
                         }
-                        // Se não houver amigos, apenas o próprio aparece
                         if (children.isEmpty()) {
                             amigoAdapter.notifyDataSetChanged()
                         }
@@ -151,7 +138,6 @@ class AmigosActivity : AppCompatActivity() {
             }
     }
 
-    // Carregar convites recebidos da base de dados
     private fun carregarConvitesRecebidos() {
         convitesRecebidos.clear()
         database.child("jogadores").child(nomeUtilizador).child("convites_recebidos")
@@ -171,14 +157,29 @@ class AmigosActivity : AppCompatActivity() {
             }
     }
 
-    // Função utilizada para pesquisar por jogador
+    private fun carregarPedidosAmizadeRecebidos() {
+        pedidosAmizadeRecebidos.clear()
+        database.child("jogadores").child(nomeUtilizador).child("pedidos_amizade")
+            .get().addOnSuccessListener { snapshot ->
+                for (pedido in snapshot.children) {
+                    val nomeOutro = pedido.key ?: continue
+                    val estado = pedido.child("estado").getValue(String::class.java) ?: ""
+                    if (estado == "pendente") {
+                        pedidosAmizadeRecebidos.add(nomeOutro)
+                    }
+                }
+                binding.txtPedidosAmizade.visibility = if (pedidosAmizadeRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                binding.recyclerPedidosAmizade.visibility = if (pedidosAmizadeRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+                pedidoAdapter.notifyDataSetChanged()
+            }
+    }
+
     private fun pesquisarUtilizador(nome: String) {
         if (nome.isEmpty() || nome == nomeUtilizador) {
             binding.layoutAddAmigo.visibility = android.view.View.GONE
             return
         }
         database.child("jogadores").child(nome).get().addOnSuccessListener { snapshot ->
-            // Verifica se o utilizador existe
             if (snapshot.exists()) {
                 if (amigos.contains(nome)) {
                     binding.layoutAddAmigo.visibility = android.view.View.GONE
@@ -194,7 +195,6 @@ class AmigosActivity : AppCompatActivity() {
         }
     }
 
-    // Função utilizada para aceitar convite
     private fun aceitarConvite(convite: Convite1x1) {
         database.child("jogadores").child(nomeUtilizador).child("convites_recebidos").child(convite.nomeAmigo).child("estado").setValue("aceite")
         database.child("jogadores").child(convite.nomeAmigo).child("convites_enviados").child(nomeUtilizador).child("estado").setValue("aceite")
@@ -204,9 +204,19 @@ class AmigosActivity : AppCompatActivity() {
             "2x2" -> Intent(this, SalaDeEspera2x2Activity::class.java)
             else -> Intent(this, SalaDeEspera1x1Activity::class.java)
         }
-        intent.putExtra("nomeJogador", nomeUtilizador)
+        intent.putExtra("nomeUtilizador", nomeUtilizador)
         intent.putExtra("codigoSala", convite.codigoSala)
         startActivity(intent)
         finish()
+    }
+
+    private fun aceitarPedidoAmizade(nomeOutro: String) {
+        database.child("jogadores").child(nomeUtilizador).child("amigos").child(nomeOutro).setValue(true)
+        database.child("jogadores").child(nomeOutro).child("amigos").child(nomeUtilizador).setValue(true)
+        database.child("jogadores").child(nomeUtilizador).child("pedidos_amizade").child(nomeOutro).removeValue()
+        database.child("jogadores").child(nomeOutro).child("pedidos_amizade").child(nomeUtilizador).removeValue()
+        Toast.makeText(this, "Amizade aceite!", Toast.LENGTH_SHORT).show()
+        carregarListaAmigos()
+        carregarPedidosAmizadeRecebidos()
     }
 }

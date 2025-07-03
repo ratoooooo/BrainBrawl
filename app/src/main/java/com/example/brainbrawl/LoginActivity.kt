@@ -5,7 +5,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.hashPassword
+import com.example.brainbrawl.UteisValidacao.hashPassword
+import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.databinding.ActivityLoginBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -32,7 +33,7 @@ class LoginActivity : AppCompatActivity() {
             var password = binding.edtPasswordJogador.text.toString().trim()
 
             // Faz a validação dos campos
-            val erro = Uteis.validarCampos(nomeUtilizador, password)
+            val erro = validarCampos(nomeUtilizador, password)
             // Se existir erro exibir mensagem
             if (erro != null) {
                 Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()

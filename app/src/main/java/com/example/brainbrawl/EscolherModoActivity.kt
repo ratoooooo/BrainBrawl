@@ -5,9 +5,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.Uteis.abrirEscolherCategoriaActivity
-import com.example.brainbrawl.Uteis.criarSalaCaoticaEEntrar
-import com.example.brainbrawl.Uteis.gerarCodigoSala
+import com.example.brainbrawl.UteisNavegacao.abrirEscolherCategoriaActivity
+import com.example.brainbrawl.UteisSala.criarSalaCaoticaEEntrar
+import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityEscolherModoBinding
 
 class EscolherModoActivity : AppCompatActivity() {
