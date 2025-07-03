@@ -230,38 +230,7 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- Botão Criar Categoria -->
-        <LinearLayout
-            android:id="@+id/layout_criar_categoria"
-            android:layout_width="0dp"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:background="@drawable/botao_branco_arredondado"
-            android:gravity="center"
-            android:layout_marginTop="32dp"
-            android:clickable="true"
-            android:focusable="true"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.5"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/layout_categoria_6"
-            app:layout_constraintWidth_percent="0.85">
 
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_add"
-                android:layout_marginEnd="12dp" />
-            <TextView
-                android:id="@+id/btn_criar_categoria"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/criar_categoria"
-                android:textSize="18sp"
-                android:textColor="#000000"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"/>
-        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

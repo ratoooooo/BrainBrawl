@@ -30,7 +30,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         // Receber dados passados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        categoria = intent.getStringExtra("categoria")
+        categoria = intent.getStringExtra("categoria")?: getString(R.string.categoria5)
 
         // Mostrar o código da sala
         binding.txtCodigoSala.text = "Código da sala: $codigoSala"

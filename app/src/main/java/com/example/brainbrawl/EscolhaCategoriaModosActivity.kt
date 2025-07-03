@@ -37,11 +37,11 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         binding.btnCategoria4.setOnClickListener {
             abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria4))
         }
-        binding.btnCategoria6.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria6))
-        }
         binding.btnCategoria5.setOnClickListener {
             abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria5))
+        }
+        binding.btnCategoria6.setOnClickListener {
+            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria6))
         }
     }
 
