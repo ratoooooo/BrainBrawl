@@ -1,4 +1,3 @@
-// MANO O CODIGO NAO AVANÇA NA MESMA PARA A PROXIMA PERGUNTA EU NAO ENTENDO O PROBLEMA
 package com.example.brainbrawl
 
 import android.content.Intent
@@ -26,52 +25,79 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         val nomeJogador = intent.getStringExtra("nomeJogador")
 
-        // Verifica e preenche o EditText com nomeUtilizador ou nomeJogador
-        when {
-            !nomeUtilizador.isNullOrEmpty() -> binding.edtNomeJogador.setText(nomeUtilizador)
-            !nomeJogador.isNullOrEmpty() -> binding.edtNomeJogador.setText(nomeJogador)
-            else -> binding.edtNomeJogador.setText("") // Deixa vazio se nenhum for passado
+        // Se for utilizador registado, bloqueia edição do nome
+        if (!nomeUtilizador.isNullOrEmpty()) {
+            binding.edtNomeJogador.setText(nomeUtilizador)
+            binding.edtNomeJogador.isEnabled = false
+        } else if (!nomeJogador.isNullOrEmpty()) {
+            binding.edtNomeJogador.setText(nomeJogador)
+            binding.edtNomeJogador.isEnabled = true
+        } else {
+            binding.edtNomeJogador.setText("")
+            binding.edtNomeJogador.isEnabled = true
         }
 
         binding.btnEntrarSala.setOnClickListener {
-            // evita duplo clique
             binding.btnEntrarSala.isEnabled = false
 
             val codSala = binding.edtCodigoSala.text.toString().trim()
-            val nomeJogador = binding.edtNomeJogador.text.toString().trim()
+            val nomeJogadorAtual = binding.edtNomeJogador.text.toString().trim()
 
-            val erro = validarCampos(nomeJogador)
+            // Validação do código da sala: não pode estar vazio
+            if (codSala.isEmpty()) {
+                Toast.makeText(this, "Insira o código da sala!", Toast.LENGTH_SHORT).show()
+                binding.btnEntrarSala.isEnabled = true
+                return@setOnClickListener
+            }
+
+            val erro = validarCampos(nomeJogadorAtual)
             if (erro != null) {
                 Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
                 binding.btnEntrarSala.isEnabled = true
                 return@setOnClickListener
             }
 
-            // Vai buscar os dados da sala ao Firebase só pelo código
+            // Verifica no Firebase se a sala existe e se o nome já está na sala
             database.child("salas").child(codSala)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.exists()) {
-                            // Não precisamos de modo nem categoria: só garantir que a sala existe!
-                            if (snapshot.child("jogadores").hasChild(nomeJogador)) {
+                            if (snapshot.child("jogadores").hasChild(nomeJogadorAtual)) {
                                 Toast.makeText(this@SalaDeEsperaActivity, "Nome de jogador já existe na sala", Toast.LENGTH_SHORT).show()
                                 binding.btnEntrarSala.isEnabled = true
-                                return
                             } else {
-                                // Adiciona o jogador à sala no Firebase
-                                adicionarJogador(nomeJogador, codSala)
+                                // Se for utilizador registado, busca avatar real
+                                if (!nomeUtilizador.isNullOrEmpty()) {
+                                    database.child("jogadores").child(nomeUtilizador).child("avatar")
+                                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                val avatar = snapshot.getValue(String::class.java) ?: "avatar_1_playstore"
+                                                adicionarJogadorComAvatar(nomeJogadorAtual, codSala, avatar)
+                                                irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                                adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
+                                                irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
+                                            }
+                                        })
+                                } else {
+                                    adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
+                                    irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, null)
+                                }
+
                                 binding.btnEntrarSala.isEnabled = false
                                 binding.edtCodigoSala.isEnabled = false
                                 binding.edtNomeJogador.isEnabled = false
                                 Toast.makeText(this@SalaDeEsperaActivity, "Jogador adicionado com sucesso!", Toast.LENGTH_SHORT).show()
                                 codigoSalaListener = codSala
-                                irParaSalaDeEsperaGrupo(codSala, nomeJogador, nomeUtilizador)
                             }
                         } else {
                             Toast.makeText(this@SalaDeEsperaActivity, "Código da sala inválido", Toast.LENGTH_SHORT).show()
                             binding.btnEntrarSala.isEnabled = true
                         }
                     }
+
                     override fun onCancelled(error: DatabaseError) {
                         Toast.makeText(this@SalaDeEsperaActivity, "Erro ao verificar sala: ${error.message}", Toast.LENGTH_SHORT).show()
                         binding.btnEntrarSala.isEnabled = true
@@ -84,30 +110,30 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         }
     }
 
-    // Função que adiciona o jogador à sala no Firebase
-    private fun adicionarJogador(nomeJogador: String, codigoSala: String) {
+    private fun adicionarJogadorComAvatar(nomeJogador: String, codigoSala: String, avatar: String) {
         val jogadorData = mapOf(
             "nome" to nomeJogador,
-            "pontuacao" to 0
+            "pontuacao" to 0,
+            "avatar" to avatar,
+            "estado" to "on"
         )
         database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador).setValue(jogadorData)
     }
 
-    // Função que leva SEMPRE para a sala de espera de grupo
+// Função para ir para a sala de espera do grupo
     private fun irParaSalaDeEsperaGrupo(codigoSala: String, nomeJogador: String, nomeUtilizador: String?) {
+        // Redireciona para a SalaDeEsperaGrupoActivity com os dados necessários
         val intent = Intent(this, SalaDeEsperaGrupoActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("nomeJogador", nomeJogador)
-        intent.putExtra("admin", false) // convidados nunca são admin
+        intent.putExtra("admin", false)
+        codigoSala.let { intent.putExtra("codigoSala", it) }
+        nomeJogador.let { intent.putExtra("nomeJogador", it) }
         nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-        // As próximas activities podem ir buscar categoria/modo ao Firebase se precisarem
         startActivity(intent)
         finish()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        // Remove listener se existir
         estadoSalaListener?.let { listener ->
             codigoSalaListener?.let { sala ->
                 database.child("salas").child(sala).child("estado").removeEventListener(listener)

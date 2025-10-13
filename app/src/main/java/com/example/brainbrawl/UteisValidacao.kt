@@ -3,6 +3,7 @@ package com.example.brainbrawl
 import java.security.MessageDigest
 
 object UteisValidacao {
+
     // Função utilizada para validar os campos
     fun validarCampos(nome: String, password: String? = null): String? {
         if (nome.isEmpty() || (password != null && password.isEmpty())) {
@@ -26,7 +27,7 @@ object UteisValidacao {
         return null
     }
 
-    // Encriptar senha usando SHA-256
+    // Função para encriptar a senha usando SHA-256
     fun hashPassword(password: String): String {
         val bytes = password.toByteArray()
         val md = MessageDigest.getInstance("SHA-256")

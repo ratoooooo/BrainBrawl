@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFC400"
@@ -7,16 +8,42 @@
     android:orientation="vertical"
     android:padding="16dp">
 
-    <TextView
-        android:id="@+id/txt_progresso"
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:text="@string/progresso_pergunta"
-        android:textColor="#FFFFFF"
-        android:textSize="20sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold" />
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="16dp">
+
+        <TextView
+            android:id="@+id/txt_progresso"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:text="@string/progresso_pergunta"
+            android:textColor="#FFFFFF"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:layout_marginEnd="16dp" />
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_solo"
+            android:contentDescription="Ícone de pessoa"
+            android:layout_marginEnd="8dp"
+            app:tint="#000000" />
+
+        <TextView
+            android:id="@+id/txt_admin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Admin"
+            android:textColor="#000000"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-black"
+            android:textStyle="bold" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/pb_tempo"
@@ -30,7 +57,6 @@
         android:progress="1"
         android:progressBackgroundTint="#FFD54F"
         android:progressTint="#FFFFFF" />
-
 
     <ImageView
         android:id="@+id/img_pergunta"

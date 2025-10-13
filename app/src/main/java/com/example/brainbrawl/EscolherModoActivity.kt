@@ -21,23 +21,21 @@ class EscolherModoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar o nome do utilizador, do jogador e admin passado pelo Intent
+        // Guardar os dados passados pelo Intent
         nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         nomeJogador = intent.getStringExtra("nomeJogador")
         admin = intent.getBooleanExtra("admin", false)
 
-        // Configurar o botao do modo clássico
+        // Configurar os botoes de medos
         binding.btnModoClassico.setOnClickListener {
             abrirTipoModoClassico("classico")
         }
-        // Configurar o botão do modo eliminatórias
         binding.btnModoEliminatorias.setOnClickListener {
             abrirEscolherCategoriaActivity(this, "eliminatorias", nomeUtilizador, nomeJogador, true)
             finish()
         }
-        //Configurar o botão do modo caótico
         binding.btnModoCaotico.setOnClickListener {
-            // Se existir nomeUtilizador (registado), usa esse. Senão, usa nomeJogador (convidado).
+            //Verifica se o nome Utilizador ou nomeJogador foi passado
             if (nomeUtilizador != null) {
                 criarSalaCaoticaEEntrar(this, nomeUtilizador, null)
             } else if (nomeJogador != null) {
@@ -45,11 +43,11 @@ class EscolherModoActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "Indique o seu nome!", Toast.LENGTH_SHORT).show()
             }
-            finish()
+
         }
 
-        // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
+            // Envia de volta para a MainActivity com os dados necessários
             val intent = Intent(this, MainActivity::class.java)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
             nomeJogador?.let { intent.putExtra("nomeJogador", it) }
@@ -57,7 +55,6 @@ class EscolherModoActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
-        // Botão de informação
         binding.infoTodos.setOnClickListener {
             mostrarExplicacaoTodosModos()
         }

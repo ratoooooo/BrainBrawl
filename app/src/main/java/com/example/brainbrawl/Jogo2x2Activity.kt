@@ -22,7 +22,6 @@ import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 
 class Jogo2x2Activity : AppCompatActivity() {
-    // Aceder aos elementos do layout
     private val binding by lazy {
         ActivityJogo2x2Binding.inflate(layoutInflater)
     }
@@ -33,7 +32,7 @@ class Jogo2x2Activity : AppCompatActivity() {
     private lateinit var categoria: String
 
     // Variáveis de lógica de jogo
-    private var mediaPlayer: MediaPlayer? = null // Para som de contagem decrescente
+    private var mediaPlayer: MediaPlayer? = null
     private var somTocar = false
     private var perguntaAtualIndex = 0
     private var totalPontos = 0.0
@@ -60,7 +59,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Obter dados do intent
+        //Guardar os dados passados pelo Intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
@@ -79,7 +78,7 @@ class Jogo2x2Activity : AppCompatActivity() {
     }
 
     private fun identificarEquipaECarregarPerguntas() {
-        // --- Identifica a equipa deste jogador ---
+        // Verifica a equipa do jogador na sala
         database.child("sala_2x2").child(codigoSala).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val equipaA = snapshot.child("equipaA").children.mapNotNull { it.key }
@@ -89,6 +88,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                     equipaB.contains(nomeUtilizador) -> "B"
                     else -> ""
                 }
+
                 carregarOuCriarPerguntas()
             }
             override fun onCancelled(error: DatabaseError) {
@@ -115,7 +115,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                         }
                         configurarBotoes()
                     } else {
-                        // Só o primeiro jogador a entrar cria as perguntas (usando transaction para garantir que só um cria)
+                        // Só o primeiro jogador a entrar cria as perguntas
                         buscarPerguntasAleatorias { perguntasAleatorias ->
                             database.child("sala_2x2").child(codigoSala).child("perguntas")
                                 .runTransaction(object : Transaction.Handler {
@@ -200,8 +200,8 @@ class Jogo2x2Activity : AppCompatActivity() {
                             }
                         }
                     }
-                    // Embaralha e seleciona 15 perguntas aleatórias
-                    val escolhidas = todas.shuffled().take(15)
+                    // Embaralha e seleciona 8 perguntas aleatórias
+                    val escolhidas = todas.shuffled().take(8)
                     onComplete(escolhidas)
                 }
                 override fun onCancelled(error: DatabaseError) {
@@ -227,7 +227,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                                 perguntas.add(Pergunta(pergunta, respostaCorreta, opcoes))
                             }
                         }
-                        val escolhidas = perguntas.shuffled().take(15)
+                        val escolhidas = perguntas.shuffled().take(8)
                         onComplete(escolhidas)
                     }
                     override fun onCancelled(error: DatabaseError) {
@@ -250,6 +250,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         binding.txtProgresso.text = "Pergunta ${perguntaAtualIndex + 1}/${perguntas.size}"
         binding.txtPergunta.text = perguntaAtual.pergunta
 
+        // Obter opções aleatórias para a pergunta atual
         opcoesAtuais = obterOpcoesAleatorias(perguntaAtual)
         binding.btnOpcao1.text = opcoesAtuais[0]
         binding.btnOpcao2.text = opcoesAtuais[1]
@@ -262,7 +263,12 @@ class Jogo2x2Activity : AppCompatActivity() {
         definirCorBotao(binding.btnOpcao3, "#E0E0E0")
         definirCorBotao(binding.btnOpcao4, "#E0E0E0")
 
+        // Atualiza a hora de início no Firebase
+        database.child("sala_2x2").child(codigoSala).child("perguntaHoraInicio")
+            .setValue(tempoIniciado)
+
         tempoRestante = 15.0
+        // Chama a função para iniciar o cronómetro sincronizado
         iniciarCronometro()
     }
 
@@ -306,7 +312,8 @@ class Jogo2x2Activity : AppCompatActivity() {
             else -> null
         }
 
-        definirCorBotao(botaoCorreto!!, "#81C784") // Verde para correta
+        // Define a cor do botão correto
+        definirCorBotao(botaoCorreto!!, "#81C784")
 
         // Atualiza estatísticas de respostas
         totalPerguntasRespondidas++
@@ -346,13 +353,7 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     // Função para finalizar o jogo e guardar pontuação
     private fun finalizarJogo() {
-        if (mediaPlayer != null) {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = null
-            somTocar = false
-        }
-
+        pararSom()
         tempoDecorrido = false
         progressBarAtivo = false
         handler.removeCallbacksAndMessages(null)
@@ -363,87 +364,195 @@ class Jogo2x2Activity : AppCompatActivity() {
                 .child("pontuacoes_${equipaDoJogador}")
                 .child(nomeUtilizador)
                 .setValue(totalPontos)
-            // Grava o total de perguntas certas
             database.child("sala_2x2").child(codigoSala)
                 .child("totalPerguntasCertas_${equipaDoJogador}")
                 .child(nomeUtilizador)
                 .setValue(totalPerguntascertas)
         }
 
-        // Chama a activity de pontuação
-        enviarPontuacaoActivity(
-            this,
-            codigoSala,
-            "2x2",
-            nomeUtilizador,
-            totalPontos,
-            categoria,
-            nomeUtilizador,
-            totalPerguntascertas,
-            numeroPerguntasCertas,
-            perguntas.size,
-            equipaDoJogador
-        )
-        finish()
+        // Aguarda até todas as pontuações estarem guardadas!
+        aguardarPodioCompleto()
     }
 
-    // Função que inicia o cronómetro visual e sonoro da pergunta
+    private fun aguardarPodioCompleto() {
+        val pontuacoesARef = database.child("sala_2x2").child(codigoSala).child("pontuacoes_A")
+        val pontuacoesBRef = database.child("sala_2x2").child(codigoSala).child("pontuacoes_B")
+
+        // Listener conjunto para ambos os nós
+        val podioListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Lê ambas as equipas
+                pontuacoesARef.get().addOnSuccessListener { snapA ->
+                    pontuacoesBRef.get().addOnSuccessListener { snapB ->
+                        val totalA = snapA.childrenCount
+                        val totalB = snapB.childrenCount
+
+                        if (totalA >= 2 && totalB >= 2) {
+                            // Remove listeners
+                            pontuacoesARef.removeEventListener(this)
+                            pontuacoesBRef.removeEventListener(this)
+                            // Avança para a activity do pódio
+                            enviarPontuacaoActivity(
+                                this@Jogo2x2Activity,
+                                codigoSala,
+                                "2x2",
+                                nomeUtilizador,
+                                totalPontos,
+                                categoria,
+                                nomeUtilizador,
+                                totalPerguntascertas,
+                                numeroPerguntasCertas,
+                                perguntas.size,
+                                equipaDoJogador
+                            )
+                            finish()
+                        } else {
+                            Toast.makeText(
+                                this@Jogo2x2Activity,
+                                "Aguarde que todos terminem!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@Jogo2x2Activity, "Erro ao verificar pódio!", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        // Adiciona listeners nos dois nós
+        pontuacoesARef.addValueEventListener(podioListener)
+        pontuacoesBRef.addValueEventListener(podioListener)
+    }
+
+    // Função que inicia o cronómetro visual e sonoro da pergunta de forma sincronizada
     private fun iniciarCronometro() {
         tempoDecorrido = true
         progressBarAtivo = true
-        binding.pbTempo.max = 15
-        tempoRestante = 15.0
-        binding.pbTempo.progress = tempoRestante.toInt()
-        binding.txtCronometro.text = formatoDecimal.format(tempoRestante)
+        val tempoTotal = 15.0
+        binding.pbTempo.max = tempoTotal.toInt()
+        binding.pbTempo.progress = tempoTotal.toInt()
         var primeiraAtualizacao = true
-        tempoIniciado = System.currentTimeMillis()
-        val runnable = object : Runnable {
-            override fun run() {
 
-                // Toca som nos últimos 5 segundos
-                if (tempoRestante <= 5 && !somTocar) {
-                    mediaPlayer = MediaPlayer.create(this@Jogo2x2Activity, R.raw.som)
-                    mediaPlayer?.isLooping = true
-                    mediaPlayer?.start()
-                    somTocar = true
-                } else if (tempoRestante > 5 && somTocar) {
-                    mediaPlayer?.stop()
-                    mediaPlayer?.release()
-                    mediaPlayer = null
-                    somTocar = false
-                }
+        // Obtém a hora de início sincronizada do Firebase
+        database.child("sala_2x2").child(codigoSala).child("perguntaHoraInicio")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val horaInicio = snapshot.getValue(Long::class.java) ?: System.currentTimeMillis()
+                    val runnable = object : Runnable {
+                        override fun run() {
+                            val tempoAtual = System.currentTimeMillis()
+                            val tempoDecorridoSegundos = (tempoAtual - horaInicio) / 1000.0
+                            tempoRestante = tempoTotal - tempoDecorridoSegundos
+                            if (tempoRestante < 0) tempoRestante = 0.0
 
-                // Ativar botões só na primeira atualização
-                if (primeiraAtualizacao) {
-                    binding.btnOpcao1.isEnabled = true
-                    binding.btnOpcao2.isEnabled = true
-                    binding.btnOpcao3.isEnabled = true
-                    binding.btnOpcao4.isEnabled = true
-                    primeiraAtualizacao = false
-                }
-                // Atualiza tempo restante
-                val tempoAtual = System.currentTimeMillis()
-                tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
-                if (tempoDecorrido) {
-                    binding.txtCronometro.text = formatoDecimal.format(tempoRestante)
-                }
-                if (progressBarAtivo) {
-                    binding.pbTempo.progress = tempoRestante.toInt()
-                    if (tempoRestante <= 0) {
-                        binding.pbTempo.progress = 0
-                        progressBarAtivo = false
+                            // Toca som nos últimos 5 segundos
+                            if (tempoRestante <= 5 && tempoRestante > 0 && !somTocar) {
+                                mediaPlayer = MediaPlayer.create(this@Jogo2x2Activity, R.raw.som)
+                                mediaPlayer?.isLooping = true
+                                mediaPlayer?.start()
+                                somTocar = true
+                            } else if ((tempoRestante > 5 || tempoRestante <= 0) && somTocar) {
+                                mediaPlayer?.stop()
+                                mediaPlayer?.release()
+                                mediaPlayer = null
+                                somTocar = false
+                            }
+
+                            // Ativar botões só na primeira atualização
+                            if (primeiraAtualizacao) {
+                                binding.btnOpcao1.isEnabled = true
+                                binding.btnOpcao2.isEnabled = true
+                                binding.btnOpcao3.isEnabled = true
+                                binding.btnOpcao4.isEnabled = true
+                                primeiraAtualizacao = false
+                            }
+
+                            if (tempoDecorrido) {
+                                binding.txtCronometro.text = formatoDecimal.format(tempoRestante.coerceAtLeast(0.0))
+                            }
+                            if (progressBarAtivo) {
+                                binding.pbTempo.progress = tempoRestante.coerceAtLeast(0.0).toInt()
+                                if (tempoRestante <= 0) {
+                                    binding.pbTempo.progress = 0
+                                    progressBarAtivo = false
+                                    if (!tempoDecorrido) {
+                                        verificarResposta(-1)
+                                    }
+                                }
+                            }
+
+                            if (tempoRestante > 0 && progressBarAtivo) {
+                                handler.postDelayed(this, 200)
+                            }
+                        }
                     }
+                    handler.post(runnable)
                 }
-                if (tempoRestante <= 0 && tempoDecorrido) {
-                    tempoRestante = 0.0
-                    binding.txtCronometro.text = "0.0"
-                    tempoDecorrido = false
-                    verificarResposta(-1)
-                } else if (progressBarAtivo) {
-                    handler.postDelayed(this, 200)
+
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@Jogo2x2Activity, "Erro ao sincronizar cronómetro: ${error.message}", Toast.LENGTH_SHORT).show()
+                    // Fallback para cronómetro local se a sincronização falhar
+                    tempoIniciado = System.currentTimeMillis()
+                    val runnable = object : Runnable {
+                        override fun run() {
+                            val tempoAtual = System.currentTimeMillis()
+                            tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
+                            if (tempoRestante < 0) tempoRestante = 0.0
+
+                            // Toca som nos últimos 5 segundos
+                            if (tempoRestante <= 5 && tempoRestante > 0 && !somTocar) {
+                                mediaPlayer = MediaPlayer.create(this@Jogo2x2Activity, R.raw.som)
+                                mediaPlayer?.isLooping = true
+                                mediaPlayer?.start()
+                                somTocar = true
+                            } else if ((tempoRestante > 5 || tempoRestante <= 0) && somTocar) {
+                                mediaPlayer?.stop()
+                                mediaPlayer?.release()
+                                mediaPlayer = null
+                                somTocar = false
+                            }
+
+                            if (primeiraAtualizacao) {
+                                binding.btnOpcao1.isEnabled = true
+                                binding.btnOpcao2.isEnabled = true
+                                binding.btnOpcao3.isEnabled = true
+                                binding.btnOpcao4.isEnabled = true
+                                primeiraAtualizacao = false
+                            }
+
+                            if (tempoDecorrido) {
+                                binding.txtCronometro.text = formatoDecimal.format(tempoRestante.coerceAtLeast(0.0))
+                            }
+                            if (progressBarAtivo) {
+                                binding.pbTempo.progress = tempoRestante.coerceAtLeast(0.0).toInt()
+                                if (tempoRestante <= 0) {
+                                    binding.pbTempo.progress = 0
+                                    progressBarAtivo = false
+                                    if (!tempoDecorrido) {
+                                        verificarResposta(-1)
+                                    }
+                                }
+                            }
+
+                            if (tempoRestante > 0 && progressBarAtivo) {
+                                handler.postDelayed(this, 200)
+                            }
+                        }
+                    }
+                    handler.post(runnable)
                 }
-            }
+            })
+    }
+
+    // Função para parar e libertar o media player
+    private fun pararSom() {
+        if (somTocar) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            somTocar = false
         }
-        handler.postDelayed(runnable, 200)
     }
 }

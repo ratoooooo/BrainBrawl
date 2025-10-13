@@ -10,11 +10,9 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 
 class SalaDeEspera2x2Activity : AppCompatActivity() {
-    // Acessar os elementos do layout
     private val binding by lazy {
         ActivitySalaDeEspera2x2Binding.inflate(layoutInflater)
     }
-    // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
     // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String

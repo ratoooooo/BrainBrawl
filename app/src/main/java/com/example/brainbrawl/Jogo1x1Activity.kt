@@ -54,6 +54,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar os dados passados pelo Intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
@@ -72,7 +73,7 @@ class Jogo1x1Activity : AppCompatActivity() {
     }
 
     private fun prepararPerguntasEJogo() {
-        // Buscar ou criar perguntas (garantindo que ambos jogam as MESMAS perguntas)
+        // Buscar ou criar perguntas
         database.child("sala_1x1").child(codigoSala).child("perguntas")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
@@ -173,8 +174,8 @@ class Jogo1x1Activity : AppCompatActivity() {
                             }
                         }
                     }
-                    // Embaralha e seleciona 15 perguntas aleatórias
-                    val escolhidas = todas.shuffled().take(15)
+                    // Embaralha e seleciona 8 perguntas aleatórias
+                    val escolhidas = todas.shuffled().take(8)
                     onComplete(escolhidas)
                 }
                 override fun onCancelled(error: DatabaseError) {
@@ -200,7 +201,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                                 perguntas.add(Pergunta(pergunta, respostaCorreta, opcoes))
                             }
                         }
-                        val escolhidas = perguntas.shuffled().take(15)
+                        val escolhidas = perguntas.shuffled().take(8)
                         onComplete(escolhidas)
                     }
                     override fun onCancelled(error: DatabaseError) {
@@ -234,6 +235,10 @@ class Jogo1x1Activity : AppCompatActivity() {
         definirCorBotao(binding.btnOpcao2, "#E0E0E0")
         definirCorBotao(binding.btnOpcao3, "#E0E0E0")
         definirCorBotao(binding.btnOpcao4, "#E0E0E0")
+
+        // Atualiza a hora de início no Firebase
+        database.child("sala_1x1").child(codigoSala).child("perguntaHoraInicio")
+            .setValue(tempoIniciado)
 
         tempoRestante = 15.0
         iniciarCronometro()
@@ -278,7 +283,8 @@ class Jogo1x1Activity : AppCompatActivity() {
             else -> null
         }
 
-        definirCorBotao(botaoCorreto!!, "#81C784") // Verde para a resposta correta
+        // Verde para a resposta correta
+        definirCorBotao(botaoCorreto!!, "#81C784")
 
         // Estatísticas
         totalPerguntasRespondidas++
@@ -287,9 +293,9 @@ class Jogo1x1Activity : AppCompatActivity() {
             tocarSom(this, R.raw.certo)
             somTocar = true
 
-            definirCorBotao(botaoSelecionado, "#81C784") // Verde para a resposta correta
+            definirCorBotao(botaoSelecionado, "#81C784")
             numeroPerguntasCertas++
-            totalPerguntascertas++ // <-- incrementa total de respostas certas deste jogo
+            totalPerguntascertas++
             val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
             totalPontos += pontos
         } else if (botaoSelecionado != null) {
@@ -297,7 +303,8 @@ class Jogo1x1Activity : AppCompatActivity() {
             tocarSom(this, R.raw.errado)
             somTocar = true
 
-            definirCorBotao(botaoSelecionado, "#E57373") // Vermelho para a resposta errada
+            // Vermelho para a resposta errada
+            definirCorBotao(botaoSelecionado, "#E57373")
             numeroPerguntasCertas = 0
         }
 
@@ -312,23 +319,20 @@ class Jogo1x1Activity : AppCompatActivity() {
     // Função para finalizar o jogo e guardar pontuação
     private fun finalizarJogo() {
         if (mediaPlayer != null) {
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = null
-            somTocar = false
+            pararSom()
         }
 
         tempoDecorrido = false
         progressBarAtivo = false
         handler.removeCallbacksAndMessages(null)
 
+        // Guarda a tua pontuação
         database.child("sala_1x1").child(codigoSala)
             .child("pontuacoes").child(nomeUtilizador)
             .setValue(totalPontos)
             .addOnSuccessListener {
-                enviarPontuacaoActivity(
-                    this, codigoSala, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
-                )
+                // Listener para aguardar que ambos terminem
+                aguardarPodioCompleto()
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Erro ao guardar pontuação!", Toast.LENGTH_SHORT).show()
@@ -336,62 +340,155 @@ class Jogo1x1Activity : AppCompatActivity() {
             }
     }
 
-    // Função que inicia o cronómetro visual e sonoro da pergunta
+    private fun aguardarPodioCompleto() {
+        val pontuacoesRef = database.child("sala_1x1").child(codigoSala).child("pontuacoes")
+        pontuacoesRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (snapshot.childrenCount >= 2) { // ambos terminaram!
+                    // Remove o listener antes de avançar
+                    pontuacoesRef.removeEventListener(this)
+                    // Avança para o pódio (agora sim, ambos podem ver!)
+                    enviarPontuacaoActivity(
+                        this@Jogo1x1Activity, codigoSala, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
+                    )
+                } else {
+                    // Mostra mensagem de espera (podes melhorar para mostrar loading, etc)
+                    Toast.makeText(this@Jogo1x1Activity, "Aguarde que o adversário termine!", Toast.LENGTH_SHORT).show()
+                }
+            }
+            override fun onCancelled(error: DatabaseError) {
+                Toast.makeText(this@Jogo1x1Activity, "Erro ao verificar pódio!", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    // Função que inicia o cronómetro visual e sonoro da pergunta de forma sincronizada
     private fun iniciarCronometro() {
         tempoDecorrido = true
         progressBarAtivo = true
-        binding.pbTempo.max = 15
-        tempoRestante = 15.0
-        binding.pbTempo.progress = tempoRestante.toInt()
-        binding.txtCronometro.text = formatoDecimal.format(tempoRestante)
+        val tempoTotal = 15.0
+        binding.pbTempo.max = tempoTotal.toInt()
+        binding.pbTempo.progress = tempoTotal.toInt()
         var primeiraAtualizacao = true
-        tempoIniciado = System.currentTimeMillis()
-        val runnable = object : Runnable {
-            override fun run() {
-                // Toca som nos últimos 5 segundos
-                if (tempoRestante <= 5 && !somTocar) {
-                    mediaPlayer = MediaPlayer.create(this@Jogo1x1Activity, R.raw.som)
-                    mediaPlayer?.isLooping = true
-                    mediaPlayer?.start()
-                    somTocar = true
-                } else if (tempoRestante > 5 && somTocar) {
-                    mediaPlayer?.stop()
-                    mediaPlayer?.release()
-                    mediaPlayer = null
-                    somTocar = false
+
+        // Obtém a hora de início sincronizada do Firebase
+        database.child("sala_1x1").child(codigoSala).child("perguntaHoraInicio")
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    val horaInicio = snapshot.getValue(Long::class.java) ?: System.currentTimeMillis()
+                    val runnable = object : Runnable {
+                        override fun run() {
+                            val tempoAtual = System.currentTimeMillis()
+                            val tempoDecorridoSegundos = (tempoAtual - horaInicio) / 1000.0
+                            tempoRestante = tempoTotal - tempoDecorridoSegundos
+                            if (tempoRestante < 0) tempoRestante = 0.0
+
+                            // Toca som nos últimos 5 segundos
+                            if (tempoRestante <= 5 && tempoRestante > 0 && !somTocar) {
+                                mediaPlayer = MediaPlayer.create(this@Jogo1x1Activity, R.raw.som)
+                                mediaPlayer?.isLooping = true
+                                mediaPlayer?.start()
+                                somTocar = true
+                            } else if ((tempoRestante > 5 || tempoRestante <= 0) && somTocar) {
+                                mediaPlayer?.stop()
+                                mediaPlayer?.release()
+                                mediaPlayer = null
+                                somTocar = false
+                            }
+
+                            // Ativar botões só na primeira atualização
+                            if (primeiraAtualizacao) {
+                                binding.btnOpcao1.isEnabled = true
+                                binding.btnOpcao2.isEnabled = true
+                                binding.btnOpcao3.isEnabled = true
+                                binding.btnOpcao4.isEnabled = true
+                                primeiraAtualizacao = false
+                            }
+
+                            if (tempoDecorrido) {
+                                binding.txtCronometro.text = formatoDecimal.format(tempoRestante.coerceAtLeast(0.0))
+                            }
+                            if (progressBarAtivo) {
+                                binding.pbTempo.progress = tempoRestante.coerceAtLeast(0.0).toInt()
+                                if (tempoRestante <= 0) {
+                                    binding.pbTempo.progress = 0
+                                    progressBarAtivo = false
+                                    if (!tempoDecorrido) {
+                                        verificarResposta(-1)
+                                    }
+                                }
+                            }
+
+                            if (tempoRestante > 0 && progressBarAtivo) {
+                                handler.postDelayed(this, 200)
+                            }
+                        }
+                    }
+                    handler.post(runnable)
                 }
 
-                // Ativar botões só na primeira atualização
-                if (primeiraAtualizacao) {
-                    binding.btnOpcao1.isEnabled = true
-                    binding.btnOpcao2.isEnabled = true
-                    binding.btnOpcao3.isEnabled = true
-                    binding.btnOpcao4.isEnabled = true
-                    primeiraAtualizacao = false
-                }
-                // Atualiza tempo restante
-                val tempoAtual = System.currentTimeMillis()
-                tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
-                if (tempoDecorrido) {
-                    binding.txtCronometro.text = formatoDecimal.format(tempoRestante)
-                }
-                if (progressBarAtivo) {
-                    binding.pbTempo.progress = tempoRestante.toInt()
-                    if (tempoRestante <= 0) {
-                        binding.pbTempo.progress = 0
-                        progressBarAtivo = false
+                override fun onCancelled(error: DatabaseError) {
+                    Toast.makeText(this@Jogo1x1Activity, "Erro ao sincronizar cronómetro: ${error.message}", Toast.LENGTH_SHORT).show()
+                    // Fallback para cronómetro local se a sincronização falhar
+                    tempoIniciado = System.currentTimeMillis()
+                    val runnable = object : Runnable {
+                        override fun run() {
+                            val tempoAtual = System.currentTimeMillis()
+                            tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
+                            if (tempoRestante < 0) tempoRestante = 0.0
+
+                            // Toca som nos últimos 5 segundos
+                            if (tempoRestante <= 5 && tempoRestante > 0 && !somTocar) {
+                                mediaPlayer = MediaPlayer.create(this@Jogo1x1Activity, R.raw.som)
+                                mediaPlayer?.isLooping = true
+                                mediaPlayer?.start()
+                                somTocar = true
+                            } else if ((tempoRestante > 5 || tempoRestante <= 0) && somTocar) {
+                                mediaPlayer?.stop()
+                                mediaPlayer?.release()
+                                mediaPlayer = null
+                                somTocar = false
+                            }
+
+                            if (primeiraAtualizacao) {
+                                binding.btnOpcao1.isEnabled = true
+                                binding.btnOpcao2.isEnabled = true
+                                binding.btnOpcao3.isEnabled = true
+                                binding.btnOpcao4.isEnabled = true
+                                primeiraAtualizacao = false
+                            }
+
+                            if (tempoDecorrido) {
+                                binding.txtCronometro.text = formatoDecimal.format(tempoRestante.coerceAtLeast(0.0))
+                            }
+                            if (progressBarAtivo) {
+                                binding.pbTempo.progress = tempoRestante.coerceAtLeast(0.0).toInt()
+                                if (tempoRestante <= 0) {
+                                    binding.pbTempo.progress = 0
+                                    progressBarAtivo = false
+                                    if (!tempoDecorrido) {
+                                        verificarResposta(-1)
+                                    }
+                                }
+                            }
+
+                            if (tempoRestante > 0 && progressBarAtivo) {
+                                handler.postDelayed(this, 200)
+                            }
+                        }
                     }
+                    handler.post(runnable)
                 }
-                if (tempoRestante <= 0 && tempoDecorrido) {
-                    tempoRestante = 0.0
-                    binding.txtCronometro.text = "0.0"
-                    tempoDecorrido = false
-                    verificarResposta(-1)
-                } else if (progressBarAtivo) {
-                    handler.postDelayed(this, 200)
-                }
-            }
+            })
+    }
+
+    // Função para parar e libertar o media player
+    private fun pararSom() {
+        if (somTocar) {
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+            mediaPlayer = null
+            somTocar = false
         }
-        handler.postDelayed(runnable, 200)
     }
 }

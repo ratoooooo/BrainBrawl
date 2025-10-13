@@ -11,9 +11,9 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/main"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp">
 
-        <!-- Guideline para centralização vertical -->
         <androidx.constraintlayout.widget.Guideline
             android:id="@+id/gl_center"
             android:layout_width="wrap_content"
@@ -21,7 +21,6 @@
             android:orientation="horizontal"
             app:layout_constraintGuide_percent="0.5" />
 
-        <!-- Título -->
         <TextView
             android:id="@+id/txt_categoria"
             android:layout_width="wrap_content"
@@ -38,7 +37,6 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"/>
 
-        <!-- Categoria 1 -->
         <LinearLayout
             android:id="@+id/layout_categoria_1"
             android:layout_width="0dp"
@@ -70,7 +68,6 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- Categoria 2 -->
         <LinearLayout
             android:id="@+id/layout_categoria_2"
             android:layout_width="0dp"
@@ -102,7 +99,7 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- Categoria 3 -->
+
         <LinearLayout
             android:id="@+id/layout_categoria_3"
             android:layout_width="0dp"
@@ -198,7 +195,6 @@
                 android:textStyle="bold"/>
         </LinearLayout>
 
-        <!-- Categoria 6 -->
         <LinearLayout
             android:id="@+id/layout_categoria_6"
             android:layout_width="0dp"
@@ -229,8 +225,6 @@
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
-
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

@@ -13,28 +13,31 @@ import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.google.firebase.database.FirebaseDatabase
 
 class PerfilAmigoActivity : AppCompatActivity() {
-
     private val binding by lazy {
         ActivityPerfilAmigoBinding.inflate(layoutInflater)
     }
-
     private val database = FirebaseDatabase.getInstance().reference
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        // Guardar os dados passados pelo Intent
         val nomeAmigo = intent.getStringExtra("nomeAmigo") ?: "Amigo Desconhecido"
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
+        // Aceder ao perfil do amigo
         database.child("jogadores").child(nomeAmigo).get().addOnSuccessListener { dataSnapshot ->
+            // Verifica se o perfil do amigo existe
             if (dataSnapshot.exists()) {
+                // Guardar os dados do amigo
                 val pontuacao = dataSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
                 val totalJogos = dataSnapshot.child("totalJogos").getValue(Int::class.java) ?: 0
                 val totalVitorias = dataSnapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
                 val respostasCertas = dataSnapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
                 val taxaVitorias = if (totalJogos > 0) ((totalVitorias.toDouble() / totalJogos) * 100).toInt() else 0
 
+                // Atualizar os badges de conquistas
                 getBadgeDrawable(totalJogos, jogosBadges)?.let {
                     binding.imgTotalJogos.setImageResource(it)
                 } ?: run {
@@ -57,6 +60,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
                 val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
                 binding.imgAvatarAmigo.setImageResource(resId)
 
+                // Mostrar os dados do amigo no layout
                 binding.txtNomeAmigo.text = nomeAmigo
                 binding.txtPontuacao.text = "Pontuação: $pontuacao"
                 binding.txtTotalJogos.text = "Total de Jogos: $totalJogos"
@@ -75,6 +79,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
                     binding.btnRemoverAmigo.isEnabled = false
                 }
 
+                // Configurar o botão de voltar para o perfil
                 binding.btnVoltarPerfil.setOnClickListener {
                     val intent = Intent(this, AmigosActivity::class.java)
                     intent.putExtra("nomeUtilizador", nomeUtilizador)

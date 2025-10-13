@@ -22,23 +22,29 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     private var totalRespostasCertas: Int = 0
     private var nomeCategoria: String = ""
 
-    // Listener para desforra em tempo real
     private var desforraListener: ValueEventListener? = null
     private var pontuacaoListener: ValueEventListener? = null
+    private var novaSalaListener: ValueEventListener? = null
+
+    private var adversario: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar dados passados do intent
+        // Guardar os dados passados pelo Intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
         totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
 
+        // Chama a função para atualizar a pontuação do jogador
         carregarPontuacao1x1Realtime()
+        // Chama a funçao para os jogadores jogarem novamente
+        escutarNovaSalaDesforra()
 
+        // Configura o botoa de voltar e desforra
         binding.btnVoltar.setOnClickListener {
             database.child("sala_1x1").child(codigoSala).removeValue()
             startActivity(Intent(this, MainActivity::class.java).apply {
@@ -47,7 +53,6 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             finish()
         }
 
-        // Ao pedir desforra, vai para uma nova sala de espera, com novo código
         binding.btnDesforra.setOnClickListener {
             pedirDesforra()
         }
@@ -55,28 +60,57 @@ class Pontuacao1x1Activity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        removerListenerDesforra()
-        removerListenerPontuacao()
+        removerListener(desforraListener, "jogadores")
+        removerListener(pontuacaoListener, "pontuacoes")
+        removerListener(novaSalaListener, "novaSalaDesforra")
     }
 
+    // Chama a função para escutar a nova sala de desforra
+    private fun escutarNovaSalaDesforra() {
+        novaSalaListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                // Guarda o novo código da sala
+                val novaSala = snapshot.getValue(String::class.java)
+                if (!novaSala.isNullOrEmpty()) {
+                    // Envia de volta para a SalaDeEspera1x1Activity com o novo código da sala
+                    val intent = Intent(this@Pontuacao1x1Activity, SalaDeEspera1x1Activity::class.java)
+                    intent.putExtra("codigoSala", novaSala)
+                    intent.putExtra("nomeUtilizador", nomeUtilizador)
+                    intent.putExtra("nomeCategoria", nomeCategoria)
+                    startActivity(intent)
+                    finish()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        database.child("sala_1x1").child(codigoSala).child("novaSalaDesforra")
+            .addValueEventListener(novaSalaListener!!)
+    }
+
+    // Chama a fubção para pedir desforra
     private fun pedirDesforra() {
-        // Marca pedido de desforra no Firebase
-        database.child("sala_1x1").child(codigoSala).child("jogadores").child(nomeUtilizador).child("desforra").setValue(true)
-        // Adiciona listener para saber quando o outro jogador aceitar
+        database.child("sala_1x1").child(codigoSala)
+            .child("jogadores").child(nomeUtilizador).child("desforra").setValue(true)
+
         if (desforraListener == null) {
-            val desforraRef = database.child("sala_1x1").child(codigoSala).child("jogadores")
+            val ref = database.child("sala_1x1").child(codigoSala).child("jogadores")
             desforraListener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     var desforraAceita = false
+                    var outroJogador: String? = null
+                    // Verifica se o outro jogador aceitou a desforra
                     for (child in snapshot.children) {
-                        if (child.key != nomeUtilizador && child.child("desforra").getValue(Boolean::class.java) == true) {
+                        if (child.key != nomeUtilizador &&
+                            child.child("desforra").getValue(Boolean::class.java) == true) {
                             desforraAceita = true
+                            outroJogador = child.key
                             break
                         }
                     }
-                    if (desforraAceita) {
-                        removerListenerDesforra()
-                        iniciarJogoDesforra()
+                    if (desforraAceita && outroJogador != null) {
+                        removerListener(desforraListener, "jogadores")
+                        criarSalaDesforra(outroJogador)
                     } else {
                         Toast.makeText(this@Pontuacao1x1Activity, "Aguardando o outro jogador aceitar desforra", Toast.LENGTH_SHORT).show()
                     }
@@ -84,29 +118,33 @@ class Pontuacao1x1Activity : AppCompatActivity() {
 
                 override fun onCancelled(error: DatabaseError) {}
             }
-            desforraRef.addValueEventListener(desforraListener as ValueEventListener)
+            ref.addValueEventListener(desforraListener!!)
         }
     }
 
-    private fun removerListenerDesforra() {
-        desforraListener?.let {
-            database.child("sala_1x1").child(codigoSala).child("jogadores").removeEventListener(it)
-            desforraListener = null
-        }
+    // Função para criar uma nova sala de desforra
+    private fun criarSalaDesforra(adversario: String) {
+        val novoCodigoSala = gerarCodigoSala()
+        val salaRef = database.child("sala_1x1").child(novoCodigoSala)
+
+        salaRef.child("jogadores").child(nomeUtilizador).setValue(true)
+        salaRef.child("jogadores").child(adversario).setValue(true)
+        salaRef.child("estado").setValue("em_espera")
+        salaRef.child("nomeCategoria").setValue(nomeCategoria)
+        salaRef.child("prontos").child(nomeUtilizador).setValue(true)
+        salaRef.child("prontos").child(adversario).setValue(false)
+
+        database.child("sala_1x1").child(codigoSala).child("jogadores").child(nomeUtilizador).child("desforra").removeValue()
+        database.child("sala_1x1").child(codigoSala).child("jogadores").child(adversario).child("desforra").removeValue()
+
+        database.child("sala_1x1").child(codigoSala).child("novaSalaDesforra").setValue(novoCodigoSala)
     }
 
-    private fun removerListenerPontuacao() {
-        pontuacaoListener?.let {
-            database.child("sala_1x1").child(codigoSala).child("pontuacoes").removeEventListener(it)
-            pontuacaoListener = null
-        }
-    }
-
-    // Listener em tempo real para garantir que ambos os jogadores veem o pódio assim que ambos terminam
+    // Função para carregar a pontuação dos jogadores
     private fun carregarPontuacao1x1Realtime() {
         pontuacaoListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val jogadores = mutableListOf<Pair<String, Double>>() // Jogador, Pontos
+                val jogadores = mutableListOf<Pair<String, Double>>()
                 for (child in snapshot.children) {
                     val nome = child.key ?: "Desconhecido"
                     val pontos = child.getValue(Double::class.java) ?: 0.0
@@ -117,66 +155,73 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                 if (jogadores.isNotEmpty()) {
                     binding.txtNomeJogador1.text = jogadores[0].first
                     binding.txtPontos1.text = jogadores[0].second.toInt().toString()
+                    if (jogadores[0].first != nomeUtilizador) adversario = jogadores[0].first
                 }
                 if (jogadores.size > 1) {
                     binding.txtNomeJogador2.text = jogadores[1].first
                     binding.txtPontos2.text = jogadores[1].second.toInt().toString()
+                    if (jogadores[1].first != nomeUtilizador) adversario = jogadores[1].first
                 }
                 if (jogadores.size <= 1) {
                     binding.txtNomeJogador2.text = "Aguardando adversário..."
                     binding.txtPontos2.text = ""
                 }
 
-                if (nomeUtilizador.isNotEmpty() && jogadores.isNotEmpty()) {
-                    val ficouEmPrimeiro = jogadores[0].first == nomeUtilizador
-                    atualizarEstatisticasJogador(ficouEmPrimeiro)
+                for ((index, jogador) in jogadores.withIndex()) {
+                    val ficouEmPrimeiro = (index == 0)
+                    atualizarEstatisticasJogador1x1(jogador.first, jogador.second, ficouEmPrimeiro)
                 }
             }
+
             override fun onCancelled(error: DatabaseError) {
                 Toast.makeText(this@Pontuacao1x1Activity, "Erro ao carregar pontuação", Toast.LENGTH_SHORT).show()
             }
         }
+
         database.child("sala_1x1").child(codigoSala).child("pontuacoes")
             .addValueEventListener(pontuacaoListener!!)
     }
 
-    private fun atualizarEstatisticasJogador(ficouEmPrimeiro: Boolean) {
-        database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
+    private fun atualizarEstatisticasJogador1x1(
+        jogadorNome: String,
+        pontosObtidos: Double,
+        ficouEmPrimeiro: Boolean
+    ) {
+        database.child("jogadores").child(jogadorNome)
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    // Guarda os dados anteriores
+                    val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
+                    val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
+                    val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
+                    val totalPontuacaoAnterior = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
+                    val totalVitoriasModo1x1Anterior = snapshot.child("totalVitoriasModo1x1").getValue(Int::class.java) ?: 0
 
-                // Novo campo para vitórias em 1x1
-                val totalVitoriasModo1x1Anterior = snapshot.child("totalVitoriasModo1x1").getValue(Int::class.java) ?: 0
-                val novoTotalVitoriasModo1x1 = totalVitoriasModo1x1Anterior + if (ficouEmPrimeiro) 1 else 0
+                    // Atualiza os dados do jogador
+                    val novoTotalVitoriasModo1x1 = totalVitoriasModo1x1Anterior + if (ficouEmPrimeiro) 1 else 0
+                    val novoTotalJogos = totalJogosAnterior + 1
+                    val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
+                    val novaPontuacaoMaxima = maxOf(pontosObtidos, totalPontuacaoAnterior)
 
-                val novoTotalJogos = totalJogosAnterior + 1
-                val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
-                val novoTotalRespostasCertas = totalRespostasCertasAnterior + totalRespostasCertas
+                    // Cria o mapa de atualizações
+                    val updates = mapOf(
+                        "totalJogos" to novoTotalJogos,
+                        "totalVitorias" to novoTotalVitorias,
+                        "totalRespostasCertas" to (totalRespostasCertasAnterior + totalRespostasCertas),
+                        "totalVitoriasModo1x1" to novoTotalVitoriasModo1x1,
+                        "pontuacao" to novaPontuacaoMaxima
+                    )
+                    // Atualiza os dados do jogador no Firebase
+                    database.child("jogadores").child(jogadorNome).updateChildren(updates)
+                }
 
-                val updates = mapOf(
-                    "totalJogos" to novoTotalJogos,
-                    "totalVitorias" to novoTotalVitorias,
-                    "totalRespostasCertas" to novoTotalRespostasCertas,
-                    "totalVitoriasModo1x1" to novoTotalVitoriasModo1x1
-                )
-                database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
-            }
-            override fun onCancelled(error: DatabaseError) {}
-        })
+                override fun onCancelled(error: DatabaseError) {}
+            })
     }
 
-    private fun iniciarJogoDesforra() {
-        // Limpa a sala antiga
-        database.child("sala_1x1").child(codigoSala).removeValue()
-        // Gera um novo código de sala e volta para a sala de espera
-        val novoCodigoSala = gerarCodigoSala()
-        val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
-        nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
-        nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
-        novoCodigoSala.let { intent.putExtra("codigoSala", it) }
-        startActivity(intent)
-        finish()
+    private fun removerListener(listener: ValueEventListener?, campo: String) {
+        listener?.let {
+            database.child("sala_1x1").child(codigoSala).child(campo).removeEventListener(it)
+        }
     }
 }

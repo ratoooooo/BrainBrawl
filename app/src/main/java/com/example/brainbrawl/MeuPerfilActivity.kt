@@ -20,7 +20,7 @@ class MeuPerfilActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Recebe o nome do utilizador via Intent  m
+        // Guarda o nome do utilizador passado pelo Intent
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: return
         Toast.makeText(this, "A abrir perfil de $nomeUtilizador", Toast.LENGTH_SHORT).show()
 
@@ -52,10 +52,12 @@ class MeuPerfilActivity : AppCompatActivity() {
                     binding.imgTotalRespostasCertas.visibility = View.GONE
                 }
 
+                // // Guarda o avatar do utilizador
                 val nomeAvatar = dataSnapshot.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
                 val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
                 binding.imgAvatarAmigo.setImageResource(resId)
 
+                // Mostra os dados do perfil
                 binding.txtNomeAmigo.text = nomeUtilizador
                 binding.txtPontuacao.text = "Pontuação: $pontuacao"
                 binding.txtTotalJogos.text = "Total de Jogos: $totalJogos"

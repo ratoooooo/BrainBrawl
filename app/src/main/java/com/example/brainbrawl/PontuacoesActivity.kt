@@ -62,56 +62,42 @@ class PontuacoesActivity : AppCompatActivity() {
         database.child("salas").child(codigoSala).child("jogadores")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    // Mapa para armazenar os jogadores e as suas pontuações
                     val jogadores = mutableListOf<Triple<String, Double, Int>>() // Jogador, Pontos, totalPerguntasCertas
-                    // Percorrer os filhos do snapshot para obter os jogadores e as suas pontuações
                     for (childSnapshot in snapshot.children) {
                         val jogadorNome = childSnapshot.key ?: "Desconhecido"
+                        if (jogadorNome == "admin" || jogadorNome.isEmpty()) {
+                            // Ignorar admin ou nomes vazios para o pódio
+                            continue
+                        }
                         val pontos = childSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
                         val certas = childSnapshot.child("totalPerguntasCertas").getValue(Int::class.java) ?: 0
                         jogadores.add(Triple(jogadorNome, pontos, certas))
                     }
-                    // Ordenar os jogadores por pontuação (maior para menor)
+                    // Ordenar apenas para fins de visualização do pódio
                     jogadores.sortByDescending { it.second }
-
-                    // Guardar o máximo de respostas certas
                     val maxCertas = jogadores.maxOfOrNull { it.third } ?: 0
-                    // Guardar o(s) MVP(s) (jogador(es) com mais respostas certas)
                     val mvps = jogadores.filter { it.third == maxCertas && maxCertas > 0 }.map { it.first }
 
-                    // Limpar o layout antes de adicionar as pontuações
+                    // Mostrar pódio normalmente
                     binding.layoutPodio.removeAllViews()
                     val inflater = LayoutInflater.from(this@PontuacoesActivity)
-
-                    // Mostrar a lista de jogadores e suas pontuações usando o item_podio.xml
                     for ((index, jogador) in jogadores.withIndex()) {
-                        // Inflar o layout customizado para cada linha do pódio
                         val view = inflater.inflate(R.layout.item_podio, binding.layoutPodio, false)
                         val txtMedalha = view.findViewById<TextView>(R.id.txt_medalha)
                         val txtNome = view.findViewById<TextView>(R.id.txt_nome_jogador)
                         val txtPontos = view.findViewById<TextView>(R.id.txt_pontos)
-
-                        // Definir medalha e cor consoante a posição
                         when (index) {
                             0 -> { txtMedalha.text = "🥇"; txtMedalha.setTextColor("#FFC400".toColorInt()) }
                             1 -> { txtMedalha.text = "🥈"; txtMedalha.setTextColor("#b0b0b0".toColorInt()) }
                             2 -> { txtMedalha.text = "🥉"; txtMedalha.setTextColor("#ad7e54".toColorInt()) }
                             else -> { txtMedalha.text = "${index+1}"; txtMedalha.setTextColor("#222".toColorInt()) }
                         }
-
-                        // Adicionar tag de MVP se aplicável
                         val isMVP = mvps.contains(jogador.first)
                         val mvpTag = if (isMVP) " 🏆 MVP" else ""
                         txtNome.text = jogador.first + mvpTag
-
-                        // Mostrar pontos
                         txtPontos.text = jogador.second.toInt().toString()
-
-                        // Adicionar a view ao layout do pódio
                         binding.layoutPodio.addView(view)
                     }
-
-                    // Se não houver jogadores
                     if (jogadores.isEmpty()) {
                         val textView = TextView(this@PontuacoesActivity)
                         textView.text = "Sem jogadores na sala."
@@ -120,11 +106,16 @@ class PontuacoesActivity : AppCompatActivity() {
                         binding.layoutPodio.addView(textView)
                     }
 
-                    // Atualizar estatísticas para jogadores registados
-                    if (nomeUtilizador.isNotEmpty()) {
-                        // Verifica se ficou em primeiro lugar
-                        val ficouEmPrimeiro = jogadores.firstOrNull()?.first == nomeUtilizador
-                        atualizarEstatisticasJogador(respostasCertas, totalPerguntas, ficouEmPrimeiro)
+                    // ATUALIZAR TODOS OS JOGADORES DA SALA
+                    for ((index, jogador) in jogadores.withIndex()) {
+                        val ficouEmPrimeiro = (index == 0)
+                        atualizarEstatisticasJogadorParaUtilizador(
+                            jogadorNome = jogador.first,
+                            pontuacao = jogador.second,
+                            respostasCertas = jogador.third,
+                            totalPerguntas = 1,
+                            ficouEmPrimeiro = ficouEmPrimeiro
+                        )
                     }
                 }
                 override fun onCancelled(error: DatabaseError) {
@@ -138,40 +129,36 @@ class PontuacoesActivity : AppCompatActivity() {
             })
     }
 
-    // Função para atualizar as estatísticas do jogador
-    private fun atualizarEstatisticasJogador(respostasCertas: Int, totalPerguntas: Int, ficouEmPrimeiro: Boolean) {
-        if (nomeUtilizador.isEmpty()) return
-        database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
+    // Função para atualizar estatísticas e pontuação
+    private fun atualizarEstatisticasJogadorParaUtilizador(jogadorNome: String, pontuacao: Double, respostasCertas: Int, totalPerguntas: Int, ficouEmPrimeiro: Boolean) {
+        if (jogadorNome.isEmpty()) return
+        database.child("jogadores").child(jogadorNome).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                // Guardar os valores que estão guardados na base de dados
+                // Guarda os valores guardados anteriormente
                 val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
                 val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
                 val taxaAcertosAnterior = snapshot.child("taxaAcertos").getValue(Double::class.java) ?: 0.0
-                val totalVitoriasModoSoloAnterior = snapshot.child("totalVitoriasModoSolo").getValue(Int::class.java) ?: 0 // Novo campo
+                val totalVitoriasModoSoloAnterior = snapshot.child("totalVitoriasModoSolo").getValue(Int::class.java) ?: 0
+                val pontuacaoAnterior = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
 
-                // Calcular os novos valores
+                // Calcula os novos valores
                 val novoTotalJogos = totalJogosAnterior + 1
                 val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
                 val percentagemEsteJogo = if (totalPerguntas > 0) (respostasCertas.toDouble() / totalPerguntas) * 100 else 0.0
-
-                val novaTaxa = if (totalJogosAnterior == 0) {
-                    percentagemEsteJogo
-                } else {
-                    ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
-                }
-
+                val novaTaxa = if (totalJogosAnterior == 0) percentagemEsteJogo else ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
                 val novoTotalVitoriasModoSolo = totalVitoriasModoSoloAnterior + if (ficouEmPrimeiro) 1 else 0
+                val novaPontuacaoMaxima = if (pontuacao > pontuacaoAnterior) pontuacao else pontuacaoAnterior
 
-                // Criar um mapa com os novos valores
+                // Cria um mapa de atualizações
                 val updates = mapOf(
                     "totalJogos" to novoTotalJogos,
                     "totalVitorias" to novoTotalVitorias,
                     "taxaAcertos" to novaTaxa,
-                    "totalVitoriasModoSolo" to novoTotalVitoriasModoSolo
+                    "totalVitoriasModoSolo" to novoTotalVitoriasModoSolo,
+                    "pontuacao" to novaPontuacaoMaxima
                 )
-                database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
+                database.child("jogadores").child(jogadorNome).updateChildren(updates)
             }
             override fun onCancelled(error: DatabaseError) {}
         })
-    }
-}
+    }}

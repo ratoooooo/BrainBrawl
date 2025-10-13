@@ -26,7 +26,7 @@ class LoginActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(binding.root)
 
-        // Configurar botão de login
+        // Configurar os botoes de login, registo e iniciar jogo sem conta
         binding.btnEntrar.setOnClickListener {
             // Guarda os valores inseridos nos campos
             var nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
@@ -76,11 +76,9 @@ class LoginActivity : AppCompatActivity() {
                 }
             })
         }
-        // Configurar botão de registo
         binding.btnRegisto.setOnClickListener {
             startActivity(Intent(this, RegistarActivity::class.java))
         }
-        // Configurar botão de iniciar jogo sem conta
         binding.btnIniciarJogo.setOnClickListener {
             val nomeJogador = binding.edtNomeJogador.text.toString().trim()
             if (nomeJogador.isEmpty()) {

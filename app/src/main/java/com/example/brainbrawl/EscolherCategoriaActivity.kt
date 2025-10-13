@@ -9,15 +9,16 @@ import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
 
 class EscolherCategoriaActivity : AppCompatActivity() {
-    // Acessar os elementos do layout
-    private val binding by lazy { ActivityEscolherCategoriaBinding.inflate(layoutInflater) }
+    private val binding by lazy {
+        ActivityEscolherCategoriaBinding.inflate(layoutInflater)
+    }
     private lateinit var codigoSala: String
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar o código da sala
+        // Guardar os dados passados pela Intent
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         val nomeJogador = intent.getStringExtra("nomeJogador")
@@ -28,24 +29,28 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             return
         }
 
+        // Guardar o código da sala
         codigoSala = gerarCodigoSala()
+        // Mapear as categorias para os nomes em português
         val categoriaFirebase = mapOf(
-            getString(R.string.categoria1) to "Historia",
+            getString(R.string.categoria1) to "História",
             getString(R.string.categoria2) to "Geografia",
             getString(R.string.categoria3) to "Desporto",
             getString(R.string.categoria4) to "Cultura Geral",
             getString(R.string.categoria5) to "Gentílicos"
         )
 
+        // Função lambda para criar uma sala com a categoria escolhida e entrar nela
         val criarSala = { categoriaEscolhida: String ->
             criarSalaComCategoriaEEntrar(
                 this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo
             ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
         }
 
+        // Configurar os botões de categoria
         binding.btnCategoria1.setOnClickListener {
             binding.btnCategoria1.isEnabled = false
-            criarSala(categoriaFirebase[getString(R.string.categoria1)] ?: "Historia")
+            criarSala(categoriaFirebase[getString(R.string.categoria1)] ?: "História")
         }
         binding.btnCategoria2.setOnClickListener {
             binding.btnCategoria2.isEnabled = false
@@ -70,7 +75,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             val intent = Intent(this, EscolherModoActivity::class.java)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
             nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-            intent.putExtra("admin", admin)
+            admin.let { intent.putExtra("admin", it) }
             startActivity(intent)
             finish()
         }
@@ -79,9 +84,9 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     private fun abrirAdicionarPerguntaActivity(modo: String, nomeUtilizador: String?) {
         codigoSala = gerarCodigoSala()
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("modoJogo", modo)
         nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        codigoSala.let { intent.putExtra("codigoSala", it) }
+        modo.let { intent.putExtra("modoJogo", it) }
         startActivity(intent)
         finish()
     }

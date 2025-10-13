@@ -74,11 +74,12 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5) )
         )
 
-        // Adiciona convite para cada amigo
+        // Envia o convite para cada amigo selecionado
         for (amigo in amigosSelecionados) {
             database.child("jogadores").child(amigo)
                 .child("convites_recebidos").child(nomeUtilizador)
                 .setValue(conviteData)
+            // Regista o convite enviado pelo utilizador
             database.child("jogadores").child(nomeUtilizador)
                 .child("convites_enviados").child(amigo)
                 .setValue(conviteData)

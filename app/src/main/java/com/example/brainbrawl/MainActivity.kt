@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        // Botão para criar nova sala (admin = true pois é o criador)
+        // BConfigurar Botões
         binding.btnCriarSala.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
             if (nomeUtilizador != null) {
@@ -67,7 +67,6 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // NOVO: Botão para ENTRAR numa sala já criada
         binding.btnEntrarSala.setOnClickListener {
             val intent = Intent(this, SalaDeEsperaActivity::class.java)
             // Passa o nome do utilizador ou jogador (se já estiver preenchido)

@@ -14,44 +14,47 @@ class JogadoresSalaAdapter(
     private val estados: List<String>
 ) : RecyclerView.Adapter<JogadoresSalaAdapter.JogadorViewHolder>() {
 
-    // ViewHolder para cada jogador na sala
+    // ViewHolder para cada jogador na lista de jogadores
     inner class JogadorViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imgAvatarJogador: ImageView = view.findViewById(R.id.imgAvatarJogador)
         val txtNomeJogador: TextView = view.findViewById(R.id.txtNomeJogador)
         val viewEstadoJogador: View = view.findViewById(R.id.viewEstadoJogador)
     }
 
-    // Cria o ViewHolder para cada jogador na sala
+    // Cria o ViewHolder para cada jogador na lista de jogadores
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): JogadorViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_jogador_sala, parent, false)
         return JogadorViewHolder(view)
     }
 
-    // Preenche os dados do jogador no ViewHolder
+    // Define o nome do jogador, o avatar e o estado visual
     override fun onBindViewHolder(holder: JogadorViewHolder, position: Int) {
+        val context = holder.itemView.context
+
+        // Guardar oa posição do jogador carregado
         val jogador = jogadores[position]
         holder.txtNomeJogador.text = jogador
 
         // Avatar do jogador
         val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
-        val context = holder.itemView.context
         val resId = context.resources.getIdentifier(avatarName, "drawable", context.packageName)
-        holder.imgAvatarJogador.setImageResource(resId)
+        // Verrifica se o avatar existe, se não existir, usa o avatar padrão
+        if (resId != 0) {
+            holder.imgAvatarJogador.setImageResource(resId)
+        } else {
+            holder.imgAvatarJogador.setImageResource(R.drawable.avatar_1_playstore)
+        }
 
-        // Estado (verde se "on", cinza se "off" ou outro)
+        // Estado visual
         val estado = estados.getOrNull(position) ?: "off"
-        val cor = if (estado == "on") 0xFF43A047.toInt() else 0xFFBDBDBD.toInt() // verde ou cinza
+        val cor = if (estado == "on") 0xFF43A047.toInt() else 0xFFBDBDBD.toInt()
         holder.viewEstadoJogador.background.setTint(cor)
 
         holder.itemView.setOnClickListener {
-            // Ação ao clicar no jogador (pode ser abrir perfil ou outra ação)
             Toast.makeText(context, "Clicou em $jogador", Toast.LENGTH_SHORT).show()
         }
     }
 
-    // Retorna o número de jogadores na sala
     override fun getItemCount() = jogadores.size
 }
-
-

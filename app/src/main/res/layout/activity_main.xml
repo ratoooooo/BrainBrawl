@@ -83,19 +83,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp" />
 
-    <!-- Código da Sala -->
-    <TextView
-        android:id="@+id/txt_codigo_sala"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/codigo_sala_nenhum"
-        android:textSize="18sp"
-        android:textColor="#1B1B1B"
-        android:fontFamily="sans-serif-black"
-        app:layout_constraintTop_toBottomOf="@id/txt_titulo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="16dp" />
 
     <!-- Botão Criar Sala -->
     <Button
@@ -111,7 +98,7 @@
         style="@android:style/Widget.Button"
         android:paddingVertical="14dp"
         android:layout_marginTop="40dp"
-        app:layout_constraintTop_toBottomOf="@id/txt_codigo_sala"
+        app:layout_constraintTop_toBottomOf="@id/txt_titulo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.85" />

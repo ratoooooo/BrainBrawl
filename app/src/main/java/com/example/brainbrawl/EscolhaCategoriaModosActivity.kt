@@ -6,7 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.databinding.ActivityEscolhaCategoriaModosBinding
 
 class EscolhaCategoriaModosActivity : AppCompatActivity() {
-    // Acessar os elementos do layout
+    // Aceder os elementos do layout
     private val binding by lazy {
         ActivityEscolhaCategoriaModosBinding.inflate(layoutInflater)
     }
@@ -15,10 +15,11 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar os valores passados pela Intent
+        // Guardar os dados passados pela Intent
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
 
+        // Verificar se o modo de jogo é válido
         if (modoJogo == null) {
             finish()
             return
@@ -47,6 +48,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
 
     // Função para abrir a próxima activity dependendo do modo de jogo selecionado
     private fun abrirProximaActivity(modoJogo: String, nomeUtilizador: String?, nomeCategoria: String) {
+        // Redireciona para a activity correta com os dados necessários
         val intent = when (modoJogo) {
             "1x1" -> Intent(this, ConvidarAmigo1x1Activity::class.java)
             "2x2" -> Intent(this, ConvidarAmigo2x2Activity::class.java)

@@ -18,19 +18,16 @@ class TipoModoClassico : AppCompatActivity() {
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
-        val admin = intent.getBooleanExtra("admin", false)
 
-        // Configurar o botao para o modo 1x1
+        // Configurar o botao para o modo 1x1, modo 2x2 e modo de todos contra todos
         binding.btnModo1x1.setOnClickListener {
             iniciarModoCompetitivo("1x1", nomeUtilizador)
         }
 
-        // Configurar o botao para o modo 2x2
         binding.btnModo2x2.setOnClickListener {
             iniciarModoCompetitivo("2x2", nomeUtilizador)
         }
 
-        // Configurar o botao para o modo de grupo
         binding.btnModoGrupo.setOnClickListener {
             // Chama a função para abrir a EscolherCategoriaActivity com o modo de jogo selecionado
             abrirEscolherCategoriaActivity(this, modoJogo.toString(), nomeUtilizador, nomeJogador, true)
@@ -70,7 +67,9 @@ class TipoModoClassico : AppCompatActivity() {
             .show()
     }
 
+    // Função para iniciar o modo competitivo 1x1 ou 2x2
     private fun iniciarModoCompetitivo(modo: String, nomeUtilizador: String?) {
+        // Caso seja um jogador temporário, mostra mensagem de login obrigatório
         if (nomeUtilizador.isNullOrEmpty()) {
             mostrarMensagemLoginObrigatorio()
         } else {

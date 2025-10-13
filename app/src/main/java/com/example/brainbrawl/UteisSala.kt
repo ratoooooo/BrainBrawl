@@ -5,12 +5,13 @@ import com.example.brainbrawl.UteisNavegacao.abrirSalaDeEsperaGrupo
 import com.google.firebase.database.FirebaseDatabase
 
 object UteisSala {
+    // Função utilizada para gerar um código de sala
     fun gerarCodigoSala(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return (1..6).map { chars.random() }.joinToString("")
     }
 
-    // Funçº utilizada para criar uma sala caótica e ir buscar todas as perguntas de todas as categorias
+    // Funçao utilizada para criar uma sala caótica e ir buscar todas as perguntas de todas as categorias
     fun criarSalaCaoticaEEntrar(context: Context, nomeUtilizador: String?, nomeJogador: String?, onError: (String) -> Unit = {}) {
         val database = FirebaseDatabase.getInstance().reference
         val codigoSala = gerarCodigoSala()
@@ -20,6 +21,7 @@ object UteisSala {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
+        // Busca todas as perguntas de todas as categorias
         database.child("categorias").get().addOnSuccessListener { snapshot ->
             val todasPerguntas = mutableListOf<Map<String, Any>>()
             snapshot.children.forEach { catSnap ->
@@ -33,7 +35,7 @@ object UteisSala {
                     }
                 }
             }
-            val perguntasRandom = todasPerguntas.shuffled().take(15)
+            val perguntasRandom = todasPerguntas.shuffled().take(8)
             val salaData = mapOf(
                 "horaCriacao" to System.currentTimeMillis(),
                 "admin" to nomeAdmin,
@@ -68,6 +70,7 @@ object UteisSala {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
+        // Busca as perguntas da categoria específica
         database.child("categorias").child(nomeCategoria).child("perguntas").get().addOnSuccessListener { snapshot ->
             val perguntas = mutableListOf<Map<String, Any>>()
             snapshot.children.forEach { perguntaSnap ->
@@ -78,7 +81,7 @@ object UteisSala {
                     perguntas.add(mapOf("pergunta" to pergunta, "respostaCorreta" to respostaCorreta, "opcoes" to opcoes))
                 }
             }
-            val perguntasRandom = perguntas.shuffled().take(15)
+            val perguntasRandom = perguntas.shuffled().take(8)
             val salaData = mapOf(
                 "horaCriacao" to System.currentTimeMillis(),
                 "admin" to nomeAdmin,

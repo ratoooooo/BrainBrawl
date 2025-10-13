@@ -14,7 +14,6 @@ object UteisNavegacao {
         context.startActivity(intent)
     }
 
-
     // Função para enviar o jogador para a activity de pontuação correta
     fun enviarPontuacaoActivity(
         context: Context,
