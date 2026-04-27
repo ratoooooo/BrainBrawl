@@ -28,7 +28,9 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         // Receber dados passados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        categoria = intent.getStringExtra("categoria")?: getString(R.string.categoria5)
+        categoria = intent.getStringExtra("nomeCategoria")
+            ?: intent.getStringExtra("categoria")
+            ?: getString(R.string.categoria5)
 
         // Mostrar o código da sala
         binding.txtCodigoSala.text = "Código da sala: $codigoSala"
@@ -93,7 +95,10 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                         val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
                         codigoSala.let { intent.putExtra("codigoSala", it) }
                         nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
-                        categoria?.let { intent.putExtra("categoria", it) }
+                        categoria?.let {
+                            intent.putExtra("nomeCategoria", it)
+                            intent.putExtra("categoria", it)
+                        }
                         startActivity(intent)
                         finish()
                     }

@@ -477,7 +477,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                                 if (tempoRestante <= 0) {
                                     binding.pbTempo.progress = 0
                                     progressBarAtivo = false
-                                    if (!tempoDecorrido) {
+                                    if (tempoDecorrido) {
                                         verificarResposta(-1)
                                     }
                                 }
@@ -530,7 +530,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                                 if (tempoRestante <= 0) {
                                     binding.pbTempo.progress = 0
                                     progressBarAtivo = false
-                                    if (!tempoDecorrido) {
+                                    if (tempoDecorrido) {
                                         verificarResposta(-1)
                                     }
                                 }

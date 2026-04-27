@@ -142,8 +142,8 @@ class Pontuacao2x2Activity : AppCompatActivity() {
                 val equipaANomes = snapshot.child("equipaA").children.mapNotNull { it.key }
                 val equipaBNomes = snapshot.child("equipaB").children.mapNotNull { it.key }
 
-                val equipaARespostasCertas = snapshot.child("respostasCertasA")
-                val equipaBRespostasCertas = snapshot.child("respostasCertasB")
+                val equipaARespostasCertas = snapshot.child("totalPerguntasCertas_A")
+                val equipaBRespostasCertas = snapshot.child("totalPerguntasCertas_B")
 
                 // Calcula o total de pontos das equipas
                 val totalA = pontuacoesA.children.map { it.getValue(Double::class.java) ?: 0.0 }.sum()

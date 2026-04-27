@@ -413,7 +413,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                                 if (tempoRestante <= 0) {
                                     binding.pbTempo.progress = 0
                                     progressBarAtivo = false
-                                    if (!tempoDecorrido) {
+                                    if (tempoDecorrido) {
                                         verificarResposta(-1)
                                     }
                                 }
@@ -466,7 +466,7 @@ class Jogo1x1Activity : AppCompatActivity() {
                                 if (tempoRestante <= 0) {
                                     binding.pbTempo.progress = 0
                                     progressBarAtivo = false
-                                    if (!tempoDecorrido) {
+                                    if (tempoDecorrido) {
                                         verificarResposta(-1)
                                     }
                                 }

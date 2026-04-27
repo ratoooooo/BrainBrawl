@@ -69,6 +69,7 @@
     <string name="voltar_para_main_activity">Back to main screen</string>
     <string name="modo_caotico">Chaotic</string>
     <string name="info_todos">See explanation of all modes</string>
+    <string name="info_todos_modos">&lt;b&gt;Classic Mode:&lt;/b&gt; Answer questions from the chosen category. Play with other players and win by scoring the most points.\n\n&lt;b&gt;Chaotic Mode:&lt;/b&gt; Questions from every category appear randomly. Challenge yourself and your friends in an unpredictable experience.\n\n&lt;b&gt;Elimination Mode:&lt;/b&gt; Miss a question and you are eliminated. The last survivor wins. Be quick and precise.</string>
 
     <!-- Tipos Modo Classico -->
     <string name="escolher_tipo_modo_classico">Choose Game Mode</string>
@@ -100,6 +101,7 @@
 
     <!-- item convidar amigo -->
     <string name="desafiar_1x1">Challenge 1v1</string>
+    <string name="nome_do_amigo">Friend name</string>
     <string name="c_digo_da_sala">Room Code:</string>
     <string name="total_de_jogadores">Total players:</string>
     <string name="jogadores_na_sala">Players in Room:</string>
@@ -120,6 +122,7 @@
     <string name="nome_jogador_2">Player 2 Name</string>
     <string name="nome_jogador_1">Player 1 Name</string>
     <string name="p_dio">Podium</string>
+    <string name="avatar_do_amigo">Friend avatar</string>
     <string name="total_de_jogos">Total Games</string>
     <string name="taxa_de_vit_ria">Win Rate:</string>
     <string name="total_de_vit_rias_0">Total Wins:</string>

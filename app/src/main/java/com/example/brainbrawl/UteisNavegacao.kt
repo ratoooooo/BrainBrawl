@@ -41,8 +41,10 @@ object UteisNavegacao {
         nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
         modoJogo.let { intent.putExtra("modoJogo", it) }
         pontuacao.let { intent.putExtra("pontuacao", it) }
+        pontuacao.let { intent.putExtra("totalPontos", it) }
         numeroPerguntasCertas.let { intent.putExtra("numeroPerguntasCertas", it) }
         totalPerguntascertas.let { intent.putExtra("totalPerguntascertas", it) }
+        totalPerguntascertas.let { intent.putExtra("totalRespostasCertas", it) }
         totalPerguntas.let { intent.putExtra("totalPerguntas", it) }
 
         if (equipa != null) {

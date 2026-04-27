@@ -35,7 +35,7 @@ object UteisJogo {
             Toast.makeText(context, "Bónus de sequência! +${bonus + 25} pontos", Toast.LENGTH_SHORT).show()
         } else if (numeroPerguntasCertas >= 4) {
             pontuacao += bonus + 100
-            Toast.makeText(context, "Bónus de sequência! +${bonus + 50} pontos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Bónus de sequência! +${bonus + 100} pontos", Toast.LENGTH_SHORT).show()
         }
         return pontuacao
     }

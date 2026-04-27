@@ -171,8 +171,9 @@ class AmigosActivity : AppCompatActivity() {
                     val estado = convite.child("estado").getValue(String::class.java) ?: ""
                     val codigoSala = convite.child("codigoSala").getValue(String::class.java) ?: ""
                     val modo = convite.child("modo").getValue(String::class.java) ?: "1x1"
+                    val nomeCategoria = convite.child("nomeCategoria").getValue(String::class.java) ?: getString(R.string.categoria5)
                     if (estado == "pendente") {
-                        convitesRecebidos.add(Convite1x1(nomeAmigo, codigoSala, modo))
+                        convitesRecebidos.add(Convite1x1(nomeAmigo, codigoSala, modo, nomeCategoria))
                     }
                 }
                 binding.txtConvites.visibility = if (convitesRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
@@ -240,6 +241,7 @@ class AmigosActivity : AppCompatActivity() {
         }
         nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
         convite.codigoSala.let { intent.putExtra("codigoSala", it) }
+        intent.putExtra("nomeCategoria", convite.nomeCategoria)
         startActivity(intent)
         finish()
     }

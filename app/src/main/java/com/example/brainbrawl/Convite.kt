@@ -4,5 +4,6 @@ package com.example.brainbrawl
 data class Convite1x1(
     val nomeAmigo: String,
     val codigoSala: String,
-    val modo: String
+    val modo: String,
+    val nomeCategoria: String = ""
 )
