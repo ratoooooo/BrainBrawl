@@ -6,17 +6,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.example.brainbrawl.repositories.SalaRepository
 
 class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
     }
 
-    private val database = FirebaseDatabase.getInstance().reference
+    private val salaRepository = SalaRepository()
     private lateinit var codigoSala: String
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
@@ -25,9 +22,9 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private var admin = false
     private var nomeAtual: String = ""
     private var jogadoresNaSala: List<String> = emptyList()
-    private var jogadoresListener: ValueEventListener? = null
-    private var estadoListener: ValueEventListener? = null
-    private var salaListener: ValueEventListener? = null
+    private var jogadoresListener: SalaRepository.ListenerHandle? = null
+    private var estadoListener: SalaRepository.ListenerHandle? = null
+    private var salaListener: SalaRepository.ListenerHandle? = null
     private var saidaManual = false
     private val minimoJogadoresGrupo = 1
     private val jogadoresInfo = mutableMapOf<String, Boolean>()
@@ -74,71 +71,42 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        jogadoresListener?.let {
-            database.child("salas").child(codigoSala).child("jogadores").removeEventListener(it)
-        }
-        estadoListener?.let {
-            database.child("salas").child(codigoSala).child("estado").removeEventListener(it)
-        }
-        salaListener?.let {
-            database.child("salas").child(codigoSala).removeEventListener(it)
-        }
+        salaRepository.removerListener(jogadoresListener)
+        salaRepository.removerListener(estadoListener)
+        salaRepository.removerListener(salaListener)
     }
 
     private fun garantirJogadorNaSala() {
-        val jogadorRef = database.child("salas").child(codigoSala).child("jogadores").child(nomeAtual)
-        jogadorRef.get().addOnSuccessListener { snapshot ->
-            if (!snapshot.exists()) {
-                jogadorRef.setValue(
-                    mapOf(
-                        "nome" to nomeAtual,
-                        "pontuacao" to 0.0,
-                        "totalRespostasCertas" to 0,
-                        "estado" to "on",
-                        "isHostOnly" to admin
-                    )
-                )
-            } else {
-                jogadorRef.updateChildren(
-                    mapOf(
-                        "estado" to "on",
-                        "isHostOnly" to admin
-                    )
-                )
-            }
-        }
+        salaRepository.garantirJogadorNaSala(codigoSala, nomeAtual, admin)
     }
 
     private fun escutarJogadores() {
-        jogadoresListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
+        jogadoresListener = salaRepository.escutarJogadoresDaSala(
+            codigoSala,
+            onJogadoresAlterados = { jogadores ->
                 jogadoresInfo.clear()
-                jogadoresNaSala = snapshot.children.mapNotNull { jogadorSnapshot ->
-                    val nome = jogadorSnapshot.key ?: return@mapNotNull null
-                    val isHostOnly = jogadorSnapshot.child("isHostOnly").getValue(Boolean::class.java) == true
-                    jogadoresInfo[nome] = isHostOnly
-                    nome
+                jogadores.forEach { jogador ->
+                    jogadoresInfo[jogador.nome] = jogador.isHostOnly
                 }
+                jogadoresNaSala = jogadores.map { it.nome }
                 binding.txtListaJogadores.text = if (jogadoresNaSala.isEmpty()) {
                     "Aguardando jogadores..."
                 } else {
                     jogadoresNaSala.joinToString(separator = "\n")
                 }
                 binding.btnIniciarJogo.isEnabled = admin && jogadoresReais().size >= minimoJogadoresGrupo
+            },
+            onErro = {
+                Toast.makeText(this, "Erro ao carregar jogadores.", Toast.LENGTH_SHORT).show()
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@SalaDeEsperaGrupoActivity, "Erro ao carregar jogadores.", Toast.LENGTH_SHORT).show()
-            }
-        }
-        database.child("salas").child(codigoSala).child("jogadores")
-            .addValueEventListener(jogadoresListener!!)
+        )
     }
 
     private fun escutarEstadoSala() {
-        estadoListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.getValue(String::class.java) == "em_jogo") {
+        estadoListener = salaRepository.escutarEstadoDaSala(
+            codigoSala,
+            onEstadoAlterado = { estado ->
+                if (estado == "em_jogo") {
                     val intent = Intent(this@SalaDeEsperaGrupoActivity, JogoActivity::class.java)
                     intent.putExtra("codigoSala", codigoSala)
                     intent.putExtra("nomeUtilizador", nomeUtilizador ?: "")
@@ -148,14 +116,11 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
                     startActivity(intent)
                     finish()
                 }
+            },
+            onErro = {
+                Toast.makeText(this, "Erro ao escutar estado da sala.", Toast.LENGTH_SHORT).show()
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@SalaDeEsperaGrupoActivity, "Erro ao escutar estado da sala.", Toast.LENGTH_SHORT).show()
-            }
-        }
-        database.child("salas").child(codigoSala).child("estado")
-            .addValueEventListener(estadoListener!!)
+        )
     }
 
     private fun jogadoresReais(): List<String> {
@@ -164,18 +129,20 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
         }
     }
 
-    private fun jogadoresReais(snapshot: DataSnapshot): List<String> {
-        return snapshot.children.mapNotNull { jogadorSnapshot ->
-            val nome = jogadorSnapshot.key ?: return@mapNotNull null
-            val isHostOnly = jogadorSnapshot.child("isHostOnly").getValue(Boolean::class.java) == true
-            if (nome != nomeAtual && nome != "admin" && !isHostOnly) nome else null
+    private fun jogadoresReais(jogadores: List<SalaRepository.JogadorSala>): List<String> {
+        return jogadores.mapNotNull { jogador ->
+            if (jogador.nome != nomeAtual && jogador.nome != "admin" && !jogador.isHostOnly) {
+                jogador.nome
+            } else {
+                null
+            }
         }
     }
 
     private fun validarEIniciarJogo() {
-        database.child("salas").child(codigoSala).child("jogadores").get()
-            .addOnSuccessListener { snapshot ->
-                if (jogadoresReais(snapshot).size < minimoJogadoresGrupo) {
+        salaRepository.obterJogadoresDaSala(codigoSala)
+            .addOnSuccessListener { jogadores ->
+                if (jogadoresReais(jogadores).size < minimoJogadoresGrupo) {
                     Toast.makeText(
                         this,
                         "Aguarde pelo menos 1 jogador além do admin.",
@@ -183,7 +150,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
                     ).show()
                     return@addOnSuccessListener
                 }
-                database.child("salas").child(codigoSala).child("estado").setValue("em_jogo")
+                salaRepository.atualizarEstadoSala(codigoSala, "em_jogo")
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Erro ao validar jogadores.", Toast.LENGTH_SHORT).show()
@@ -191,27 +158,24 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     }
 
     private fun escutarSalaApagada() {
-        salaListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (!saidaManual && !snapshot.exists()) {
+        salaListener = salaRepository.escutarSalaApagada(
+            codigoSala,
+            onSalaExisteAlterada = { existe ->
+                if (!saidaManual && !existe) {
                     Toast.makeText(this@SalaDeEsperaGrupoActivity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
                     abrirMainActivity(this@SalaDeEsperaGrupoActivity, nomeUtilizador, nomeJogador ?: nomeAtual)
                     finish()
                 }
             }
-
-            override fun onCancelled(error: DatabaseError) {}
-        }
-        database.child("salas").child(codigoSala).addValueEventListener(salaListener!!)
+        )
     }
 
     private fun sairDaSala() {
         saidaManual = true
-        val salaRef = database.child("salas").child(codigoSala)
         if (admin) {
-            salaRef.removeValue()
+            salaRepository.apagarSala(codigoSala)
         } else {
-            salaRef.child("jogadores").child(nomeAtual).removeValue()
+            salaRepository.removerJogadorDaSala(codigoSala, nomeAtual)
         }
         abrirMainActivity(this, nomeUtilizador, nomeJogador ?: nomeAtual)
         finish()

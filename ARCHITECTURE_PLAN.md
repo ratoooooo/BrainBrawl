@@ -73,6 +73,41 @@ Estrutura criada para migracao futura:
 
 ## Plano de migracao por fases
 
+### Fase atual - repository de salas de grupo
+
+Criado:
+
+- `app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt`, como primeira camada de acesso Firebase para salas no node Firebase `salas`.
+- Estrutura base de pacotes `models/`, `repositories/`, `services/`, `controllers/` e `utils/` mantida para a migracao gradual.
+
+Movido nesta fase:
+
+- Em `SalaDeEsperaGrupoActivity.kt`, as chamadas diretas a `FirebaseDatabase` para a sala de grupo foram substituidas por chamadas a `SalaRepository`.
+- Em `SalaDeEsperaActivity.kt`, a procura de sala por codigo, a validacao de existencia/nome repetido e a adicao do jogador em `salas/{codigoSala}/jogadores` passaram para `SalaRepository`.
+- Em `UteisSala.kt`, a criacao de salas de grupo em `salas/{codigoSala}` passou a usar `SalaRepository.criarSala`.
+- A Activity continua responsavel por UI, toasts e navegacao.
+- O repository ficou responsavel por criar/procurar sala, adicionar/remover jogador, apagar sala, atualizar estado, obter jogadores e gerir listeners de jogadores/estado/sala apagada.
+
+Mantido sem alteracoes:
+
+- Paths Firebase existentes, incluindo `salas/{codigoSala}`.
+- Nomes de campos como `jogadores`, `estado`, `isHostOnly`, `pontuacao`, `totalRespostasCertas` e `em_jogo`.
+- Layouts, textos principais de UI, regras de inicio da sala de espera e navegacao para `JogoActivity`.
+- `JogoActivity`, categorias e logica de pontuacao.
+
+Ainda falta migrar:
+
+- Firebase de jogo em `JogoActivity.kt`.
+- Salas competitivas `sala_1x1` e `sala_2x2`.
+- Categorias, perguntas, convites, amigos, perfis e estatisticas.
+- Leitura do avatar em `SalaDeEsperaActivity.kt`, que ainda deve sair para um futuro `JogadorRepository`/`UserRepository`.
+- Leituras de perguntas/categorias em `UteisSala.kt`, que continuam no utilitario ate existir um repository proprio para categorias/perguntas.
+
+Proxima fase recomendada:
+
+- Migrar Firebase de `JogoActivity.kt` para um repository/service proprio, mantendo regras de jogo e pontuacao intactas.
+- Em alternativa, antes do jogo, criar repositories pequenos para jogadores/categorias e remover as leituras restantes de `SalaDeEsperaActivity.kt` e `UteisSala.kt`.
+
 Fase 1 - Contratos e constantes:
 
 - Criar objetos em `config/` para nomes de extras e paths Firebase.

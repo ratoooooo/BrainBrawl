@@ -2,6 +2,7 @@ package com.example.brainbrawl
 
 import android.content.Context
 import com.example.brainbrawl.UteisNavegacao.abrirSalaDeEsperaGrupo
+import com.example.brainbrawl.repositories.SalaRepository
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -9,6 +10,8 @@ import com.google.firebase.database.MutableData
 import com.google.firebase.database.Transaction
 
 object UteisSala {
+    private val salaRepository = SalaRepository()
+
     // Função utilizada para gerar um código de sala
     fun gerarCodigoSala(): String {
         val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -51,7 +54,7 @@ object UteisSala {
                 "categoria" to "Todas as categorias",
                 "perguntas" to perguntasRandom
             )
-            database.child("salas").child(codigoSala).setValue(salaData).addOnSuccessListener {
+            salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
                 abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, "Todas as categorias", true, "caotico")
             }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
         }.addOnFailureListener { onError(it.message ?: "Erro ao buscar categorias") }
@@ -95,7 +98,7 @@ object UteisSala {
                 "categoria" to nomeCategoria,
                 "perguntas" to perguntasRandom
             )
-            database.child("salas").child(codigoSala).setValue(salaData).addOnSuccessListener {
+            salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
                 abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, nomeCategoria, admin, modoJogo)
             }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
         }.addOnFailureListener { onError(it.message ?: "Erro ao buscar perguntas") }
@@ -142,7 +145,7 @@ object UteisSala {
                     "perguntas" to perguntas.shuffled().take(8)
                 )
 
-                database.child("salas").child(codigoSala).setValue(salaData).addOnSuccessListener {
+                salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
                     abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, null, nomeCategoria, admin, modoJogo)
                 }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
             }.addOnFailureListener { onError(it.message ?: "Erro ao buscar perguntas personalizadas") }
@@ -215,7 +218,7 @@ object UteisSala {
                 "perguntas" to perguntas.shuffled().take(8)
             )
 
-            database.child("salas").child(codigoSala).setValue(salaData).addOnSuccessListener {
+            salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
                 categoriaRef.child("usos").runTransaction(object : Transaction.Handler {
                     override fun doTransaction(currentData: MutableData): Transaction.Result {
                         val usosAtuais = currentData.getValue(Int::class.java) ?: 0

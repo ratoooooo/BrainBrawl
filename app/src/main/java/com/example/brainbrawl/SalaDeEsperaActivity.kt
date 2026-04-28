@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
+import com.example.brainbrawl.repositories.SalaRepository
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -14,9 +15,7 @@ import com.google.firebase.database.ValueEventListener
 class SalaDeEsperaActivity : AppCompatActivity() {
     private val binding by lazy { ActivitySalaDeEsperaBinding.inflate(layoutInflater) }
     private val database = FirebaseDatabase.getInstance().reference
-
-    private var estadoSalaListener: ValueEventListener? = null
-    private var codigoSalaListener: String? = null
+    private val salaRepository = SalaRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -58,51 +57,49 @@ class SalaDeEsperaActivity : AppCompatActivity() {
             }
 
             // Verifica no Firebase se a sala existe e se o nome já está na sala
-            database.child("salas").child(codSala)
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        if (snapshot.exists()) {
-                            if (snapshot.child("jogadores").hasChild(nomeJogadorAtual)) {
-                                Toast.makeText(this@SalaDeEsperaActivity, "Nome de jogador já existe na sala", Toast.LENGTH_SHORT).show()
-                                binding.btnEntrarSala.isEnabled = true
-                            } else {
-                                // Se for utilizador registado, busca avatar real
-                                if (!nomeUtilizador.isNullOrEmpty()) {
-                                    database.child("jogadores").child(nomeUtilizador).child("avatar")
-                                        .addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                val avatar = snapshot.getValue(String::class.java) ?: "avatar_1_playstore"
-                                                adicionarJogadorComAvatar(nomeJogadorAtual, codSala, avatar)
-                                                irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
-                                            }
+            salaRepository.procurarSalaPorCodigo(codSala, nomeJogadorAtual)
+                .addOnSuccessListener { resultado ->
+                    if (!resultado.existe) {
+                        Toast.makeText(this@SalaDeEsperaActivity, "Código da sala inválido", Toast.LENGTH_SHORT).show()
+                        binding.btnEntrarSala.isEnabled = true
+                        return@addOnSuccessListener
+                    }
 
-                                            override fun onCancelled(error: DatabaseError) {
-                                                adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
-                                                irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
-                                            }
-                                        })
-                                } else {
-                                    adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
-                                    irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, null)
+                    if (resultado.jogadorJaExiste) {
+                        Toast.makeText(this@SalaDeEsperaActivity, "Nome de jogador já existe na sala", Toast.LENGTH_SHORT).show()
+                        binding.btnEntrarSala.isEnabled = true
+                        return@addOnSuccessListener
+                    }
+
+                    // Se for utilizador registado, busca avatar real
+                    if (!nomeUtilizador.isNullOrEmpty()) {
+                        database.child("jogadores").child(nomeUtilizador).child("avatar")
+                            .addListenerForSingleValueEvent(object : ValueEventListener {
+                                override fun onDataChange(snapshot: DataSnapshot) {
+                                    val avatar = snapshot.getValue(String::class.java) ?: "avatar_1_playstore"
+                                    adicionarJogadorComAvatar(nomeJogadorAtual, codSala, avatar)
+                                    irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
                                 }
 
-                                binding.btnEntrarSala.isEnabled = false
-                                binding.edtCodigoSala.isEnabled = false
-                                binding.edtNomeJogador.isEnabled = false
-                                Toast.makeText(this@SalaDeEsperaActivity, "Jogador adicionado com sucesso!", Toast.LENGTH_SHORT).show()
-                                codigoSalaListener = codSala
-                            }
-                        } else {
-                            Toast.makeText(this@SalaDeEsperaActivity, "Código da sala inválido", Toast.LENGTH_SHORT).show()
-                            binding.btnEntrarSala.isEnabled = true
-                        }
+                                override fun onCancelled(error: DatabaseError) {
+                                    adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
+                                    irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
+                                }
+                            })
+                    } else {
+                        adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
+                        irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, null)
                     }
 
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(this@SalaDeEsperaActivity, "Erro ao verificar sala: ${error.message}", Toast.LENGTH_SHORT).show()
-                        binding.btnEntrarSala.isEnabled = true
-                    }
-                })
+                    binding.btnEntrarSala.isEnabled = false
+                    binding.edtCodigoSala.isEnabled = false
+                    binding.edtNomeJogador.isEnabled = false
+                    Toast.makeText(this@SalaDeEsperaActivity, "Jogador adicionado com sucesso!", Toast.LENGTH_SHORT).show()
+                }
+                .addOnFailureListener { error ->
+                    Toast.makeText(this@SalaDeEsperaActivity, "Erro ao verificar sala: ${error.message}", Toast.LENGTH_SHORT).show()
+                    binding.btnEntrarSala.isEnabled = true
+                }
         }
 
         binding.btnVoltar.setOnClickListener {
@@ -117,7 +114,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
             "avatar" to avatar,
             "estado" to "on"
         )
-        database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador).setValue(jogadorData)
+        salaRepository.adicionarJogadorASala(codigoSala, nomeJogador, jogadorData)
     }
 
 // Função para ir para a sala de espera do grupo
@@ -132,12 +129,4 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         finish()
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        estadoSalaListener?.let { listener ->
-            codigoSalaListener?.let { sala ->
-                database.child("salas").child(sala).child("estado").removeEventListener(listener)
-            }
-        }
-    }
 }
