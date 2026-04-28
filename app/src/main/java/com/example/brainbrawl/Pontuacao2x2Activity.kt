@@ -4,6 +4,9 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.UteisFirebase.doubleValue
+import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPontuacaoMultiBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -18,6 +21,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
+    private var nomeJogador: String = ""
     private lateinit var nomeCategoria: String
     private var equipa: String? = null
     private var totalPontos: Double = 0.0
@@ -32,6 +36,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         // Guardar dados passados pelo intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: "Todas as categorias"
         equipa = intent.getStringExtra("equipa")
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
@@ -44,9 +49,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
         binding.btnVoltar.setOnClickListener {
             database.child("sala_2x2").child(codigoSala).removeValue()
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
-            startActivity(intent)
+            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador.ifBlank { null })
             finish()
         }
     }
@@ -177,20 +180,28 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     ) {
         database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val pontuacaoGuardada = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
-                val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val totalVitoriasModo2x2Anterior = snapshot.child("totalVitoriasModo2x2").getValue(Int::class.java) ?: 0
+                val pontuacaoGuardada = snapshot.child("pontuacao").doubleValue()
+                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").intValue()
+                val taxaAcertosAnterior = snapshot.child("taxaAcertos").doubleValue()
+                val totalJogosAnterior = snapshot.child("totalJogos").intValue()
+                val totalVitoriasAnterior = snapshot.child("totalVitorias").intValue()
+                val totalVitoriasModo2x2Anterior = snapshot.child("totalVitoriasModo2x2").intValue()
 
                 val novoTotalRespostasCertas = totalRespostasCertasAnterior + totalRespostasCertas
                 val novoTotalJogos = totalJogosAnterior + 1
                 val novoTotalVitorias = totalVitoriasAnterior + if (ganhou) 1 else 0
                 val novoTotalVitoriasModo2x2 = totalVitoriasModo2x2Anterior + if (ganhou) 1 else 0
+                val percentagemEsteJogo = if (totalRespostasCertas > 0) totalRespostasCertas * 100.0 / 8 else 0.0
+                val novaTaxa = if (totalJogosAnterior == 0) {
+                    percentagemEsteJogo
+                } else {
+                    ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
+                }
 
                 val updates = mapOf(
                     "pontuacao" to if (totalPontos > pontuacaoGuardada) totalPontos else pontuacaoGuardada,
                     "totalRespostasCertas" to novoTotalRespostasCertas,
+                    "taxaAcertos" to novaTaxa,
                     "totalJogos" to novoTotalJogos,
                     "totalVitorias" to novoTotalVitorias,
                     "totalVitoriasModo2x2" to novoTotalVitoriasModo2x2

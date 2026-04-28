@@ -7,6 +7,9 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.UteisFirebase.doubleValue
+import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -49,10 +52,7 @@ class PontuacoesActivity : AppCompatActivity() {
 
         // Configurar o botao de voltar
         binding.btnVoltar.setOnClickListener {
-            // Redirecionar para a MainActivity e passar o nome do utilizador
-            val intent = Intent(this, MainActivity::class.java)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
-            startActivity(intent)
+            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador)
             finish()
         }
     }
@@ -65,8 +65,8 @@ class PontuacoesActivity : AppCompatActivity() {
                     val jogadores = mutableListOf<Triple<String, Double, Int>>() // Jogador, Pontos, totalPerguntasCertas
                     for (childSnapshot in snapshot.children) {
                         val jogadorNome = childSnapshot.key ?: "Desconhecido"
-                        if (jogadorNome == "admin" || jogadorNome.isEmpty()) {
-                            // Ignorar admin ou nomes vazios para o pódio
+                        val isHostOnly = childSnapshot.child("isHostOnly").getValue(Boolean::class.java) == true
+                        if (jogadorNome == "admin" || jogadorNome.isEmpty() || isHostOnly) {
                             continue
                         }
                         val pontos = childSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
@@ -113,7 +113,7 @@ class PontuacoesActivity : AppCompatActivity() {
                             jogadorNome = jogador.first,
                             pontuacao = jogador.second,
                             respostasCertas = jogador.third,
-                            totalPerguntas = 1,
+                            totalPerguntas = totalPerguntas,
                             ficouEmPrimeiro = ficouEmPrimeiro
                         )
                     }
@@ -134,12 +134,16 @@ class PontuacoesActivity : AppCompatActivity() {
         if (jogadorNome.isEmpty()) return
         database.child("jogadores").child(jogadorNome).addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                if (!snapshot.exists() || !snapshot.hasChild("password")) {
+                    return
+                }
                 // Guarda os valores guardados anteriormente
-                val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val taxaAcertosAnterior = snapshot.child("taxaAcertos").getValue(Double::class.java) ?: 0.0
-                val totalVitoriasModoSoloAnterior = snapshot.child("totalVitoriasModoSolo").getValue(Int::class.java) ?: 0
-                val pontuacaoAnterior = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
+                val totalJogosAnterior = snapshot.child("totalJogos").intValue()
+                val totalVitoriasAnterior = snapshot.child("totalVitorias").intValue()
+                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").intValue()
+                val taxaAcertosAnterior = snapshot.child("taxaAcertos").doubleValue()
+                val totalVitoriasModoSoloAnterior = snapshot.child("totalVitoriasModoSolo").intValue()
+                val pontuacaoAnterior = snapshot.child("pontuacao").doubleValue()
 
                 // Calcula os novos valores
                 val novoTotalJogos = totalJogosAnterior + 1
@@ -153,6 +157,7 @@ class PontuacoesActivity : AppCompatActivity() {
                 val updates = mapOf(
                     "totalJogos" to novoTotalJogos,
                     "totalVitorias" to novoTotalVitorias,
+                    "totalRespostasCertas" to (totalRespostasCertasAnterior + respostasCertas),
                     "taxaAcertos" to novaTaxa,
                     "totalVitoriasModoSolo" to novoTotalVitoriasModoSolo,
                     "pontuacao" to novaPontuacaoMaxima

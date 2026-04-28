@@ -62,6 +62,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         database.child("sala_2x2").child(codigoSala).setValue(
             mapOf(
                 "jogadores" to jogadores,
+                "admin" to nomeUtilizador,
                 "estado" to "em_espera",
                 "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5) ),
             )

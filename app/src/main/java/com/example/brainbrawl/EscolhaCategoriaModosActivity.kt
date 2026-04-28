@@ -18,6 +18,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         // Guardar os dados passados pela Intent
         val modoJogo = intent.getStringExtra("modoJogo")
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
+        val nomeJogador = intent.getStringExtra("nomeJogador")
 
         // Verificar se o modo de jogo é válido
         if (modoJogo == null) {
@@ -27,27 +28,42 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
 
         // Configurar os botões de categoria
         binding.btnCategoria1.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria1))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria1))
         }
         binding.btnCategoria2.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria2))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria2))
         }
         binding.btnCategoria3.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria3))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria3))
         }
         binding.btnCategoria4.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria4))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria4))
         }
         binding.btnCategoria5.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria5))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria5))
         }
         binding.btnCategoria6.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, getString(R.string.categoria6))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria6))
+        }
+
+        binding.btnVoltar.setOnClickListener {
+            val intent = Intent(this, TipoModoClassico::class.java)
+            intent.putExtra("modoJogo", "classico")
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            intent.putExtra("admin", true)
+            startActivity(intent)
+            finish()
         }
     }
 
     // Função para abrir a próxima activity dependendo do modo de jogo selecionado
-    private fun abrirProximaActivity(modoJogo: String, nomeUtilizador: String?, nomeCategoria: String) {
+    private fun abrirProximaActivity(
+        modoJogo: String,
+        nomeUtilizador: String?,
+        nomeJogador: String?,
+        nomeCategoria: String
+    ) {
         // Redireciona para a activity correta com os dados necessários
         val intent = when (modoJogo) {
             "1x1" -> Intent(this, ConvidarAmigo1x1Activity::class.java)
@@ -56,6 +72,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         }
         modoJogo.let { intent.putExtra("modoJogo", it) }
         nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
         nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
         startActivity(intent)
         finish()

@@ -34,6 +34,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
             salaRef.setValue(
                 mapOf(
                     "jogadores" to mapOf(nomeUtilizador to true, amigoSelecionado to true),
+                    "admin" to nomeUtilizador,
                     "estado" to "em_espera",
                     "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5))
                 )

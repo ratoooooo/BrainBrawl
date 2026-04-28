@@ -12,10 +12,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
+import com.example.brainbrawl.UteisNavegacao.adicionarDadosJogador
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ServerValue
 import com.google.firebase.database.ValueEventListener
 
 class JogoActivity : AppCompatActivity() {
@@ -56,6 +58,7 @@ class JogoActivity : AppCompatActivity() {
     private val formatoDecimal = DecimalFormat("#.#")
     private val perguntas = mutableListOf<Pergunta>()
     private val database = FirebaseDatabase.getInstance().reference
+    private var serverTimeOffset: Long = 0L
 
     // Listeners do Firebase para serem removidos quando a atividade é destruída
     private var perguntaIndexListener: ValueEventListener? = null
@@ -71,6 +74,7 @@ class JogoActivity : AppCompatActivity() {
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeJogador = intent.getStringExtra("nomeJogador") ?: "Jogador"
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
+        carregarOffsetServidor()
 
         // Referência para a sala no Firebase
         val salaRef = database.child("salas").child(codigoSala)
@@ -245,11 +249,11 @@ class JogoActivity : AppCompatActivity() {
         database.child("salas").child(codigoSala).child("perguntaHoraInicio")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val horaInicio = snapshot.getValue(Long::class.java) ?: System.currentTimeMillis()
+                    val horaInicio = snapshot.getValue(Long::class.java) ?: tempoServidorAtual()
                     iniciarCronometroSincronizado(horaInicio)
                 }
                 override fun onCancelled(error: DatabaseError) {
-                    iniciarCronometroSincronizado(System.currentTimeMillis())
+                    iniciarCronometroSincronizado(tempoServidorAtual())
                 }
             })
     }
@@ -296,7 +300,7 @@ class JogoActivity : AppCompatActivity() {
         val salaRef = database.child("salas").child(codigoSala)
         val updates = mapOf(
             "perguntaAtualIndex" to perguntaAtualIndex,
-            "perguntaHoraInicio" to System.currentTimeMillis()
+            "perguntaHoraInicio" to ServerValue.TIMESTAMP
         )
         salaRef.updateChildren(updates)
 
@@ -304,7 +308,15 @@ class JogoActivity : AppCompatActivity() {
         database.child("salas").child(codigoSala).child("perguntaAtual").child("respostas").removeValue()
 
         // Inicia o cronómetro do lado do admin
-        iniciarCronometroAdmin()
+        salaRef.child("perguntaHoraInicio").addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                iniciarCronometroAdmin(snapshot.getValue(Long::class.java) ?: tempoServidorAtual())
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                iniciarCronometroAdmin(tempoServidorAtual())
+            }
+        })
     }
 
     // Função para desativar os botões de resposta para o admin
@@ -391,11 +403,10 @@ class JogoActivity : AppCompatActivity() {
         val tempoTotal = if (modoJogo == "caotico") 10.0 else 20.0
         binding.pbTempo.max = tempoTotal.toInt()
         binding.pbTempo.progress = tempoTotal.toInt()
-        var primeiraAtualizacao = true
 
         val runnable = object : Runnable {
             override fun run() {
-                val tempoAtual = System.currentTimeMillis()
+                val tempoAtual = tempoServidorAtual()
                 val tempoDecorridoSegundos = (tempoAtual - horaInicio) / 1000.0
                 tempoRestante = tempoTotal - tempoDecorridoSegundos
                 if (tempoRestante < 0) tempoRestante = 0.0
@@ -445,17 +456,16 @@ class JogoActivity : AppCompatActivity() {
     }
 
     // Função para iniciar o cronómetro para o admin
-    private fun iniciarCronometroAdmin() {
+    private fun iniciarCronometroAdmin(horaInicio: Long) {
         tempoDecorrido = true
         progressBarAtivo = true
         val tempoTotal = if (modoJogo == "caotico") 10.0 else 20.0
         binding.pbTempo.max = tempoTotal.toInt()
         binding.pbTempo.progress = tempoTotal.toInt()
-        val horaInicio = System.currentTimeMillis()
 
         adminAdvanceHandler = object : Runnable {
             override fun run() {
-                val tempoAtual = System.currentTimeMillis()
+                val tempoAtual = tempoServidorAtual()
                 val tempoDecorridoSegundos = (tempoAtual - horaInicio) / 1000.0
                 tempoRestante = tempoTotal - tempoDecorridoSegundos
                 if (tempoRestante < 0) tempoRestante = 0.0
@@ -489,7 +499,7 @@ class JogoActivity : AppCompatActivity() {
                                 val salaRef = database.child("salas").child(codigoSala)
                                 val updates = mapOf(
                                     "perguntaAtualIndex" to perguntaAtualIndex,
-                                    "perguntaHoraInicio" to System.currentTimeMillis()
+                                    "perguntaHoraInicio" to ServerValue.TIMESTAMP
                                 )
                                 salaRef.updateChildren(updates)
                                 // Mostra a próxima pergunta para o admin
@@ -506,6 +516,19 @@ class JogoActivity : AppCompatActivity() {
         }
         handler.post(adminAdvanceHandler!!)
     }
+
+    private fun carregarOffsetServidor() {
+        FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    serverTimeOffset = snapshot.getValue(Long::class.java) ?: 0L
+                }
+
+                override fun onCancelled(error: DatabaseError) {}
+            })
+    }
+
+    private fun tempoServidorAtual(): Long = System.currentTimeMillis() + serverTimeOffset
 
     // Função para verificar se o modo "Eliminatórias" deve terminar
     private fun verificarFimEliminatoriasOuAvancar() {
@@ -532,7 +555,7 @@ class JogoActivity : AppCompatActivity() {
                     val salaRef = database.child("salas").child(codigoSala)
                     val updates = mapOf(
                         "perguntaAtualIndex" to perguntaAtualIndex,
-                        "perguntaHoraInicio" to System.currentTimeMillis()
+                        "perguntaHoraInicio" to ServerValue.TIMESTAMP
                     )
                     salaRef.updateChildren(updates)
                     if (admin) mostrarRespostaAdmin()
@@ -542,8 +565,7 @@ class JogoActivity : AppCompatActivity() {
                 // Em caso de erro, volta para o menu principal
                 Toast.makeText(this@JogoActivity, "Erro ao verificar jogadores.", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this@JogoActivity, MainActivity::class.java)
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
-                intent.putExtra("nomeJogador", nomeJogador)
+                adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
                 startActivity(intent)
                 finish()
             }
@@ -563,8 +585,7 @@ class JogoActivity : AppCompatActivity() {
                 Toast.makeText(this, "Você foi eliminado!", Toast.LENGTH_LONG).show()
                 // Envia de volta para o ecrã principal
                 val intent = Intent(this, MainActivity::class.java)
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
-                intent.putExtra("nomeJogador", nomeJogador)
+                adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
                 startActivity(intent)
                 finish()
             }
@@ -626,8 +647,7 @@ class JogoActivity : AppCompatActivity() {
                     override fun onCancelled(error: DatabaseError) {
                         Toast.makeText(this@JogoActivity, "Erro ao verificar estado da sala: ${error.message}", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this@JogoActivity, MainActivity::class.java)
-                        intent.putExtra("nomeUtilizador", nomeUtilizador)
-                        intent.putExtra("nomeJogador", nomeJogador)
+                        adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
                         startActivity(intent)
                         finish()
                     }
@@ -644,7 +664,7 @@ class JogoActivity : AppCompatActivity() {
                 val salaRef = database.child("salas").child(codigoSala)
                 val updates = mapOf(
                     "perguntaAtualIndex" to perguntaAtualIndex,
-                    "perguntaHoraInicio" to System.currentTimeMillis()
+                    "perguntaHoraInicio" to ServerValue.TIMESTAMP
                 )
                 salaRef.updateChildren(updates)
                 mostrarRespostaAdmin()

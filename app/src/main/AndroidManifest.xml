@@ -15,6 +15,10 @@
             android:name=".MeuPerfilActivity"
             android:exported="false" />
         <activity
+            android:name=".ExplorarCategoriasActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".SalaDeEsperaGrupoActivity"
             android:exported="false" />
         <activity

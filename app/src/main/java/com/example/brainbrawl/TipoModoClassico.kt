@@ -1,6 +1,5 @@
 package com.example.brainbrawl
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
@@ -37,6 +36,7 @@ class TipoModoClassico : AppCompatActivity() {
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
             intent.putExtra("admin", false)
             startActivity(intent)
             finish()
@@ -50,21 +50,24 @@ class TipoModoClassico : AppCompatActivity() {
 
     // Função para mostrar mensagem de login obrigatório
     private fun mostrarMensagemLoginObrigatorio() {
-        AlertDialog.Builder(this)
-            .setTitle("Iniciar sessão necessária")
-            .setMessage("Para jogar no modo 1x1 ou 2x2, por favor inicia sessão ou cria uma conta.")
-            .setPositiveButton("OK", null)
-            .show()
+        UteisDicas.mostrarDicas(
+            this,
+            "Iniciar sessão necessária",
+            listOf("1x1 e 2x2" to "Entra com conta para poderes convidar amigos e guardar estatísticas.")
+        )
     }
 
     // Função para mostrar explicação de todos os modos de jogo
     private fun mostrarExplicacaoTodosModos() {
-        val mensagem = getString(R.string.info_todos_modos_classico)
-        AlertDialog.Builder(this)
-            .setTitle("Modos de Jogo")
-            .setMessage(mensagem)
-            .setPositiveButton("OK", null)
-            .show()
+        UteisDicas.mostrarDicas(
+            this,
+            "Modo Clássico",
+            listOf(
+                "1x1" to "Duelo direto entre dois jogadores.",
+                "2x2" to "Quatro jogadores em duas equipas.",
+                "Todos" to "O admin observa e inicia quando há pelo menos 1 jogador na sala."
+            )
+        )
     }
 
     // Função para iniciar o modo competitivo 1x1 ou 2x2

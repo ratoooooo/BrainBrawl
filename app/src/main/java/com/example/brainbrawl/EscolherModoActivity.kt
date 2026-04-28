@@ -1,6 +1,5 @@
 package com.example.brainbrawl
 
-import android.app.AlertDialog
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -74,11 +73,14 @@ class EscolherModoActivity : AppCompatActivity() {
 
     // Função para mostrar a explicação de todos os modos de jogo
     private fun mostrarExplicacaoTodosModos() {
-        val mensagem = getString(R.string.info_todos_modos)
-        AlertDialog.Builder(this)
-            .setTitle("Modos de Jogo")
-            .setMessage(mensagem)
-            .setPositiveButton("OK", null)
-            .show()
+        UteisDicas.mostrarDicas(
+            this,
+            "Modos de Jogo",
+            listOf(
+                "Clássico" to "Perguntas da categoria escolhida. Vence quem somar mais pontos.",
+                "Caótico" to "Perguntas misturadas de todas as categorias, com menos tempo.",
+                "Eliminatórias" to "Quem falha pode sair da partida. O último resistente vence."
+            )
+        )
     }
 }

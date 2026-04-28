@@ -3,6 +3,7 @@ package com.example.brainbrawl
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera2x2Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -17,9 +18,14 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
+    private var nomeJogador: String = ""
     private var jogadoresNaSala = mutableListOf<String>()
     private var admin = false
     private var categoria: String? = null
+    private var jogadoresListener: ValueEventListener? = null
+    private var estadoListener: ValueEventListener? = null
+    private var salaListener: ValueEventListener? = null
+    private var saidaManual = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -28,6 +34,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         // Receber dados passados do intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
         categoria = intent.getStringExtra("nomeCategoria")
             ?: intent.getStringExtra("categoria")
             ?: getString(R.string.categoria5)
@@ -39,20 +46,21 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         database.child("sala_2x2").child(codigoSala).child("jogadores").child(nomeUtilizador).setValue(true)
 
         // Verificar se o jogador é o administrador (primeiro a entrar na sala)
-        database.child("sala_2x2").child(codigoSala).child("jogadores")
+        database.child("sala_2x2").child(codigoSala).child("admin")
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
-                    val nomes = snapshot.children.map { it.key ?: "" }
-                    if (nomes.isNotEmpty() && nomes[0] == nomeUtilizador) {
-                        admin = true
+                    val nomeAdmin = snapshot.getValue(String::class.java)
+                    admin = if (nomeAdmin.isNullOrBlank()) {
+                        jogadoresNaSala.firstOrNull() == nomeUtilizador
+                    } else {
+                        nomeAdmin == nomeUtilizador
                     }
                 }
                 override fun onCancelled(error: DatabaseError) {}
             })
 
         // Listener para jogadores na sala (ativa botão quando forem 4 e define as equipas)
-        database.child("sala_2x2").child(codigoSala).child("jogadores")
-            .addValueEventListener(object : ValueEventListener {
+        jogadoresListener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     jogadoresNaSala.clear()
                     for (child in snapshot.children) {
@@ -84,17 +92,19 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                     }
                 }
                 override fun onCancelled(error: DatabaseError) {}
-            })
+            }
+        database.child("sala_2x2").child(codigoSala).child("jogadores")
+            .addValueEventListener(jogadoresListener!!)
 
         // Listener do estado da sala para iniciar o jogo
-        database.child("sala_2x2").child(codigoSala).child("estado")
-            .addValueEventListener(object : ValueEventListener {
+        estadoListener = object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val estado = snapshot.getValue(String::class.java)
                     if (estado == "em_jogo") {
                         val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
                         codigoSala.let { intent.putExtra("codigoSala", it) }
                         nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+                        nomeJogador.let { intent.putExtra("nomeJogador", it) }
                         categoria?.let {
                             intent.putExtra("nomeCategoria", it)
                             intent.putExtra("categoria", it)
@@ -104,7 +114,11 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                     }
                 }
                 override fun onCancelled(error: DatabaseError) {}
-            })
+            }
+        database.child("sala_2x2").child(codigoSala).child("estado")
+            .addValueEventListener(estadoListener!!)
+
+        escutarSalaApagada()
 
         // Configurar botão de Iniciar Jogo
         binding.btnIniciarJogo.setOnClickListener {
@@ -112,5 +126,50 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                 database.child("sala_2x2").child(codigoSala).child("estado").setValue("em_jogo")
             }
         }
+
+        binding.btnSairSala.setOnClickListener {
+            sairDaSala()
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        jogadoresListener?.let {
+            database.child("sala_2x2").child(codigoSala).child("jogadores").removeEventListener(it)
+        }
+        estadoListener?.let {
+            database.child("sala_2x2").child(codigoSala).child("estado").removeEventListener(it)
+        }
+        salaListener?.let {
+            database.child("sala_2x2").child(codigoSala).removeEventListener(it)
+        }
+    }
+
+    private fun escutarSalaApagada() {
+        salaListener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                if (!saidaManual && !snapshot.exists()) {
+                    abrirMainActivity(this@SalaDeEspera2x2Activity, nomeUtilizador, nomeJogador)
+                    finish()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {}
+        }
+        database.child("sala_2x2").child(codigoSala).addValueEventListener(salaListener!!)
+    }
+
+    private fun sairDaSala() {
+        saidaManual = true
+        val salaRef = database.child("sala_2x2").child(codigoSala)
+        if (admin) {
+            salaRef.removeValue()
+        } else {
+            salaRef.child("jogadores").child(nomeUtilizador).removeValue()
+            salaRef.child("equipaA").child(nomeUtilizador).removeValue()
+            salaRef.child("equipaB").child(nomeUtilizador).removeValue()
+        }
+        abrirMainActivity(this, nomeUtilizador, nomeJogador)
+        finish()
     }
 }

@@ -4,7 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.UteisFirebase.doubleValue
+import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPontuacao1x1Binding
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -18,6 +21,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     private val database = FirebaseDatabase.getInstance().reference
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
+    private var nomeJogador: String = ""
     private var totalPontos: Double = 0.0
     private var totalRespostasCertas: Int = 0
     private var nomeCategoria: String = ""
@@ -35,6 +39,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         // Guardar os dados passados pelo Intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
         totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
@@ -47,9 +52,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         // Configura o botoa de voltar e desforra
         binding.btnVoltar.setOnClickListener {
             database.child("sala_1x1").child(codigoSala).removeValue()
-            startActivity(Intent(this, MainActivity::class.java).apply {
-                putExtra("nomeUtilizador", nomeUtilizador)
-            })
+            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador.ifBlank { null })
             finish()
         }
 
@@ -76,6 +79,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                     val intent = Intent(this@Pontuacao1x1Activity, SalaDeEspera1x1Activity::class.java)
                     intent.putExtra("codigoSala", novaSala)
                     intent.putExtra("nomeUtilizador", nomeUtilizador)
+                    intent.putExtra("nomeJogador", nomeJogador)
                     intent.putExtra("nomeCategoria", nomeCategoria)
                     startActivity(intent)
                     finish()
@@ -129,6 +133,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
 
         salaRef.child("jogadores").child(nomeUtilizador).setValue(true)
         salaRef.child("jogadores").child(adversario).setValue(true)
+        salaRef.child("admin").setValue(nomeUtilizador)
         salaRef.child("estado").setValue("em_espera")
         salaRef.child("nomeCategoria").setValue(nomeCategoria)
         salaRef.child("prontos").child(nomeUtilizador).setValue(true)
@@ -191,23 +196,31 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     // Guarda os dados anteriores
-                    val totalJogosAnterior = snapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                    val totalVitoriasAnterior = snapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                    val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
-                    val totalPontuacaoAnterior = snapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                    val totalVitoriasModo1x1Anterior = snapshot.child("totalVitoriasModo1x1").getValue(Int::class.java) ?: 0
+                    val totalJogosAnterior = snapshot.child("totalJogos").intValue()
+                    val totalVitoriasAnterior = snapshot.child("totalVitorias").intValue()
+                    val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").intValue()
+                    val taxaAcertosAnterior = snapshot.child("taxaAcertos").doubleValue()
+                    val totalPontuacaoAnterior = snapshot.child("pontuacao").doubleValue()
+                    val totalVitoriasModo1x1Anterior = snapshot.child("totalVitoriasModo1x1").intValue()
 
                     // Atualiza os dados do jogador
                     val novoTotalVitoriasModo1x1 = totalVitoriasModo1x1Anterior + if (ficouEmPrimeiro) 1 else 0
                     val novoTotalJogos = totalJogosAnterior + 1
                     val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
                     val novaPontuacaoMaxima = maxOf(pontosObtidos, totalPontuacaoAnterior)
+                    val percentagemEsteJogo = if (totalRespostasCertas > 0) totalRespostasCertas * 100.0 / 8 else 0.0
+                    val novaTaxa = if (totalJogosAnterior == 0) {
+                        percentagemEsteJogo
+                    } else {
+                        ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
+                    }
 
                     // Cria o mapa de atualizações
                     val updates = mapOf(
                         "totalJogos" to novoTotalJogos,
                         "totalVitorias" to novoTotalVitorias,
                         "totalRespostasCertas" to (totalRespostasCertasAnterior + totalRespostasCertas),
+                        "taxaAcertos" to novaTaxa,
                         "totalVitoriasModo1x1" to novoTotalVitoriasModo1x1,
                         "pontuacao" to novaPontuacaoMaxima
                     )

@@ -18,6 +18,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.MutableData
+import com.google.firebase.database.ServerValue
 import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 
@@ -51,6 +52,7 @@ class Jogo2x2Activity : AppCompatActivity() {
     private val formatoDecimal = DecimalFormat("#.#")
     private val database = FirebaseDatabase.getInstance().reference
     private val perguntas = mutableListOf<Pergunta>()
+    private var serverTimeOffset: Long = 0L
 
     // Variável para saber a equipa do jogador ("A" ou "B")
     private var equipaDoJogador: String = ""
@@ -62,6 +64,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         //Guardar os dados passados pelo Intent
         codigoSala = intent.getStringExtra("codigoSala") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        carregarOffsetServidor()
 
         // Lê a categoria REAL da sala do Firebase para garantir filtragem correta
         database.child("sala_2x2").child(codigoSala).child("nomeCategoria")
@@ -240,7 +243,6 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     // Função que a pergunta atual e redefine o cronómetro
     private fun mostrarPergunta() {
-        tempoIniciado = System.currentTimeMillis()
         if (perguntaAtualIndex >= perguntas.size) {
             finalizarJogo()
             return
@@ -263,13 +265,11 @@ class Jogo2x2Activity : AppCompatActivity() {
         definirCorBotao(binding.btnOpcao3, "#E0E0E0")
         definirCorBotao(binding.btnOpcao4, "#E0E0E0")
 
-        // Atualiza a hora de início no Firebase
-        database.child("sala_2x2").child(codigoSala).child("perguntaHoraInicio")
-            .setValue(tempoIniciado)
-
         tempoRestante = 15.0
-        // Chama a função para iniciar o cronómetro sincronizado
-        iniciarCronometro()
+        sincronizarInicioPergunta {
+            tempoIniciado = it
+            iniciarCronometro(it)
+        }
     }
 
     // Função que verefica se a resposta está correta e atualiza pontuação
@@ -344,7 +344,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         respostaRef.setValue(opcaoEscolhida)
 
         // Delay para mostrar feedback antes da próxima pergunta
-        val tempoAteProxima = ((tempoIniciado + 15000) - System.currentTimeMillis()).coerceAtLeast(0)
+        val tempoAteProxima = ((tempoIniciado + 15000) - tempoServidorAtual()).coerceAtLeast(0)
         handler.postDelayed({
             perguntaAtualIndex++
             mostrarPergunta()
@@ -427,7 +427,7 @@ class Jogo2x2Activity : AppCompatActivity() {
     }
 
     // Função que inicia o cronómetro visual e sonoro da pergunta de forma sincronizada
-    private fun iniciarCronometro() {
+    private fun iniciarCronometro(horaInicioSincronizada: Long) {
         tempoDecorrido = true
         progressBarAtivo = true
         val tempoTotal = 15.0
@@ -435,14 +435,10 @@ class Jogo2x2Activity : AppCompatActivity() {
         binding.pbTempo.progress = tempoTotal.toInt()
         var primeiraAtualizacao = true
 
-        // Obtém a hora de início sincronizada do Firebase
-        database.child("sala_2x2").child(codigoSala).child("perguntaHoraInicio")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val horaInicio = snapshot.getValue(Long::class.java) ?: System.currentTimeMillis()
+        val horaInicio = horaInicioSincronizada
                     val runnable = object : Runnable {
                         override fun run() {
-                            val tempoAtual = System.currentTimeMillis()
+                            val tempoAtual = tempoServidorAtual()
                             val tempoDecorridoSegundos = (tempoAtual - horaInicio) / 1000.0
                             tempoRestante = tempoTotal - tempoDecorridoSegundos
                             if (tempoRestante < 0) tempoRestante = 0.0
@@ -489,61 +485,46 @@ class Jogo2x2Activity : AppCompatActivity() {
                         }
                     }
                     handler.post(runnable)
+    }
+
+    private fun carregarOffsetServidor() {
+        FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset")
+            .addValueEventListener(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    serverTimeOffset = snapshot.getValue(Long::class.java) ?: 0L
                 }
 
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@Jogo2x2Activity, "Erro ao sincronizar cronómetro: ${error.message}", Toast.LENGTH_SHORT).show()
-                    // Fallback para cronómetro local se a sincronização falhar
-                    tempoIniciado = System.currentTimeMillis()
-                    val runnable = object : Runnable {
-                        override fun run() {
-                            val tempoAtual = System.currentTimeMillis()
-                            tempoRestante = 15.0 - ((tempoAtual - tempoIniciado) / 1000.0)
-                            if (tempoRestante < 0) tempoRestante = 0.0
-
-                            // Toca som nos últimos 5 segundos
-                            if (tempoRestante <= 5 && tempoRestante > 0 && !somTocar) {
-                                mediaPlayer = MediaPlayer.create(this@Jogo2x2Activity, R.raw.som)
-                                mediaPlayer?.isLooping = true
-                                mediaPlayer?.start()
-                                somTocar = true
-                            } else if ((tempoRestante > 5 || tempoRestante <= 0) && somTocar) {
-                                mediaPlayer?.stop()
-                                mediaPlayer?.release()
-                                mediaPlayer = null
-                                somTocar = false
-                            }
-
-                            if (primeiraAtualizacao) {
-                                binding.btnOpcao1.isEnabled = true
-                                binding.btnOpcao2.isEnabled = true
-                                binding.btnOpcao3.isEnabled = true
-                                binding.btnOpcao4.isEnabled = true
-                                primeiraAtualizacao = false
-                            }
-
-                            if (tempoDecorrido) {
-                                binding.txtCronometro.text = formatoDecimal.format(tempoRestante.coerceAtLeast(0.0))
-                            }
-                            if (progressBarAtivo) {
-                                binding.pbTempo.progress = tempoRestante.coerceAtLeast(0.0).toInt()
-                                if (tempoRestante <= 0) {
-                                    binding.pbTempo.progress = 0
-                                    progressBarAtivo = false
-                                    if (tempoDecorrido) {
-                                        verificarResposta(-1)
-                                    }
-                                }
-                            }
-
-                            if (tempoRestante > 0 && progressBarAtivo) {
-                                handler.postDelayed(this, 200)
-                            }
-                        }
-                    }
-                    handler.post(runnable)
-                }
+                override fun onCancelled(error: DatabaseError) {}
             })
+    }
+
+    private fun tempoServidorAtual(): Long = System.currentTimeMillis() + serverTimeOffset
+
+    private fun sincronizarInicioPergunta(onReady: (Long) -> Unit) {
+        val inicioRef = database.child("sala_2x2").child(codigoSala)
+            .child("perguntaInicios").child(perguntaAtualIndex.toString())
+        inicioRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                if (currentData.value == null) {
+                    currentData.value = ServerValue.TIMESTAMP
+                }
+                return Transaction.success(currentData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                inicioRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        val inicio = snapshot.getValue(Long::class.java) ?: tempoServidorAtual()
+                        database.child("sala_2x2").child(codigoSala).child("perguntaHoraInicio").setValue(inicio)
+                        onReady(inicio)
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                        onReady(tempoServidorAtual())
+                    }
+                })
+            }
+        })
     }
 
     // Função para parar e libertar o media player

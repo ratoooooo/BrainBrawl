@@ -4,13 +4,33 @@ import android.content.Context
 import android.content.Intent
 
 object UteisNavegacao {
+    fun adicionarDadosJogador(intent: Intent, nomeUtilizador: String?, nomeJogador: String?) {
+        if (!nomeUtilizador.isNullOrBlank()) {
+            intent.putExtra("nomeUtilizador", nomeUtilizador)
+        }
+        if (!nomeJogador.isNullOrBlank()) {
+            intent.putExtra("nomeJogador", nomeJogador)
+        }
+    }
+
+    fun abrirMainActivity(context: Context, nomeUtilizador: String?, nomeJogador: String?) {
+        val intent = Intent(context, MainActivity::class.java)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        context.startActivity(intent)
+    }
+
+    fun abrirEntradaSalaActivity(context: Context, nomeUtilizador: String?, nomeJogador: String?) {
+        val intent = Intent(context, SalaDeEsperaActivity::class.java)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        context.startActivity(intent)
+    }
+
     // Função para abrir activity de categoria
     fun abrirEscolherCategoriaActivity(context: Context, modoJogo: String, nomeUtilizador: String?, nomeJogador: String?, admin: Boolean) {
         val intent = Intent(context, EscolherCategoriaActivity::class.java)
         intent.putExtra("modoJogo", modoJogo)
         intent.putExtra("admin", admin)
-        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
         context.startActivity(intent)
     }
 
@@ -36,8 +56,7 @@ object UteisNavegacao {
 
         val intent = Intent(context, destino)
         codigoSala.let { intent.putExtra("codigoSala", it) }
-        nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
-        nomeJogador.let { intent.putExtra("nomeJogador", it) }
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
         nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
         modoJogo.let { intent.putExtra("modoJogo", it) }
         pontuacao.let { intent.putExtra("pontuacao", it) }
@@ -57,8 +76,7 @@ object UteisNavegacao {
     fun abrirSalaDeEsperaGrupo(context: Context, codigoSala: String, nomeUtilizador: String?, nomeJogador: String?, nomeCategoria: String, admin: Boolean, modoJogo: String) {
         val intent = Intent(context, SalaDeEsperaGrupoActivity::class.java)
         intent.putExtra("codigoSala", codigoSala)
-        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
         intent.putExtra("nomeCategoria", nomeCategoria)
         intent.putExtra("admin", admin)
         intent.putExtra("modoJogo", modoJogo)

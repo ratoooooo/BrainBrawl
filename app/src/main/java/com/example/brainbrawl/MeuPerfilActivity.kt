@@ -7,6 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
+import com.example.brainbrawl.UteisFirebase.doubleValue
+import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
 import com.google.firebase.database.FirebaseDatabase
 
@@ -27,11 +29,16 @@ class MeuPerfilActivity : AppCompatActivity() {
         // Vai buscar os dados do próprio utilizador à base de dados
         database.child("jogadores").child(nomeUtilizador).get().addOnSuccessListener { dataSnapshot ->
             if (dataSnapshot.exists()) {
-                val pontuacao = dataSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                val totalJogos = dataSnapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                val totalVitorias = dataSnapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val respostasCertas = dataSnapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
-                val taxaVitorias = if (totalJogos > 0) ((totalVitorias.toDouble() / totalJogos) * 100).toInt() else 0
+                val estado = dataSnapshot.child("estado").getValue(String::class.java) ?: "off"
+                val password = dataSnapshot.child("password").getValue(String::class.java).orEmpty()
+                val pontuacao = dataSnapshot.child("pontuacao").doubleValue()
+                val taxaAcertos = dataSnapshot.child("taxaAcertos").doubleValue()
+                val totalJogos = dataSnapshot.child("totalJogos").intValue()
+                val totalVitorias = dataSnapshot.child("totalVitorias").intValue()
+                val respostasCertas = dataSnapshot.child("totalRespostasCertas").intValue()
+                val totalVitoriasModo1x1 = dataSnapshot.child("totalVitoriasModo1x1").intValue()
+                val totalVitoriasModo2x2 = dataSnapshot.child("totalVitoriasModo2x2").intValue()
+                val totalVitoriasModoSolo = dataSnapshot.child("totalVitoriasModoSolo").intValue()
 
                 // Mostra badges se atingir thresholds
                 getBadgeDrawable(totalJogos, jogosBadges)?.let {
@@ -62,7 +69,15 @@ class MeuPerfilActivity : AppCompatActivity() {
                 binding.txtPontuacao.text = "Pontuação: $pontuacao"
                 binding.txtTotalJogos.text = "Total de Jogos: $totalJogos"
                 binding.txtTotalVitorias.text = "Total de Vitórias: $totalVitorias"
-                binding.txtTaxaAcertos.text = "Taxa de Vitória: $taxaVitorias%"
+                binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(taxaAcertos)}%"
+                binding.txtDetalhesPerfil.text = listOf(
+                    "Estado: $estado",
+                    "Password: ${if (password.isBlank()) "não definida" else "definida"}",
+                    "Respostas certas: $respostasCertas",
+                    "Vitórias 1x1: $totalVitoriasModo1x1",
+                    "Vitórias 2x2: $totalVitoriasModo2x2",
+                    "Vitórias Solo: $totalVitoriasModoSolo"
+                ).joinToString("\n")
 
                 binding.btnVoltarPerfil.setOnClickListener {
                     finish()

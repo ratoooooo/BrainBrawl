@@ -75,6 +75,13 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.btnExplorarCategorias.setOnClickListener {
+            val intent = Intent(this, ExplorarCategoriasActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            startActivity(intent)
+        }
+
         // Botão para voltar ao ecrã de login
         binding.btnVoltar.setOnClickListener {
             // Mudar estado do jogador para 'off' no Firebase, só se for utilizador autenticado

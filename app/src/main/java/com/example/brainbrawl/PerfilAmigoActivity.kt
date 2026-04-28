@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
+import com.example.brainbrawl.UteisFirebase.doubleValue
+import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.google.firebase.database.FirebaseDatabase
 
@@ -26,16 +28,23 @@ class PerfilAmigoActivity : AppCompatActivity() {
         val nomeAmigo = intent.getStringExtra("nomeAmigo") ?: "Amigo Desconhecido"
         val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
 
+        binding.btnVoltarPerfil.setOnClickListener {
+            val intent = Intent(this, AmigosActivity::class.java)
+            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            startActivity(intent)
+            finish()
+        }
+
         // Aceder ao perfil do amigo
         database.child("jogadores").child(nomeAmigo).get().addOnSuccessListener { dataSnapshot ->
             // Verifica se o perfil do amigo existe
             if (dataSnapshot.exists()) {
                 // Guardar os dados do amigo
-                val pontuacao = dataSnapshot.child("pontuacao").getValue(Double::class.java) ?: 0.0
-                val totalJogos = dataSnapshot.child("totalJogos").getValue(Int::class.java) ?: 0
-                val totalVitorias = dataSnapshot.child("totalVitorias").getValue(Int::class.java) ?: 0
-                val respostasCertas = dataSnapshot.child("totalRespostasCertas").getValue(Int::class.java) ?: 0
-                val taxaVitorias = if (totalJogos > 0) ((totalVitorias.toDouble() / totalJogos) * 100).toInt() else 0
+                val pontuacao = dataSnapshot.child("pontuacao").doubleValue()
+                val taxaAcertos = dataSnapshot.child("taxaAcertos").doubleValue()
+                val totalJogos = dataSnapshot.child("totalJogos").intValue()
+                val totalVitorias = dataSnapshot.child("totalVitorias").intValue()
+                val respostasCertas = dataSnapshot.child("totalRespostasCertas").intValue()
 
                 // Atualizar os badges de conquistas
                 getBadgeDrawable(totalJogos, jogosBadges)?.let {
@@ -65,7 +74,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
                 binding.txtPontuacao.text = "Pontuação: $pontuacao"
                 binding.txtTotalJogos.text = "Total de Jogos: $totalJogos"
                 binding.txtTotalVitorias.text = "Total de Vitórias: $totalVitorias"
-                binding.txtTaxaAcertos.text = "Taxa de Vitória: $taxaVitorias%"
+                binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(taxaAcertos)}%"
 
                 binding.btnRemoverAmigo.setOnClickListener {
                     database.child("jogadores").child(nomeUtilizador).child("amigos")
@@ -78,21 +87,13 @@ class PerfilAmigoActivity : AppCompatActivity() {
                         }
                     binding.btnRemoverAmigo.isEnabled = false
                 }
-
-                // Configurar o botão de voltar para o perfil
-                binding.btnVoltarPerfil.setOnClickListener {
-                    val intent = Intent(this, AmigosActivity::class.java)
-                    intent.putExtra("nomeUtilizador", nomeUtilizador)
-                    startActivity(intent)
-                    finish()
-                }
             } else {
                 binding.imgAvatarAmigo.setImageResource(R.drawable.avatar_1_playstore)
                 binding.txtNomeAmigo.text = nomeAmigo
                 binding.txtPontuacao.text = "Pontuação: 0"
                 binding.txtTotalJogos.text = "Total de Jogos: 0"
                 binding.txtTotalVitorias.text = "Total de Vitórias: 0"
-                binding.txtTaxaAcertos.text = "Taxa de Vitória: 0%"
+                binding.txtTaxaAcertos.text = "Taxa de Acertos: 0.0%"
             }
         }
     }
