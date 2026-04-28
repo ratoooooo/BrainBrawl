@@ -9,9 +9,8 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
-import com.example.brainbrawl.UteisFirebase.doubleValue
-import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
+import com.example.brainbrawl.repositories.JogadorRepository
 import com.google.firebase.database.FirebaseDatabase
 
 class PerfilAmigoActivity : AppCompatActivity() {
@@ -19,6 +18,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
         ActivityPerfilAmigoBinding.inflate(layoutInflater)
     }
     private val database = FirebaseDatabase.getInstance().reference
+    private val jogadorRepository = JogadorRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,15 +36,15 @@ class PerfilAmigoActivity : AppCompatActivity() {
         }
 
         // Aceder ao perfil do amigo
-        database.child("jogadores").child(nomeAmigo).get().addOnSuccessListener { dataSnapshot ->
+        jogadorRepository.obterPerfil(nomeAmigo).addOnSuccessListener { perfil ->
             // Verifica se o perfil do amigo existe
-            if (dataSnapshot.exists()) {
+            if (perfil != null) {
                 // Guardar os dados do amigo
-                val pontuacao = dataSnapshot.child("pontuacao").doubleValue()
-                val taxaAcertos = dataSnapshot.child("taxaAcertos").doubleValue()
-                val totalJogos = dataSnapshot.child("totalJogos").intValue()
-                val totalVitorias = dataSnapshot.child("totalVitorias").intValue()
-                val respostasCertas = dataSnapshot.child("totalRespostasCertas").intValue()
+                val pontuacao = perfil.estatisticas.pontuacao
+                val taxaAcertos = perfil.estatisticas.taxaAcertos
+                val totalJogos = perfil.estatisticas.totalJogos
+                val totalVitorias = perfil.estatisticas.totalVitorias
+                val respostasCertas = perfil.estatisticas.totalRespostasCertas
 
                 // Atualizar os badges de conquistas
                 getBadgeDrawable(totalJogos, jogosBadges)?.let {
@@ -65,7 +65,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
                     binding.imgTotalRespostasCertas.visibility = View.GONE
                 }
 
-                val nomeAvatar = dataSnapshot.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
+                val nomeAvatar = perfil.avatar
                 val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
                 binding.imgAvatarAmigo.setImageResource(resId)
 

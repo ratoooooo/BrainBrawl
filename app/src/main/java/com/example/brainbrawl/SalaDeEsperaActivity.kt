@@ -6,16 +6,13 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
+import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.SalaRepository
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 
 class SalaDeEsperaActivity : AppCompatActivity() {
     private val binding by lazy { ActivitySalaDeEsperaBinding.inflate(layoutInflater) }
-    private val database = FirebaseDatabase.getInstance().reference
     private val salaRepository = SalaRepository()
+    private val jogadorRepository = JogadorRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -73,19 +70,15 @@ class SalaDeEsperaActivity : AppCompatActivity() {
 
                     // Se for utilizador registado, busca avatar real
                     if (!nomeUtilizador.isNullOrEmpty()) {
-                        database.child("jogadores").child(nomeUtilizador).child("avatar")
-                            .addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(snapshot: DataSnapshot) {
-                                    val avatar = snapshot.getValue(String::class.java) ?: "avatar_1_playstore"
-                                    adicionarJogadorComAvatar(nomeJogadorAtual, codSala, avatar)
-                                    irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                    adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
-                                    irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
-                                }
-                            })
+                        jogadorRepository.obterAvatar(nomeUtilizador)
+                            .addOnSuccessListener { avatar ->
+                                adicionarJogadorComAvatar(nomeJogadorAtual, codSala, avatar)
+                                irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
+                            }
+                            .addOnFailureListener {
+                                adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
+                                irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, nomeUtilizador)
+                            }
                     } else {
                         adicionarJogadorComAvatar(nomeJogadorAtual, codSala, "avatar_1_playstore")
                         irParaSalaDeEsperaGrupo(codSala, nomeJogadorAtual, null)

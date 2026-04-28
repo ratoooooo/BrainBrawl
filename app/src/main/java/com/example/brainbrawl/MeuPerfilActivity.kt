@@ -7,16 +7,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
-import com.example.brainbrawl.UteisFirebase.doubleValue
-import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
-import com.google.firebase.database.FirebaseDatabase
+import com.example.brainbrawl.repositories.JogadorRepository
 
 class MeuPerfilActivity : AppCompatActivity() {
 
     // Usa o mesmo binding/layout do perfil do amigo
     private val binding by lazy { ActivityMeuPerfilBinding.inflate(layoutInflater) }
-    private val database = FirebaseDatabase.getInstance().reference
+    private val jogadorRepository = JogadorRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -27,18 +25,18 @@ class MeuPerfilActivity : AppCompatActivity() {
         Toast.makeText(this, "A abrir perfil de $nomeUtilizador", Toast.LENGTH_SHORT).show()
 
         // Vai buscar os dados do próprio utilizador à base de dados
-        database.child("jogadores").child(nomeUtilizador).get().addOnSuccessListener { dataSnapshot ->
-            if (dataSnapshot.exists()) {
-                val estado = dataSnapshot.child("estado").getValue(String::class.java) ?: "off"
-                val password = dataSnapshot.child("password").getValue(String::class.java).orEmpty()
-                val pontuacao = dataSnapshot.child("pontuacao").doubleValue()
-                val taxaAcertos = dataSnapshot.child("taxaAcertos").doubleValue()
-                val totalJogos = dataSnapshot.child("totalJogos").intValue()
-                val totalVitorias = dataSnapshot.child("totalVitorias").intValue()
-                val respostasCertas = dataSnapshot.child("totalRespostasCertas").intValue()
-                val totalVitoriasModo1x1 = dataSnapshot.child("totalVitoriasModo1x1").intValue()
-                val totalVitoriasModo2x2 = dataSnapshot.child("totalVitoriasModo2x2").intValue()
-                val totalVitoriasModoSolo = dataSnapshot.child("totalVitoriasModoSolo").intValue()
+        jogadorRepository.obterPerfil(nomeUtilizador).addOnSuccessListener { perfil ->
+            if (perfil != null) {
+                val estado = perfil.estado
+                val password = perfil.password
+                val pontuacao = perfil.estatisticas.pontuacao
+                val taxaAcertos = perfil.estatisticas.taxaAcertos
+                val totalJogos = perfil.estatisticas.totalJogos
+                val totalVitorias = perfil.estatisticas.totalVitorias
+                val respostasCertas = perfil.estatisticas.totalRespostasCertas
+                val totalVitoriasModo1x1 = perfil.estatisticas.totalVitoriasModo1x1
+                val totalVitoriasModo2x2 = perfil.estatisticas.totalVitoriasModo2x2
+                val totalVitoriasModoSolo = perfil.estatisticas.totalVitoriasModoSolo
 
                 // Mostra badges se atingir thresholds
                 getBadgeDrawable(totalJogos, jogosBadges)?.let {
@@ -60,7 +58,7 @@ class MeuPerfilActivity : AppCompatActivity() {
                 }
 
                 // // Guarda o avatar do utilizador
-                val nomeAvatar = dataSnapshot.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
+                val nomeAvatar = perfil.avatar
                 val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
                 binding.imgAvatarAmigo.setImageResource(resId)
 

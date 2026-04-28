@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.databinding.ActivityAmigosBinding
+import com.example.brainbrawl.repositories.JogadorRepository
 import com.google.firebase.database.FirebaseDatabase
 
 class AmigosActivity : AppCompatActivity() {
@@ -15,6 +16,7 @@ class AmigosActivity : AppCompatActivity() {
     }
     // Acessar a base de dados
     private val database = FirebaseDatabase.getInstance().reference
+    private val jogadorRepository = JogadorRepository()
     // Variáveis para armazenar os dados dos amigos, convites e pedidos de amizade
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()
@@ -110,24 +112,24 @@ class AmigosActivity : AppCompatActivity() {
         avataresAmigos.add("avatar_1_playstore")
         estadoAmigos.add("on")
         /// Buscra os dados do utilizador
-        database.child("jogadores").child(nomeUtilizador).get()
-            .addOnSuccessListener { meSnap ->
+        jogadorRepository.obterPerfil(nomeUtilizador)
+            .addOnSuccessListener { perfil ->
                 // Guardar o nome e o estado do utilizador
-                val nomeAvatar = meSnap.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
-                val estado = meSnap.child("estado").getValue(String::class.java) ?: "on"
-                avataresAmigos[0] = nomeAvatar
-                estadoAmigos[0] = estado
+                val avatarAtual = perfil?.avatar ?: "avatar_1_playstore"
+                val estadoAtual = perfil?.estado ?: "on"
+                avataresAmigos[0] = avatarAtual
+                estadoAmigos[0] = estadoAtual
 
                 // Buscar os amigos do utilizador
                 database.child("jogadores").child(nomeUtilizador).child("amigos")
-                    .get().addOnSuccessListener { snapshot ->
+                    .get().addOnSuccessListener amigosListener@ { snapshot ->
                         val amigosTemp = mutableListOf<String>()
                         val avataresTemp = mutableListOf<String>()
                         val estadosTemp = mutableListOf<String>()
                         val children = snapshot.children.toList()
                         if (children.isEmpty()) {
                             amigoAdapter.notifyDataSetChanged()
-                            return@addOnSuccessListener
+                            return@amigosListener
                         }
                         var loaded = 0
                         // Percoirrer os amigos e buscar os dados de cada um
@@ -136,12 +138,12 @@ class AmigosActivity : AppCompatActivity() {
                             if (nomeAmigo == nomeUtilizador) continue
                             amigosTemp.add(nomeAmigo)
                             // Buscar o avatar e o estado do amigo
-                            database.child("jogadores").child(nomeAmigo).get()
-                                .addOnSuccessListener { amigoSnap ->
-                                    val nomeAvatar = amigoSnap.child("avatar").getValue(String::class.java) ?: "avatar_1_playstore"
-                                    val estado = amigoSnap.child("estado").getValue(String::class.java) ?: "off"
-                                    avataresTemp.add(nomeAvatar)
-                                    estadosTemp.add(estado)
+                            jogadorRepository.obterPerfil(nomeAmigo)
+                                .addOnSuccessListener { perfilAmigo ->
+                                    val avatarAmigo = perfilAmigo?.avatar ?: "avatar_1_playstore"
+                                    val estadoAmigo = perfilAmigo?.estado ?: "off"
+                                    avataresTemp.add(avatarAmigo)
+                                    estadosTemp.add(estadoAmigo)
                                     loaded++
                                     if (loaded == children.size) {
                                         amigos.addAll(amigosTemp)
@@ -211,8 +213,8 @@ class AmigosActivity : AppCompatActivity() {
             return
         }
         // Pwscar na base de dados se o utilizador existe
-        database.child("jogadores").child(nome).get().addOnSuccessListener { snapshot ->
-            if (snapshot.exists()) {
+        jogadorRepository.obterPerfil(nome).addOnSuccessListener { perfil ->
+            if (perfil != null) {
                 if (amigos.contains(nome)) {
                     binding.layoutAddAmigo.visibility = android.view.View.GONE
                     Toast.makeText(this, "$nome já é teu amigo!", Toast.LENGTH_SHORT).show()

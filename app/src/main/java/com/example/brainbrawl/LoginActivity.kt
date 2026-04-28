@@ -8,10 +8,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisValidacao.hashPassword
 import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.databinding.ActivityLoginBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.example.brainbrawl.repositories.JogadorRepository
 
 class LoginActivity : AppCompatActivity() {
     // Acessar os elementos do layout
@@ -19,7 +16,7 @@ class LoginActivity : AppCompatActivity() {
         ActivityLoginBinding.inflate(layoutInflater)
     }
     // Acessar a base de dados
-    private val database = FirebaseDatabase.getInstance().reference
+    private val jogadorRepository = JogadorRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,18 +38,18 @@ class LoginActivity : AppCompatActivity() {
             }
 
             // Verificar credenciais no Firebase
-            database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
+            jogadorRepository.obterPerfil(nomeUtilizador)
+                .addOnSuccessListener { perfil ->
                     // Verificar se o nome de utilizador existe na base de dados
-                    if (snapshot.exists()) {
+                    if (perfil != null) {
                         // Guardar a palavra passe
-                        val savedHash = snapshot.child("password").value.toString()
+                        val savedHash = perfil.password
                         // Guardar a palavra passe encriptada
                         val inputHash = hashPassword(password)
                         // Verificar se a palavra passe é válida
                         if (savedHash == inputHash) {
                             // Alterar o estado do jogador para on
-                            database.child("jogadores").child(nomeUtilizador).child("estado").setValue("on")
+                            jogadorRepository.marcarOnline(nomeUtilizador)
                             Toast.makeText(this@LoginActivity, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show()
                             // Criar um intent para a MainActivity
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
@@ -71,10 +68,9 @@ class LoginActivity : AppCompatActivity() {
                         Toast.makeText(this@LoginActivity, "Jogador não encontrado", Toast.LENGTH_SHORT).show()
                     }
                 }
-                override fun onCancelled(error: DatabaseError) {
+                .addOnFailureListener {
                     Toast.makeText(this@LoginActivity, "Erro ao acessar o banco de dados", Toast.LENGTH_SHORT).show()
                 }
-            })
         }
         binding.btnRegisto.setOnClickListener {
             startActivity(Intent(this, RegistarActivity::class.java))

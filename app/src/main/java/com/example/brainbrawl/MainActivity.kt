@@ -5,13 +5,13 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.databinding.ActivityMainBinding
-import com.google.firebase.database.FirebaseDatabase
+import com.example.brainbrawl.repositories.JogadorRepository
 
 class MainActivity : AppCompatActivity() {
     // Acessar os elementos do layout
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     // Acessar a base de dados
-    private val database = FirebaseDatabase.getInstance().reference
+    private val jogadorRepository = JogadorRepository()
     // Variáveis para armazenar informações do utilizador e da sala
     private var nomeCategoria: String? = null
     private var codigoSala: String? = null
@@ -86,7 +86,7 @@ class MainActivity : AppCompatActivity() {
         binding.btnVoltar.setOnClickListener {
             // Mudar estado do jogador para 'off' no Firebase, só se for utilizador autenticado
             nomeUtilizador?.let {
-                database.child("jogadores").child(it).child("estado").setValue("off")
+                jogadorRepository.marcarOffline(it)
             }
             startActivity(Intent(this, LoginActivity::class.java))
             finish()

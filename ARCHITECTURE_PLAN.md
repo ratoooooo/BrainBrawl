@@ -78,15 +78,21 @@ Estrutura criada para migracao futura:
 Criado:
 
 - `app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt`, como primeira camada de acesso Firebase para salas no node Firebase `salas`.
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`, como camada pequena para leituras simples do node Firebase `jogadores`.
 - Estrutura base de pacotes `models/`, `repositories/`, `services/`, `controllers/` e `utils/` mantida para a migracao gradual.
 
 Movido nesta fase:
 
 - Em `SalaDeEsperaGrupoActivity.kt`, as chamadas diretas a `FirebaseDatabase` para a sala de grupo foram substituidas por chamadas a `SalaRepository`.
 - Em `SalaDeEsperaActivity.kt`, a procura de sala por codigo, a validacao de existencia/nome repetido e a adicao do jogador em `salas/{codigoSala}/jogadores` passaram para `SalaRepository`.
+- Em `SalaDeEsperaActivity.kt`, a leitura de avatar do jogador registado passou para `JogadorRepository`.
 - Em `UteisSala.kt`, a criacao de salas de grupo em `salas/{codigoSala}` passou a usar `SalaRepository.criarSala`.
+- Em `LoginActivity.kt` e `MainActivity.kt`, a leitura de perfil para login e a atualizacao de estado online/offline passaram para `JogadorRepository`.
+- Em `MeuPerfilActivity.kt` e `PerfilAmigoActivity.kt`, a leitura de perfil, avatar e estatisticas passou para `JogadorRepository`.
+- Em `AmigosActivity.kt`, leituras simples de perfil/avatar/estado usadas na lista de amigos e na pesquisa passaram para `JogadorRepository`; convites e escritas de amizade ficaram inalterados.
 - A Activity continua responsavel por UI, toasts e navegacao.
 - O repository ficou responsavel por criar/procurar sala, adicionar/remover jogador, apagar sala, atualizar estado, obter jogadores e gerir listeners de jogadores/estado/sala apagada.
+- `JogadorRepository` ficou responsavel por obter perfil, obter avatar e atualizar estado `on`/`off`.
 
 Mantido sem alteracoes:
 
@@ -99,8 +105,10 @@ Ainda falta migrar:
 
 - Firebase de jogo em `JogoActivity.kt`.
 - Salas competitivas `sala_1x1` e `sala_2x2`.
-- Categorias, perguntas, convites, amigos, perfis e estatisticas.
-- Leitura do avatar em `SalaDeEsperaActivity.kt`, que ainda deve sair para um futuro `JogadorRepository`/`UserRepository`.
+- Categorias, perguntas, convites e amigos.
+- Atualizacoes de estatisticas nas Activities de pontuacao, que continuam fora desta fase.
+- Escritas de amizade/remocao de amigo em `PerfilAmigoActivity.kt` e restantes operacoes sociais.
+- Leituras diretas de listas sociais (`amigos`, `convites_recebidos`, `pedidos_amizade`) em `AmigosActivity.kt`, que devem sair numa fase propria de amigos/convites.
 - Leituras de perguntas/categorias em `UteisSala.kt`, que continuam no utilitario ate existir um repository proprio para categorias/perguntas.
 
 Proxima fase recomendada:
