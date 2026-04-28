@@ -7,12 +7,12 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityAdicionarPerguntaBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.FirebaseDatabase
+import com.example.brainbrawl.repositories.CategoriaRepository
 
 class AdicionarPerguntaActivity : AppCompatActivity() {
     // Acessar os elementos do layout
@@ -20,7 +20,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         ActivityAdicionarPerguntaBinding.inflate(layoutInflater)
     }
     // Acessar a base de dados
-    private val database = FirebaseDatabase.getInstance().reference
+    private val categoriaRepository = CategoriaRepository()
     private var nomeUtilizador: String = ""
     private var nomeJogador: String? = null
     private var modoJogo: String = "classico"
@@ -30,6 +30,15 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    voltarParaCategorias()
+                }
+            }
+        )
 
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
         nomeJogador = intent.getStringExtra("nomeJogador")
@@ -92,21 +101,16 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Criar um mapa com os dados da pergunta
-            val perguntasData = mapOf(
-                "pergunta" to pergunta,
-                "respostaCorreta" to respostaCorreta,
-                "opcoes" to listOf(opcaoA, opcaoB, opcaoC, opcaoD)
+            categoriaRepository.guardarPerguntaPersonalizada(
+                nomeUtilizador,
+                nomeCategoria,
+                perguntaEmEdicaoId,
+                CategoriaRepository.PerguntaCategoria(
+                    pergunta = pergunta,
+                    respostaCorreta = respostaCorreta,
+                    opcoes = listOf(opcaoA, opcaoB, opcaoC, opcaoD)
+                )
             )
-
-            val perguntasRef = database.child("jogadores").child(nomeUtilizador)
-                .child("categoriasPersonalizadas").child(nomeCategoria).child("perguntas")
-            val operacao = perguntaEmEdicaoId?.let { perguntasRef.child(it).setValue(perguntasData) }
-                ?: perguntasRef.push().setValue(perguntasData)
-            database.child("jogadores").child(nomeUtilizador)
-                .child("categoriasPersonalizadas").child(nomeCategoria).child("nome").setValue(nomeCategoria)
-
-            operacao
                 // Verificar se a pergunta foi adicionada com sucesso
                 .addOnSuccessListener {
                     // Exibir mensagem de sucesso
@@ -146,16 +150,15 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
 
     private fun carregarPerguntasCategoria(nomeCategoria: String) {
         if (nomeCategoria.isBlank()) return
-        database.child("jogadores").child(nomeUtilizador)
-            .child("categoriasPersonalizadas").child(nomeCategoria).child("perguntas")
-            .get().addOnSuccessListener { snapshot ->
-                preencherListaPerguntas(snapshot)
+        categoriaRepository.carregarPerguntasEditaveis(nomeUtilizador, nomeCategoria)
+            .addOnSuccessListener { perguntas ->
+                preencherListaPerguntas(perguntas)
             }
     }
 
-    private fun preencherListaPerguntas(snapshot: DataSnapshot) {
+    private fun preencherListaPerguntas(perguntas: List<CategoriaRepository.PerguntaCategoria>) {
         binding.layoutPerguntasPersonalizadas.removeAllViews()
-        if (!snapshot.exists()) {
+        if (perguntas.isEmpty()) {
             val vazio = TextView(this)
             vazio.text = "Sem perguntas guardadas nesta categoria."
             vazio.setTextColor(0xFF000000.toInt())
@@ -163,18 +166,14 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             return
         }
 
-        for (perguntaSnapshot in snapshot.children) {
-            val perguntaId = perguntaSnapshot.key ?: continue
-            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java) ?: continue
-            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java) ?: ""
-            val opcoes = perguntaSnapshot.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
-
+        for (perguntaCategoria in perguntas) {
+            val perguntaId = perguntaCategoria.id ?: continue
             val container = LinearLayout(this)
             container.orientation = LinearLayout.VERTICAL
             container.setPadding(0, 16, 0, 16)
 
             val texto = TextView(this)
-            texto.text = "$pergunta\nResposta correta: $respostaCorreta"
+            texto.text = "${perguntaCategoria.pergunta}\nResposta correta: ${perguntaCategoria.respostaCorreta}"
             texto.setTextColor(0xFF000000.toInt())
             texto.textSize = 16f
             container.addView(texto)
@@ -186,7 +185,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             btnEditar.text = "Editar"
             btnEditar.setOnClickListener {
                 perguntaEmEdicaoId = perguntaId
-                preencherFormulario(pergunta, opcoes, respostaCorreta)
+                preencherFormulario(perguntaCategoria.pergunta, perguntaCategoria.opcoes, perguntaCategoria.respostaCorreta)
             }
             botoes.addView(btnEditar)
 
@@ -194,9 +193,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             btnEliminar.text = "Eliminar"
             btnEliminar.setOnClickListener {
                 val categoria = binding.edtNovaCategoria.text.toString().trim()
-                database.child("jogadores").child(nomeUtilizador)
-                    .child("categoriasPersonalizadas").child(categoria).child("perguntas")
-                    .child(perguntaId).removeValue()
+                categoriaRepository.eliminarPerguntaPersonalizada(nomeUtilizador, categoria, perguntaId)
                     .addOnSuccessListener { carregarPerguntasCategoria(categoria) }
             }
             botoes.addView(btnEliminar)
@@ -248,8 +245,4 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         finish()
     }
 
-    @Deprecated("Deprecated in Java")
-    override fun onBackPressed() {
-        voltarParaCategorias()
-    }
 }

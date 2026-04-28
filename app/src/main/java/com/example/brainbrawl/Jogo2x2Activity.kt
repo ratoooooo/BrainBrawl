@@ -8,24 +8,21 @@ import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisJogo.atualizarPontuacao
 import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
 import com.example.brainbrawl.UteisNavegacao.enviarPontuacaoActivity
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.MutableData
-import com.google.firebase.database.ServerValue
-import com.google.firebase.database.Transaction
-import com.google.firebase.database.ValueEventListener
+import com.example.brainbrawl.repositories.JogoCompetitivoRepository
+import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
+import com.example.brainbrawl.services.ScoreCompetitivoService
 
 class Jogo2x2Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivityJogo2x2Binding.inflate(layoutInflater)
     }
+    private val jogoCompetitivoRepository = JogoCompetitivoRepository()
+    private val scoreCompetitivoService = ScoreCompetitivoService()
     // Variáveis para dados do jogo e jogador
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
@@ -50,9 +47,10 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private val formatoDecimal = DecimalFormat("#.#")
-    private val database = FirebaseDatabase.getInstance().reference
     private val perguntas = mutableListOf<Pergunta>()
     private var serverTimeOffset: Long = 0L
+    private var offsetListener: JogoCompetitivoRepository.ListenerHandle? = null
+    private var podioListener: JogoCompetitivoRepository.ListenerHandle? = null
 
     // Variável para saber a equipa do jogador ("A" ou "B")
     private var equipaDoJogador: String = ""
@@ -67,101 +65,50 @@ class Jogo2x2Activity : AppCompatActivity() {
         carregarOffsetServidor()
 
         // Lê a categoria REAL da sala do Firebase para garantir filtragem correta
-        database.child("sala_2x2").child(codigoSala).child("nomeCategoria")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    categoria = snapshot.getValue(String::class.java) ?: getString(R.string.categoria5)
-                    identificarEquipaECarregarPerguntas()
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@Jogo2x2Activity, "Erro ao ler categoria!", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            })
+        jogoCompetitivoRepository.carregarNomeCategoria(
+            ModoCompetitivo.DOIS_CONTRA_DOIS,
+            codigoSala,
+            getString(R.string.categoria5)
+        ).addOnSuccessListener { nomeCategoria ->
+            categoria = nomeCategoria
+            identificarEquipaECarregarPerguntas()
+        }.addOnFailureListener {
+            Toast.makeText(this@Jogo2x2Activity, "Erro ao ler categoria!", Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 
     private fun identificarEquipaECarregarPerguntas() {
         // Verifica a equipa do jogador na sala
-        database.child("sala_2x2").child(codigoSala).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val equipaA = snapshot.child("equipaA").children.mapNotNull { it.key }
-                val equipaB = snapshot.child("equipaB").children.mapNotNull { it.key }
-                equipaDoJogador = when {
-                    equipaA.contains(nomeUtilizador) -> "A"
-                    equipaB.contains(nomeUtilizador) -> "B"
-                    else -> ""
-                }
-
+        jogoCompetitivoRepository.identificarEquipa2x2(codigoSala, nomeUtilizador)
+            .addOnSuccessListener { equipa ->
+                equipaDoJogador = equipa
                 carregarOuCriarPerguntas()
             }
-            override fun onCancelled(error: DatabaseError) {
+            .addOnFailureListener {
                 Toast.makeText(this@Jogo2x2Activity, "Erro ao carregar equipa!", Toast.LENGTH_SHORT).show()
                 finish()
             }
-        })
     }
 
     // Função que carrega as perguntas da sala ou as cria se for o primeiro jogador
     private fun carregarOuCriarPerguntas() {
-        database.child("sala_2x2").child(codigoSala).child("perguntas")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    perguntas.clear()
-                    if (snapshot.exists()) {
-                        // Perguntas já existem na sala
-                        for (perguntaSnapshot in snapshot.children) {
-                            val pergunta = perguntaSnapshot.getValue(Pergunta::class.java)
-                            if (pergunta != null) perguntas.add(pergunta)
-                        }
-                        if (perguntas.isNotEmpty()) {
-                            mostrarPergunta()
-                        }
-                        configurarBotoes()
-                    } else {
-                        // Só o primeiro jogador a entrar cria as perguntas
-                        buscarPerguntasAleatorias { perguntasAleatorias ->
-                            database.child("sala_2x2").child(codigoSala).child("perguntas")
-                                .runTransaction(object : Transaction.Handler {
-                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
-                                        if (currentData.value == null) {
-                                            currentData.value = perguntasAleatorias
-                                            return Transaction.success(currentData)
-                                        }
-                                        return Transaction.abort()
-                                    }
-                                    override fun onComplete(
-                                        databaseError: DatabaseError?,
-                                        committed: Boolean,
-                                        currentData: DataSnapshot?
-                                    ) {
-                                        database.child("sala_2x2").child(codigoSala).child("perguntas")
-                                            .addListenerForSingleValueEvent(object : ValueEventListener {
-                                                override fun onDataChange(snapshot: DataSnapshot) {
-                                                    perguntas.clear()
-                                                    for (perguntaSnapshot in snapshot.children) {
-                                                        val pergunta = perguntaSnapshot.getValue(Pergunta::class.java)
-                                                        if (pergunta != null) perguntas.add(pergunta)
-                                                    }
-                                                    if (perguntas.isNotEmpty()) {
-                                                        mostrarPergunta()
-                                                    }
-                                                    configurarBotoes()
-                                                }
-                                                override fun onCancelled(error: DatabaseError) {
-                                                    Toast.makeText(this@Jogo2x2Activity, "Erro ao carregar perguntas", Toast.LENGTH_SHORT).show()
-                                                    finish()
-                                                }
-                                            })
-                                    }
-                                })
-                        }
-                    }
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@Jogo2x2Activity, "Erro ao carregar perguntas", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            })
+        jogoCompetitivoRepository.carregarOuCriarPerguntas(
+            ModoCompetitivo.DOIS_CONTRA_DOIS,
+            codigoSala,
+            categoria,
+            getString(R.string.categoria5)
+        ).addOnSuccessListener { perguntasCarregadas ->
+            perguntas.clear()
+            perguntas.addAll(perguntasCarregadas)
+            if (perguntas.isNotEmpty()) {
+                mostrarPergunta()
+            }
+            configurarBotoes()
+        }.addOnFailureListener {
+            Toast.makeText(this@Jogo2x2Activity, mensagemErroPerguntas(it), Toast.LENGTH_SHORT).show()
+            finish()
+        }
     }
 
     override fun onDestroy() {
@@ -170,6 +117,8 @@ class Jogo2x2Activity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
         mediaPlayer?.release()
         mediaPlayer = null
+        jogoCompetitivoRepository.removerListener(offsetListener)
+        jogoCompetitivoRepository.removerListener(podioListener)
     }
 
     // Função que configura os listeners dos botões de opções
@@ -178,67 +127,6 @@ class Jogo2x2Activity : AppCompatActivity() {
         binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
         binding.btnOpcao3.setOnClickListener { verificarResposta(2) }
         binding.btnOpcao4.setOnClickListener { verificarResposta(3) }
-    }
-
-    // Função que busca as perguntas aleatórias da categoria selecionada ou de todas as categorias
-    private fun buscarPerguntasAleatorias(onComplete: (List<Pergunta>) -> Unit) {
-        val categoriasRef = database.child("categorias")
-        if (categoria == getString(R.string.categoria5) || categoria.isEmpty()) {
-            // Busca perguntas de todas as categorias
-            categoriasRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val todas = mutableListOf<Pergunta>()
-                    for (categoriaSnapshot in snapshot.children) {
-                        val perguntasSnapshot = categoriaSnapshot.child("perguntas")
-                        for (perguntaSnapshot in perguntasSnapshot.children) {
-                            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
-                            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
-                            val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
-                            val opcoes = mutableListOf<String>()
-                            opcoesSnapshot.forEach { opcao ->
-                                opcoes.add(opcao.getValue(String::class.java) ?: "")
-                            }
-                            if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                                todas.add(Pergunta(pergunta, respostaCorreta, opcoes))
-                            }
-                        }
-                    }
-                    // Embaralha e seleciona 8 perguntas aleatórias
-                    val escolhidas = todas.shuffled().take(8)
-                    onComplete(escolhidas)
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@Jogo2x2Activity, "Erro ao buscar perguntas!", Toast.LENGTH_SHORT).show()
-                    finish()
-                }
-            })
-        } else {
-            // Busca perguntas só da categoria escolhida
-            categoriasRef.child(categoria).child("perguntas")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val perguntas = mutableListOf<Pergunta>()
-                        for (perguntaSnapshot in snapshot.children) {
-                            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
-                            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
-                            val opcoesSnapshot = perguntaSnapshot.child("opcoes").children
-                            val opcoes = mutableListOf<String>()
-                            opcoesSnapshot.forEach { opcao ->
-                                opcoes.add(opcao.getValue(String::class.java) ?: "")
-                            }
-                            if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                                perguntas.add(Pergunta(pergunta, respostaCorreta, opcoes))
-                            }
-                        }
-                        val escolhidas = perguntas.shuffled().take(8)
-                        onComplete(escolhidas)
-                    }
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(this@Jogo2x2Activity, "Erro ao buscar perguntas!", Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
-                })
-        }
     }
 
     // Função que a pergunta atual e redefine o cronómetro
@@ -327,8 +215,19 @@ class Jogo2x2Activity : AppCompatActivity() {
             numeroPerguntasCertas++
             // Guardar o total de perguntas certas ao longo do jogo
             totalPerguntascertas++
-            val pontos = atualizarPontuacao(this, tempoRestante, numeroPerguntasCertas, bonus)
-            totalPontos += pontos
+            val resultadoPontuacao = scoreCompetitivoService.calcularPontuacao(
+                tempoRestante,
+                numeroPerguntasCertas,
+                bonus
+            )
+            if (resultadoPontuacao.bonusAplicado > 0) {
+                Toast.makeText(
+                    this,
+                    "Bónus de sequência! +${resultadoPontuacao.bonusAplicado} pontos",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            totalPontos += resultadoPontuacao.pontos
         } else if (botaoSelecionado != null) {
             // Chamar a função para tocar som de resposta errada
             tocarSom(this, R.raw.errado)
@@ -339,9 +238,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         }
 
         // Guarda resposta do jogador na base de dados
-        val respostaRef = database.child("sala_2x2").child(codigoSala)
-            .child("respostas").child(nomeUtilizador).child(perguntaAtualIndex.toString())
-        respostaRef.setValue(opcaoEscolhida)
+        jogoCompetitivoRepository.guardarResposta2x2(codigoSala, nomeUtilizador, perguntaAtualIndex, opcaoEscolhida)
 
         // Delay para mostrar feedback antes da próxima pergunta
         val tempoAteProxima = ((tempoIniciado + 15000) - tempoServidorAtual()).coerceAtLeast(0)
@@ -360,14 +257,13 @@ class Jogo2x2Activity : AppCompatActivity() {
 
         // Guarda pontuação do jogador no nó da sua equipa
         if (equipaDoJogador == "A" || equipaDoJogador == "B") {
-            database.child("sala_2x2").child(codigoSala)
-                .child("pontuacoes_${equipaDoJogador}")
-                .child(nomeUtilizador)
-                .setValue(totalPontos)
-            database.child("sala_2x2").child(codigoSala)
-                .child("totalPerguntasCertas_${equipaDoJogador}")
-                .child(nomeUtilizador)
-                .setValue(totalPerguntascertas)
+            jogoCompetitivoRepository.guardarResultado2x2(
+                codigoSala,
+                equipaDoJogador,
+                nomeUtilizador,
+                totalPontos,
+                totalPerguntascertas
+            )
         }
 
         // Aguarda até todas as pontuações estarem guardadas!
@@ -375,55 +271,35 @@ class Jogo2x2Activity : AppCompatActivity() {
     }
 
     private fun aguardarPodioCompleto() {
-        val pontuacoesARef = database.child("sala_2x2").child(codigoSala).child("pontuacoes_A")
-        val pontuacoesBRef = database.child("sala_2x2").child(codigoSala).child("pontuacoes_B")
-
-        // Listener conjunto para ambos os nós
-        val podioListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                // Lê ambas as equipas
-                pontuacoesARef.get().addOnSuccessListener { snapA ->
-                    pontuacoesBRef.get().addOnSuccessListener { snapB ->
-                        val totalA = snapA.childrenCount
-                        val totalB = snapB.childrenCount
-
-                        if (totalA >= 2 && totalB >= 2) {
-                            // Remove listeners
-                            pontuacoesARef.removeEventListener(this)
-                            pontuacoesBRef.removeEventListener(this)
-                            // Avança para a activity do pódio
-                            enviarPontuacaoActivity(
-                                this@Jogo2x2Activity,
-                                codigoSala,
-                                "2x2",
-                                nomeUtilizador,
-                                totalPontos,
-                                categoria,
-                                nomeUtilizador,
-                                totalPerguntascertas,
-                                numeroPerguntasCertas,
-                                perguntas.size,
-                                equipaDoJogador
-                            )
-                            finish()
-                        } else {
-                            Toast.makeText(
-                                this@Jogo2x2Activity,
-                                "Aguarde que todos terminem!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                }
+        podioListener = jogoCompetitivoRepository.escutarPodio2x2(
+            codigoSala,
+            onPodioCompleto = {
+                // Avança para a activity do pódio
+                enviarPontuacaoActivity(
+                    this@Jogo2x2Activity,
+                    codigoSala,
+                    "2x2",
+                    nomeUtilizador,
+                    totalPontos,
+                    categoria,
+                    nomeUtilizador,
+                    totalPerguntascertas,
+                    numeroPerguntasCertas,
+                    perguntas.size,
+                    equipaDoJogador
+                )
+                finish()
+            },
+            onAguardar = {
+                Toast.makeText(
+                    this@Jogo2x2Activity,
+                    "Aguarde que todos terminem!",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            override fun onCancelled(error: DatabaseError) {
+        ) {
                 Toast.makeText(this@Jogo2x2Activity, "Erro ao verificar pódio!", Toast.LENGTH_SHORT).show()
-            }
         }
-
-        // Adiciona listeners nos dois nós
-        pontuacoesARef.addValueEventListener(podioListener)
-        pontuacoesBRef.addValueEventListener(podioListener)
     }
 
     // Função que inicia o cronómetro visual e sonoro da pergunta de forma sincronizada
@@ -488,43 +364,34 @@ class Jogo2x2Activity : AppCompatActivity() {
     }
 
     private fun carregarOffsetServidor() {
-        FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    serverTimeOffset = snapshot.getValue(Long::class.java) ?: 0L
-                }
-
-                override fun onCancelled(error: DatabaseError) {}
-            })
+        offsetListener = jogoCompetitivoRepository.escutarOffsetServidor(
+            onOffsetAlterado = { offset ->
+                serverTimeOffset = offset
+            }
+        )
     }
 
     private fun tempoServidorAtual(): Long = System.currentTimeMillis() + serverTimeOffset
 
+    private fun mensagemErroPerguntas(erro: Exception): String {
+        return if (erro.message?.contains("buscar perguntas", ignoreCase = true) == true) {
+            "Erro ao buscar perguntas!"
+        } else {
+            "Erro ao carregar perguntas"
+        }
+    }
+
     private fun sincronizarInicioPergunta(onReady: (Long) -> Unit) {
-        val inicioRef = database.child("sala_2x2").child(codigoSala)
-            .child("perguntaInicios").child(perguntaAtualIndex.toString())
-        inicioRef.runTransaction(object : Transaction.Handler {
-            override fun doTransaction(currentData: MutableData): Transaction.Result {
-                if (currentData.value == null) {
-                    currentData.value = ServerValue.TIMESTAMP
-                }
-                return Transaction.success(currentData)
-            }
-
-            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                inicioRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val inicio = snapshot.getValue(Long::class.java) ?: tempoServidorAtual()
-                        database.child("sala_2x2").child(codigoSala).child("perguntaHoraInicio").setValue(inicio)
-                        onReady(inicio)
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        onReady(tempoServidorAtual())
-                    }
-                })
-            }
-        })
+        jogoCompetitivoRepository.sincronizarInicioPergunta(
+            ModoCompetitivo.DOIS_CONTRA_DOIS,
+            codigoSala,
+            perguntaAtualIndex,
+            tempoServidorAtual()
+        ).addOnSuccessListener { inicio ->
+            onReady(inicio)
+        }.addOnFailureListener {
+            onReady(tempoServidorAtual())
+        }
     }
 
     // Função para parar e libertar o media player

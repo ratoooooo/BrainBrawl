@@ -22,6 +22,10 @@
             android:name=".SalaDeEsperaGrupoActivity"
             android:exported="false" />
         <activity
+            android:name=".EsperaEliminadoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".EscolhaCategoriaModosActivity"
             android:exported="false" />
         <activity

@@ -6,28 +6,26 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
+import com.example.brainbrawl.repositories.JogoCompetitivoRepository
+import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
 
 class SalaDeEspera1x1Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
     }
+    private val jogoCompetitivoRepository = JogoCompetitivoRepository()
 
     // Variáveis para a lógica da sala
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private var nomeJogador: String = ""
     private lateinit var nomeCategoria: String
-    private val database = FirebaseDatabase.getInstance().reference
 
     private var jogadoresNaSala: List<String> = emptyList()
     private var admin: Boolean = false
-    private var jogadoresListener: ValueEventListener? = null
-    private var estadoListener: ValueEventListener? = null
-    private var salaListener: ValueEventListener? = null
+    private var jogadoresListener: JogoCompetitivoRepository.ListenerHandle? = null
+    private var estadoListener: JogoCompetitivoRepository.ListenerHandle? = null
+    private var salaListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var saidaManual = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -44,61 +42,53 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
 
         // Adiciona este jogador à sala
-        database.child("sala_1x1").child(codigoSala).child("jogadores").child(nomeUtilizador).setValue(true)
+        jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, nomeUtilizador)
         // Marca este jogador como pronto na sala
-        database.child("sala_1x1").child(codigoSala).child("prontos").child(nomeUtilizador).setValue(true)
+        jogoCompetitivoRepository.marcarPronto1x1(codigoSala, nomeUtilizador)
 
         // Verifica se és o admin
-        database.child("sala_1x1").child(codigoSala).child("admin")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val nomeAdmin = snapshot.getValue(String::class.java)
-                    admin = if (nomeAdmin.isNullOrBlank()) {
-                        jogadoresNaSala.firstOrNull() == nomeUtilizador
-                    } else {
-                        nomeAdmin == nomeUtilizador
-                    }
+        jogoCompetitivoRepository.obterAdmin(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+            .addOnSuccessListener { nomeAdmin ->
+                admin = if (nomeAdmin.isNullOrBlank()) {
+                    jogadoresNaSala.firstOrNull() == nomeUtilizador
+                } else {
+                    nomeAdmin == nomeUtilizador
                 }
-                override fun onCancelled(error: DatabaseError) {}
-            })
+                atualizarEstadoBotaoIniciar()
+            }
 
         // Observa os jogadores na sala e atualiza a lista no ecrã
-        jogadoresListener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val nomes = snapshot.children.mapNotNull { it.key }
-                    jogadoresNaSala = nomes
-                    binding.txtListaJogadores.text = if (nomes.isEmpty()) {
-                        "Aguardando jogadores..."
-                    } else {
-                        nomes.joinToString(separator = "\n")
-                    }
-                    // Ativa o botão de iniciar jogo se for admin e houver 2 jogadores
-                    binding.btnIniciarJogo.isEnabled = (admin && nomes.size == 2)
+        jogadoresListener = jogoCompetitivoRepository.escutarJogadores(
+            ModoCompetitivo.UM_CONTRA_UM,
+            codigoSala,
+            onJogadoresAlterados = { nomes ->
+                jogadoresNaSala = nomes
+                binding.txtListaJogadores.text = if (nomes.isEmpty()) {
+                    "Aguardando jogadores..."
+                } else {
+                    nomes.joinToString(separator = "\n")
                 }
-                override fun onCancelled(error: DatabaseError) {
-                }
+                // Ativa o botão de iniciar jogo se for admin e houver 2 jogadores
+                atualizarEstadoBotaoIniciar()
             }
-        database.child("sala_1x1").child(codigoSala).child("jogadores")
-            .addValueEventListener(jogadoresListener!!)
+        )
 
         // Observa o estado da sala para iniciar o jogo para todos ao mesmo tempo
-        estadoListener = object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val estado = snapshot.getValue(String::class.java)
-                    if (estado == "em_jogo") {
-                        val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
-                        intent.putExtra("codigoSala", codigoSala)
-                        intent.putExtra("nomeUtilizador", nomeUtilizador)
-                        intent.putExtra("nomeJogador", nomeJogador)
-                        intent.putExtra("nomeCategoria", nomeCategoria)
-                        startActivity(intent)
-                        finish()
-                    }
+        estadoListener = jogoCompetitivoRepository.escutarEstadoSala(
+            ModoCompetitivo.UM_CONTRA_UM,
+            codigoSala,
+            onEstadoAlterado = { estado ->
+                if (estado == "em_jogo") {
+                    val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
+                    intent.putExtra("codigoSala", codigoSala)
+                    intent.putExtra("nomeUtilizador", nomeUtilizador)
+                    intent.putExtra("nomeJogador", nomeJogador)
+                    intent.putExtra("nomeCategoria", nomeCategoria)
+                    startActivity(intent)
+                    finish()
                 }
-                override fun onCancelled(error: DatabaseError) {}
             }
-        database.child("sala_1x1").child(codigoSala).child("estado")
-            .addValueEventListener(estadoListener!!)
+        )
 
         escutarSalaApagada()
 
@@ -118,57 +108,52 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        jogadoresListener?.let {
-            database.child("sala_1x1").child(codigoSala).child("jogadores").removeEventListener(it)
-        }
-        estadoListener?.let {
-            database.child("sala_1x1").child(codigoSala).child("estado").removeEventListener(it)
-        }
-        salaListener?.let {
-            database.child("sala_1x1").child(codigoSala).removeEventListener(it)
-        }
+        jogoCompetitivoRepository.removerListener(jogadoresListener)
+        jogoCompetitivoRepository.removerListener(estadoListener)
+        jogoCompetitivoRepository.removerListener(salaListener)
+    }
+
+    private fun atualizarEstadoBotaoIniciar() {
+        binding.btnIniciarJogo.isEnabled = admin && jogadoresNaSala.size == 2
     }
 
     // Função para verificar se ambos os jogadores estão prontos antes de iniciar
     private fun verificarProntosEAvancar() {
-        database.child("sala_1x1").child(codigoSala).child("prontos")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val prontos = snapshot.children.mapNotNull { it.key }
-                    if (prontos.size == 2 && jogadoresNaSala.size == 2) {
-                        // Altera o estado da sala para "em_jogo",
-                        database.child("sala_1x1").child(codigoSala).child("estado").setValue("em_jogo")
-                    } else {
-                        Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
-                    }
+        jogoCompetitivoRepository.obterProntos1x1(codigoSala)
+            .addOnSuccessListener { prontos ->
+                if (prontos.size == 2 && jogadoresNaSala.size == 2) {
+                    // Altera o estado da sala para "em_jogo",
+                    jogoCompetitivoRepository.atualizarEstadoSala(
+                        ModoCompetitivo.UM_CONTRA_UM,
+                        codigoSala,
+                        "em_jogo"
+                    )
+                } else {
+                    Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
                 }
-                override fun onCancelled(error: DatabaseError) {}
-            })
+            }
     }
 
     private fun escutarSalaApagada() {
-        salaListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (!saidaManual && !snapshot.exists()) {
+        salaListener = jogoCompetitivoRepository.escutarSalaApagada(
+            ModoCompetitivo.UM_CONTRA_UM,
+            codigoSala,
+            onSalaExisteAlterada = { existe ->
+                if (!saidaManual && !existe) {
                     Toast.makeText(this@SalaDeEspera1x1Activity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
                     abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador)
                     finish()
                 }
             }
-
-            override fun onCancelled(error: DatabaseError) {}
-        }
-        database.child("sala_1x1").child(codigoSala).addValueEventListener(salaListener!!)
+        )
     }
 
     private fun sairDaSala() {
         saidaManual = true
-        val salaRef = database.child("sala_1x1").child(codigoSala)
         if (admin) {
-            salaRef.removeValue()
+            jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
         } else {
-            salaRef.child("jogadores").child(nomeUtilizador).removeValue()
-            salaRef.child("prontos").child(nomeUtilizador).removeValue()
+            jogoCompetitivoRepository.removerJogador1x1(codigoSala, nomeUtilizador)
         }
         abrirMainActivity(this, nomeUtilizador, nomeJogador)
         finish()

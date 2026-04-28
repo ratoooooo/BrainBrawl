@@ -7,13 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityConvidarAmigo2x2Binding
-import com.google.firebase.database.FirebaseDatabase
+import com.example.brainbrawl.repositories.AmigosRepository
 
 class ConvidarAmigo2x2Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivityConvidarAmigo2x2Binding.inflate(layoutInflater)
     }
-    private val database = FirebaseDatabase.getInstance().reference
+    private val amigosRepository = AmigosRepository()
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()
     private lateinit var convidarAmigoAdapter: Convidar2x2AmigoAdapter
@@ -50,47 +50,19 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
     // Função para enviar convites para o modo 2x2
     private fun enviarConvite2x2(amigosSelecionados: List<String>) {
         val codigoSala = gerarCodigoSala()
-        val jogadores = hashMapOf<String, Any>()
-        jogadores[nomeUtilizador] = true
-
-        // Adiciona os amigos selecionados como jogadores
-        for (amigo in amigosSelecionados) {
-            jogadores[amigo] = true
-        }
-
-        // Cria a sala 2x2 no Firebase
-        database.child("sala_2x2").child(codigoSala).setValue(
-            mapOf(
-                "jogadores" to jogadores,
-                "admin" to nomeUtilizador,
-                "estado" to "em_espera",
-                "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5) ),
-            )
+        val categoriaSelecionada = nomeCategoria ?: getString(R.string.categoria5)
+        amigosRepository.enviarConvite2x2(
+            nomeUtilizador,
+            amigosSelecionados,
+            codigoSala,
+            categoriaSelecionada
         )
-        // Mapa de dados do convite
-        val conviteData = mapOf(
-            "estado" to "pendente",
-            "codigoSala" to codigoSala,
-            "modo" to "2x2",
-            "nomeCategoria" to (nomeCategoria ?: getString(R.string.categoria5) )
-        )
-
-        // Envia o convite para cada amigo selecionado
-        for (amigo in amigosSelecionados) {
-            database.child("jogadores").child(amigo)
-                .child("convites_recebidos").child(nomeUtilizador)
-                .setValue(conviteData)
-            // Regista o convite enviado pelo utilizador
-            database.child("jogadores").child(nomeUtilizador)
-                .child("convites_enviados").child(amigo)
-                .setValue(conviteData)
-        }
         Toast.makeText(this, "Convite 2x2 enviado!", Toast.LENGTH_SHORT).show()
         // Vai para sala de espera 2x2
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
         intent.putExtra("codigoSala", codigoSala)
         intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("nomeCategoria", nomeCategoria ?: getString(R.string.categoria5) )
+        intent.putExtra("nomeCategoria", categoriaSelecionada)
         startActivity(intent)
         finish()
     }
@@ -98,11 +70,9 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
     //Função para carregar a lista de amigos do utilizador
     private fun carregarListaAmigos() {
         amigos.clear()
-        database.child("jogadores").child(nomeUtilizador).child("amigos")
-            .get().addOnSuccessListener { snapshot ->
-                for (child in snapshot.children) {
-                    amigos.add(child.key ?: "")
-                }
+        amigosRepository.carregarListaAmigos(nomeUtilizador)
+            .addOnSuccessListener { nomesAmigos ->
+                amigos.addAll(nomesAmigos)
                 convidarAmigoAdapter.notifyDataSetChanged()
             }
     }

@@ -14,16 +14,14 @@ import com.example.brainbrawl.UteisSala.criarSalaComCategoriaEEntrar
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ServerValue
+import com.example.brainbrawl.repositories.CategoriaRepository
 
 class EscolherCategoriaActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityEscolherCategoriaBinding.inflate(layoutInflater)
     }
     private lateinit var codigoSala: String
-    private val database = FirebaseDatabase.getInstance().reference
+    private val categoriaRepository = CategoriaRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,12 +100,12 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         nomeJogador: String?,
         admin: Boolean
     ) {
-        database.child("jogadores").child(nomeUtilizador).child("categoriasPersonalizadas")
-            .get().addOnSuccessListener { snapshot ->
-                database.child("categoriasPublicas").get().addOnSuccessListener { publicasSnapshot ->
+        categoriaRepository.carregarCategoriasPersonalizadas(nomeUtilizador)
+            .addOnSuccessListener { categorias ->
+                categoriaRepository.carregarCategoriasPublicas().addOnSuccessListener { publicas ->
                     mostrarDialogCategoriasPersonalizadas(
-                        snapshot,
-                        publicasSnapshot,
+                        categorias,
+                        publicas,
                         modo,
                         nomeUtilizador,
                         nomeJogador,
@@ -115,8 +113,8 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                     )
                 }.addOnFailureListener {
                     mostrarDialogCategoriasPersonalizadas(
-                        snapshot,
-                        null,
+                        categorias,
+                        emptyList(),
                         modo,
                         nomeUtilizador,
                         nomeJogador,
@@ -127,14 +125,14 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     }
 
     private fun mostrarDialogCategoriasPersonalizadas(
-        snapshot: DataSnapshot,
-        publicasSnapshot: DataSnapshot?,
+        categorias: List<CategoriaRepository.CategoriaPersonalizada>,
+        publicas: List<CategoriaRepository.CategoriaPublica>,
         modo: String,
         nomeUtilizador: String,
         nomeJogador: String?,
         admin: Boolean
     ) {
-                val categorias = snapshot.children.mapNotNull { it.key }.sorted()
+                val categoriasPublicasIds = publicas.map { it.id }.toSet()
                 val scrollView = ScrollView(this)
                 val lista = LinearLayout(this).apply {
                     orientation = LinearLayout.VERTICAL
@@ -162,16 +160,16 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                 }
 
                 categorias.forEach { categoria ->
-                    val categoriaPublicaId = categoriaPublicaId(nomeUtilizador, categoria)
-                    val jaPublica = snapshot.child(categoria).child("categoriaPublicaId").exists() ||
-                        publicasSnapshot?.child(categoriaPublicaId)?.exists() == true
+                    val categoriaPublicaId = categoriaPublicaId(nomeUtilizador, categoria.nome)
+                    val jaPublica = !categoria.categoriaPublicaId.isNullOrBlank() ||
+                        categoriasPublicasIds.contains(categoriaPublicaId)
                     val container = LinearLayout(this).apply {
                         orientation = LinearLayout.VERTICAL
                         setPadding(0, 20, 0, 12)
                     }
 
                     container.addView(TextView(this).apply {
-                        text = categoria
+                        text = categoria.nome
                         textSize = 18f
                         setPadding(0, 0, 0, 8)
                     })
@@ -196,7 +194,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                             this,
                             codigoSala,
                             nomeUtilizador,
-                            categoria,
+                            categoria.nome,
                             true,
                             modo
                         ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
@@ -204,11 +202,11 @@ class EscolherCategoriaActivity : AppCompatActivity() {
 
                     botoes.addView(criarBotaoCategoria("Editar") {
                         dialog.dismiss()
-                        abrirAdicionarPerguntaActivity(modo, nomeUtilizador, nomeJogador, admin, categoria)
+                        abrirAdicionarPerguntaActivity(modo, nomeUtilizador, nomeJogador, admin, categoria.nome)
                     })
 
                     botoes.addView(criarBotaoCategoria("Eliminar") {
-                        confirmarEliminarCategoria(categoria, modo, nomeUtilizador, nomeJogador, admin, dialog)
+                        confirmarEliminarCategoria(categoria.nome, modo, nomeUtilizador, nomeJogador, admin, dialog)
                     })
 
                     container.addView(botoes)
@@ -221,14 +219,14 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                         )
                     }
                     botoesPublicos.addView(criarBotaoCategoria(if (jaPublica) "Atualizar pública" else "Tornar pública") {
-                        publicarCategoria(categoria, nomeUtilizador, nomeJogador) {
+                        publicarCategoria(categoria.nome, nomeUtilizador, nomeJogador) {
                             dialog.dismiss()
                             mostrarCategoriasPersonalizadas(modo, nomeUtilizador, nomeJogador, admin)
                         }
                     })
                     if (jaPublica) {
                         botoesPublicos.addView(criarBotaoCategoria("Remover pública") {
-                            removerCategoriaPublica(categoria, nomeUtilizador) {
+                            removerCategoriaPublica(categoria.nome, nomeUtilizador) {
                                 dialog.dismiss()
                                 mostrarCategoriasPersonalizadas(modo, nomeUtilizador, nomeJogador, admin)
                             }
@@ -273,9 +271,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             .setMessage("Queres eliminar \"$categoria\"?")
             .setNegativeButton("Cancelar", null)
             .setPositiveButton("Eliminar") { _, _ ->
-                database.child("jogadores").child(nomeUtilizador)
-                    .child("categoriasPersonalizadas").child(categoria)
-                    .removeValue()
+                categoriaRepository.eliminarCategoria(nomeUtilizador, categoria)
                     .addOnSuccessListener {
                         Toast.makeText(this, "Categoria eliminada.", Toast.LENGTH_SHORT).show()
                         dialogLista.dismiss()
@@ -313,94 +309,25 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         nomeJogador: String?,
         onComplete: () -> Unit
     ) {
-        val categoriaRef = database.child("jogadores").child(nomeUtilizador)
-            .child("categoriasPersonalizadas").child(categoria)
-        categoriaRef.get().addOnSuccessListener { snapshot ->
-            val perguntasValidas = perguntasValidas(snapshot.child("perguntas"))
-            if (perguntasValidas.isEmpty()) {
-                Toast.makeText(this, "A categoria precisa de perguntas válidas para ser pública.", Toast.LENGTH_SHORT).show()
-                return@addOnSuccessListener
+        categoriaRepository.publicarCategoria(nomeUtilizador, nomeJogador, categoria)
+            .addOnSuccessListener {
+                Toast.makeText(this, "Categoria pública guardada.", Toast.LENGTH_SHORT).show()
+                onComplete()
             }
-
-            val categoriaPublicaId = snapshot.child("categoriaPublicaId").getValue(String::class.java)
-                ?: categoriaPublicaId(nomeUtilizador, categoria)
-            val publicaRef = database.child("categoriasPublicas").child(categoriaPublicaId)
-            publicaRef.get().addOnSuccessListener publicaListener@ { publicaSnapshot ->
-                val criadorExistente = publicaSnapshot.child("criadorId").getValue(String::class.java)
-                if (publicaSnapshot.exists() && criadorExistente != nomeUtilizador) {
-                    Toast.makeText(this, "Só o criador pode atualizar esta categoria pública.", Toast.LENGTH_SHORT).show()
-                    return@publicaListener
-                }
-                val agora = System.currentTimeMillis()
-                val dadosPublicos = hashMapOf<String, Any>(
-                    "id" to categoriaPublicaId,
-                    "nome" to categoria,
-                    "descricao" to (snapshot.child("descricao").getValue(String::class.java) ?: ""),
-                    "criador" to (nomeJogador ?: nomeUtilizador),
-                    "criadorId" to nomeUtilizador,
-                    "nomeUtilizador" to nomeUtilizador,
-                    "perguntas" to perguntasValidas,
-                    "usos" to (publicaSnapshot.child("usos").getValue(Int::class.java) ?: 0),
-                    "ratingMedio" to (publicaSnapshot.child("ratingMedio").getValue(Double::class.java) ?: 0.0),
-                    "totalAvaliacoes" to (publicaSnapshot.child("totalAvaliacoes").getValue(Int::class.java) ?: 0),
-                    "dataCriacao" to (snapshot.child("dataCriacao").getValue(Long::class.java) ?: agora),
-                    "dataPublicacao" to (publicaSnapshot.child("dataPublicacao").getValue(Long::class.java) ?: agora)
-                )
-                publicaRef.updateChildren(dadosPublicos).addOnSuccessListener {
-                    categoriaRef.updateChildren(
-                        mapOf(
-                            "categoriaPublicaId" to categoriaPublicaId,
-                            "estadoPublicacao" to "publica",
-                            "dataPublicacao" to ServerValue.TIMESTAMP
-                        )
-                    )
-                    Toast.makeText(this, "Categoria pública guardada.", Toast.LENGTH_SHORT).show()
-                    onComplete()
-                }.addOnFailureListener {
-                    Toast.makeText(this, "Erro ao publicar categoria.", Toast.LENGTH_SHORT).show()
-                }
+            .addOnFailureListener { error ->
+                Toast.makeText(this, error.message ?: "Erro ao publicar categoria.", Toast.LENGTH_SHORT).show()
             }
-        }.addOnFailureListener {
-            Toast.makeText(this, "Erro ao ler categoria.", Toast.LENGTH_SHORT).show()
-        }
     }
 
     private fun removerCategoriaPublica(categoria: String, nomeUtilizador: String, onComplete: () -> Unit) {
-        val categoriaRef = database.child("jogadores").child(nomeUtilizador)
-            .child("categoriasPersonalizadas").child(categoria)
-        val categoriaPublicaId = categoriaPublicaId(nomeUtilizador, categoria)
-        database.child("categoriasPublicas").child(categoriaPublicaId).get().addOnSuccessListener { snapshot ->
-            val criadorId = snapshot.child("criadorId").getValue(String::class.java)
-            if (snapshot.exists() && criadorId != nomeUtilizador) {
-                Toast.makeText(this, "Só o criador pode remover esta categoria pública.", Toast.LENGTH_SHORT).show()
-                return@addOnSuccessListener
-            }
-            database.child("categoriasPublicas").child(categoriaPublicaId).removeValue().addOnSuccessListener {
-                categoriaRef.child("categoriaPublicaId").removeValue()
-                categoriaRef.child("estadoPublicacao").setValue("privada")
+        categoriaRepository.removerCategoriaPublica(nomeUtilizador, categoria)
+            .addOnSuccessListener {
                 Toast.makeText(this, "Categoria pública removida.", Toast.LENGTH_SHORT).show()
                 onComplete()
-            }.addOnFailureListener {
-                Toast.makeText(this, "Erro ao remover categoria pública.", Toast.LENGTH_SHORT).show()
             }
-        }
-    }
-
-    private fun perguntasValidas(perguntasSnapshot: DataSnapshot): List<Map<String, Any>> {
-        return perguntasSnapshot.children.mapNotNull { perguntaSnap ->
-            val pergunta = perguntaSnap.child("pergunta").getValue(String::class.java)
-            val respostaCorreta = perguntaSnap.child("respostaCorreta").getValue(String::class.java)
-            val opcoes = perguntaSnap.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
-            if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoes.size == 4) {
-                mapOf(
-                    "pergunta" to pergunta,
-                    "respostaCorreta" to respostaCorreta,
-                    "opcoes" to opcoes
-                )
-            } else {
-                null
+            .addOnFailureListener { error ->
+                Toast.makeText(this, error.message ?: "Erro ao remover categoria pública.", Toast.LENGTH_SHORT).show()
             }
-        }
     }
 
     private fun categoriaPublicaId(nomeUtilizador: String, categoria: String): String {

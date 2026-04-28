@@ -2,15 +2,12 @@ package com.example.brainbrawl
 
 import android.content.Context
 import com.example.brainbrawl.UteisNavegacao.abrirSalaDeEsperaGrupo
+import com.example.brainbrawl.repositories.CategoriaRepository
 import com.example.brainbrawl.repositories.SalaRepository
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.MutableData
-import com.google.firebase.database.Transaction
 
 object UteisSala {
     private val salaRepository = SalaRepository()
+    private val categoriaRepository = CategoriaRepository()
 
     // Função utilizada para gerar um código de sala
     fun gerarCodigoSala(): String {
@@ -20,7 +17,6 @@ object UteisSala {
 
     // Funçao utilizada para criar uma sala caótica e ir buscar todas as perguntas de todas as categorias
     fun criarSalaCaoticaEEntrar(context: Context, nomeUtilizador: String?, nomeJogador: String?, onError: (String) -> Unit = {}) {
-        val database = FirebaseDatabase.getInstance().reference
         val codigoSala = gerarCodigoSala()
         // Determina o nome do admin e do jogador principal
         val nomeAdmin = nomeUtilizador ?: nomeJogador
@@ -29,19 +25,7 @@ object UteisSala {
             return
         }
         // Busca todas as perguntas de todas as categorias
-        database.child("categorias").get().addOnSuccessListener { snapshot ->
-            val todasPerguntas = mutableListOf<Map<String, Any>>()
-            snapshot.children.forEach { catSnap ->
-                val perguntasSnap = catSnap.child("perguntas")
-                perguntasSnap.children.forEach { perguntaSnap ->
-                    val pergunta = perguntaSnap.child("pergunta").getValue(String::class.java)
-                    val respostaCorreta = perguntaSnap.child("respostaCorreta").getValue(String::class.java)
-                    val opcoes = perguntaSnap.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
-                    if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                        todasPerguntas.add(mapOf("pergunta" to pergunta, "respostaCorreta" to respostaCorreta, "opcoes" to opcoes))
-                    }
-                }
-            }
+        categoriaRepository.carregarTodasPerguntasOficiais().addOnSuccessListener { todasPerguntas ->
             val perguntasRandom = todasPerguntas.shuffled().take(8)
             val salaData = mapOf(
                 "horaCriacao" to System.currentTimeMillis(),
@@ -71,23 +55,13 @@ object UteisSala {
         modoJogo: String,
         onError: (String) -> Unit = {}
     ) {
-        val database = FirebaseDatabase.getInstance().reference
         val nomeAdmin = nomeUtilizador ?: nomeJogador
         if (nomeAdmin == null) {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
         // Busca as perguntas da categoria específica
-        database.child("categorias").child(nomeCategoria).child("perguntas").get().addOnSuccessListener { snapshot ->
-            val perguntas = mutableListOf<Map<String, Any>>()
-            snapshot.children.forEach { perguntaSnap ->
-                val pergunta = perguntaSnap.child("pergunta").getValue(String::class.java)
-                val respostaCorreta = perguntaSnap.child("respostaCorreta").getValue(String::class.java)
-                val opcoes = perguntaSnap.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
-                if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                    perguntas.add(mapOf("pergunta" to pergunta, "respostaCorreta" to respostaCorreta, "opcoes" to opcoes))
-                }
-            }
+        categoriaRepository.carregarPerguntasCategoriaOficial(nomeCategoria).addOnSuccessListener { perguntas ->
             val perguntasRandom = perguntas.shuffled().take(8)
             val salaData = mapOf(
                 "horaCriacao" to System.currentTimeMillis(),
@@ -113,20 +87,8 @@ object UteisSala {
         modoJogo: String,
         onError: (String) -> Unit = {}
     ) {
-        val database = FirebaseDatabase.getInstance().reference
-        database.child("jogadores").child(nomeUtilizador)
-            .child("categoriasPersonalizadas").child(nomeCategoria).child("perguntas")
-            .get().addOnSuccessListener { snapshot ->
-                val perguntas = mutableListOf<Map<String, Any>>()
-                snapshot.children.forEach { perguntaSnap ->
-                    val pergunta = perguntaSnap.child("pergunta").getValue(String::class.java)
-                    val respostaCorreta = perguntaSnap.child("respostaCorreta").getValue(String::class.java)
-                    val opcoes = perguntaSnap.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
-                    if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoes.size >= 2) {
-                        perguntas.add(mapOf("pergunta" to pergunta, "respostaCorreta" to respostaCorreta, "opcoes" to opcoes))
-                    }
-                }
-
+        categoriaRepository.carregarPerguntasCategoriaPersonalizada(nomeUtilizador, nomeCategoria)
+            .addOnSuccessListener { perguntas ->
                 if (perguntas.isEmpty()) {
                     onError("A categoria personalizada ainda não tem perguntas válidas.")
                     return@addOnSuccessListener
@@ -161,42 +123,22 @@ object UteisSala {
         modoJogo: String = "classico",
         onError: (String) -> Unit = {}
     ) {
-        val database = FirebaseDatabase.getInstance().reference
         val nomeAdmin = nomeUtilizador ?: nomeJogador
         if (nomeAdmin.isNullOrBlank()) {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
 
-        val categoriaRef = database.child("categoriasPublicas").child(categoriaPublicaId)
-        categoriaRef.get().addOnSuccessListener { snapshot ->
-            if (!snapshot.exists()) {
+        categoriaRepository.carregarCategoriaPublica(categoriaPublicaId).addOnSuccessListener { detalhe ->
+            if (detalhe == null) {
                 onError("Categoria pública não encontrada.")
                 return@addOnSuccessListener
             }
 
-            val nomeCategoria = snapshot.child("nome").getValue(String::class.java) ?: "Categoria pública"
-            val criador = snapshot.child("criador").getValue(String::class.java)
-                ?: snapshot.child("criadorId").getValue(String::class.java)
-                ?: ""
-            val criadorId = snapshot.child("criadorId").getValue(String::class.java)
-                ?: snapshot.child("nomeUtilizador").getValue(String::class.java)
-                ?: ""
-            val perguntas = mutableListOf<Map<String, Any>>()
-            snapshot.child("perguntas").children.forEach { perguntaSnap ->
-                val pergunta = perguntaSnap.child("pergunta").getValue(String::class.java)
-                val respostaCorreta = perguntaSnap.child("respostaCorreta").getValue(String::class.java)
-                val opcoes = perguntaSnap.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
-                if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoes.size == 4) {
-                    perguntas.add(
-                        mapOf(
-                            "pergunta" to pergunta,
-                            "respostaCorreta" to respostaCorreta,
-                            "opcoes" to opcoes
-                        )
-                    )
-                }
-            }
+            val nomeCategoria = detalhe.categoria.nome
+            val criador = detalhe.categoria.criador
+            val criadorId = detalhe.categoria.criadorId
+            val perguntas = detalhe.perguntas
 
             if (perguntas.isEmpty()) {
                 onError("Esta categoria pública não tem perguntas válidas.")
@@ -219,15 +161,7 @@ object UteisSala {
             )
 
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
-                categoriaRef.child("usos").runTransaction(object : Transaction.Handler {
-                    override fun doTransaction(currentData: MutableData): Transaction.Result {
-                        val usosAtuais = currentData.getValue(Int::class.java) ?: 0
-                        currentData.value = usosAtuais + 1
-                        return Transaction.success(currentData)
-                    }
-
-                    override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) = Unit
-                })
+                categoriaRepository.incrementarUsos(categoriaPublicaId)
                 abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, nomeCategoria, admin, modoJogo)
             }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
         }.addOnFailureListener { onError(it.message ?: "Erro ao buscar categoria pública") }

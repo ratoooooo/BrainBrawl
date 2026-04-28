@@ -14,11 +14,9 @@ import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
 import com.example.brainbrawl.UteisNavegacao.adicionarDadosJogador
 import com.example.brainbrawl.databinding.ActivityJogoBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ServerValue
-import com.google.firebase.database.ValueEventListener
+import com.example.brainbrawl.repositories.JogoRepository
+import com.example.brainbrawl.services.GameService
+import com.example.brainbrawl.services.ScoreService
 
 class JogoActivity : AppCompatActivity() {
     private val binding by lazy { ActivityJogoBinding.inflate(layoutInflater) }
@@ -57,12 +55,18 @@ class JogoActivity : AppCompatActivity() {
     private val handler = Handler(Looper.getMainLooper())
     private val formatoDecimal = DecimalFormat("#.#")
     private val perguntas = mutableListOf<Pergunta>()
-    private val database = FirebaseDatabase.getInstance().reference
+    private val jogoRepository = JogoRepository()
+    private val gameService = GameService()
+    private val scoreService = ScoreService()
     private var serverTimeOffset: Long = 0L
 
     // Listeners do Firebase para serem removidos quando a atividade é destruída
-    private var perguntaIndexListener: ValueEventListener? = null
+    private var perguntaIndexListener: JogoRepository.ListenerHandle? = null
+    private var serverTimeOffsetListener: JogoRepository.ListenerHandle? = null
+    private var estadoSalaListener: JogoRepository.ListenerHandle? = null
     private var adminAdvanceHandler: Runnable? = null
+    private var eliminacaoEmCurso = false
+    private var navegacaoPontuacoesIniciada = false
 
     // Função chamada quando a atividade é criada
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -76,14 +80,10 @@ class JogoActivity : AppCompatActivity() {
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
         carregarOffsetServidor()
 
-        // Referência para a sala no Firebase
-        val salaRef = database.child("salas").child(codigoSala)
-
-        // Verifica se o utilizador atual é o administrador da sala
-        salaRef.child("admin").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val nomeAdmin = snapshot.getValue(String::class.java)
-                admin = (nomeAdmin == nomeUtilizador) || (nomeAdmin == nomeJogador)
+        jogoRepository.obterInfoSala(codigoSala, nomeUtilizador, nomeJogador)
+            .addOnSuccessListener { infoSala ->
+                admin = infoSala.admin
+                modoJogo = infoSala.modoJogo
 
                 // Mostra ou esconde a indicação "Admin"
                 binding.txtAdmin.apply {
@@ -95,26 +95,13 @@ class JogoActivity : AppCompatActivity() {
                     }
                 }
 
-                // Carrega o modo de jogo definido para a sala
-                salaRef.child("modoJogo").addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        modoJogo = snapshot.getValue(String::class.java) ?: "classico"
-                        carregarPerguntas() // Inicia o carregamento das perguntas após obter o modo de jogo
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(this@JogoActivity, "Erro ao carregar modo de jogo: ${error.message}", Toast.LENGTH_SHORT).show()
-                        modoJogo = "classico"
-                        carregarPerguntas()
-                    }
-                })
+                escutarFimEliminatorias()
+                carregarPerguntas()
             }
-
-            override fun onCancelled(error: DatabaseError) {
-                Toast.makeText(this@JogoActivity, "Erro ao identificar admin: ${error.message}", Toast.LENGTH_SHORT).show()
+            .addOnFailureListener { erro ->
+                Toast.makeText(this, "Erro ao carregar sala: ${erro.message}", Toast.LENGTH_SHORT).show()
                 finish()
             }
-        })
     }
 
     override fun onDestroy() {
@@ -129,9 +116,12 @@ class JogoActivity : AppCompatActivity() {
 
     // Função para remover os listeners do Firebase e evitar memory leaks
     private fun removerListeners() {
-        perguntaIndexListener?.let {
-            database.child("salas").child(codigoSala).child("perguntaAtualIndex").removeEventListener(it)
-        }
+        jogoRepository.removerListener(perguntaIndexListener)
+        perguntaIndexListener = null
+        jogoRepository.removerListener(serverTimeOffsetListener)
+        serverTimeOffsetListener = null
+        jogoRepository.removerListener(estadoSalaListener)
+        estadoSalaListener = null
         adminAdvanceHandler?.let {
             handler.removeCallbacks(it)
         }
@@ -139,44 +129,34 @@ class JogoActivity : AppCompatActivity() {
 
     // Função para carregar as perguntas do Firebase
     private fun carregarPerguntas() {
-        database.child("salas").child(codigoSala).child("perguntas")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    perguntas.clear()
-                    var contador = 0
-                    // Itera sobre as perguntas recebidas e adiciona-as à lista local
-                    for (perguntaSnapshot in snapshot.children) {
-                        // Limita o número de perguntas a 8
-                        if (contador >= 8) break
-                        val pergunta = perguntaSnapshot.getValue(Pergunta::class.java)
-                        if (pergunta != null) perguntas.add(pergunta)
-                        contador++
-                    }
-                    if (perguntas.isNotEmpty()) {
-                        if (admin) {
-                            // Se for admin, controla o fluxo do jogo
-                            mostrarRespostaAdmin()
-                        } else {
-                            // Se for jogador, escuta por atualizações do admin
-                            escutarIndicePergunta()
-                        }
+        jogoRepository.carregarPerguntas(codigoSala)
+            .addOnSuccessListener { perguntasCarregadas ->
+                perguntas.clear()
+                perguntas.addAll(perguntasCarregadas)
+                if (perguntas.isNotEmpty()) {
+                    if (admin) {
+                        // Se for admin, controla o fluxo do jogo
+                        mostrarRespostaAdmin()
                     } else {
-                        // Se não houver perguntas, finaliza o jogo
-                        finalizarJogo()
+                        // Se for jogador, escuta por atualizações do admin
+                        escutarIndicePergunta()
                     }
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    Toast.makeText(this@JogoActivity, "Erro ao carregar perguntas: ${error.message}", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Se não houver perguntas, finaliza o jogo
                     finalizarJogo()
                 }
-            })
+            }
+            .addOnFailureListener { erro ->
+                Toast.makeText(this@JogoActivity, "Erro ao carregar perguntas: ${erro.message}", Toast.LENGTH_SHORT).show()
+                finalizarJogo()
+            }
     }
 
     // Função para os jogadores escutarem as mudanças no índice da pergunta
     private fun escutarIndicePergunta() {
-        perguntaIndexListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val novoIndex = snapshot.getValue(Int::class.java) ?: 0
+        perguntaIndexListener = jogoRepository.escutarIndicePergunta(
+            codigoSala,
+            onIndiceAlterado = { novoIndex ->
                 // Se o índice mudou, atualiza a pergunta
                 if (novoIndex != perguntaAtualIndex) {
                     perguntaAtualIndex = novoIndex
@@ -188,15 +168,11 @@ class JogoActivity : AppCompatActivity() {
                     }
                 }
             }
-            override fun onCancelled(error: DatabaseError) {}
-        }
-        database.child("salas").child(codigoSala).child("perguntaAtualIndex")
-            .addValueEventListener(perguntaIndexListener!!)
+        )
 
         // Garante que a primeira pergunta é mostrada corretamente
-        database.child("salas").child(codigoSala).child("perguntaAtualIndex")
-            .get().addOnSuccessListener { snap ->
-                val idx = snap.getValue(Int::class.java) ?: 0
+        jogoRepository.obterIndicePergunta(codigoSala)
+            .addOnSuccessListener { idx ->
                 perguntaAtualIndex = idx
                 if (perguntaAtualIndex < perguntas.size) {
                     mostrarRespostaJogador()
@@ -246,16 +222,13 @@ class JogoActivity : AppCompatActivity() {
         progressBarAtivo = true
 
         // Obtém a hora de início da pergunta definida pelo admin para sincronizar o cronómetro
-        database.child("salas").child(codigoSala).child("perguntaHoraInicio")
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    val horaInicio = snapshot.getValue(Long::class.java) ?: tempoServidorAtual()
-                    iniciarCronometroSincronizado(horaInicio)
-                }
-                override fun onCancelled(error: DatabaseError) {
-                    iniciarCronometroSincronizado(tempoServidorAtual())
-                }
-            })
+        jogoRepository.obterHoraInicioPergunta(codigoSala)
+            .addOnSuccessListener { horaInicio ->
+                iniciarCronometroSincronizado(horaInicio ?: tempoServidorAtual())
+            }
+            .addOnFailureListener {
+                iniciarCronometroSincronizado(tempoServidorAtual())
+            }
     }
 
     // Função para  mostrar a interface da pergunta para o admin
@@ -297,26 +270,19 @@ class JogoActivity : AppCompatActivity() {
         }
 
         // Atualiza o índice da pergunta e a hora de início no Firebase para todos os jogadores
-        val salaRef = database.child("salas").child(codigoSala)
-        val updates = mapOf(
-            "perguntaAtualIndex" to perguntaAtualIndex,
-            "perguntaHoraInicio" to ServerValue.TIMESTAMP
-        )
-        salaRef.updateChildren(updates)
+        jogoRepository.atualizarPerguntaAtual(codigoSala, perguntaAtualIndex)
 
         // Limpa as respostas da pergunta anterior no Firebase
-        database.child("salas").child(codigoSala).child("perguntaAtual").child("respostas").removeValue()
+        jogoRepository.limparRespostasPergunta(codigoSala)
 
         // Inicia o cronómetro do lado do admin
-        salaRef.child("perguntaHoraInicio").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                iniciarCronometroAdmin(snapshot.getValue(Long::class.java) ?: tempoServidorAtual())
+        jogoRepository.obterHoraInicioPergunta(codigoSala)
+            .addOnSuccessListener { horaInicio ->
+                iniciarCronometroAdmin(horaInicio ?: tempoServidorAtual())
             }
-
-            override fun onCancelled(error: DatabaseError) {
+            .addOnFailureListener {
                 iniciarCronometroAdmin(tempoServidorAtual())
             }
-        })
     }
 
     // Função para desativar os botões de resposta para o admin
@@ -391,8 +357,13 @@ class JogoActivity : AppCompatActivity() {
         }
 
         // Regista a resposta do jogador no Firebase
-        database.child("salas").child(codigoSala).child("perguntaAtual")
-            .child("respostas").child(nomeJogador).setValue(acertouUltimaPergunta)
+        jogoRepository.registarResposta(codigoSala, nomeJogador, acertouUltimaPergunta)
+
+        if (modoJogo == "eliminatorias" && !admin && !acertouUltimaPergunta) {
+            handler.postDelayed({
+                eliminarJogador()
+            }, 1200)
+        }
 
     }
 
@@ -400,7 +371,7 @@ class JogoActivity : AppCompatActivity() {
     private fun iniciarCronometroSincronizado(horaInicio: Long) {
         tempoDecorrido = true
         progressBarAtivo = true
-        val tempoTotal = if (modoJogo == "caotico") 10.0 else 20.0
+        val tempoTotal = gameService.tempoTotal(modoJogo)
         binding.pbTempo.max = tempoTotal.toInt()
         binding.pbTempo.progress = tempoTotal.toInt()
 
@@ -459,7 +430,7 @@ class JogoActivity : AppCompatActivity() {
     private fun iniciarCronometroAdmin(horaInicio: Long) {
         tempoDecorrido = true
         progressBarAtivo = true
-        val tempoTotal = if (modoJogo == "caotico") 10.0 else 20.0
+        val tempoTotal = gameService.tempoTotal(modoJogo)
         binding.pbTempo.max = tempoTotal.toInt()
         binding.pbTempo.progress = tempoTotal.toInt()
 
@@ -496,12 +467,7 @@ class JogoActivity : AppCompatActivity() {
                             } else {
                                 perguntaAtualIndex++
                                 // Atualiza o índice da pergunta no Firebase para todos
-                                val salaRef = database.child("salas").child(codigoSala)
-                                val updates = mapOf(
-                                    "perguntaAtualIndex" to perguntaAtualIndex,
-                                    "perguntaHoraInicio" to ServerValue.TIMESTAMP
-                                )
-                                salaRef.updateChildren(updates)
+                                jogoRepository.atualizarPerguntaAtual(codigoSala, perguntaAtualIndex)
                                 // Mostra a próxima pergunta para o admin
                                 mostrarRespostaAdmin()
                             }
@@ -518,14 +484,11 @@ class JogoActivity : AppCompatActivity() {
     }
 
     private fun carregarOffsetServidor() {
-        FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset")
-            .addValueEventListener(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    serverTimeOffset = snapshot.getValue(Long::class.java) ?: 0L
-                }
-
-                override fun onCancelled(error: DatabaseError) {}
-            })
+        serverTimeOffsetListener = jogoRepository.escutarOffsetServidor(
+            onOffsetAlterado = { offset ->
+                serverTimeOffset = offset
+            }
+        )
     }
 
     private fun tempoServidorAtual(): Long = System.currentTimeMillis() + serverTimeOffset
@@ -536,28 +499,24 @@ class JogoActivity : AppCompatActivity() {
             eliminarJogador()
             return
         }
-        database.child("salas").child(codigoSala).child("jogadores")
-            .get()
-            .addOnSuccessListener { snapshot ->
+        jogoRepository.obterJogadoresEliminatorias(codigoSala)
+            .addOnSuccessListener { jogadores ->
                 // Conta quantos jogadores ainda estão na sala
-                val jogadoresRestantes = snapshot.children
-                    .mapNotNull { it.key }
-                    .filter { nome ->
-                        nome != nomeUtilizador && nome != nomeJogador
+                val jogadoresRestantes = jogadores
+                    .filter { jogador ->
+                        jogador.nome != "admin" &&
+                            !jogador.isHostOnly &&
+                            jogador.estado != "eliminado"
                     }
-                if (jogadoresRestantes.size <= 1) {
+                    .map { it.nome }
+                if (gameService.deveTerminarEliminatorias(jogadoresRestantes)) {
                     // Se restar apenas um jogador, o jogo termina
                     Toast.makeText(this@JogoActivity, "Jogo terminado! Só resta um jogador.", Toast.LENGTH_LONG).show()
-                    enviarPontuacaoActivity()
+                    terminarEliminatoriasEEnviar()
                 } else {
                     // Caso contrário, avança para a próxima pergunta
                     perguntaAtualIndex++
-                    val salaRef = database.child("salas").child(codigoSala)
-                    val updates = mapOf(
-                        "perguntaAtualIndex" to perguntaAtualIndex,
-                        "perguntaHoraInicio" to ServerValue.TIMESTAMP
-                    )
-                    salaRef.updateChildren(updates)
+                    jogoRepository.atualizarPerguntaAtual(codigoSala, perguntaAtualIndex)
                     if (admin) mostrarRespostaAdmin()
                 }
             }
@@ -573,54 +532,41 @@ class JogoActivity : AppCompatActivity() {
 
     // Função para eliminar um jogador no modo "Eliminatórias"
     private fun eliminarJogador() {
-        if (admin) return
+        if (admin || eliminacaoEmCurso) return
+        eliminacaoEmCurso = true
         tempoDecorrido = false
         progressBarAtivo = false
         handler.removeCallbacksAndMessages(null)
         pararSom()
-        // Remove o jogador da sala no Firebase
-        database.child("salas").child(codigoSala).child("jogadores")
-            .child(nomeJogador).removeValue()
+        // Mantém o jogador na sala para preservar pontuação e pódio, mas marca-o como eliminado.
+        jogoRepository.marcarJogadorEliminado(
+            codigoSala,
+            nomeJogador,
+            totalPontos,
+            totalPerguntascertas
+        )
             .addOnSuccessListener {
                 Toast.makeText(this, "Você foi eliminado!", Toast.LENGTH_LONG).show()
-                // Envia de volta para o ecrã principal
-                val intent = Intent(this, MainActivity::class.java)
-                adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
-                startActivity(intent)
-                finish()
+                abrirEsperaEliminadoActivity()
             }
             .addOnFailureListener {
+                eliminacaoEmCurso = false
                 Toast.makeText(this, "Erro ao eliminar jogador. Tente novamente.", Toast.LENGTH_LONG).show()
             }
     }
 
     // Função para calcular e atualizar a pontuação do jogador
     private fun atualizarPontuacao() {
-        // Calcula os pontos com base no tempo de resposta
-        val tempoUsado = if (modoJogo == "caotico") {
-            (10 - tempoRestante).toInt()
-        } else {
-            (20 - tempoRestante).toInt()
+        val resultado = scoreService.calcularPontuacao(
+            modoJogo = modoJogo,
+            tempoRestante = tempoRestante,
+            numeroPerguntasCertas = numeroPerguntasCertas,
+            bonus = bonus
+        )
+        if (resultado.bonusAplicado > 0) {
+            Toast.makeText(this, "Bónus de sequência! +${resultado.bonusAplicado} pontos", Toast.LENGTH_SHORT).show()
         }
-        var pontuacao: Int
-        if (modoJogo == "caotico") {
-            pontuacao = (10 - tempoUsado) * 30
-        } else {
-            pontuacao = (20 - tempoUsado) * 10
-        }
-
-        // Bonus por sequência de respostas corretas
-        if (numeroPerguntasCertas == 2) {
-            pontuacao += bonus
-            Toast.makeText(this, "Bónus de sequência! +$bonus pontos", Toast.LENGTH_SHORT).show()
-        } else if (numeroPerguntasCertas == 3) {
-            pontuacao += bonus + 25
-            Toast.makeText(this, "Bónus de sequência! +${bonus + 25} pontos", Toast.LENGTH_SHORT).show()
-        } else if (numeroPerguntasCertas >= 4) {
-            pontuacao += bonus + 50
-            Toast.makeText(this, "Bónus de sequência! +${bonus + 50} pontos", Toast.LENGTH_SHORT).show()
-        }
-        totalPontos += pontuacao
+        totalPontos += resultado.pontos
     }
 
     // Função para finalizar o jogo
@@ -631,27 +577,22 @@ class JogoActivity : AppCompatActivity() {
         pararSom()
         removerListeners()
         if (perguntaAtualIndex >= perguntas.size) {
-            if (!admin) {
-                // Guarda a pontuação final e o total de respostas certas no Firebase
-                database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador)
-                    .child("pontuacao").setValue(totalPontos)
-                database.child("salas").child(codigoSala).child("jogadores").child(nomeJogador)
-                    .child("totalRespostasCertas").setValue(totalPerguntascertas)
+            if (modoJogo == "eliminatorias" && admin) {
+                terminarEliminatoriasEEnviar()
+                return
             }
             // Verifica o estado da sala antes de avançar
-            database.child("salas").child(codigoSala).child("estado")
-                .addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        enviarPontuacaoActivity()
-                    }
-                    override fun onCancelled(error: DatabaseError) {
-                        Toast.makeText(this@JogoActivity, "Erro ao verificar estado da sala: ${error.message}", Toast.LENGTH_SHORT).show()
-                        val intent = Intent(this@JogoActivity, MainActivity::class.java)
-                        adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
-                        startActivity(intent)
-                        finish()
-                    }
-                })
+            jogoRepository.obterEstadoSala(codigoSala)
+                .addOnSuccessListener {
+                    guardarResultadoEEnviarPontuacoes()
+                }
+                .addOnFailureListener { erro ->
+                    Toast.makeText(this@JogoActivity, "Erro ao verificar estado da sala: ${erro.message}", Toast.LENGTH_SHORT).show()
+                    val intent = Intent(this@JogoActivity, MainActivity::class.java)
+                    adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
+                    startActivity(intent)
+                    finish()
+                }
             return
         }
 
@@ -661,15 +602,73 @@ class JogoActivity : AppCompatActivity() {
             perguntaAtualIndex++
             if (admin) {
                 // Se for admin, avança para a próxima pergunta
-                val salaRef = database.child("salas").child(codigoSala)
-                val updates = mapOf(
-                    "perguntaAtualIndex" to perguntaAtualIndex,
-                    "perguntaHoraInicio" to ServerValue.TIMESTAMP
-                )
-                salaRef.updateChildren(updates)
+                jogoRepository.atualizarPerguntaAtual(codigoSala, perguntaAtualIndex)
                 mostrarRespostaAdmin()
             }
         }
+    }
+
+    private fun escutarFimEliminatorias() {
+        if (modoJogo != "eliminatorias" || estadoSalaListener != null) return
+
+        estadoSalaListener = jogoRepository.escutarEstadoSala(
+            codigoSala,
+            onEstadoAlterado = { estado ->
+                if (estado == "terminado") {
+                    guardarResultadoEEnviarPontuacoes()
+                }
+            }
+        )
+    }
+
+    private fun terminarEliminatoriasEEnviar() {
+        if (navegacaoPontuacoesIniciada) return
+
+        jogoRepository.atualizarEstadoSala(codigoSala, "terminado")
+            .addOnCompleteListener {
+                guardarResultadoEEnviarPontuacoes()
+            }
+    }
+
+    private fun guardarResultadoEEnviarPontuacoes() {
+        if (navegacaoPontuacoesIniciada) return
+        navegacaoPontuacoesIniciada = true
+
+        tempoDecorrido = false
+        progressBarAtivo = false
+        handler.removeCallbacksAndMessages(null)
+        pararSom()
+        removerListeners()
+
+        if (!admin) {
+            jogoRepository.guardarResultadoJogador(
+                codigoSala,
+                nomeJogador,
+                totalPontos,
+                totalPerguntascertas
+            ).addOnCompleteListener {
+                enviarPontuacaoActivity()
+            }
+        } else {
+            enviarPontuacaoActivity()
+        }
+    }
+
+    private fun abrirEsperaEliminadoActivity() {
+        removerListeners()
+        val intent = Intent(this, EsperaEliminadoActivity::class.java)
+        intent.putExtra("codigoSala", codigoSala)
+        intent.putExtra("nomeJogador", nomeJogador)
+        intent.putExtra("totalPontos", totalPontos)
+        intent.putExtra("nomeCategoria", nomeCategoria)
+        intent.putExtra("nomeUtilizador", nomeUtilizador)
+        intent.putExtra("modoJogo", modoJogo)
+        intent.putExtra("numeroPerguntasCertas", numeroPerguntasCertas)
+        intent.putExtra("totalPerguntascertas", totalPerguntascertas)
+        intent.putExtra("respostasCertas", totalPerguntascertas)
+        intent.putExtra("totalPerguntas", perguntas.size)
+        startActivity(intent)
+        finish()
     }
 
     // Função para enviar os dados do jogo para a atividade de pontuações

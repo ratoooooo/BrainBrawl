@@ -10,14 +10,14 @@ import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
+import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.repositories.JogadorRepository
-import com.google.firebase.database.FirebaseDatabase
 
 class PerfilAmigoActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityPerfilAmigoBinding.inflate(layoutInflater)
     }
-    private val database = FirebaseDatabase.getInstance().reference
+    private val amigosRepository = AmigosRepository()
     private val jogadorRepository = JogadorRepository()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -77,8 +77,8 @@ class PerfilAmigoActivity : AppCompatActivity() {
                 binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(taxaAcertos)}%"
 
                 binding.btnRemoverAmigo.setOnClickListener {
-                    database.child("jogadores").child(nomeUtilizador).child("amigos")
-                        .child(nomeAmigo).removeValue().addOnSuccessListener {
+                    amigosRepository.removerAmigo(nomeUtilizador, nomeAmigo)
+                        .addOnSuccessListener {
                             Toast.makeText(this, "Amigo removido com sucesso!", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this, AmigosActivity::class.java)
                             intent.putExtra("nomeUtilizador", nomeUtilizador)
