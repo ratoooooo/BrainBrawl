@@ -6,9 +6,10 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
-import com.example.brainbrawl.UteisFirebase.doubleValue
-import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPontuacao1x1Binding
+import com.example.brainbrawl.repositories.PontuacaoRepository
+import com.example.brainbrawl.services.EstatisticasService
+import com.example.brainbrawl.services.EstatisticasService.ResultadoJogador
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -19,6 +20,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         ActivityPontuacao1x1Binding.inflate(layoutInflater)
     }
     private val database = FirebaseDatabase.getInstance().reference
+    private val pontuacaoRepository = PontuacaoRepository()
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private var nomeJogador: String = ""
@@ -27,7 +29,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     private var nomeCategoria: String = ""
 
     private var desforraListener: ValueEventListener? = null
-    private var pontuacaoListener: ValueEventListener? = null
+    private var pontuacaoListener: PontuacaoRepository.ListenerHandle? = null
     private var novaSalaListener: ValueEventListener? = null
 
     private var adversario: String? = null
@@ -64,7 +66,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         removerListener(desforraListener, "jogadores")
-        removerListener(pontuacaoListener, "pontuacoes")
+        pontuacaoRepository.removerListener(pontuacaoListener)
         removerListener(novaSalaListener, "novaSalaDesforra")
     }
 
@@ -147,89 +149,52 @@ class Pontuacao1x1Activity : AppCompatActivity() {
 
     // Função para carregar a pontuação dos jogadores
     private fun carregarPontuacao1x1Realtime() {
-        pontuacaoListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val jogadores = mutableListOf<Pair<String, Double>>()
-                for (child in snapshot.children) {
-                    val nome = child.key ?: "Desconhecido"
-                    val pontos = child.getValue(Double::class.java) ?: 0.0
-                    jogadores.add(Pair(nome, pontos))
-                }
-                jogadores.sortByDescending { it.second }
-
-                if (jogadores.isNotEmpty()) {
-                    binding.txtNomeJogador1.text = jogadores[0].first
-                    binding.txtPontos1.text = jogadores[0].second.toInt().toString()
-                    if (jogadores[0].first != nomeUtilizador) adversario = jogadores[0].first
-                }
-                if (jogadores.size > 1) {
-                    binding.txtNomeJogador2.text = jogadores[1].first
-                    binding.txtPontos2.text = jogadores[1].second.toInt().toString()
-                    if (jogadores[1].first != nomeUtilizador) adversario = jogadores[1].first
-                }
-                if (jogadores.size <= 1) {
-                    binding.txtNomeJogador2.text = "Aguardando adversário..."
-                    binding.txtPontos2.text = ""
-                }
-
-                for ((index, jogador) in jogadores.withIndex()) {
-                    val ficouEmPrimeiro = (index == 0)
-                    atualizarEstatisticasJogador1x1(jogador.first, jogador.second, ficouEmPrimeiro)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
+        pontuacaoListener = pontuacaoRepository.escutarPontuacoes1x1(
+            codigoSala = codigoSala,
+            onPontuacoes = { jogadores ->
+                atualizarUiPontuacoes(jogadores)
+                atualizarEstatisticasJogadorAtual(jogadores)
+            },
+            onErro = {
                 Toast.makeText(this@Pontuacao1x1Activity, "Erro ao carregar pontuação", Toast.LENGTH_SHORT).show()
+            }
+        )
+    }
+
+    private fun atualizarUiPontuacoes(jogadores: List<ResultadoJogador>) {
+        if (jogadores.isNotEmpty()) {
+            binding.txtNomeJogador1.text = jogadores[0].nome
+            binding.txtPontos1.text = jogadores[0].pontos.toInt().toString()
+            if (jogadores[0].nome != nomeUtilizador) adversario = jogadores[0].nome
+        }
+        if (jogadores.size > 1) {
+            binding.txtNomeJogador2.text = jogadores[1].nome
+            binding.txtPontos2.text = jogadores[1].pontos.toInt().toString()
+            if (jogadores[1].nome != nomeUtilizador) adversario = jogadores[1].nome
+        }
+        if (jogadores.size <= 1) {
+            binding.txtNomeJogador2.text = "Aguardando adversário..."
+            binding.txtPontos2.text = ""
+        }
+    }
+
+    private fun atualizarEstatisticasJogadorAtual(jogadores: List<ResultadoJogador>) {
+        val resultadosComRespostas = jogadores.map { jogador ->
+            if (jogador.nome == nomeUtilizador) {
+                jogador.copy(respostasCertas = totalRespostasCertas)
+            } else {
+                jogador
             }
         }
 
-        database.child("sala_1x1").child(codigoSala).child("pontuacoes")
-            .addValueEventListener(pontuacaoListener!!)
-    }
-
-    private fun atualizarEstatisticasJogador1x1(
-        jogadorNome: String,
-        pontosObtidos: Double,
-        ficouEmPrimeiro: Boolean
-    ) {
-        database.child("jogadores").child(jogadorNome)
-            .addListenerForSingleValueEvent(object : ValueEventListener {
-                override fun onDataChange(snapshot: DataSnapshot) {
-                    // Guarda os dados anteriores
-                    val totalJogosAnterior = snapshot.child("totalJogos").intValue()
-                    val totalVitoriasAnterior = snapshot.child("totalVitorias").intValue()
-                    val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").intValue()
-                    val taxaAcertosAnterior = snapshot.child("taxaAcertos").doubleValue()
-                    val totalPontuacaoAnterior = snapshot.child("pontuacao").doubleValue()
-                    val totalVitoriasModo1x1Anterior = snapshot.child("totalVitoriasModo1x1").intValue()
-
-                    // Atualiza os dados do jogador
-                    val novoTotalVitoriasModo1x1 = totalVitoriasModo1x1Anterior + if (ficouEmPrimeiro) 1 else 0
-                    val novoTotalJogos = totalJogosAnterior + 1
-                    val novoTotalVitorias = totalVitoriasAnterior + if (ficouEmPrimeiro) 1 else 0
-                    val novaPontuacaoMaxima = maxOf(pontosObtidos, totalPontuacaoAnterior)
-                    val percentagemEsteJogo = if (totalRespostasCertas > 0) totalRespostasCertas * 100.0 / 8 else 0.0
-                    val novaTaxa = if (totalJogosAnterior == 0) {
-                        percentagemEsteJogo
-                    } else {
-                        ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
-                    }
-
-                    // Cria o mapa de atualizações
-                    val updates = mapOf(
-                        "totalJogos" to novoTotalJogos,
-                        "totalVitorias" to novoTotalVitorias,
-                        "totalRespostasCertas" to (totalRespostasCertasAnterior + totalRespostasCertas),
-                        "taxaAcertos" to novaTaxa,
-                        "totalVitoriasModo1x1" to novoTotalVitoriasModo1x1,
-                        "pontuacao" to novaPontuacaoMaxima
-                    )
-                    // Atualiza os dados do jogador no Firebase
-                    database.child("jogadores").child(jogadorNome).updateChildren(updates)
-                }
-
-                override fun onCancelled(error: DatabaseError) {}
-            })
+        pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+            tipoSala = PontuacaoRepository.TipoSala.UM_CONTRA_UM,
+            codigoSala = codigoSala,
+            resultados = resultadosComRespostas,
+            modo = EstatisticasService.Modo.UM_CONTRA_UM,
+            totalPerguntas = 8,
+            jogadoresParaAtualizar = setOf(nomeUtilizador)
+        )
     }
 
     private fun removerListener(listener: ValueEventListener?, campo: String) {

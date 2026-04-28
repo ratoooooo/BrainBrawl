@@ -5,19 +5,18 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
-import com.example.brainbrawl.UteisFirebase.doubleValue
-import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.databinding.ActivityPontuacaoMultiBinding
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
+import com.example.brainbrawl.repositories.PontuacaoRepository
+import com.example.brainbrawl.services.EstatisticasService
 import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 
 class Pontuacao2x2Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivityPontuacaoMultiBinding.inflate(layoutInflater)
     }
     private val database = FirebaseDatabase.getInstance().reference
+    private val pontuacaoRepository = PontuacaoRepository()
+    private val estatisticasService = EstatisticasService()
 
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
@@ -27,7 +26,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private var totalPontos: Double = 0.0
     private var totalRespostasCertas: Int = 0
 
-    private var pontuacaoListener: ValueEventListener? = null
+    private var pontuacaoListener: PontuacaoRepository.ListenerHandle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,8 +43,6 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
         // Carregar pontuação dos jogadores
         carregarPontuacao2x2Realtime()
-        // Atualizar estatísticas de todos os jogadores da sala 2x2
-        atualizarEstatisticasTodosJogadores2x2()
 
         binding.btnVoltar.setOnClickListener {
             database.child("sala_2x2").child(codigoSala).removeValue()
@@ -61,158 +58,57 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
     // Fu
     private fun removerListenerPontuacao() {
-        pontuacaoListener?.let {
-            database.child("sala_2x2").child(codigoSala).removeEventListener(it)
-            pontuacaoListener = null
-        }
+        pontuacaoRepository.removerListener(pontuacaoListener)
+        pontuacaoListener = null
     }
 
     // Chamar a função para carregar pontuação em tempo real
     private fun carregarPontuacao2x2Realtime() {
-        val salaRef = database.child("sala_2x2").child(codigoSala)
-        pontuacaoListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                // Vai buscar todas as pontuações das duas equipas
-                val equipaASnapshot = snapshot.child("equipaA")
-                val equipaBSnapshot = snapshot.child("equipaB")
-                val pontuacoesA = snapshot.child("pontuacoes_A")
-                val pontuacoesB = snapshot.child("pontuacoes_B")
+        pontuacaoListener = pontuacaoRepository.escutarPontuacoes2x2(
+            codigoSala = codigoSala,
+            onPontuacoes = { resultado ->
+                val podio2x2 = estatisticasService.ordenarPodio2x2(resultado.equipaA, resultado.equipaB)
+                val podio = podio2x2.podio
 
-                val equipaAList = mutableListOf<Pair<String, Double>>()
-                // Preenche a lista de jogadores da equipa A com os seus pontos
-                for (player in equipaASnapshot.children) {
-                    val nome = player.key ?: ""
-                    val pontos = pontuacoesA.child(nome).getValue(Double::class.java) ?: 0.0
-                    equipaAList.add(Pair(nome, pontos))
-                }
-                val equipaBList = mutableListOf<Pair<String, Double>>()
-                // Preenche a lista de jogadores da equipa B com os seus pontos
-                for (player in equipaBSnapshot.children) {
-                    val nome = player.key ?: ""
-                    val pontos = pontuacoesB.child(nome).getValue(Double::class.java) ?: 0.0
-                    equipaBList.add(Pair(nome, pontos))
-                }
+                binding.txtNomeJogador1.text = podio.getOrNull(0)?.nome ?: ""
+                binding.txtPontos1.text = podio.getOrNull(0)?.pontos?.toInt()?.toString() ?: ""
+                binding.txtNomeJogador2.text = podio.getOrNull(1)?.nome ?: ""
+                binding.txtPontos2.text = podio.getOrNull(1)?.pontos?.toInt()?.toString() ?: ""
+                binding.txtNomeJogador3.text = podio.getOrNull(2)?.nome ?: ""
+                binding.txtPontos3.text = podio.getOrNull(2)?.pontos?.toInt()?.toString() ?: ""
+                binding.txtNomeJogador4.text = podio.getOrNull(3)?.nome ?: ""
+                binding.txtPontos4.text = podio.getOrNull(3)?.pontos?.toInt()?.toString() ?: ""
 
-                // Ordena cada equipa por pontuação decrescente
-                val equipaAOrdenada = equipaAList.sortedByDescending { it.second }
-                val equipaBOrdenada = equipaBList.sortedByDescending { it.second }
+                Toast.makeText(
+                    this@Pontuacao2x2Activity,
+                    estatisticasService.textoVencedor2x2(podio2x2.totalA, podio2x2.totalB),
+                    Toast.LENGTH_SHORT
+                ).show()
 
-                // Calcular total de pontos de cada equipa
-                val totalA = equipaAOrdenada.sumOf { it.second }
-                val totalB = equipaBOrdenada.sumOf { it.second }
-
-                // Pódio: equipa vencedora primeiro, depois a outra equipa
-                val podio = if (totalA >= totalB)
-                    equipaAOrdenada + equipaBOrdenada
-                else
-                    equipaBOrdenada + equipaAOrdenada
-
-                // Preenche os 4 lugares do layout (ajusta para o teu binding)
-                binding.txtNomeJogador1.text = podio.getOrNull(0)?.first ?: ""
-                binding.txtPontos1.text = podio.getOrNull(0)?.second?.toInt()?.toString() ?: ""
-                binding.txtNomeJogador2.text = podio.getOrNull(1)?.first ?: ""
-                binding.txtPontos2.text = podio.getOrNull(1)?.second?.toInt()?.toString() ?: ""
-                binding.txtNomeJogador3.text = podio.getOrNull(2)?.first ?: ""
-                binding.txtPontos3.text = podio.getOrNull(2)?.second?.toInt()?.toString() ?: ""
-                binding.txtNomeJogador4.text = podio.getOrNull(3)?.first ?: ""
-                binding.txtPontos4.text = podio.getOrNull(3)?.second?.toInt()?.toString() ?: ""
-
-                // Mostra equipa vencedora
-                val textoVencedor = when {
-                    totalA > totalB -> "Vitória da Equipa A!"
-                    totalB > totalA -> "Vitória da Equipa B!"
-                    else -> "Empate!"
-                }
-                Toast.makeText(this@Pontuacao2x2Activity, textoVencedor, Toast.LENGTH_SHORT).show()
-
-                // Opcional: mostra mensagem se alguém ainda não terminou
                 if (podio.size < 4) {
                     Toast.makeText(this@Pontuacao2x2Activity, "Aguardando todos os jogadores terminarem...", Toast.LENGTH_SHORT).show()
                 }
-            }
-            override fun onCancelled(error: DatabaseError) {}
-        }
-        salaRef.addValueEventListener(pontuacaoListener!!)
-    }
 
-    // Função que atualiza as  estatísticas para todos os jogadores da sala 2x2
-    private fun atualizarEstatisticasTodosJogadores2x2() {
-        val salaRef = database.child("sala_2x2").child(codigoSala)
-        salaRef.addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val pontuacoesA = snapshot.child("pontuacoes_A")
-                val pontuacoesB = snapshot.child("pontuacoes_B")
-                val equipaANomes = snapshot.child("equipaA").children.mapNotNull { it.key }
-                val equipaBNomes = snapshot.child("equipaB").children.mapNotNull { it.key }
-
-                val equipaARespostasCertas = snapshot.child("totalPerguntasCertas_A")
-                val equipaBRespostasCertas = snapshot.child("totalPerguntasCertas_B")
-
-                // Calcula o total de pontos das equipas
-                val totalA = pontuacoesA.children.map { it.getValue(Double::class.java) ?: 0.0 }.sum()
-                val totalB = pontuacoesB.children.map { it.getValue(Double::class.java) ?: 0.0 }.sum()
-
-                // Para cada jogador da Equipa A
-                for (nome in equipaANomes) {
-                    val pontos = pontuacoesA.child(nome).getValue(Double::class.java) ?: 0.0
-                    val respostasCertas = equipaARespostasCertas.child(nome).getValue(Int::class.java) ?: 0
-                    val ganhou = totalA > totalB || (totalA == totalB)
-                    atualizarEstatisticasJogador2x2(nome, pontos, respostasCertas, ganhou)
-                }
-                // Para cada jogador da Equipa B
-                for (nome in equipaBNomes) {
-                    val pontos = pontuacoesB.child(nome).getValue(Double::class.java) ?: 0.0
-                    val respostasCertas = equipaBRespostasCertas.child(nome).getValue(Int::class.java) ?: 0
-                    val ganhou = totalB > totalA
-                    atualizarEstatisticasJogador2x2(nome, pontos, respostasCertas, ganhou)
-                }
-            }
-            override fun onCancelled(error: DatabaseError) {}
-        })
-    }
-
-    // Função que atualiza estatísticas de um jogador específico no modo 2x2
-    private fun atualizarEstatisticasJogador2x2(
-        nomeUtilizador: String,
-        totalPontos: Double,
-        totalRespostasCertas: Int,
-        ganhou: Boolean
-    ) {
-        database.child("jogadores").child(nomeUtilizador).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val pontuacaoGuardada = snapshot.child("pontuacao").doubleValue()
-                val totalRespostasCertasAnterior = snapshot.child("totalRespostasCertas").intValue()
-                val taxaAcertosAnterior = snapshot.child("taxaAcertos").doubleValue()
-                val totalJogosAnterior = snapshot.child("totalJogos").intValue()
-                val totalVitoriasAnterior = snapshot.child("totalVitorias").intValue()
-                val totalVitoriasModo2x2Anterior = snapshot.child("totalVitoriasModo2x2").intValue()
-
-                val novoTotalRespostasCertas = totalRespostasCertasAnterior + totalRespostasCertas
-                val novoTotalJogos = totalJogosAnterior + 1
-                val novoTotalVitorias = totalVitoriasAnterior + if (ganhou) 1 else 0
-                val novoTotalVitoriasModo2x2 = totalVitoriasModo2x2Anterior + if (ganhou) 1 else 0
-                val percentagemEsteJogo = if (totalRespostasCertas > 0) totalRespostasCertas * 100.0 / 8 else 0.0
-                val novaTaxa = if (totalJogosAnterior == 0) {
-                    percentagemEsteJogo
-                } else {
-                    ((taxaAcertosAnterior * totalJogosAnterior) + percentagemEsteJogo) / novoTotalJogos
-                }
-
-                val updates = mapOf(
-                    "pontuacao" to if (totalPontos > pontuacaoGuardada) totalPontos else pontuacaoGuardada,
-                    "totalRespostasCertas" to novoTotalRespostasCertas,
-                    "taxaAcertos" to novaTaxa,
-                    "totalJogos" to novoTotalJogos,
-                    "totalVitorias" to novoTotalVitorias,
-                    "totalVitoriasModo2x2" to novoTotalVitoriasModo2x2
+                val resultados = resultado.equipaA + resultado.equipaB
+                mostrarNovoRecordSeAplicavel(resultados)
+                pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+                    tipoSala = PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS,
+                    codigoSala = codigoSala,
+                    resultados = resultados,
+                    modo = EstatisticasService.Modo.DOIS_CONTRA_DOIS,
+                    totalPerguntas = 8
                 )
-                database.child("jogadores").child(nomeUtilizador).updateChildren(updates)
+            }
+        )
+    }
 
-                if (totalPontos > pontuacaoGuardada && nomeUtilizador == this@Pontuacao2x2Activity.nomeUtilizador) {
+    private fun mostrarNovoRecordSeAplicavel(resultados: List<EstatisticasService.ResultadoJogador>) {
+        val resultadoAtual = resultados.firstOrNull { it.nome == nomeUtilizador } ?: return
+        pontuacaoRepository.obterPontuacaoGlobalJogador(nomeUtilizador)
+            .addOnSuccessListener { pontuacaoGuardada ->
+                if (resultadoAtual.pontos > pontuacaoGuardada) {
                     Toast.makeText(this@Pontuacao2x2Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()
                 }
             }
-            override fun onCancelled(error: DatabaseError) {}
-        })
     }
 }
