@@ -66,6 +66,7 @@ Estrutura criada para migracao futura:
 - `config/`: constantes de Firebase, nomes de extras, chaves de database e configuracao global.
 - `controllers/`: orquestracao de fluxos de ecras quando uma Activity ainda nao deve conter a regra completa.
 - `models/`: data classes como `Pergunta`, `Convite`, `Jogador`, `Sala`, `Pontuacao`.
+- `viewmodels/`: estado simples de ecras migrados para MVVM leve, mantendo Activities como UI/navegacao.
 - `views/`: Activities/Fragments quando forem migrados do pacote raiz.
 - `services/`: regras de negocio, por exemplo `GameService`, `ScoreService`, `AuthService`.
 - `repositories/`: leitura/escrita Firebase, por exemplo `RoomRepository`, `UserRepository`, `QuestionRepository`.
@@ -105,6 +106,21 @@ Criado:
 - `app/src/main/java/com/example/brainbrawl/services/ScoreService.kt`, para o calculo puro de pontuacao do jogo de grupo.
 - `app/src/main/java/com/example/brainbrawl/services/ScoreCompetitivoService.kt`, para o calculo puro de pontuacao dos modos 1x1 e 2x2.
 - `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`, para calculo puro de taxa de acertos, vencedor por modo, podio 2x2 e validacao anti-duplicacao.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt`, como ViewModel leve para expor amigos, pedidos de amizade, convites e eventos sociais simples.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/CategoriasViewModel.kt`, como ViewModel leve para categorias personalizadas, publicacao/remocao publica e eliminacao de categoria.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/ExplorarCategoriasViewModel.kt`, como ViewModel leve para observar categorias publicas, guardar copia e avaliar categoria.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt`, como ViewModel leve para carregar, validar, guardar e eliminar perguntas de categorias personalizadas.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/LoginViewModel.kt`, como ViewModel leve para validacao de login, comparacao de hash, entrada como convidado e estado online.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RegistarViewModel.kt`, como ViewModel leve para validacao de registo, verificacao de jogador existente, hash da password e criacao do jogador com avatar.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt`, como primeiro ViewModel leve para expor avatar e estatisticas do proprio perfil.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt`, como primeiro ViewModel leve para expor avatar/estatisticas do amigo e evento simples de remocao de amigo.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt`, como ViewModel leve para entrada/sala de espera de grupo, jogadores, estado, inicio e saida da sala.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`, como ViewModel leve para sala competitiva 1x1, prontos, jogadores, estado, inicio e saida.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`, como ViewModel leve para sala competitiva 2x2, equipas, jogadores, estado, inicio e saida.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EsperaEliminadoViewModel.kt`, como ViewModel leve para observar o fim da sala em eliminatorias.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt`, como ViewModel leve para jogo de grupo/classico/caotico/eliminatorias.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo1x1ViewModel.kt`, como ViewModel leve para jogo competitivo 1x1.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt`, como ViewModel leve para jogo competitivo 2x2.
 - Estrutura base de pacotes `models/`, `repositories/`, `services/`, `controllers/` e `utils/` mantida para a migracao gradual.
 
 Movido nesta fase:
@@ -135,6 +151,29 @@ Movido nesta fase:
 - Em `AdicionarPerguntaActivity.kt`, carregar perguntas editaveis, guardar pergunta e eliminar pergunta de categoria personalizada passaram para `CategoriaRepository`.
 - Em `EscolherCategoriaActivity.kt`, listar categorias personalizadas/publicas, eliminar categoria, publicar/atualizar categoria publica e remover publicacao passaram para `CategoriaRepository`.
 - Em `ExplorarCategoriasActivity.kt`, escutar categorias publicas, guardar copia e avaliar categoria passaram para `CategoriaRepository`.
+- Em `AmigosActivity.kt`, o carregamento/observacao da lista de amigos, pedidos de amizade e convites recebidos passou para `AmigosViewModel`, que continua a chamar `AmigosRepository` e `JogadorRepository`.
+- Em `AmigosActivity.kt`, pesquisa de jogador, envio de pedido, aceitar/recusar pedido e aceitar/recusar/remover convite passaram para `AmigosViewModel`; toasts, adapters e navegacao continuam na Activity.
+- Em `AmigosActivity.kt`, os listeners sociais continuam a ser removidos em `onStop`/`onDestroy`, agora delegando em `AmigosViewModel`, que tambem remove em `onCleared`.
+- Em `EscolherCategoriaActivity.kt`, listar categorias personalizadas/publicas, publicar categoria, remover publicacao e eliminar categoria passaram para `CategoriasViewModel`; dialog, toasts, criacao de sala e navegacao continuam na Activity.
+- Em `ExplorarCategoriasActivity.kt`, observar categorias publicas, guardar copia de categoria publica e avaliar categoria passaram para `ExplorarCategoriasViewModel`; cards, dialog de avaliacao, toasts e navegacao continuam na Activity.
+- Em `AdicionarPerguntaActivity.kt`, carregar perguntas editaveis, validar pergunta, guardar pergunta e eliminar pergunta passaram para `EditarCategoriaViewModel`; formulario, lista visual, limpar campos e navegacao continuam na Activity.
+- Em `LoginActivity.kt`, validacao de campos, leitura de perfil, comparacao de password/hash, entrada como convidado e marcacao online passaram para `LoginViewModel`; toasts e navegacao continuam na Activity.
+- Em `RegistarActivity.kt`, validacao de campos, verificacao de jogador existente, hash da password, montagem do nome do avatar e criacao do jogador passaram para `RegistarViewModel`/`JogadorRepository`; grelha de avatares, toasts e navegacao continuam na Activity.
+- Em `JogadorRepository.kt`, foram adicionados metodos pequenos para verificar existencia e criar jogador registado, mantendo os mesmos campos Firebase do registo manual atual.
+- Em `MeuPerfilActivity.kt`, o carregamento de perfil, avatar e estatisticas passou para `MeuPerfilViewModel`, que continua a chamar `JogadorRepository`.
+- Em `PerfilAmigoActivity.kt`, o carregamento de perfil, avatar e estatisticas passou para `PerfilAmigoViewModel`, que continua a chamar `JogadorRepository`.
+- Em `PerfilAmigoActivity.kt`, a remocao de amigo passou a ser iniciada pelo `PerfilAmigoViewModel`, mantendo toast e navegacao na Activity.
+- Em `SalaDeEsperaActivity.kt`, a validacao de entrada por codigo, procura de sala, verificacao de nome repetido, carregamento de avatar e adicao do jogador passaram para `SalaGrupoViewModel`; a Activity mantem campos, toasts e navegacao.
+- Em `SalaDeEsperaGrupoActivity.kt`, garantir jogador na sala, observar jogadores em tempo real, observar estado, observar sala apagada, validar condicoes de inicio, iniciar jogo e sair/apagar sala passaram para `SalaGrupoViewModel`.
+- Em `SalaDeEspera1x1Activity.kt`, adicionar jogador, marcar pronto, obter admin, observar jogadores/estado/sala apagada, verificar prontos, iniciar jogo e sair/apagar sala passaram para `Sala1x1ViewModel`.
+- Em `SalaDeEspera2x2Activity.kt`, adicionar jogador, obter admin, observar jogadores/estado/sala apagada, calcular/guardar equipas, iniciar jogo e sair/apagar sala passaram para `Sala2x2ViewModel`.
+- Em `EsperaEliminadoActivity.kt`, o listener de estado da sala em eliminatorias passou para `EsperaEliminadoViewModel`; a Activity mantem o texto, toasts e abertura do podio.
+- Em `JogoActivity.kt`, carregar perguntas, observar `perguntaAtualIndex`, observar fim de eliminatorias, sincronizar `serverTimeOffset`/`perguntaHoraInicio`, enviar respostas, calcular pontuacao, obter jogadores restantes, eliminar jogadores, avancar perguntas, guardar resultado final e detectar fim de jogo passaram para `JogoViewModel`.
+- Em `Jogo1x1Activity.kt`, leitura de categoria, carregamento/criacao das perguntas, sincronizacao de inicio de pergunta, offset do servidor, calculo de pontuacao, guardar pontuacao final, espera pelo podio e deteccao de fim de jogo passaram para `Jogo1x1ViewModel`.
+- Em `Jogo2x2Activity.kt`, leitura de categoria, identificacao da equipa, carregamento/criacao das perguntas, sincronizacao de inicio de pergunta, offset do servidor, envio de resposta, calculo de pontuacao, guardar resultado por equipa, espera pelo podio e deteccao de fim de jogo passaram para `Jogo2x2ViewModel`.
+- `JogoActivity.kt`, `Jogo1x1Activity.kt` e `Jogo2x2Activity.kt` continuam responsaveis por UI, opcoes aleatorias visuais, timers visuais, progress bar, animacao/sons, toasts e navegacao.
+- Os ViewModels de salas guardam os handles dos listeners e removem-nos em chamadas explicitas das Activities e tambem em `onCleared`.
+- Os ViewModels de jogo guardam os handles de listeners Firebase e removem-nos em `removerListeners()` e `onCleared`, evitando listeners duplicados na migracao de jogo.
 - A Activity continua responsavel por UI, toasts e navegacao.
 - O repository ficou responsavel por criar/procurar sala, adicionar/remover jogador, apagar sala, atualizar estado, obter jogadores e gerir listeners de jogadores/estado/sala apagada.
 - `JogadorRepository` ficou responsavel por obter perfil, obter avatar e atualizar estado `on`/`off`.
@@ -163,6 +202,7 @@ Mantido sem alteracoes:
 - Nomes de nodes de categorias, incluindo `categorias`, `categoriasPersonalizadas`, `categoriasPublicas`, `perguntas`, `usos`, `avaliacoes`, `ratingMedio` e `totalAvaliacoes`.
 - Nomes de nodes sociais, incluindo `amigos`, `pedidos_amizade`, `convites_recebidos`, `convites_enviados`, `sala_1x1` e `sala_2x2`.
 - Layouts, textos principais de UI, regras de inicio da sala de espera e navegacao para `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity`.
+- Layouts e estrutura visual de `LoginActivity`, `RegistarActivity`, `AmigosActivity`, `EscolherCategoriaActivity`, `ExplorarCategoriasActivity`, `AdicionarPerguntaActivity`, `MeuPerfilActivity` e `PerfilAmigoActivity`.
 - UI de `JogoActivity`, `Jogo1x1Activity`, `Jogo2x2Activity`, categorias, regras dos modos classico/caotico/eliminatorias, adapters e layouts sociais.
 - Perfis de convidados continuam sem ser criados: `PontuacaoRepository` so atualiza estatisticas quando `jogadores/{nome}` existe e tem `password`.
 - Admin host-only em jogos de grupo continua fora do podio/estatisticas: jogadores com `isHostOnly=true`, nome vazio ou `admin` sao ignorados.
@@ -171,17 +211,17 @@ Mantido sem alteracoes:
 
 Ainda falta migrar:
 
-- Migracao mais profunda de `JogoActivity.kt`, se for necessaria, para reduzir mais estado local e callbacks da Activity.
+- Continuar apenas ajustes pequenos depois de validar perfil/amigos/categorias/autenticacao/salas/jogo manualmente, sem refactor total.
 - Revisao final de extras hardcoded concluida; nao foram encontrados literais restantes nas chamadas de Intent pesquisadas em Kotlin.
 - Avaliar se os modelos internos pequenos dos repositories (`JogadorSala`, `CategoriaPublica`, `ResultadoJogador`) devem sair para `models/` numa fase seguinte ou continuar como DTOs locais.
 - UI para recusar pedidos/convites, caso seja criada mais tarde; os metodos Firebase de recusa/remocao ja existem em `AmigosRepository`, mas a UI atual continua igual.
-- Testes manuais completos em dois dispositivos/sessoes para amigos, convites, jogo de grupo, modos competitivos e confirmacao visual das estatisticas no perfil.
+- Testes manuais completos em dois dispositivos/sessoes para amigos, convites, salas de grupo, grupo/classico/caotico/eliminatorias, modos competitivos e confirmacao visual das estatisticas no perfil.
 
 Proxima fase recomendada:
 
-- Validar manualmente amigos, pedidos, convites, jogo de grupo e modos 1x1/2x2 em dois dispositivos/sessoes.
+- Validar manualmente amigos, pedidos, convites, salas de grupo, grupo/classico/caotico/eliminatorias e modos 1x1/2x2 em dois dispositivos/sessoes.
 - Se necessario depois dos testes manuais, afinar persistencia de respostas certas no 1x1 para guardar o total de cada jogador no node da sala, sem depender do intent de cada cliente.
-- Considerar uma migracao mais profunda de estado interno de `JogoActivity.kt` apenas se aparecer necessidade real; o acesso Firebase principal de grupo ja esta em `JogoRepository`.
+- Considerar apenas refinamentos pequenos de estado interno em `JogoActivity.kt`, `Jogo1x1Activity.kt` e `Jogo2x2Activity.kt` se os testes manuais mostrarem necessidade real.
 
 Fase 1 - Contratos e constantes:
 

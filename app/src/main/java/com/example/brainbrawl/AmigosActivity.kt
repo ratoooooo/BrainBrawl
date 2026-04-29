@@ -5,20 +5,23 @@ import android.os.Bundle
 import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAmigosBinding
 import com.example.brainbrawl.models.Convite
-import com.example.brainbrawl.repositories.AmigosRepository
-import com.example.brainbrawl.repositories.JogadorRepository
+import com.example.brainbrawl.viewmodels.AmigosEvent
+import com.example.brainbrawl.viewmodels.AmigosListaUiState
+import com.example.brainbrawl.viewmodels.AmigosViewModel
 
 class AmigosActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivityAmigosBinding.inflate(layoutInflater)
     }
-    private val amigosRepository = AmigosRepository()
-    private val jogadorRepository = JogadorRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this)[AmigosViewModel::class.java]
+    }
     // Variáveis para armazenar os dados dos amigos, convites e pedidos de amizade
     private var nomeUtilizador: String = ""
     private val amigos = mutableListOf<String>()
@@ -31,9 +34,6 @@ class AmigosActivity : AppCompatActivity() {
 
     private val pedidosAmizadeRecebidos = mutableListOf<String>()
     private lateinit var pedidoAdapter: PedidoAmizadeAdapter
-    private var amigosListenerHandle: AmigosRepository.ListenerHandle? = null
-    private var pedidosListenerHandle: AmigosRepository.ListenerHandle? = null
-    private var convitesListenerHandle: AmigosRepository.ListenerHandle? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -60,6 +60,8 @@ class AmigosActivity : AppCompatActivity() {
         binding.recyclerPedidosAmizade.layoutManager = LinearLayoutManager(this)
         binding.recyclerPedidosAmizade.adapter = pedidoAdapter
 
+        configurarObservers()
+
         // Configurar o botao de pesquisa
         binding.btnPesquisar.setOnClickListener {
             val nomePesquisa = binding.edtPesquisar.text.toString().trim()
@@ -72,23 +74,10 @@ class AmigosActivity : AppCompatActivity() {
                 true
             } else false
         }
-       //Configurar botao de adicionar amigo
+        //Configurar botao de adicionar amigo
         binding.btnAdicionarAmigo.setOnClickListener {
             val nomeNovoAmigo = binding.edtPesquisar.text.toString().trim()
-            if (nomeNovoAmigo.isEmpty() || nomeNovoAmigo == nomeUtilizador) return@setOnClickListener
-            if (amigos.contains(nomeNovoAmigo)) {
-                Toast.makeText(this, "Já é teu amigo!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            amigosRepository.enviarPedidoAmizade(nomeUtilizador, nomeNovoAmigo)
-                .addOnSuccessListener {
-                    Toast.makeText(this, "Pedido de amizade enviado!", Toast.LENGTH_SHORT).show()
-                    binding.layoutAddAmigo.visibility = android.view.View.GONE
-                    binding.edtPesquisar.text.clear()
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this, "Erro ao enviar pedido", Toast.LENGTH_SHORT).show()
-                }
+            viewModel.enviarPedidoAmizade(nomeUtilizador, nomeNovoAmigo)
         }
         // Configurar o botão para voltar ao MainActivity
         binding.btnVoltar.setOnClickListener {
@@ -101,104 +90,82 @@ class AmigosActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        iniciarListenersSociais()
+        viewModel.iniciarListenersSociais(nomeUtilizador, getString(R.string.categoria5))
     }
 
     override fun onStop() {
-        removerListenersSociais()
+        viewModel.removerListenersSociais()
         super.onStop()
     }
 
     override fun onDestroy() {
-        removerListenersSociais()
+        viewModel.removerListenersSociais()
         super.onDestroy()
     }
 
-    private fun iniciarListenersSociais() {
-        if (nomeUtilizador.isEmpty() || amigosListenerHandle != null) return
-
-        amigosListenerHandle = amigosRepository.observarAmigos(
-            nomeUtilizador,
-            onAmigosAlterados = { nomesAmigos ->
-                atualizarListaAmigos(nomesAmigos)
-            }
-        )
-        pedidosListenerHandle = amigosRepository.observarPedidosRecebidos(
-            nomeUtilizador,
-            onPedidosAlterados = { pedidos ->
-                atualizarPedidosAmizadeRecebidos(pedidos)
-            }
-        )
-        convitesListenerHandle = amigosRepository.observarConvitesRecebidos(
-            nomeUtilizador,
-            getString(R.string.categoria5),
-            onConvitesAlterados = { convites ->
-                atualizarConvitesRecebidos(convites)
-            }
-        )
+    private fun configurarObservers() {
+        viewModel.amigos.observe(this) { estado ->
+            atualizarListaAmigos(estado)
+        }
+        viewModel.pedidos.observe(this) { pedidos ->
+            atualizarPedidosAmizadeRecebidos(pedidos)
+        }
+        viewModel.convites.observe(this) { convites ->
+            atualizarConvitesRecebidos(convites)
+        }
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
     }
 
-    private fun removerListenersSociais() {
-        amigosRepository.removerListener(amigosListenerHandle)
-        amigosRepository.removerListener(pedidosListenerHandle)
-        amigosRepository.removerListener(convitesListenerHandle)
-        amigosListenerHandle = null
-        pedidosListenerHandle = null
-        convitesListenerHandle = null
+    private fun tratarEvento(evento: AmigosEvent) {
+        when (evento) {
+            AmigosEvent.PesquisaOculta -> {
+                binding.layoutAddAmigo.visibility = android.view.View.GONE
+            }
+            is AmigosEvent.JogadorEncontrado -> {
+                binding.layoutAddAmigo.visibility = android.view.View.VISIBLE
+                binding.btnAdicionarAmigo.text = "Adicionar ${evento.nome}"
+            }
+            is AmigosEvent.JogadorJaAmigo -> {
+                binding.layoutAddAmigo.visibility = android.view.View.GONE
+                Toast.makeText(this, "${evento.nome} já é teu amigo!", Toast.LENGTH_SHORT).show()
+            }
+            AmigosEvent.JogadorNaoEncontrado -> {
+                binding.layoutAddAmigo.visibility = android.view.View.GONE
+                Toast.makeText(this, "Utilizador não encontrado", Toast.LENGTH_SHORT).show()
+            }
+            AmigosEvent.PedidoJaAmigo -> {
+                Toast.makeText(this, "Já é teu amigo!", Toast.LENGTH_SHORT).show()
+            }
+            AmigosEvent.PedidoEnviado -> {
+                Toast.makeText(this, "Pedido de amizade enviado!", Toast.LENGTH_SHORT).show()
+                binding.layoutAddAmigo.visibility = android.view.View.GONE
+                binding.edtPesquisar.text.clear()
+            }
+            AmigosEvent.ErroEnviarPedido -> {
+                Toast.makeText(this, "Erro ao enviar pedido", Toast.LENGTH_SHORT).show()
+            }
+            AmigosEvent.PedidoAceite -> {
+                Toast.makeText(this, "Amizade aceite!", Toast.LENGTH_SHORT).show()
+            }
+            AmigosEvent.PedidoRecusado,
+            AmigosEvent.ConviteRecusado,
+            AmigosEvent.ConviteRemovido -> Unit
+        }
     }
 
     // Função para atualizar a lista de amigos
-    private fun atualizarListaAmigos(nomesAmigos: List<String>) {
+    private fun atualizarListaAmigos(estado: AmigosListaUiState) {
         // Limpa as listas de amigos, avatares e estados
         amigos.clear()
         avataresAmigos.clear()
         estadoAmigos.clear()
-        amigos.add(nomeUtilizador)
-        avataresAmigos.add("avatar_1_playstore")
-        estadoAmigos.add("on")
-        /// Buscra os dados do utilizador
-        jogadorRepository.obterPerfil(nomeUtilizador)
-            .addOnSuccessListener { perfil ->
-                // Guardar o nome e o estado do utilizador
-                val avatarAtual = perfil?.avatar ?: "avatar_1_playstore"
-                val estadoAtual = perfil?.estado ?: "on"
-                avataresAmigos[0] = avatarAtual
-                estadoAmigos[0] = estadoAtual
-
-                val amigosTemp = nomesAmigos.filter { it != nomeUtilizador }
-                val avataresTemp = MutableList(amigosTemp.size) { "avatar_1_playstore" }
-                val estadosTemp = MutableList(amigosTemp.size) { "off" }
-                if (amigosTemp.isEmpty()) {
-                    amigoAdapter.notifyDataSetChanged()
-                    return@addOnSuccessListener
-                }
-                var loaded = 0
-                // Percoirrer os amigos e buscar os dados de cada um
-                amigosTemp.forEachIndexed { index, nomeAmigo ->
-                    // Buscar o avatar e o estado do amigo
-                    jogadorRepository.obterPerfil(nomeAmigo)
-                        .addOnSuccessListener { perfilAmigo ->
-                            avataresTemp[index] = perfilAmigo?.avatar ?: "avatar_1_playstore"
-                            estadosTemp[index] = perfilAmigo?.estado ?: "off"
-                            loaded++
-                            if (loaded == amigosTemp.size) {
-                                amigos.addAll(amigosTemp)
-                                avataresAmigos.addAll(avataresTemp)
-                                estadoAmigos.addAll(estadosTemp)
-                                amigoAdapter.notifyDataSetChanged()
-                            }
-                        }
-                        .addOnFailureListener {
-                            loaded++
-                            if (loaded == amigosTemp.size) {
-                                amigos.addAll(amigosTemp)
-                                avataresAmigos.addAll(avataresTemp)
-                                estadoAmigos.addAll(estadosTemp)
-                                amigoAdapter.notifyDataSetChanged()
-                            }
-                        }
-                    }
-            }
+        amigos.addAll(estado.nomes)
+        avataresAmigos.addAll(estado.avatares)
+        estadoAmigos.addAll(estado.estados)
+        amigoAdapter.notifyDataSetChanged()
     }
 
     // Função para atualizar os convites recebidos
@@ -224,31 +191,14 @@ class AmigosActivity : AppCompatActivity() {
 
     // Função para pesquisar um utilizador
     private fun pesquisarUtilizador(nome: String) {
-        if (nome.isEmpty() || nome == nomeUtilizador) {
-            binding.layoutAddAmigo.visibility = android.view.View.GONE
-            return
-        }
-        // Pwscar na base de dados se o utilizador existe
-        amigosRepository.pesquisarJogadorParaAdicionar(nome).addOnSuccessListener { existe ->
-            if (existe) {
-                if (amigos.contains(nome)) {
-                    binding.layoutAddAmigo.visibility = android.view.View.GONE
-                    Toast.makeText(this, "$nome já é teu amigo!", Toast.LENGTH_SHORT).show()
-                } else {
-                    binding.layoutAddAmigo.visibility = android.view.View.VISIBLE
-                    binding.btnAdicionarAmigo.text = "Adicionar $nome"
-                }
-            } else {
-                binding.layoutAddAmigo.visibility = android.view.View.GONE
-                Toast.makeText(this, "Utilizador não encontrado", Toast.LENGTH_SHORT).show()
-            }
-        }
+        // Pesquisar na base de dados se o utilizador existe
+        viewModel.pesquisarUtilizador(nomeUtilizador, nome)
     }
 
     // Função para aceitar um convite 1x1 ou 2x2
     private fun aceitarConvite(convite: Convite) {
         // Atualizar o estado do convite na base de dados
-        amigosRepository.aceitarConvite(nomeUtilizador, convite.nomeAmigo)
+        viewModel.aceitarConvite(nomeUtilizador, convite)
         Toast.makeText(this, "Convite aceite!", Toast.LENGTH_SHORT).show()
 
         // Redirecionar para a sala de espera correspondente
@@ -266,9 +216,6 @@ class AmigosActivity : AppCompatActivity() {
     // Função para aceitar um pedido de amizade
     private fun aceitarPedidoAmizade(nomeOutro: String) {
         // Atualizar o estado do pedido de amizade na base de dados
-        amigosRepository.aceitarPedidoAmizade(nomeUtilizador, nomeOutro)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Amizade aceite!", Toast.LENGTH_SHORT).show()
-            }
+        viewModel.aceitarPedidoAmizade(nomeUtilizador, nomeOutro)
     }
 }

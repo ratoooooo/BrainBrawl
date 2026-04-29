@@ -36,6 +36,28 @@ class JogadorRepository(
         }
     }
 
+    fun verificarJogadorExiste(nomeJogador: String): Task<Boolean> {
+        return jogadorRef(nomeJogador).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar jogador.")
+            task.result.exists()
+        }
+    }
+
+    fun criarJogador(nomeJogador: String, passwordHash: String, avatar: String): Task<Void> {
+        val jogadorData = mapOf(
+            FirebasePaths.PASSWORD to passwordHash,
+            FirebasePaths.AVATAR to avatar,
+            FirebasePaths.PONTUACAO to 0.0,
+            FirebasePaths.TOTAL_JOGOS to 0,
+            FirebasePaths.TOTAL_VITORIAS to 0,
+            FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
+            FirebasePaths.TOTAL_VITORIAS_MODO_2X2 to 0,
+            FirebasePaths.TOTAL_VITORIAS_MODO_1X1 to 0,
+            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0
+        )
+        return jogadorRef(nomeJogador).setValue(jogadorData)
+    }
+
     fun obterAvatar(nomeJogador: String): Task<String> {
         return jogadorRef(nomeJogador).child(FirebasePaths.AVATAR).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao obter avatar.")

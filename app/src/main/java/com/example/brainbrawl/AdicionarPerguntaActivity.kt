@@ -9,20 +9,24 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAdicionarPerguntaBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
+import com.example.brainbrawl.viewmodels.EditarCategoriaEvent
+import com.example.brainbrawl.viewmodels.EditarCategoriaViewModel
 
 class AdicionarPerguntaActivity : AppCompatActivity() {
     // Acessar os elementos do layout
     private val binding by lazy {
         ActivityAdicionarPerguntaBinding.inflate(layoutInflater)
     }
-    // Acessar a base de dados
-    private val categoriaRepository = CategoriaRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this)[EditarCategoriaViewModel::class.java]
+    }
     private var nomeUtilizador: String = ""
     private var nomeJogador: String? = null
     private var modoJogo: String = GameConstants.MODO_CLASSICO
@@ -55,6 +59,8 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             return
         }
 
+        configurarObservers()
+
         if (!categoriaInicial.isNullOrBlank()) {
             categoriaEmEdicao = categoriaInicial
             binding.txtTitulo.text = "Editar Categoria"
@@ -82,53 +88,18 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
                 else -> ""
             }
 
-            // Verificar se a categoria é permitida
-            if (nomeCategoria == getString(R.string.categoria1) || nomeCategoria == getString(R.string.categoria2) ||
-                nomeCategoria == getString(R.string.categoria3) || nomeCategoria == getString(R.string.categoria4)) {
-                Toast.makeText(this, "Categoria não permitida", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Verificar os tamanhos dos campos
-            if (nomeCategoria.length > 50 || pergunta.length > 200 || opcaoA.length > 100 || opcaoB.length > 100 || opcaoC.length > 100 || opcaoD.length > 100) {
-                Toast.makeText(this, "Campos excedem o tamanho máximo permitido", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Verificar se as respostas estão preenchidas
-            if (listOf(opcaoA, opcaoB, opcaoC, opcaoD).distinct().size != 4) {
-                Toast.makeText(this, "As opções devem ser todas diferentes", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Verificar se os campos estão preenchidos
-            if (nomeCategoria.isEmpty() || pergunta.isEmpty() || opcaoA.isEmpty() || opcaoB.isEmpty() || opcaoC.isEmpty() || opcaoD.isEmpty() || respostaCorreta.isEmpty()) {
-                Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            categoriaRepository.guardarPerguntaPersonalizada(
+            viewModel.guardarPergunta(
                 nomeUtilizador,
                 nomeCategoria,
                 perguntaEmEdicaoId,
-                CategoriaRepository.PerguntaCategoria(
-                    pergunta = pergunta,
-                    respostaCorreta = respostaCorreta,
-                    opcoes = listOf(opcaoA, opcaoB, opcaoC, opcaoD)
-                )
+                pergunta,
+                opcaoA,
+                opcaoB,
+                opcaoC,
+                opcaoD,
+                respostaCorreta,
+                categoriasReservadas()
             )
-                // Verificar se a pergunta foi adicionada com sucesso
-                .addOnSuccessListener {
-                    // Exibir mensagem de sucesso
-                    Toast.makeText(this, "Pergunta guardada com sucesso!", Toast.LENGTH_SHORT).show()
-                    perguntaEmEdicaoId = null
-                    carregarPerguntasCategoria(nomeCategoria)
-                    limparCampos()
-                }
-                .addOnFailureListener { error ->
-                    // Exibir mensagem de erro
-                    Toast.makeText(this, "Erro ao guardar pergunta: ${error.message}", Toast.LENGTH_SHORT).show()
-                }
         }
 
         // Configurar o botão para voltar ao MainActivity
@@ -155,11 +126,40 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     }
 
     private fun carregarPerguntasCategoria(nomeCategoria: String) {
-        if (nomeCategoria.isBlank()) return
-        categoriaRepository.carregarPerguntasEditaveis(nomeUtilizador, nomeCategoria)
-            .addOnSuccessListener { perguntas ->
-                preencherListaPerguntas(perguntas)
+        viewModel.carregarPerguntasCategoria(nomeUtilizador, nomeCategoria)
+    }
+
+    private fun configurarObservers() {
+        viewModel.perguntas.observe(this) { perguntas ->
+            preencherListaPerguntas(perguntas)
+        }
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
+    }
+
+    private fun tratarEvento(evento: EditarCategoriaEvent) {
+        when (evento) {
+            EditarCategoriaEvent.CategoriaCriada -> Unit
+            EditarCategoriaEvent.PerguntaGuardada -> {
+                Toast.makeText(this, "Pergunta guardada com sucesso!", Toast.LENGTH_SHORT).show()
+                perguntaEmEdicaoId = null
+                limparCampos()
             }
+            is EditarCategoriaEvent.PerguntaEliminada -> {
+                if (perguntaEmEdicaoId == evento.perguntaId) {
+                    perguntaEmEdicaoId = null
+                    limparCampos()
+                }
+            }
+            is EditarCategoriaEvent.ValidacaoFalhou -> {
+                Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
+            }
+            is EditarCategoriaEvent.ErroGuardar -> {
+                Toast.makeText(this, "Erro ao guardar pergunta: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 
     private fun preencherListaPerguntas(perguntas: List<CategoriaRepository.PerguntaCategoria>) {
@@ -199,14 +199,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             btnEliminar.text = "Eliminar"
             btnEliminar.setOnClickListener {
                 val categoria = categoriaSelecionada()
-                categoriaRepository.eliminarPerguntaPersonalizada(nomeUtilizador, categoria, perguntaId)
-                    .addOnSuccessListener {
-                        if (perguntaEmEdicaoId == perguntaId) {
-                            perguntaEmEdicaoId = null
-                            limparCampos()
-                        }
-                        carregarPerguntasCategoria(categoria)
-                    }
+                viewModel.eliminarPergunta(nomeUtilizador, categoria, perguntaId)
             }
             botoes.addView(btnEliminar)
 
@@ -260,6 +253,15 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
 
     private fun categoriaSelecionada(): String {
         return categoriaEmEdicao ?: binding.edtNovaCategoria.text.toString().trim()
+    }
+
+    private fun categoriasReservadas(): Set<String> {
+        return setOf(
+            getString(R.string.categoria1),
+            getString(R.string.categoria2),
+            getString(R.string.categoria3),
+            getString(R.string.categoria4)
+        )
     }
 
 }

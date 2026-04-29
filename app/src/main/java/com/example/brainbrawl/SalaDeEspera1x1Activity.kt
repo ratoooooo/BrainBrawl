@@ -4,31 +4,27 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
-import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
-import com.example.brainbrawl.repositories.JogoCompetitivoRepository
-import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
+import com.example.brainbrawl.viewmodels.Sala1x1Event
+import com.example.brainbrawl.viewmodels.Sala1x1ViewModel
+import com.example.brainbrawl.viewmodels.SalaCompetitivaUiState
 
 class SalaDeEspera1x1Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
     }
-    private val jogoCompetitivoRepository = JogoCompetitivoRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this)[Sala1x1ViewModel::class.java]
+    }
 
     // Variáveis para a lógica da sala
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private var nomeJogador: String = ""
     private lateinit var nomeCategoria: String
-
-    private var jogadoresNaSala: List<String> = emptyList()
-    private var admin: Boolean = false
-    private var jogadoresListener: JogoCompetitivoRepository.ListenerHandle? = null
-    private var estadoListener: JogoCompetitivoRepository.ListenerHandle? = null
-    private var salaListener: JogoCompetitivoRepository.ListenerHandle? = null
-    private var saidaManual = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,64 +39,15 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         // Define o texto do código da sala usando o binding
         binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
 
-        // Adiciona este jogador à sala
-        jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, nomeUtilizador)
-        // Marca este jogador como pronto na sala
-        jogoCompetitivoRepository.marcarPronto1x1(codigoSala, nomeUtilizador)
-
-        // Verifica se és o admin
-        jogoCompetitivoRepository.obterAdmin(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-            .addOnSuccessListener { nomeAdmin ->
-                admin = if (nomeAdmin.isNullOrBlank()) {
-                    jogadoresNaSala.firstOrNull() == nomeUtilizador
-                } else {
-                    nomeAdmin == nomeUtilizador
-                }
-                atualizarEstadoBotaoIniciar()
-            }
-
-        // Observa os jogadores na sala e atualiza a lista no ecrã
-        jogadoresListener = jogoCompetitivoRepository.escutarJogadores(
-            ModoCompetitivo.UM_CONTRA_UM,
-            codigoSala,
-            onJogadoresAlterados = { nomes ->
-                jogadoresNaSala = nomes
-                binding.txtListaJogadores.text = if (nomes.isEmpty()) {
-                    "Aguardando jogadores..."
-                } else {
-                    nomes.joinToString(separator = "\n")
-                }
-                // Ativa o botão de iniciar jogo se for admin e houver 2 jogadores
-                atualizarEstadoBotaoIniciar()
-            }
-        )
-
-        // Observa o estado da sala para iniciar o jogo para todos ao mesmo tempo
-        estadoListener = jogoCompetitivoRepository.escutarEstadoSala(
-            ModoCompetitivo.UM_CONTRA_UM,
-            codigoSala,
-            onEstadoAlterado = { estado ->
-                if (estado == GameConstants.ESTADO_EM_JOGO) {
-                    val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
-                    intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
-                    intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
-                    intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
-                    intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
-                    startActivity(intent)
-                    finish()
-                }
-            }
-        )
-
-        escutarSalaApagada()
+        configurarObservers()
+        viewModel.iniciar(codigoSala, nomeUtilizador)
+        viewModel.observarJogadores(codigoSala)
+        viewModel.observarEstadoSala(codigoSala)
+        viewModel.observarSalaApagada(codigoSala)
 
         // Listener para o clique no botão de iniciar jogo
         binding.btnIniciarJogo.setOnClickListener {
-            if (admin && jogadoresNaSala.size == 2) {
-                verificarProntosEAvancar()
-            } else {
-                Toast.makeText(this, "Ainda a aguardar o adversário!", Toast.LENGTH_SHORT).show()
-            }
+            viewModel.verificarProntosEAvancar(codigoSala)
         }
 
         binding.btnSairSala.setOnClickListener {
@@ -109,54 +56,54 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        viewModel.removerListeners()
         super.onDestroy()
-        jogoCompetitivoRepository.removerListener(jogadoresListener)
-        jogoCompetitivoRepository.removerListener(estadoListener)
-        jogoCompetitivoRepository.removerListener(salaListener)
     }
 
-    private fun atualizarEstadoBotaoIniciar() {
-        binding.btnIniciarJogo.isEnabled = admin && jogadoresNaSala.size == 2
+    private fun configurarObservers() {
+        viewModel.estado.observe(this) { estado ->
+            atualizarEstadoSala(estado)
+        }
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
     }
 
-    // Função para verificar se ambos os jogadores estão prontos antes de iniciar
-    private fun verificarProntosEAvancar() {
-        jogoCompetitivoRepository.obterProntos1x1(codigoSala)
-            .addOnSuccessListener { prontos ->
-                if (prontos.size == 2 && jogadoresNaSala.size == 2) {
-                    // Altera o estado da sala para "em_jogo",
-                    jogoCompetitivoRepository.atualizarEstadoSala(
-                        ModoCompetitivo.UM_CONTRA_UM,
-                        codigoSala,
-                        GameConstants.ESTADO_EM_JOGO
-                    )
-                } else {
-                    Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
-                }
+    private fun atualizarEstadoSala(estado: SalaCompetitivaUiState) {
+        binding.txtListaJogadores.text = if (estado.jogadores.isEmpty()) {
+            "Aguardando jogadores..."
+        } else {
+            estado.jogadores.joinToString(separator = "\n")
+        }
+        binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+    }
+
+    private fun tratarEvento(evento: Sala1x1Event) {
+        when (evento) {
+            Sala1x1Event.JogoIniciado -> {
+                val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
+                intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+                intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+                intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+                startActivity(intent)
+                finish()
             }
-    }
-
-    private fun escutarSalaApagada() {
-        salaListener = jogoCompetitivoRepository.escutarSalaApagada(
-            ModoCompetitivo.UM_CONTRA_UM,
-            codigoSala,
-            onSalaExisteAlterada = { existe ->
-                if (!saidaManual && !existe) {
-                    Toast.makeText(this@SalaDeEspera1x1Activity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
-                    abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador)
-                    finish()
-                }
+            Sala1x1Event.SalaEncerrada -> {
+                Toast.makeText(this@SalaDeEspera1x1Activity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
+                abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador)
+                finish()
             }
-        )
+            Sala1x1Event.AguardarAdversario ->
+                Toast.makeText(this, "Ainda a aguardar o adversário!", Toast.LENGTH_SHORT).show()
+            Sala1x1Event.JogadoresNaoProntos ->
+                Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun sairDaSala() {
-        saidaManual = true
-        if (admin) {
-            jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-        } else {
-            jogoCompetitivoRepository.removerJogador1x1(codigoSala, nomeUtilizador)
-        }
+        viewModel.sairDaSala(codigoSala)
         abrirMainActivity(this, nomeUtilizador, nomeJogador)
         finish()
     }

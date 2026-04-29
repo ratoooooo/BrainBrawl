@@ -4,24 +4,27 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityRegistarBinding
-import com.example.brainbrawl.utils.UteisValidacao.hashPassword
-import com.example.brainbrawl.utils.UteisValidacao.validarCampos
-import com.google.firebase.database.FirebaseDatabase
+import com.example.brainbrawl.viewmodels.RegistarEvent
+import com.example.brainbrawl.viewmodels.RegistarViewModel
 
 class RegistarActivity : AppCompatActivity() {
     // Acessar os elementos do layout
     private val binding by lazy {
         ActivityRegistarBinding.inflate(layoutInflater)
     }
-    // Acessar a base de dados
-    private val database = FirebaseDatabase.getInstance().reference
+    private val viewModel by lazy {
+        ViewModelProvider(this)[RegistarViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         var avatarSelecionadoIndex = 0
+
+        configurarObservers()
 
         // Varivel para armazenar os avatares
         val avatarResources = arrayOf(
@@ -57,35 +60,7 @@ class RegistarActivity : AppCompatActivity() {
             // GGuardar os dados inseridos nos campos de texto
             val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
             val password = binding.edtPasswordJogador.text.toString().trim()
-
-            // Validar os campos
-            val erro = validarCampos(nomeUtilizador, password)
-            // Verificar se há erros
-            if (erro != null) {
-                Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Acessar a base de dados e ao nó "jogadores"
-            database.child("jogadores").child(nomeUtilizador).get()
-                .addOnSuccessListener { snapshot ->
-                    //Verificar se jogador já existe
-                    if (snapshot.exists()) {
-                        Toast.makeText(this, "Jogador já existe", Toast.LENGTH_SHORT).show()
-                    } else {
-                        //Chamar a função para adicionar o jogador
-                        adicionarJogador(nomeUtilizador, password, avatarSelecionadoIndex)
-                        // Abrir LoginActivity e passar o nome do utilizador
-                        var intent = Intent(this, LoginActivity::class.java)
-                        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
-                        startActivity(intent)
-                        finish()
-                    }
-                }
-                .addOnFailureListener { exception ->
-                    // Exibir mensagem de erro
-                    Toast.makeText(this, "Erro ao verificar jogador: ${exception.message}", Toast.LENGTH_SHORT).show()
-                }
+            viewModel.registar(nomeUtilizador, password, avatarSelecionadoIndex)
         }
 
         // Configurar botão de voltar
@@ -95,21 +70,33 @@ class RegistarActivity : AppCompatActivity() {
         }
     }
 
-    // Função para adicionar o jogador ao Firebase com senha encriptada
-    private fun adicionarJogador(nomeUtilizador: String, password: String, avatarSelecionadoIndex: Int) {
-        val hashedPassword = hashPassword(password)
-        val nomeAvatar = "avatar_${avatarSelecionadoIndex + 1}_playstore"
-        val jogadorData = mapOf(
-            "password" to hashedPassword,
-            "avatar" to nomeAvatar,
-            "pontuacao" to 0.0,
-            "totalJogos" to 0,
-            "totalVitorias" to 0,
-            "totalRespostasCertas" to 0,
-            "totalVitoriasModo2x2" to 0,
-            "totalVitoriasModo1x1" to 0,
-            "totalVitoriasModoSolo" to 0
-        )
-        database.child("jogadores").child(nomeUtilizador).setValue(jogadorData)
+    private fun configurarObservers() {
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
+    }
+
+    private fun tratarEvento(evento: RegistarEvent) {
+        when (evento) {
+            is RegistarEvent.ValidacaoFalhou -> {
+                Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
+            }
+            RegistarEvent.JogadorJaExiste -> {
+                Toast.makeText(this, "Jogador já existe", Toast.LENGTH_SHORT).show()
+            }
+            is RegistarEvent.ErroVerificarJogador -> {
+                Toast.makeText(this, "Erro ao verificar jogador: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+            }
+            is RegistarEvent.ErroCriarJogador -> {
+                Toast.makeText(this, "Erro ao criar jogador: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+            }
+            is RegistarEvent.RegistoSucesso -> {
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, evento.nomeUtilizador)
+                startActivity(intent)
+                finish()
+            }
+        }
     }
 }

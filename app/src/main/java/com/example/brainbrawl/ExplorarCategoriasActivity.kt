@@ -9,17 +9,22 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.UteisSala.criarSalaCategoriaPublicaEEntrar
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityExplorarCategoriasBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
+import com.example.brainbrawl.viewmodels.ExplorarCategoriasEvent
+import com.example.brainbrawl.viewmodels.ExplorarCategoriasUiState
+import com.example.brainbrawl.viewmodels.ExplorarCategoriasViewModel
 
 class ExplorarCategoriasActivity : AppCompatActivity() {
     private val binding by lazy { ActivityExplorarCategoriasBinding.inflate(layoutInflater) }
-    private val categoriaRepository = CategoriaRepository()
-    private var categoriasListener: CategoriaRepository.ListenerHandle? = null
+    private val viewModel by lazy {
+        ViewModelProvider(this)[ExplorarCategoriasViewModel::class.java]
+    }
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
 
@@ -42,25 +47,55 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             abrirCriacaoCategoria()
         }
 
-        carregarCategorias()
+        configurarObservers()
+        viewModel.carregarCategorias()
     }
 
     override fun onDestroy() {
+        viewModel.removerListener()
         super.onDestroy()
-        categoriaRepository.removerListener(categoriasListener)
     }
 
-    private fun carregarCategorias() {
-        binding.layoutCategoriasPublicas.removeAllViews()
-        binding.txtEstado.text = "A carregar categorias..."
-        categoriasListener = categoriaRepository.escutarCategoriasPublicas(
-            onCategoriasAlteradas = { categorias ->
-                preencherLista(categorias)
-            },
-            onErro = {
-                binding.txtEstado.text = "Erro ao carregar categorias públicas."
-            }
-        )
+    private fun configurarObservers() {
+        viewModel.categorias.observe(this) { estado ->
+            atualizarEstadoCategorias(estado)
+        }
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
+    }
+
+    private fun atualizarEstadoCategorias(estado: ExplorarCategoriasUiState) {
+        if (estado.carregando) {
+            binding.layoutCategoriasPublicas.removeAllViews()
+            binding.txtEstado.text = "A carregar categorias..."
+            return
+        }
+
+        if (estado.erro) {
+            binding.txtEstado.text = "Erro ao carregar categorias públicas."
+            return
+        }
+
+        preencherLista(estado.categorias)
+    }
+
+    private fun tratarEvento(evento: ExplorarCategoriasEvent) {
+        when (evento) {
+            ExplorarCategoriasEvent.LoginNecessarioGuardar ->
+                Toast.makeText(this, "Inicia sessão para guardar categorias.", Toast.LENGTH_SHORT).show()
+            ExplorarCategoriasEvent.LoginNecessarioAvaliar ->
+                Toast.makeText(this, "Inicia sessão para avaliar categorias.", Toast.LENGTH_SHORT).show()
+            ExplorarCategoriasEvent.CategoriaGuardada ->
+                Toast.makeText(this, "Categoria guardada nas tuas categorias.", Toast.LENGTH_SHORT).show()
+            ExplorarCategoriasEvent.AvaliacaoGuardada ->
+                Toast.makeText(this, "Avaliação guardada.", Toast.LENGTH_SHORT).show()
+            ExplorarCategoriasEvent.CategoriaJaAvaliada ->
+                Toast.makeText(this, "Já avaliaste esta categoria.", Toast.LENGTH_SHORT).show()
+            is ExplorarCategoriasEvent.Erro ->
+                Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun preencherLista(categorias: List<CategoriaRepository.CategoriaPublica>) {
@@ -161,25 +196,13 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
     }
 
     private fun guardarCategoria(categoria: CategoriaRepository.CategoriaPublica) {
-        val utilizador = nomeUtilizador
-        if (utilizador.isNullOrBlank()) {
-            Toast.makeText(this, "Inicia sessão para guardar categorias.", Toast.LENGTH_SHORT).show()
-            return
-        }
-
-        categoriaRepository.guardarCopiaCategoriaPublica(utilizador, categoria.id)
-            .addOnSuccessListener {
-                Toast.makeText(this, "Categoria guardada nas tuas categorias.", Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { error ->
-                Toast.makeText(this, error.message ?: "Erro ao guardar categoria.", Toast.LENGTH_SHORT).show()
-            }
+        viewModel.guardarCategoria(nomeUtilizador.orEmpty(), categoria)
     }
 
     private fun mostrarAvaliacao(categoria: CategoriaRepository.CategoriaPublica) {
         val utilizador = nomeUtilizador
         if (utilizador.isNullOrBlank()) {
-            Toast.makeText(this, "Inicia sessão para avaliar categorias.", Toast.LENGTH_SHORT).show()
+            viewModel.avaliarCategoria(categoria.id, "", 1)
             return
         }
 
@@ -194,20 +217,7 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
     }
 
     private fun avaliarCategoria(categoriaId: String, utilizador: String, valor: Int) {
-        categoriaRepository.avaliarCategoria(categoriaId, utilizador, valor)
-            .addOnSuccessListener { resultado ->
-                when (resultado) {
-                    CategoriaRepository.ResultadoAvaliacao.GUARDADA ->
-                        Toast.makeText(this, "Avaliação guardada.", Toast.LENGTH_SHORT).show()
-                    CategoriaRepository.ResultadoAvaliacao.JA_AVALIADA ->
-                        Toast.makeText(this, "Já avaliaste esta categoria.", Toast.LENGTH_SHORT).show()
-                    else ->
-                        Toast.makeText(this, "Erro ao avaliar.", Toast.LENGTH_SHORT).show()
-                }
-            }
-            .addOnFailureListener {
-                Toast.makeText(this, "Erro ao avaliar.", Toast.LENGTH_SHORT).show()
-            }
+        viewModel.avaliarCategoria(categoriaId, utilizador, valor)
     }
 
     private fun dp(valor: Int): Int = (valor * resources.displayMetrics.density).toInt()

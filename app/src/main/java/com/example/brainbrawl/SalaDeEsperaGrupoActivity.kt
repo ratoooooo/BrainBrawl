@@ -4,18 +4,23 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
-import com.example.brainbrawl.repositories.SalaRepository
+import com.example.brainbrawl.viewmodels.SalaGrupoEvent
+import com.example.brainbrawl.viewmodels.SalaGrupoJogadoresUiState
+import com.example.brainbrawl.viewmodels.SalaGrupoViewModel
 
 class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private val binding by lazy {
         ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
     }
 
-    private val salaRepository = SalaRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this)[SalaGrupoViewModel::class.java]
+    }
     private lateinit var codigoSala: String
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
@@ -23,13 +28,6 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private var modoJogo: String = GameConstants.MODO_CLASSICO
     private var admin = false
     private var nomeAtual: String = ""
-    private var jogadoresNaSala: List<String> = emptyList()
-    private var jogadoresListener: SalaRepository.ListenerHandle? = null
-    private var estadoListener: SalaRepository.ListenerHandle? = null
-    private var salaListener: SalaRepository.ListenerHandle? = null
-    private var saidaManual = false
-    private val minimoJogadoresGrupo = 1
-    private val jogadoresInfo = mutableMapOf<String, Boolean>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,17 +51,18 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
         binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
         binding.btnIniciarJogo.isEnabled = false
 
-        garantirJogadorNaSala()
-        escutarJogadores()
-        escutarEstadoSala()
-        escutarSalaApagada()
+        configurarObservers()
+        viewModel.iniciarSala(codigoSala, nomeAtual, admin)
+        viewModel.observarJogadores(codigoSala)
+        viewModel.observarEstadoSala(codigoSala)
+        viewModel.observarSalaApagada(codigoSala)
 
         binding.btnIniciarJogo.setOnClickListener {
             if (!admin) {
                 Toast.makeText(this, "Só o criador da sala pode iniciar.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            validarEIniciarJogo()
+            viewModel.validarEIniciarJogo(codigoSala)
         }
 
         binding.btnSairSala.setOnClickListener {
@@ -72,113 +71,59 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        viewModel.removerListeners()
         super.onDestroy()
-        salaRepository.removerListener(jogadoresListener)
-        salaRepository.removerListener(estadoListener)
-        salaRepository.removerListener(salaListener)
     }
 
-    private fun garantirJogadorNaSala() {
-        salaRepository.garantirJogadorNaSala(codigoSala, nomeAtual, admin)
+    private fun configurarObservers() {
+        viewModel.jogadores.observe(this) { estado ->
+            atualizarJogadores(estado)
+        }
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
     }
 
-    private fun escutarJogadores() {
-        jogadoresListener = salaRepository.escutarJogadoresDaSala(
-            codigoSala,
-            onJogadoresAlterados = { jogadores ->
-                jogadoresInfo.clear()
-                jogadores.forEach { jogador ->
-                    jogadoresInfo[jogador.nome] = jogador.isHostOnly
-                }
-                jogadoresNaSala = jogadores.map { it.nome }
-                binding.txtListaJogadores.text = if (jogadoresNaSala.isEmpty()) {
-                    "Aguardando jogadores..."
-                } else {
-                    jogadoresNaSala.joinToString(separator = "\n")
-                }
-                binding.btnIniciarJogo.isEnabled = admin && jogadoresReais().size >= minimoJogadoresGrupo
-            },
-            onErro = {
+    private fun atualizarJogadores(estado: SalaGrupoJogadoresUiState) {
+        binding.txtListaJogadores.text = if (estado.nomes.isEmpty()) {
+            "Aguardando jogadores..."
+        } else {
+            estado.nomes.joinToString(separator = "\n")
+        }
+        binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+    }
+
+    private fun tratarEvento(evento: SalaGrupoEvent) {
+        when (evento) {
+            SalaGrupoEvent.ErroCarregarJogadores ->
                 Toast.makeText(this, "Erro ao carregar jogadores.", Toast.LENGTH_SHORT).show()
-            }
-        )
-    }
-
-    private fun escutarEstadoSala() {
-        estadoListener = salaRepository.escutarEstadoDaSala(
-            codigoSala,
-            onEstadoAlterado = { estado ->
-                if (estado == GameConstants.ESTADO_EM_JOGO) {
-                    val intent = Intent(this@SalaDeEsperaGrupoActivity, JogoActivity::class.java)
-                    intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
-                    intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador ?: "")
-                    intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador ?: nomeAtual)
-                    intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
-                    intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
-                    startActivity(intent)
-                    finish()
-                }
-            },
-            onErro = {
+            SalaGrupoEvent.ErroEscutarEstado ->
                 Toast.makeText(this, "Erro ao escutar estado da sala.", Toast.LENGTH_SHORT).show()
-            }
-        )
-    }
-
-    private fun jogadoresReais(): List<String> {
-        return jogadoresNaSala.filter { jogador ->
-            jogador != nomeAtual && jogador != GameConstants.JOGADOR_ADMIN && jogadoresInfo[jogador] != true
-        }
-    }
-
-    private fun jogadoresReais(jogadores: List<SalaRepository.JogadorSala>): List<String> {
-        return jogadores.mapNotNull { jogador ->
-            if (jogador.nome != nomeAtual && jogador.nome != GameConstants.JOGADOR_ADMIN && !jogador.isHostOnly) {
-                jogador.nome
-            } else {
-                null
-            }
-        }
-    }
-
-    private fun validarEIniciarJogo() {
-        salaRepository.obterJogadoresDaSala(codigoSala)
-            .addOnSuccessListener { jogadores ->
-                if (jogadoresReais(jogadores).size < minimoJogadoresGrupo) {
-                    Toast.makeText(
-                        this,
-                        "Aguarde pelo menos 1 jogador além do admin.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return@addOnSuccessListener
-                }
-                salaRepository.atualizarEstadoSala(codigoSala, GameConstants.ESTADO_EM_JOGO)
-            }
-            .addOnFailureListener {
+            SalaGrupoEvent.ErroValidarJogadores ->
                 Toast.makeText(this, "Erro ao validar jogadores.", Toast.LENGTH_SHORT).show()
+            SalaGrupoEvent.JogadoresInsuficientes ->
+                Toast.makeText(this, "Aguarde pelo menos 1 jogador além do admin.", Toast.LENGTH_SHORT).show()
+            SalaGrupoEvent.JogoIniciado -> {
+                val intent = Intent(this@SalaDeEsperaGrupoActivity, JogoActivity::class.java)
+                intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador ?: "")
+                intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador ?: nomeAtual)
+                intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+                intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+                startActivity(intent)
+                finish()
             }
-    }
-
-    private fun escutarSalaApagada() {
-        salaListener = salaRepository.escutarSalaApagada(
-            codigoSala,
-            onSalaExisteAlterada = { existe ->
-                if (!saidaManual && !existe) {
-                    Toast.makeText(this@SalaDeEsperaGrupoActivity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
-                    abrirMainActivity(this@SalaDeEsperaGrupoActivity, nomeUtilizador, nomeJogador ?: nomeAtual)
-                    finish()
-                }
+            SalaGrupoEvent.SalaEncerrada -> {
+                Toast.makeText(this@SalaDeEsperaGrupoActivity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
+                abrirMainActivity(this@SalaDeEsperaGrupoActivity, nomeUtilizador, nomeJogador ?: nomeAtual)
+                finish()
             }
-        )
+        }
     }
 
     private fun sairDaSala() {
-        saidaManual = true
-        if (admin) {
-            salaRepository.apagarSala(codigoSala)
-        } else {
-            salaRepository.removerJogadorDaSala(codigoSala, nomeAtual)
-        }
+        viewModel.sairDaSala(codigoSala, nomeAtual, admin)
         abrirMainActivity(this, nomeUtilizador, nomeJogador ?: nomeAtual)
         finish()
     }

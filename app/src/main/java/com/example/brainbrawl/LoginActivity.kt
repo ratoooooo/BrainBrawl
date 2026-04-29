@@ -5,88 +5,82 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityLoginBinding
-import com.example.brainbrawl.repositories.JogadorRepository
-import com.example.brainbrawl.utils.UteisValidacao.hashPassword
-import com.example.brainbrawl.utils.UteisValidacao.validarCampos
+import com.example.brainbrawl.viewmodels.LoginEvent
+import com.example.brainbrawl.viewmodels.LoginViewModel
 
 class LoginActivity : AppCompatActivity() {
     // Acessar os elementos do layout
     private val binding by lazy {
         ActivityLoginBinding.inflate(layoutInflater)
     }
-    // Acessar a base de dados
-    private val jogadorRepository = JogadorRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this)[LoginViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(binding.root)
 
+        configurarObservers()
+
         // Configurar os botoes de login, registo e iniciar jogo sem conta
         binding.btnEntrar.setOnClickListener {
             // Guarda os valores inseridos nos campos
-            var nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
-            var password = binding.edtPasswordJogador.text.toString().trim()
-
-            // Faz a validação dos campos
-            val erro = validarCampos(nomeUtilizador, password)
-            // Se existir erro exibir mensagem
-            if (erro != null) {
-                Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Verificar credenciais no Firebase
-            jogadorRepository.obterPerfil(nomeUtilizador)
-                .addOnSuccessListener { perfil ->
-                    // Verificar se o nome de utilizador existe na base de dados
-                    if (perfil != null) {
-                        // Guardar a palavra passe
-                        val savedHash = perfil.password
-                        // Guardar a palavra passe encriptada
-                        val inputHash = hashPassword(password)
-                        // Verificar se a palavra passe é válida
-                        if (savedHash == inputHash) {
-                            // Alterar o estado do jogador para on
-                            jogadorRepository.marcarOnline(nomeUtilizador)
-                            Toast.makeText(this@LoginActivity, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show()
-                            // Criar um intent para a MainActivity
-                            val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                            // Passar o nome de utilizador para a MainActivity
-                            nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
-                            // Abrir a MainActivity
-                            startActivity(intent)
-                            finish()
-                        } else {
-                            // Exibir mensagem de erro
-                            Toast.makeText(this@LoginActivity, "Senha incorreta", Toast.LENGTH_SHORT).show()
-                            binding.edtPasswordJogador.text.clear()
-                        }
-                    } else {
-                        // Exibir mensagem de erro
-                        Toast.makeText(this@LoginActivity, "Jogador não encontrado", Toast.LENGTH_SHORT).show()
-                    }
-                }
-                .addOnFailureListener {
-                    Toast.makeText(this@LoginActivity, "Erro ao acessar o banco de dados", Toast.LENGTH_SHORT).show()
-                }
+            val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
+            val password = binding.edtPasswordJogador.text.toString().trim()
+            viewModel.entrar(nomeUtilizador, password)
         }
         binding.btnRegisto.setOnClickListener {
             startActivity(Intent(this, RegistarActivity::class.java))
         }
         binding.btnIniciarJogo.setOnClickListener {
             val nomeJogador = binding.edtNomeJogador.text.toString().trim()
-            if (nomeJogador.isEmpty()) {
-                Toast.makeText(this, "Insira um nome de jogador!", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            val intent = Intent(this, MainActivity::class.java)
-            nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
-            startActivity(intent)
-            finish()
+            viewModel.entrarComoConvidado(nomeJogador)
         }
     }
 
+    private fun configurarObservers() {
+        viewModel.evento.observe(this) { evento ->
+            tratarEvento(evento ?: return@observe)
+            viewModel.consumirEvento()
+        }
+    }
+
+    private fun tratarEvento(evento: LoginEvent) {
+        when (evento) {
+            is LoginEvent.ValidacaoFalhou -> {
+                Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
+            }
+            is LoginEvent.LoginSucesso -> {
+                Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, MainActivity::class.java)
+                evento.nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+                startActivity(intent)
+                finish()
+            }
+            LoginEvent.SenhaIncorreta -> {
+                Toast.makeText(this, "Senha incorreta", Toast.LENGTH_SHORT).show()
+                binding.edtPasswordJogador.text.clear()
+            }
+            LoginEvent.JogadorNaoEncontrado -> {
+                Toast.makeText(this, "Jogador não encontrado", Toast.LENGTH_SHORT).show()
+            }
+            LoginEvent.ErroBanco -> {
+                Toast.makeText(this, "Erro ao acessar o banco de dados", Toast.LENGTH_SHORT).show()
+            }
+            LoginEvent.NomeConvidadoVazio -> {
+                Toast.makeText(this, "Insira um nome de jogador!", Toast.LENGTH_SHORT).show()
+            }
+            is LoginEvent.ConvidadoSucesso -> {
+                val intent = Intent(this, MainActivity::class.java)
+                evento.nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+                startActivity(intent)
+                finish()
+            }
+        }
+    }
 }

@@ -2,6 +2,284 @@
 
 Data: 2026-04-29
 
+## Migração MVVM leve - jogo
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/JogoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Em grupo/classico/caotico/eliminatorias, carregar perguntas, observar `perguntaAtualIndex`, observar fim de eliminatorias, sincronizar `serverTimeOffset`/`perguntaHoraInicio`, enviar respostas, calcular pontuacao, obter jogadores restantes, eliminar jogador, avancar perguntas, guardar resultado final e detectar fim de jogo passaram para `JogoViewModel`.
+- Em 1x1, leitura da categoria real, carregamento/criacao transacional das perguntas, sincronizacao do inicio de pergunta, offset do servidor, calculo de pontuacao, guardar pontuacao final, espera pelo podio e deteccao de fim passaram para `Jogo1x1ViewModel`.
+- Em 2x2, leitura da categoria real, identificacao da equipa, carregamento/criacao transacional das perguntas, sincronizacao do inicio de pergunta, offset do servidor, envio de resposta, calculo de pontuacao, guardar resultado por equipa, espera pelo podio e deteccao de fim passaram para `Jogo2x2ViewModel`.
+- Activities continuam responsaveis por UI/layout, opcoes visuais, timers visuais, progress bar, sons, toasts, feedback de botoes, animações existentes e navegacao.
+- Repositories continuam responsaveis por Firebase; nao foram alterados nomes de nodes, estrutura Firebase, regras de pontuacao ou regras dos modos.
+- Listeners de jogo passaram a ser guardados e removidos nos ViewModels por `removerListeners()` e `onCleared`.
+
+### Testes feitos
+
+- `./gradlew assembleDebug`
+  - Falhou no ambiente por Java `25.0.2` (`JavaVersion.parse` no Kotlin/Gradle), antes de compilar codigo da app.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Grupo/classico: criar sala como admin, entrar com outro jogador, iniciar jogo, confirmar pergunta sincronizada, resposta, bonus, avanco de perguntas pelo admin e podio final.
+2. Grupo/caotico: repetir fluxo de grupo e confirmar tempo de 10 segundos, pontuacao caotica e sincronizacao do `perguntaHoraInicio`.
+3. Eliminatorias: jogar com pelo menos dois jogadores reais, errar uma resposta num cliente, confirmar marcacao como eliminado, abertura de espera e abertura do podio quando `estado = terminado`.
+4. Eliminatorias/admin: confirmar que o admin apenas observa, avanca perguntas apos o timer e termina quando resta um jogador real.
+5. 1x1: iniciar com dois jogadores, confirmar que ambos recebem as mesmas perguntas, timer de 15 segundos, pontuacao/bonus, espera pelo adversario e podio quando ambos gravam pontuacao.
+6. 2x2: iniciar com quatro jogadores, confirmar equipa correta, envio de resposta em `respostas/{jogador}/{indice}`, resultado por `pontuacoes_A`/`pontuacoes_B`, espera por todos e podio final.
+7. Em todos os modos, sair/rodar ecras durante jogo e confirmar que nao aparecem perguntas duplicadas, timers duplicados ou listeners a disparar depois de sair.
+8. Confirmar no Firebase que `salas`, `sala_1x1` e `sala_2x2` mantem os mesmos paths/campos.
+
+## Migração MVVM leve - salas
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EsperaEliminadoViewModel.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Entrada em sala por codigo, validacao de nome, verificacao de sala existente/nome repetido, leitura de avatar e adicao do jogador passaram para `SalaGrupoViewModel`.
+- Observacao em tempo real da lista de jogadores, estado da sala e sala apagada em grupo passou para `SalaGrupoViewModel`.
+- Verificacao das condicoes para iniciar jogo de grupo, mudanca para `em_jogo`, saida de jogador e apagamento de sala pelo admin passaram para `SalaGrupoViewModel`.
+- Em 1x1, adicionar jogador, marcar pronto, obter admin, observar jogadores/estado/sala apagada, verificar prontos, iniciar jogo e sair/apagar sala passaram para `Sala1x1ViewModel`.
+- Em 2x2, adicionar jogador, obter admin, observar jogadores/estado/sala apagada, calcular/guardar equipas, iniciar jogo e sair/apagar sala passaram para `Sala2x2ViewModel`.
+- Em eliminatorias, a espera pelo estado `terminado` passou para `EsperaEliminadoViewModel`.
+- Activities continuam responsaveis por UI, toasts e navegacao para `JogoActivity`, `Jogo1x1Activity`, `Jogo2x2Activity`, `PontuacoesActivity` e `MainActivity`.
+- Os listeners continuam a usar os repositories existentes e sao removidos pelas Activities e por `onCleared`, reduzindo risco de fugas de memoria.
+- Nao foram alterados layouts, nomes de nodes Firebase, regras de admin, fluxo de inicio de jogo nem Activities de jogo.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Criar sala de grupo/classico com utilizador registado; confirmar codigo, lista de jogadores e botao de iniciar apenas para admin.
+2. Entrar na sala de grupo por codigo com outro jogador; confirmar validacoes de codigo vazio, codigo invalido e nome repetido.
+3. Iniciar jogo de grupo quando ha pelo menos um jogador real alem do admin; confirmar navegacao para `JogoActivity` em todos os clientes.
+4. Sair como jogador nao admin; confirmar remocao apenas desse jogador e regresso ao menu.
+5. Sair como admin; confirmar que a sala e apagada e os restantes jogadores voltam ao menu.
+6. Criar/aceitar convite 1x1; confirmar lista de dois jogadores, pronto automatico, botao ativo apenas para admin e navegacao sincronizada para `Jogo1x1Activity`.
+7. Criar/aceitar convite 2x2 com quatro jogadores; confirmar distribuicao visual das equipas, escrita de `equipaA`/`equipaB` e navegacao sincronizada para `Jogo2x2Activity`.
+8. Em eliminatorias, ser eliminado e aguardar o fim da sala; confirmar que a Activity abre o podio quando `estado = terminado`.
+9. Rodar/fechar/reabrir ecras de sala durante a espera; confirmar que listas nao duplicam e que nao ficam listeners aparentes ativos.
+10. Confirmar no Firebase que `salas`, `sala_1x1` e `sala_2x2` mantem os mesmos paths/campos.
+
+## Migração MVVM leve - autenticação
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/LoginViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RegistarViewModel.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/LoginActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Validacao de campos de login e registo passou para `LoginViewModel`/`RegistarViewModel`, usando `UteisValidacao`.
+- Verificacao de jogador existente e leitura de perfil passaram a ser chamadas pelos ViewModels via `JogadorRepository`.
+- Comparacao entre password inserida e hash SHA-256 guardado passou para `LoginViewModel`.
+- Criacao de jogador registado passou para `RegistarViewModel` e `JogadorRepository`, mantendo os mesmos campos Firebase atuais.
+- O nome do avatar guardado continua a seguir `avatar_{index + 1}_playstore`; a selecao visual do avatar continua na Activity.
+- Entrada como convidado passou para `LoginViewModel`, mantendo a mesma validacao de nome vazio e a mesma navegacao.
+- Marcacao de estado online no login registado passou para `LoginViewModel`, continuando a usar `JogadorRepository.marcarOnline`.
+- Login manual foi mantido; nao foi introduzido Firebase Auth.
+- Activities continuam responsaveis por UI, toasts e navegacao.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Tentar login com campos vazios, nome curto/invalido e password curta; confirmar as mesmas mensagens de validacao.
+2. Tentar login com jogador inexistente; confirmar `Jogador não encontrado`.
+3. Tentar login com password errada; confirmar `Senha incorreta` e limpeza do campo de password.
+4. Fazer login com conta registada valida; confirmar toast de sucesso, entrada no `MainActivity` e `estado = on` no Firebase.
+5. Entrar como convidado com nome vazio e depois com nome valido; confirmar bloqueio/toast e navegacao com `nomeJogador`.
+6. Registar novo jogador com avatar diferente do primeiro; confirmar criacao em `jogadores/{nome}` com `password`, `avatar`, `pontuacao`, totais e vitorias por modo.
+7. Tentar registar jogador existente; confirmar `Jogador já existe`.
+8. Confirmar que nao foi criada nenhuma estrutura Firebase nova e que o login continua manual com hash SHA-256.
+
+## Migração MVVM leve - categorias
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/CategoriasViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/ExplorarCategoriasViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Listar categorias personalizadas e categorias publicas usadas no dialog de categorias passou para `CategoriasViewModel`.
+- Publicar categoria, remover categoria publica e eliminar categoria personalizada passaram para `CategoriasViewModel`.
+- Observar categorias publicas em tempo real passou para `ExplorarCategoriasViewModel`, com listener removido em `onDestroy`/`onCleared`.
+- Guardar copia de categoria publica e avaliar categoria passaram para `ExplorarCategoriasViewModel`.
+- Carregar perguntas editaveis, guardar pergunta, eliminar pergunta e validacao basica do formulario passaram para `EditarCategoriaViewModel`.
+- A validacao preserva a ordem e mensagens atuais: categoria nao permitida, tamanhos maximos, opcoes diferentes e campos obrigatorios.
+- Activities continuam responsaveis por UI, dialogs, adapters/listas visuais, toasts, limpar formulario, criacao de sala e navegacao.
+- `CategoriaRepository` continua responsavel pelo Firebase; nao foram alterados paths nem estrutura Firebase.
+- Compatibilidade com convidados foi mantida: convidados continuam bloqueados ao criar/guardar/avaliar onde a UI ja bloqueava.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Entrar com conta registada, abrir categorias personalizadas e confirmar lista, estado Publica/Privada e botao `Criar nova categoria`.
+2. Criar uma categoria, adicionar pergunta com 4 opcoes e confirmar que aparece na lista de perguntas.
+3. Testar validacoes: opcoes repetidas, campos vazios, categoria oficial e campos longos.
+4. Editar uma pergunta existente e confirmar que atualiza sem duplicar.
+5. Eliminar pergunta e categoria personalizada.
+6. Tornar categoria publica, atualizar publica e remover publica; confirmar toasts e atualizacao do dialog.
+7. Abrir `Explorar Categorias`, confirmar lista publica, guardar copia com conta registada e avaliar uma categoria.
+8. Repetir guardar/avaliar/criar categoria como convidado e confirmar os bloqueios com toast.
+9. Confirmar no Firebase que `categoriasPublicas` e `jogadores/{nome}/categoriasPersonalizadas` mantem os mesmos paths/campos.
+
+## Migração MVVM leve - AmigosActivity
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- A lista de amigos, incluindo avatar e estado de cada jogador, passou a ser carregada/exposta por `AmigosViewModel`.
+- A observacao em tempo real de amigos, pedidos de amizade e convites recebidos passou para `AmigosViewModel`.
+- Pesquisa de jogador, envio de pedido, aceitar pedido e metodos para recusar pedido passaram para `AmigosViewModel`.
+- Aceitar convite passou a ser chamado por `AmigosViewModel`; a Activity continua a mostrar o toast e navegar para a sala de espera 1x1/2x2 como antes.
+- Metodos para recusar/remover convite foram expostos no `AmigosViewModel`, usando os metodos ja existentes em `AmigosRepository`, sem alterar a UI atual.
+- Os listeners sociais continuam removidos em `onStop`/`onDestroy` e tambem em `onCleared`, evitando fugas de memoria.
+- `AmigosRepository` e `JogadorRepository` continuam responsaveis pelo Firebase; nao foram alterados paths nem estrutura Firebase.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Entrar com uma conta registada e abrir `Amigos`; confirmar que o proprio utilizador aparece primeiro com avatar/estado e que os amigos aparecem como antes.
+2. Pesquisar um utilizador inexistente; confirmar toast `Utilizador não encontrado`.
+3. Pesquisar um amigo existente; confirmar toast de que ja e amigo e que o layout de adicionar fica escondido.
+4. Pesquisar um utilizador valido que ainda nao e amigo; confirmar botao `Adicionar {nome}` e enviar pedido.
+5. Noutra conta, confirmar que o pedido aparece em `Pedidos de amizade recebidos` e aceitar; confirmar toast `Amizade aceite!` e atualizacao das listas.
+6. Enviar convite 1x1/2x2 a partir dos fluxos existentes; confirmar que o convite recebido aparece em `Amigos` e que aceitar navega para a sala de espera correta.
+7. Sair e voltar ao ecrã `Amigos` algumas vezes; confirmar que nao ha duplicacao de listas nem listeners aparentes.
+8. Confirmar no Firebase que `jogadores/{nome}/amigos`, `pedidos_amizade`, `convites_recebidos` e `convites_enviados` mantem a mesma estrutura.
+
+## Migração MVVM leve - perfil
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/build.gradle.kts`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- `MeuPerfilActivity` passou a observar `MeuPerfilViewModel` para receber nome, avatar, pontuacao, taxa de acertos, total de jogos, total de vitorias e total de respostas certas.
+- `PerfilAmigoActivity` passou a observar `PerfilAmigoViewModel` para receber os mesmos dados do amigo, incluindo fallback para perfil inexistente.
+- A remocao de amigo passou a ser chamada pelo `PerfilAmigoViewModel`; o toast de sucesso e a navegacao de volta para `AmigosActivity` continuam na Activity.
+- `JogadorRepository` e `AmigosRepository` continuam responsaveis pelo Firebase; nao foram alterados paths nem estrutura Firebase.
+- Layouts, textos principais, badges, avatar, botoes, toasts e navegacao continuam controlados pelas Activities.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Entrar com uma conta registada e abrir `Meu Perfil`; confirmar nome, avatar, pontuacao, jogos, vitorias, taxa de acertos e badges.
+2. Abrir a lista de amigos e entrar no perfil de um amigo; confirmar que os mesmos dados aparecem sem mudanca visual.
+3. Remover um amigo pelo perfil; confirmar o toast `Amigo removido com sucesso!` e o regresso a `AmigosActivity`.
+4. Abrir o perfil de um amigo/perfil inexistente, se o fluxo permitir, e confirmar fallback com avatar padrao e estatisticas a zero.
+5. Confirmar no Firebase que a estrutura de `jogadores/{nome}` e `amigos` nao mudou.
+
 ## Correções de bugs e UX antes da próxima fase de arquitetura
 
 ### Bugs encontrados e causa provável

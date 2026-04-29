@@ -3,18 +3,22 @@ package com.example.brainbrawl
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
 import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
 import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
-import com.example.brainbrawl.repositories.JogadorRepository
+import com.example.brainbrawl.viewmodels.MeuPerfilUiState
+import com.example.brainbrawl.viewmodels.MeuPerfilViewModel
 
 class MeuPerfilActivity : AppCompatActivity() {
 
     // Usa o mesmo binding/layout do perfil do amigo
     private val binding by lazy { ActivityMeuPerfilBinding.inflate(layoutInflater) }
-    private val jogadorRepository = JogadorRepository()
+    private val viewModel by lazy {
+        ViewModelProvider(this)[MeuPerfilViewModel::class.java]
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,50 +27,44 @@ class MeuPerfilActivity : AppCompatActivity() {
         // Guarda o nome do utilizador passado pelo Intent
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: return
 
-        // Vai buscar os dados do próprio utilizador à base de dados
-        jogadorRepository.obterPerfil(nomeUtilizador).addOnSuccessListener { perfil ->
-            if (perfil != null) {
-                val pontuacao = perfil.estatisticas.pontuacao
-                val taxaAcertos = perfil.estatisticas.taxaAcertos
-                val totalJogos = perfil.estatisticas.totalJogos
-                val totalVitorias = perfil.estatisticas.totalVitorias
-                val respostasCertas = perfil.estatisticas.totalRespostasCertas
+        viewModel.perfil.observe(this) { perfil ->
+            mostrarPerfil(perfil)
+        }
+        viewModel.carregarPerfil(nomeUtilizador)
+    }
 
-                // Mostra badges se atingir thresholds
-                getBadgeDrawable(totalJogos, jogosBadges)?.let {
-                    binding.imgTotalJogos.setImageResource(it)
-                } ?: run {
-                    binding.imgTotalJogos.visibility = View.GONE
-                }
+    private fun mostrarPerfil(perfil: MeuPerfilUiState) {
+        // Mostra badges se atingir thresholds
+        getBadgeDrawable(perfil.totalJogos, jogosBadges)?.let {
+            binding.imgTotalJogos.setImageResource(it)
+        } ?: run {
+            binding.imgTotalJogos.visibility = View.GONE
+        }
 
-                getBadgeDrawable(totalVitorias, vitoriaBadges)?.let {
-                    binding.imgTotalVitorias.setImageResource(it)
-                } ?: run {
-                    binding.imgTotalVitorias.visibility = View.GONE
-                }
+        getBadgeDrawable(perfil.totalVitorias, vitoriaBadges)?.let {
+            binding.imgTotalVitorias.setImageResource(it)
+        } ?: run {
+            binding.imgTotalVitorias.visibility = View.GONE
+        }
 
-                getBadgeDrawable(respostasCertas, respostasBadges)?.let {
-                    binding.imgTotalRespostasCertas.setImageResource(it)
-                } ?: run {
-                    binding.imgTotalRespostasCertas.visibility = View.GONE
-                }
+        getBadgeDrawable(perfil.totalRespostasCertas, respostasBadges)?.let {
+            binding.imgTotalRespostasCertas.setImageResource(it)
+        } ?: run {
+            binding.imgTotalRespostasCertas.visibility = View.GONE
+        }
 
-                // // Guarda o avatar do utilizador
-                val nomeAvatar = perfil.avatar
-                val resId = resources.getIdentifier(nomeAvatar, "drawable", packageName)
-                binding.imgAvatarAmigo.setImageResource(resId)
+        val resId = resources.getIdentifier(perfil.avatar, "drawable", packageName)
+        binding.imgAvatarAmigo.setImageResource(resId)
 
-                // Mostra os dados do perfil
-                binding.txtNomeAmigo.text = nomeUtilizador
-                binding.txtPontuacao.text = "Pontuação: $pontuacao"
-                binding.txtTotalJogos.text = "Total de Jogos: $totalJogos"
-                binding.txtTotalVitorias.text = "Total de Vitórias: $totalVitorias"
-                binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(taxaAcertos)}%"
+        // Mostra os dados do perfil
+        binding.txtNomeAmigo.text = perfil.nome
+        binding.txtPontuacao.text = "Pontuação: ${perfil.pontuacao}"
+        binding.txtTotalJogos.text = "Total de Jogos: ${perfil.totalJogos}"
+        binding.txtTotalVitorias.text = "Total de Vitórias: ${perfil.totalVitorias}"
+        binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(perfil.taxaAcertos)}%"
 
-                binding.btnVoltarPerfil.setOnClickListener {
-                    finish()
-                }
-            }
+        binding.btnVoltarPerfil.setOnClickListener {
+            finish()
         }
     }
 
