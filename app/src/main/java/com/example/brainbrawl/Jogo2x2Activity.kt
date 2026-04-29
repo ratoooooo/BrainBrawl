@@ -9,9 +9,9 @@ import android.os.Looper
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisJogo.definirCorBotao
-import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
+import com.example.brainbrawl.utils.UteisPerguntas.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
-import com.example.brainbrawl.UteisNavegacao.enviarPontuacaoActivity
+import com.example.brainbrawl.routes.UteisNavegacao.enviarPontuacaoActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding

@@ -10,7 +10,7 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
-import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAdicionarPerguntaBinding

@@ -6,9 +6,9 @@ import android.view.View
 import android.widget.Toast
 import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisConquistas.jogosBadges
-import com.example.brainbrawl.UteisConquistas.respostasBadges
-import com.example.brainbrawl.UteisConquistas.vitoriaBadges
+import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
+import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
+import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.example.brainbrawl.repositories.AmigosRepository

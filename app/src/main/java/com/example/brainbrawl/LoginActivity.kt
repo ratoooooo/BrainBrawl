@@ -5,11 +5,11 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisValidacao.hashPassword
-import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityLoginBinding
 import com.example.brainbrawl.repositories.JogadorRepository
+import com.example.brainbrawl.utils.UteisValidacao.hashPassword
+import com.example.brainbrawl.utils.UteisValidacao.validarCampos
 
 class LoginActivity : AppCompatActivity() {
     // Acessar os elementos do layout

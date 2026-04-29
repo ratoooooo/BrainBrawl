@@ -1,6 +1,5 @@
 package com.example.brainbrawl
 
-import com.example.brainbrawl.models.Pergunta
 import android.content.Context
 import android.media.MediaPlayer
 import android.widget.Toast
@@ -12,13 +11,6 @@ object UteisJogo {
         botao.backgroundTintList = android.content.res.ColorStateList.valueOf(
             android.graphics.Color.parseColor(cor)
         )
-    }
-
-    // Função que devolve a lista de opções embaralhada
-    fun obterOpcoesAleatorias(pergunta: Pergunta): List<String> {
-        val opcoes = pergunta.opcoes.toMutableList()
-        opcoes.shuffle()
-        return opcoes
     }
 
     // Função para atualizar a pontuação dos jogadores

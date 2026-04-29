@@ -1,4 +1,4 @@
-package com.example.brainbrawl
+package com.example.brainbrawl.utils
 
 import java.security.MessageDigest
 

@@ -6,9 +6,11 @@ BrainBrawl e uma app Android nativa em Kotlin, com UI em XML/ViewBinding e Fireb
 
 Estrutura principal atual:
 
-- `app/src/main/java/com/example/brainbrawl/`: Activities, adapters e utilitarios ainda no pacote raiz.
+- `app/src/main/java/com/example/brainbrawl/`: Activities, adapters e utilitarios ligados a UI/Firebase ainda no pacote raiz.
 - `app/src/main/java/com/example/brainbrawl/models/`: modelos Firebase simples, criados com `data class` e valores por defeito para compatibilidade com Realtime Database.
 - `app/src/main/java/com/example/brainbrawl/config/`: constantes de paths Firebase, extras de intents e modos/estados de jogo.
+- `app/src/main/java/com/example/brainbrawl/routes/`: helpers de navegacao e montagem de intents.
+- `app/src/main/java/com/example/brainbrawl/utils/`: helpers puros, validacao, conversoes Firebase simples e constantes partilhadas.
 - `app/src/main/res/layout/`: ecras XML das Activities e itens de listas.
 - `app/src/main/res/drawable/`, `mipmap-*`, `raw/`: avatares, icones, fundos e sons.
 - `app/src/test/` e `app/src/androidTest/`: testes base gerados pelo Android Studio.
@@ -28,7 +30,9 @@ Ficheiros principais e responsabilidades:
 - `Jogo1x1Activity.kt`, `Jogo2x2Activity.kt`: jogos competitivos dedicados.
 - `PontuacoesActivity.kt`, `Pontuacao1x1Activity.kt`, `Pontuacao2x2Activity.kt`: resultados e atualizacao de estatisticas.
 - `AmigosActivity.kt`, adapters de amigos/convites/pedidos: amizade e convites.
-- `UteisSala.kt`, `UteisNavegacao.kt`, `UteisJogo.kt`, `UteisValidacao.kt`, `UteisConquistas.kt`: logica partilhada.
+- `UteisSala.kt`, `UteisJogo.kt`, `UteisDicas.kt`: helpers ainda ligados a Firebase, contexto Android, UI ou som.
+- `routes/UteisNavegacao.kt`: helpers de navegacao e montagem de intents.
+- `utils/UteisValidacao.kt`, `utils/CodigoSalaUtils.kt`, `utils/UteisPerguntas.kt`, `utils/UteisFirebase.kt`, `utils/UteisConquistas.kt`: helpers puros/seguros e constantes partilhadas.
 - `models/Pergunta.kt`, `models/Convite.kt`, `models/Jogador.kt`, `models/SalaGrupo.kt`, `models/Sala1x1.kt`, `models/Sala2x2.kt`, `models/Categoria.kt`, `models/Pontuacao.kt`: modelos simples.
 
 Fluxo principal:
@@ -216,9 +220,9 @@ Fase 5 - Views/Controllers:
 
 1. Concluido: `Perguntas.kt` -> `models/Pergunta.kt`.
 2. Concluido: `Convite.kt` -> `models/Convite.kt`.
-3. `UteisValidacao.kt`, partes puras de `UteisJogo.kt` -> `utils/`.
+3. Concluido: `UteisValidacao.kt`, `UteisFirebase.kt`, `UteisConquistas.kt`, `gerarCodigoSala` e `obterOpcoesAleatorias` -> `utils/`.
 4. Refinar repositories existentes antes de criar novos nomes paralelos.
-5. Substituir extras hardcoded por `IntentExtras`, uma familia de Activities de cada vez.
+5. Concluido: substituir extras hardcoded por `IntentExtras`, uma familia de Activities de cada vez.
 6. Activities, uma familia de cada vez: auth, amigos, salas, jogo, pontuacoes.
 
 ## Cuidados para nao partir o projeto
@@ -229,3 +233,21 @@ Fase 5 - Views/Controllers:
 - Manter compatibilidade temporaria com extras antigos, como `categoria` e `nomeCategoria`.
 - Em Firebase, migrar dados com leitura tolerante a campos antigos antes de escrever apenas campos novos.
 - Testar manualmente cada modo apos qualquer migracao de sala/jogo.
+
+## Fase Utilitarios
+
+- `UteisValidacao.kt` foi movido para `app/src/main/java/com/example/brainbrawl/utils/`, mantendo `validarCampos` e `hashPassword` sem alteracao de comportamento.
+- `UteisNavegacao.kt` foi movido para `app/src/main/java/com/example/brainbrawl/routes/`, por concentrar criacao de intents e navegacao entre Activities.
+- `gerarCodigoSala` saiu de `UteisSala` para `utils/CodigoSalaUtils.kt`, mantendo o mesmo alfabeto, tamanho e uso de aleatoriedade.
+- `obterOpcoesAleatorias` saiu de `UteisJogo` para `utils/UteisPerguntas.kt`, mantendo a mesma copia mutavel e `shuffle`.
+- `UteisFirebase.kt` e `UteisConquistas.kt` foram movidos para `utils/`, porque sao helpers/constantes sem ownership de fluxo.
+- `UteisSala.kt` ficou no package principal porque ainda orquestra repositories, Firebase e navegacao para salas.
+- `UteisJogo.kt` ficou no package principal com helpers ligados a UI/som/pontuacao com `Context`.
+- `UteisDicas.kt` ficou no package principal por construir dialog/UI Android.
+
+Mantido sem alteracoes nesta fase:
+
+- UI, layouts e textos.
+- Logica de jogo, pontuacao e salas.
+- Estrutura Firebase e nomes de paths/campos.
+- Repositories, services, models e rules.

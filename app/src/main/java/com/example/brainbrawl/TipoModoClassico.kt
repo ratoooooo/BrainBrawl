@@ -3,7 +3,7 @@ package com.example.brainbrawl
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisNavegacao.abrirEscolherCategoriaActivity
+import com.example.brainbrawl.routes.UteisNavegacao.abrirEscolherCategoriaActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityTipoModoClassicoBinding

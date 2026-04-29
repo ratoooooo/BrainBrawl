@@ -7,7 +7,7 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
-import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
 import com.example.brainbrawl.repositories.PontuacaoRepository

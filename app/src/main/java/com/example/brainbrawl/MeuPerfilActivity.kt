@@ -3,9 +3,9 @@ package com.example.brainbrawl
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisConquistas.jogosBadges
-import com.example.brainbrawl.UteisConquistas.respostasBadges
-import com.example.brainbrawl.UteisConquistas.vitoriaBadges
+import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
+import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
+import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
 import com.example.brainbrawl.repositories.JogadorRepository

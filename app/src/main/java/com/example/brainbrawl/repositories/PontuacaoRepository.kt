@@ -1,11 +1,11 @@
 package com.example.brainbrawl.repositories
 
-import com.example.brainbrawl.UteisFirebase.doubleValue
-import com.example.brainbrawl.UteisFirebase.intValue
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.services.EstatisticasService
 import com.example.brainbrawl.services.EstatisticasService.ResultadoJogador
+import com.example.brainbrawl.utils.UteisFirebase.doubleValue
+import com.example.brainbrawl.utils.UteisFirebase.intValue
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot

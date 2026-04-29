@@ -12,7 +12,7 @@ import android.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisSala.criarSalaComCategoriaEEntrar
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
-import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
 import com.example.brainbrawl.repositories.CategoriaRepository

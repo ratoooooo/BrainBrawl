@@ -1,4 +1,4 @@
-package com.example.brainbrawl
+package com.example.brainbrawl.utils
 
 import com.google.firebase.database.DataSnapshot
 

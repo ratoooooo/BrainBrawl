@@ -4,10 +4,10 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisValidacao.hashPassword
-import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityRegistarBinding
+import com.example.brainbrawl.utils.UteisValidacao.hashPassword
+import com.example.brainbrawl.utils.UteisValidacao.validarCampos
 import com.google.firebase.database.FirebaseDatabase
 
 class RegistarActivity : AppCompatActivity() {

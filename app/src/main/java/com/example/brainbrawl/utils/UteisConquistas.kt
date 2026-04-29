@@ -1,4 +1,6 @@
-package com.example.brainbrawl
+package com.example.brainbrawl.utils
+
+import com.example.brainbrawl.R
 
 object UteisConquistas {
     val jogosBadges = listOf(

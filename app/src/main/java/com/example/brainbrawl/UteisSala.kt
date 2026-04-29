@@ -1,19 +1,14 @@
 package com.example.brainbrawl
 
 import android.content.Context
-import com.example.brainbrawl.UteisNavegacao.abrirSalaDeEsperaGrupo
+import com.example.brainbrawl.routes.UteisNavegacao.abrirSalaDeEsperaGrupo
 import com.example.brainbrawl.repositories.CategoriaRepository
 import com.example.brainbrawl.repositories.SalaRepository
+import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 
 object UteisSala {
     private val salaRepository = SalaRepository()
     private val categoriaRepository = CategoriaRepository()
-
-    // Função utilizada para gerar um código de sala
-    fun gerarCodigoSala(): String {
-        val chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-        return (1..6).map { chars.random() }.joinToString("")
-    }
 
     // Funçao utilizada para criar uma sala caótica e ir buscar todas as perguntas de todas as categorias
     fun criarSalaCaoticaEEntrar(context: Context, nomeUtilizador: String?, nomeJogador: String?, onError: (String) -> Unit = {}) {

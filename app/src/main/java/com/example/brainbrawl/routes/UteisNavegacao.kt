@@ -1,7 +1,13 @@
-package com.example.brainbrawl
+package com.example.brainbrawl.routes
 
 import android.content.Context
 import android.content.Intent
+import com.example.brainbrawl.EscolherCategoriaActivity
+import com.example.brainbrawl.MainActivity
+import com.example.brainbrawl.Pontuacao1x1Activity
+import com.example.brainbrawl.Pontuacao2x2Activity
+import com.example.brainbrawl.SalaDeEsperaActivity
+import com.example.brainbrawl.SalaDeEsperaGrupoActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 

@@ -968,3 +968,45 @@ Não executei estes testes manuais nesta ronda porque o ambiente atual não tem 
 - `jq empty firebase-rules.json`
   - OK.
 - Testes funcionais contra Firebase real ainda nao executados nesta fase.
+
+---
+
+## Utilitarios - Organizacao Baseline
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/utils/UteisValidacao.kt`
+- `app/src/main/java/com/example/brainbrawl/routes/UteisNavegacao.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/CodigoSalaUtils.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/UteisPerguntas.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/UteisFirebase.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/UteisConquistas.kt`
+- Imports das Activities/repositories que usavam estes helpers.
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi organizado
+
+- `UteisValidacao` passou para `utils`.
+- `UteisNavegacao` passou para `routes`.
+- `gerarCodigoSala` foi separado para `CodigoSalaUtils`.
+- `obterOpcoesAleatorias` foi separado para `UteisPerguntas`.
+- `UteisFirebase` e `UteisConquistas` passaram para `utils`.
+- `UteisJogo`, `UteisSala` e `UteisDicas` foram revistos e mantidos no package principal por ainda terem responsabilidades com UI, som, Firebase, repositories ou navegacao.
+
+### Mantido sem alterações
+
+- UI e layouts.
+- Logica de jogo.
+- Fluxos de navegacao.
+- Estrutura Firebase.
+- Repositories, services, models e Firebase Rules.
+
+### Verificações executadas
+
+- Pesquisa estatica para imports antigos de `UteisValidacao`, `UteisNavegacao`, `UteisConquistas`, `UteisFirebase`, `UteisSala.gerarCodigoSala` e `UteisJogo.obterOpcoesAleatorias`.
+  - OK, sem imports antigos.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.

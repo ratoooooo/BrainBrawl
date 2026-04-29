@@ -4,11 +4,11 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.UteisValidacao.validarCampos
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.SalaRepository
+import com.example.brainbrawl.utils.UteisValidacao.validarCampos
 
 class SalaDeEsperaActivity : AppCompatActivity() {
     private val binding by lazy { ActivitySalaDeEsperaBinding.inflate(layoutInflater) }
