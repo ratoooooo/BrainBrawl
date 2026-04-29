@@ -142,6 +142,13 @@ Movido nesta fase:
 - `EstatisticasService` ficou responsavel por calcular a nova media de `taxaAcertos`, decidir vencedores em solo/1x1/2x2, manter a regra antiga de empate 2x2 para estatisticas e montar o mapa de updates de estatisticas.
 - `FirebasePaths` passou a ser usado nos repositories para os nodes `jogadores`, `salas`, `sala_1x1`, `sala_2x2`, `categorias`, `categoriasPersonalizadas`, `categoriasPublicas`, `amigos`, `pedidos_amizade`, `convites_recebidos` e `convites_enviados`.
 - `GameConstants` passou a ser usado nos repositories/services para modos e estados como `classico`, `caotico`, `eliminado`, `1x1`, `2x2`, `pendente`, `aceite`, `on` e `off`.
+- Bloco 1 de extras: `LoginActivity`, `MainActivity`, `UteisNavegacao`, `EscolherModoActivity` e `EscolherCategoriaActivity` passaram a usar `IntentExtras` para ler/escrever extras, mantendo os mesmos valores e a mesma navegacao.
+- Bloco 2 de extras: `SalaDeEsperaActivity`, `SalaDeEsperaGrupoActivity`, `SalaDeEspera1x1Activity`, `SalaDeEspera2x2Activity` e `EsperaEliminadoActivity` passaram a usar `IntentExtras` para os extras de sala, jogador, categoria, modo, admin e resultados transportados pela espera de eliminado. Os extras legados `categoria` e `respostasCertas` foram centralizados sem mudar os valores.
+- Bloco 3 de extras: `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity` passaram a usar `IntentExtras` nas leituras iniciais e no redirecionamento para espera/pontuacoes, preservando os mesmos extras de pontuacao e jogador.
+- Bloco 4 de extras: `PontuacoesActivity`, `Pontuacao1x1Activity` e `Pontuacao2x2Activity` passaram a usar `IntentExtras` nas leituras de resultados e na navegacao de desforra 1x1, mantendo os mesmos valores e os updates de estatisticas.
+- Bloco 5 de extras: `AmigosActivity`, `PerfilAmigoActivity`, `MeuPerfilActivity`, `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity` passaram a usar `IntentExtras` nos fluxos sociais/perfil e convites. O extra `nomeAmigo` foi centralizado mantendo o mesmo valor.
+- Bloco 6 de extras: `AdicionarPerguntaActivity`, `ExplorarCategoriasActivity`, `EscolhaCategoriaModosActivity` e `TipoModoClassico` passaram a usar `IntentExtras` nos fluxos de categorias, criacao/edicao de categorias e escolha de categoria para grupo/1x1/2x2. Os modos `classico`, `1x1` e `2x2` tocados no bloco usam `GameConstants`, mantendo os mesmos valores.
+- Bloco 7 de extras: revisao final de chamadas `putExtra`, `getStringExtra`, `getBooleanExtra`, `getIntExtra`, `getDoubleExtra`, `hasExtra` e `removeExtra` com strings literais. Os extras restantes em `RegistarActivity` e `AmigoAdapter` passaram a usar `IntentExtras`; a pesquisa global em Kotlin nao encontrou mais literais de extras nessas chamadas.
 
 Mantido sem alteracoes:
 
@@ -156,12 +163,12 @@ Mantido sem alteracoes:
 - Perfis de convidados continuam sem ser criados: `PontuacaoRepository` so atualiza estatisticas quando `jogadores/{nome}` existe e tem `password`.
 - Admin host-only em jogos de grupo continua fora do podio/estatisticas: jogadores com `isHostOnly=true`, nome vazio ou `admin` sao ignorados.
 - Para evitar duplicacao por recriacao de Activity ou listeners repetidos, cada sala guarda marcadores transacionais em `estatisticasAtualizadas/{nomeJogador}` dentro da propria sala de resultado.
-- Extras de intents continuam com os mesmos valores (`nomeUtilizador`, `nomeJogador`, `codigoSala`, `nomeCategoria`, `modoJogo`, `admin`, `pontuacao`, `totalPerguntas`, `totalRespostasCertas`). A constante `IntentExtras` ja existe, mas a substituicao nas Activities fica gradual.
+- Extras de intents continuam com os mesmos valores (`nomeUtilizador`, `nomeJogador`, `codigoSala`, `nomeCategoria`, `modoJogo`, `admin`, `pontuacao`, `totalPerguntas`, `totalRespostasCertas`) e as chamadas de Intent conhecidas em Kotlin usam `IntentExtras`.
 
 Ainda falta migrar:
 
 - Migracao mais profunda de `JogoActivity.kt`, se for necessaria, para reduzir mais estado local e callbacks da Activity.
-- Substituir strings de intent extras nas Activities por `IntentExtras`, por familia de ecras, sem mudar navegacao.
+- Revisao final de extras hardcoded concluida; nao foram encontrados literais restantes nas chamadas de Intent pesquisadas em Kotlin.
 - Avaliar se os modelos internos pequenos dos repositories (`JogadorSala`, `CategoriaPublica`, `ResultadoJogador`) devem sair para `models/` numa fase seguinte ou continuar como DTOs locais.
 - UI para recusar pedidos/convites, caso seja criada mais tarde; os metodos Firebase de recusa/remocao ja existem em `AmigosRepository`, mas a UI atual continua igual.
 - Testes manuais completos em dois dispositivos/sessoes para amigos, convites, jogo de grupo, modos competitivos e confirmacao visual das estatisticas no perfil.
@@ -175,7 +182,13 @@ Proxima fase recomendada:
 Fase 1 - Contratos e constantes:
 
 - Criado `FirebasePaths`, `IntentExtras` e `GameConstants`.
-- Trocar strings soltas gradualmente nas Activities que ainda usam extras diretamente.
+- Bloco 1 concluido em `LoginActivity`, `MainActivity`, `UteisNavegacao`, `EscolherModoActivity` e `EscolherCategoriaActivity`.
+- Bloco 2 concluido em `SalaDeEsperaActivity`, `SalaDeEsperaGrupoActivity`, `SalaDeEspera1x1Activity`, `SalaDeEspera2x2Activity` e `EsperaEliminadoActivity`.
+- Bloco 3 concluido em `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity`.
+- Bloco 4 concluido em `PontuacoesActivity`, `Pontuacao1x1Activity` e `Pontuacao2x2Activity`.
+- Bloco 5 concluido em `AmigosActivity`, `PerfilAmigoActivity`, `MeuPerfilActivity`, `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity`.
+- Bloco 6 concluido em `AdicionarPerguntaActivity`, `ExplorarCategoriasActivity`, `EscolhaCategoriaModosActivity` e `TipoModoClassico`.
+- Bloco 7 concluido em `RegistarActivity` e `AmigoAdapter`, fechando a revisao global de extras hardcoded nas chamadas de Intent pesquisadas.
 - Adicionar testes para conversao de extras e paths.
 
 Fase 2 - Modelos:

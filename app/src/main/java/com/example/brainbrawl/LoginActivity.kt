@@ -7,6 +7,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisValidacao.hashPassword
 import com.example.brainbrawl.UteisValidacao.validarCampos
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityLoginBinding
 import com.example.brainbrawl.repositories.JogadorRepository
 
@@ -54,7 +55,7 @@ class LoginActivity : AppCompatActivity() {
                             // Criar um intent para a MainActivity
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
                             // Passar o nome de utilizador para a MainActivity
-                            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+                            nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
                             // Abrir a MainActivity
                             startActivity(intent)
                             finish()
@@ -82,7 +83,7 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
             val intent = Intent(this, MainActivity::class.java)
-            nomeJogador.let { intent.putExtra("nomeJogador", it) }
+            nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             startActivity(intent)
             finish()
         }

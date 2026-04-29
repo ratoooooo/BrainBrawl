@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoMultiBinding
 import com.example.brainbrawl.repositories.PontuacaoRepository
 import com.example.brainbrawl.services.EstatisticasService
@@ -33,13 +34,13 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar dados passados pelo intent
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: "Todas as categorias"
-        equipa = intent.getStringExtra("equipa")
-        totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
-        totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: "Todas as categorias"
+        equipa = intent.getStringExtra(IntentExtras.EQUIPA)
+        totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
+        totalRespostasCertas = intent.getIntExtra(IntentExtras.TOTAL_RESPOSTAS_CERTAS, 0)
 
         // Carregar pontuação dos jogadores
         carregarPontuacao2x2Realtime()

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisValidacao.validarCampos
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.SalaRepository
@@ -18,8 +19,8 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        val nomeJogador = intent.getStringExtra("nomeJogador")
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
 
         // Se for utilizador registado, bloqueia edição do nome
         if (!nomeUtilizador.isNullOrEmpty()) {
@@ -114,10 +115,10 @@ class SalaDeEsperaActivity : AppCompatActivity() {
     private fun irParaSalaDeEsperaGrupo(codigoSala: String, nomeJogador: String, nomeUtilizador: String?) {
         // Redireciona para a SalaDeEsperaGrupoActivity com os dados necessários
         val intent = Intent(this, SalaDeEsperaGrupoActivity::class.java)
-        intent.putExtra("admin", false)
-        codigoSala.let { intent.putExtra("codigoSala", it) }
-        nomeJogador.let { intent.putExtra("nomeJogador", it) }
-        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+        intent.putExtra(IntentExtras.ADMIN, false)
+        codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
+        nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         startActivity(intent)
         finish()
     }

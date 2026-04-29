@@ -356,43 +356,36 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="fix: correções UX, categorias e modo caótico&#10;&#10;- corrigido bug no modo caótico onde o admin não recebia corretamente dados do jogador&#10;- adicionadas descrições/dicas nas categorias (consistentes com modos de jogo)&#10;- removidos campos sensíveis/técnicos do perfil (password, estado, debug)&#10;- reposicionado botão de logout na Main para evitar cliques acidentais&#10;- corrigido fluxo de edição de categorias:&#10;  - abrir categoria correta&#10;  - listar perguntas existentes&#10;  - permitir edição completa sem duplicação&#10;  - guardar corretamente no Firebase&#10;- adicionada opção &quot;Criar Categoria&quot; em Explorar Categorias&#10;- melhorias gerais de UX em navegação e botões Voltar&#10;&#10;docs:&#10;- atualizado TEST_REPORT.md com correções e testes">
-      <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="refactor: adicionar models e constantes de configuração&#10;&#10;- movidos/criados modelos em models/&#10;- adicionadas constantes FirebasePaths, IntentExtras e GameConstants&#10;- migrados repositories e services para usar paths/estados constantes&#10;- removidos hardcodes principais de Firebase nos repositories&#10;- mantida estrutura Firebase e comportamento existente&#10;- atualizado ARCHITECTURE_PLAN.md e TEST_REPORT.md">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TEST_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/TEST_REPORT.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Convite.kt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConviteAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConviteAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Perguntas.kt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisJogo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisJogo.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/GameService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/GameService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/ScoreService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/ScoreService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolha_categoria_modos.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolha_categoria_modos.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_categoria.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_categoria.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_explorar_categorias.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_explorar_categorias.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_meu_perfil.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_meu_perfil.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values-de-rDE/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-de-rDE/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values-en-rGB/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-en-rGB/strings.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisNavegacao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisNavegacao.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1052,7 +1045,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777403521381</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="refactor: adicionar models e constantes de configuração&#10;&#10;- movidos/criados modelos em models/&#10;- adicionadas constantes FirebasePaths, IntentExtras e GameConstants&#10;- migrados repositories e services para usar paths/estados constantes&#10;- removidos hardcodes principais de Firebase nos repositories&#10;- mantida estrutura Firebase e comportamento existente&#10;- atualizado ARCHITECTURE_PLAN.md e TEST_REPORT.md">
+      <option name="closed" value="true" />
+      <created>1777421985507</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1777421985507</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -1074,19 +1075,20 @@
     <MESSAGE value="feat: melhorias finais + preparação para arquitetura organizada&#10;&#10;- Corrigido início dos modos de grupo (&quot;todos&quot;)&#10;  - agora permite iniciar com admin + 1 jogador&#10;  - ajustada lógica de jogadoresReais e validação do botão &quot;Iniciar Jogo&quot;&#10;&#10;- Melhorado perfil de amigos&#10;  - removidos campos de debug (estado, password, vitórias específicas, etc)&#10;  - mantida apenas informação relevante (pontuação, jogos, vitórias, taxa de acertos)&#10;&#10;- Melhorado fluxo de categorias&#10;  - adicionada lista de categorias com acesso direto&#10;  - botões de editar e eliminar por categoria&#10;  - removida navegação sequencial obrigatória&#10;&#10;- Adicionados botões de voltar onde necessário&#10;  - criar/editar categorias&#10;  - lista de categorias&#10;  - perfil e outros ecrãs relevantes&#10;  - preservação de dados do utilizador garantida&#10;&#10;- Melhorado design das dicas de modos e categorias&#10;  - layout mais limpo e consistente&#10;  - melhor legibilidade e espaçamento&#10;&#10;- Ajustes gerais de UX e fluxo&#10;  - navegação mais estável&#10;  - melhor consistência entre ecrãs&#10;&#10;- Início da preparação para arquitetura organizada (MVC/MVVM)&#10;  - estrutura pronta para futura separação de responsabilidades&#10;  - sem refactor invasivo nesta fase&#10;&#10;- Testes realizados e documentados em TEST_REPORT.md" />
     <MESSAGE value="Merge remote-tracking branch 'origin/main'&#10;&#10;# Conflicts:&#10;#&#9;README.md" />
     <MESSAGE value="fix: correções UX, categorias e modo caótico&#10;&#10;- corrigido bug no modo caótico onde o admin não recebia corretamente dados do jogador&#10;- adicionadas descrições/dicas nas categorias (consistentes com modos de jogo)&#10;- removidos campos sensíveis/técnicos do perfil (password, estado, debug)&#10;- reposicionado botão de logout na Main para evitar cliques acidentais&#10;- corrigido fluxo de edição de categorias:&#10;  - abrir categoria correta&#10;  - listar perguntas existentes&#10;  - permitir edição completa sem duplicação&#10;  - guardar corretamente no Firebase&#10;- adicionada opção &quot;Criar Categoria&quot; em Explorar Categorias&#10;- melhorias gerais de UX em navegação e botões Voltar&#10;&#10;docs:&#10;- atualizado TEST_REPORT.md com correções e testes" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: correções UX, categorias e modo caótico&#10;&#10;- corrigido bug no modo caótico onde o admin não recebia corretamente dados do jogador&#10;- adicionadas descrições/dicas nas categorias (consistentes com modos de jogo)&#10;- removidos campos sensíveis/técnicos do perfil (password, estado, debug)&#10;- reposicionado botão de logout na Main para evitar cliques acidentais&#10;- corrigido fluxo de edição de categorias:&#10;  - abrir categoria correta&#10;  - listar perguntas existentes&#10;  - permitir edição completa sem duplicação&#10;  - guardar corretamente no Firebase&#10;- adicionada opção &quot;Criar Categoria&quot; em Explorar Categorias&#10;- melhorias gerais de UX em navegação e botões Voltar&#10;&#10;docs:&#10;- atualizado TEST_REPORT.md com correções e testes" />
+    <MESSAGE value="refactor: adicionar models e constantes de configuração&#10;&#10;- movidos/criados modelos em models/&#10;- adicionadas constantes FirebasePaths, IntentExtras e GameConstants&#10;- migrados repositories e services para usar paths/estados constantes&#10;- removidos hardcodes principais de Firebase nos repositories&#10;- mantida estrutura Firebase e comportamento existente&#10;- atualizado ARCHITECTURE_PLAN.md e TEST_REPORT.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="refactor: adicionar models e constantes de configuração&#10;&#10;- movidos/criados modelos em models/&#10;- adicionadas constantes FirebasePaths, IntentExtras e GameConstants&#10;- migrados repositories e services para usar paths/estados constantes&#10;- removidos hardcodes principais de Firebase nos repositories&#10;- mantida estrutura Firebase e comportamento existente&#10;- atualizado ARCHITECTURE_PLAN.md e TEST_REPORT.md" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
       <map>
         <entry key="com.example.brainbrawl">
           <value>
-            <CheckInfo lastCheckTimestamp="1777329761687" />
+            <CheckInfo lastCheckTimestamp="1777421971740" />
           </value>
         </entry>
         <entry key="com.example.brainbrawl.test">
           <value>
-            <CheckInfo lastCheckTimestamp="1777329761686" />
+            <CheckInfo lastCheckTimestamp="1777421971739" />
           </value>
         </entry>
       </map>

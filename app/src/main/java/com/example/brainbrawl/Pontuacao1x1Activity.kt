@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacao1x1Binding
 import com.example.brainbrawl.repositories.PontuacaoRepository
 import com.example.brainbrawl.services.EstatisticasService
@@ -39,12 +40,12 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os dados passados pelo Intent
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
-        totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
-        totalRespostasCertas = intent.getIntExtra("totalRespostasCertas", 0)
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
+        totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
+        totalRespostasCertas = intent.getIntExtra(IntentExtras.TOTAL_RESPOSTAS_CERTAS, 0)
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
 
         // Chama a função para atualizar a pontuação do jogador
         carregarPontuacao1x1Realtime()
@@ -79,10 +80,10 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                 if (!novaSala.isNullOrEmpty()) {
                     // Envia de volta para a SalaDeEspera1x1Activity com o novo código da sala
                     val intent = Intent(this@Pontuacao1x1Activity, SalaDeEspera1x1Activity::class.java)
-                    intent.putExtra("codigoSala", novaSala)
-                    intent.putExtra("nomeUtilizador", nomeUtilizador)
-                    intent.putExtra("nomeJogador", nomeJogador)
-                    intent.putExtra("nomeCategoria", nomeCategoria)
+                    intent.putExtra(IntentExtras.CODIGO_SALA, novaSala)
+                    intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+                    intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+                    intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
                     startActivity(intent)
                     finish()
                 }

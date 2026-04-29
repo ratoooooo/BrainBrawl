@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.brainbrawl.config.IntentExtras
 
 class AmigoAdapter(
     private val amigos: List<String>,
@@ -49,15 +50,15 @@ class AmigoAdapter(
         if (amigo == nomeUtilizador) {
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, MeuPerfilActivity::class.java)
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 context.startActivity(intent)
             }
         } else {
             // Caso contrário, abre o perfil do amigo
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, PerfilAmigoActivity::class.java)
-                intent.putExtra("nomeAmigo", amigo)
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                intent.putExtra(IntentExtras.NOME_AMIGO, amigo)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 context.startActivity(intent)
             }
         }

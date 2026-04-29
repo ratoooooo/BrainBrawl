@@ -604,3 +604,327 @@ Não executei estes testes manuais nesta ronda porque o ambiente atual não tem 
 - Pesquisa nos repositories/services já não encontra hardcoded as strings pedidas para Firebase, extras, estados e modos.
 - `Pergunta` já não é importado a partir do pacote default.
 - `Convite1x1` deixou de existir como modelo; os fluxos de convite usam `models.Convite`.
+
+---
+
+## IntentExtras - Bloco 1
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/LoginActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisNavegacao.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Leituras e escritas de extras nestes ficheiros passaram a usar `IntentExtras`.
+- `UteisNavegacao` recebeu constantes para extras ainda existentes no fluxo de pontuação: `totalPontos`, `numeroPerguntasCertas`, `totalPerguntascertas` e `equipa`.
+- `EscolherModoActivity` passou a usar `GameConstants` para `classico` e `eliminatorias` nos pontos tocados.
+
+### Mantido sem alterações
+
+- Valores dos extras.
+- Navegação entre Activities.
+- UI e textos.
+- Compatibilidade com extras antigos, porque as constantes mantêm exatamente os mesmos nomes.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa nos cinco ficheiros do bloco não encontrou literais dos extras migrados.
+
+### Pendentes
+
+- Migrar extras nas restantes Activities em blocos pequenos.
+
+---
+
+## IntentExtras - Bloco 2 Salas
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Leituras/escritas de extras de sala passaram a usar `IntentExtras`: `codigoSala`, `nomeUtilizador`, `nomeJogador`, `nomeCategoria`, `modoJogo` e `admin`.
+- `EsperaEliminadoActivity` passou a usar `IntentExtras` para transportar os resultados até ao pódio: `totalPontos`, `numeroPerguntasCertas`, `totalPerguntascertas`, `respostasCertas` e `totalPerguntas`.
+- Os extras legados `categoria` e `respostasCertas` foram centralizados em `IntentExtras`, mantendo os valores antigos.
+- Estados/modos comparados nos ficheiros tocados passaram a usar `GameConstants` quando estavam no mesmo bloco.
+
+### Mantido sem alterações
+
+- Navegação.
+- UI e textos.
+- Valores dos extras.
+- Compatibilidade com convidados e utilizadores registados.
+- Compatibilidade com extras legados como `categoria`, `totalPerguntascertas` e `respostasCertas`.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa de `getStringExtra`/`putExtra`/`get*Extra` nos cinco ficheiros do bloco não encontrou literais dos extras migrados.
+- A única ocorrência literal remanescente de `"pontuacao"` em `SalaDeEsperaActivity.kt` pertence ao mapa Firebase do jogador da sala, não a um extra de Intent.
+
+### Pendentes
+
+- Migrar extras nas restantes Activities em blocos pequenos, sem mexer ainda em jogos, pontuações, amigos, convites ou categorias avançadas.
+
+---
+
+## IntentExtras - Bloco 3 Jogos
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/JogoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Leituras iniciais de `codigoSala`, `nomeUtilizador`, `nomeJogador` e `nomeCategoria` passaram a usar `IntentExtras`.
+- Redirecionamentos de `JogoActivity` para `EsperaEliminadoActivity` e `PontuacoesActivity` passaram a usar `IntentExtras`.
+- Os modos `1x1`, `2x2` e `eliminatorias`, estados `terminado`/`eliminado` e marcador `admin` tocados no bloco passaram a usar `GameConstants`.
+- `Jogo1x1Activity` e `Jogo2x2Activity` continuam a chamar `UteisNavegacao.enviarPontuacaoActivity`, preservando a montagem centralizada dos extras de pontuação.
+
+### Mantido sem alterações
+
+- Navegação para pontuações.
+- Valores dos extras.
+- UI e textos.
+- Fluxos de convidados e utilizadores registados.
+- Compatibilidade com extras legados como `totalPerguntascertas` e `respostasCertas`.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa de `getStringExtra("...")` e `putExtra("...")` em `JogoActivity.kt`, `Jogo1x1Activity.kt` e `Jogo2x2Activity.kt` não encontrou literais de extras.
+- A única ocorrência literal remanescente de `"A"`/`"B"` em `Jogo2x2Activity.kt` é comentário explicativo.
+
+### Pendentes
+
+- Migrar extras nas restantes Activities em blocos pequenos, sem mexer ainda em pontuações, amigos, convites ou categorias avançadas.
+
+---
+
+## IntentExtras - Bloco 4 Pontuações
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Leituras de extras de resultados passaram a usar `IntentExtras`: `codigoSala`, `nomeUtilizador`, `nomeJogador`, `nomeCategoria`, `totalPontos`, `totalPerguntas`, `totalRespostasCertas` e `equipa`.
+- Navegação de desforra em `Pontuacao1x1Activity` passou a escrever extras com `IntentExtras`.
+
+### Mantido sem alterações
+
+- Navegação de voltar para Main.
+- Navegação de desforra/replay 1x1.
+- Valores dos extras.
+- Atualização de estatísticas via `PontuacaoRepository`.
+- UI e textos.
+- Acesso Firebase ainda existente nestas Activities.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa de `getStringExtra("...")`, `getDoubleExtra("...")`, `getIntExtra("...")` e `putExtra("...")` nas três Activities de pontuação não encontrou literais de extras.
+- A ocorrência literal remanescente de `nomeCategoria` em `Pontuacao1x1Activity.kt` pertence ao campo Firebase da sala de desforra, não a um extra de Intent.
+
+### Pendentes
+
+- Migrar extras nas restantes Activities em blocos pequenos, sem mexer ainda em amigos, convites ou categorias avançadas.
+
+---
+
+## IntentExtras - Bloco 5 Social/Perfil
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Leituras/escritas de extras sociais passaram a usar `IntentExtras`: `nomeUtilizador`, `nomeAmigo`, `codigoSala` e `nomeCategoria`.
+- Aceitação de convite em `AmigosActivity` passou a comparar o modo 2x2 com `GameConstants.MODO_2X2`.
+- Foi criada a constante `IntentExtras.NOME_AMIGO = "nomeAmigo"`.
+
+### Mantido sem alterações
+
+- Navegação entre amigos, perfil e salas de espera por convite.
+- Valores dos extras.
+- Fluxos de convite 1x1 e 2x2.
+- UI e textos.
+- Acesso social via repositories.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa de `getStringExtra("...")` e `putExtra("...")` nos cinco ficheiros do bloco não encontrou literais de extras.
+
+### Pendentes
+
+- Migrar extras nas restantes Activities em blocos pequenos, sem mexer ainda em categorias.
+
+---
+
+## IntentExtras - Bloco 6 Categorias
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Leituras/escritas de extras de categorias passaram a usar `IntentExtras`: `nomeUtilizador`, `nomeJogador`, `nomeCategoria`, `modoJogo` e `admin`.
+- Os valores de modo tocados neste bloco passaram a usar `GameConstants`: `classico`, `1x1` e `2x2`.
+- Fluxos de criacao/edicao de categorias, exploracao de categorias publicas e escolha de categoria para 1x1/2x2 mantiveram os mesmos dados transportados por Intent.
+
+### Mantido sem alterações
+
+- Navegacao.
+- UI e textos.
+- Valores dos extras.
+- Criar, editar e eliminar categorias personalizadas.
+- Categorias publicas, guardar copia e avaliacao.
+- Escolha de categoria para grupo, 1x1 e 2x2.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa de `getStringExtra("...")`, `getBooleanExtra("...")` e `putExtra("...")` nos quatro ficheiros do bloco nao encontrou literais de extras.
+- A pesquisa global ainda encontra extras hardcoded fora deste bloco em `RegistarActivity.kt` e `AmigoAdapter.kt`, mantidos para migracao posterior.
+
+### Pendentes
+
+- Migrar extras soltos nos restantes ficheiros em blocos pequenos, sem alterar navegacao nem valores dos extras.
+
+---
+
+## IntentExtras - Bloco 7 Revisão Final
+
+### Ficheiros onde ainda havia extras hardcoded
+
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+  - `putExtra("nomeUtilizador", ...)`
+- `app/src/main/java/com/example/brainbrawl/AmigoAdapter.kt`
+  - `putExtra("nomeUtilizador", ...)`
+  - `putExtra("nomeAmigo", ...)`
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/AmigoAdapter.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- `RegistarActivity` passou a enviar `nomeUtilizador` com `IntentExtras.NOME_UTILIZADOR`.
+- `AmigoAdapter` passou a abrir `MeuPerfilActivity` e `PerfilAmigoActivity` usando `IntentExtras.NOME_UTILIZADOR` e `IntentExtras.NOME_AMIGO`.
+
+### Mantido sem alterações
+
+- Navegacao apos registo.
+- Navegacao da lista de amigos para perfil proprio e perfil de amigo.
+- Valores dos extras (`nomeUtilizador` e `nomeAmigo`).
+- UI, textos e estrutura Firebase.
+- Strings de Firebase e campos de dados, que nao foram substituidos por serem contratos da base de dados e nao extras de Intent.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa global em Kotlin por `putExtra("...")`, `getStringExtra("...")`, `getBooleanExtra("...")`, `getIntExtra("...")`, `getDoubleExtra("...")`, `hasExtra("...")` e `removeExtra("...")` nao encontrou literais restantes.
+- Verificacao especifica de `UteisNavegacao`, `UteisSala` e `EsperaEliminadoActivity` confirmou que nao havia extras hardcoded a migrar nesses ficheiros.
+
+### Pendentes
+
+- Nenhum extra hardcoded ficou por migrar nas chamadas de Intent pesquisadas em Kotlin.

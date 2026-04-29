@@ -11,6 +11,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisSala.criarSalaCategoriaPublicaEEntrar
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityExplorarCategoriasBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
 
@@ -25,13 +27,13 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        nomeJogador = intent.getStringExtra("nomeJogador")
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
 
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             startActivity(intent)
             finish()
         }
@@ -139,7 +141,7 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             nomeJogador,
             categoria.id,
             true,
-            "classico"
+            GameConstants.MODO_CLASSICO
         ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
     }
 
@@ -151,10 +153,10 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         }
 
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
-        intent.putExtra("nomeUtilizador", utilizador)
-        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-        intent.putExtra("modoJogo", "classico")
-        intent.putExtra("admin", true)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, utilizador)
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_CLASSICO)
+        intent.putExtra(IntentExtras.ADMIN, true)
         startActivity(intent)
     }
 

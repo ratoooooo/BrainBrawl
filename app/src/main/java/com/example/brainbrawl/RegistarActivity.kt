@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisValidacao.hashPassword
 import com.example.brainbrawl.UteisValidacao.validarCampos
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityRegistarBinding
 import com.google.firebase.database.FirebaseDatabase
 
@@ -76,7 +77,7 @@ class RegistarActivity : AppCompatActivity() {
                         adicionarJogador(nomeUtilizador, password, avatarSelecionadoIndex)
                         // Abrir LoginActivity e passar o nome do utilizador
                         var intent = Intent(this, LoginActivity::class.java)
-                        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
+                        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                         startActivity(intent)
                         finish()
                     }

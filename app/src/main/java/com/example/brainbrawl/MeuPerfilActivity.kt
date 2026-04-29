@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
 import com.example.brainbrawl.repositories.JogadorRepository
 
@@ -20,7 +21,7 @@ class MeuPerfilActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guarda o nome do utilizador passado pelo Intent
-        val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: return
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: return
 
         // Vai buscar os dados do próprio utilizador à base de dados
         jogadorRepository.obterPerfil(nomeUtilizador).addOnSuccessListener { perfil ->

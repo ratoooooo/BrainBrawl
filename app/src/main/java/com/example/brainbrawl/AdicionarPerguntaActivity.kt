@@ -11,6 +11,8 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAdicionarPerguntaBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
 
@@ -23,7 +25,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     private val categoriaRepository = CategoriaRepository()
     private var nomeUtilizador: String = ""
     private var nomeJogador: String? = null
-    private var modoJogo: String = "classico"
+    private var modoJogo: String = GameConstants.MODO_CLASSICO
     private var admin: Boolean = true
     private var perguntaEmEdicaoId: String? = null
     private var categoriaEmEdicao: String? = null
@@ -41,11 +43,11 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             }
         )
 
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador")
-        modoJogo = intent.getStringExtra("modoJogo") ?: "classico"
-        admin = intent.getBooleanExtra("admin", true)
-        val categoriaInicial = intent.getStringExtra("nomeCategoria")
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_CLASSICO
+        admin = intent.getBooleanExtra(IntentExtras.ADMIN, true)
+        val categoriaInicial = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
 
         if (nomeUtilizador.isBlank()) {
             Toast.makeText(this, "Só jogadores registados podem criar categorias personalizadas.", Toast.LENGTH_LONG).show()
@@ -248,10 +250,10 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
 
     private fun voltarParaCategorias() {
         val intent = Intent(this, EscolherCategoriaActivity::class.java)
-        intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-        intent.putExtra("admin", admin)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        intent.putExtra(IntentExtras.ADMIN, admin)
         startActivity(intent)
         finish()
     }

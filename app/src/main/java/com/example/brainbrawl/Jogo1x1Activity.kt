@@ -12,6 +12,8 @@ import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
 import com.example.brainbrawl.UteisNavegacao.enviarPontuacaoActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogo1x1Binding
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
@@ -55,8 +57,8 @@ class Jogo1x1Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os dados passados pelo Intent
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         carregarOffsetServidor()
 
         // Lê a categoria REAL da sala do Firebase para garantir filtragem correta
@@ -252,7 +254,7 @@ class Jogo1x1Activity : AppCompatActivity() {
             onPodioCompleto = {
                 // Avança para o pódio (agora sim, ambos podem ver!)
                 enviarPontuacaoActivity(
-                    this@Jogo1x1Activity, codigoSala, "1x1", nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
+                    this@Jogo1x1Activity, codigoSala, GameConstants.MODO_1X1, nomeUtilizador, totalPontos, categoria, nomeUtilizador, totalPerguntascertas, numeroPerguntasCertas, perguntas.size
                 )
             },
             onAguardar = {

@@ -2,14 +2,16 @@ package com.example.brainbrawl
 
 import android.content.Context
 import android.content.Intent
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 
 object UteisNavegacao {
     fun adicionarDadosJogador(intent: Intent, nomeUtilizador: String?, nomeJogador: String?) {
         if (!nomeUtilizador.isNullOrBlank()) {
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
         }
         if (!nomeJogador.isNullOrBlank()) {
-            intent.putExtra("nomeJogador", nomeJogador)
+            intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
         }
     }
 
@@ -28,8 +30,8 @@ object UteisNavegacao {
     // Função para abrir activity de categoria
     fun abrirEscolherCategoriaActivity(context: Context, modoJogo: String, nomeUtilizador: String?, nomeJogador: String?, admin: Boolean) {
         val intent = Intent(context, EscolherCategoriaActivity::class.java)
-        intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("admin", admin)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.ADMIN, admin)
         adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
         context.startActivity(intent)
     }
@@ -49,25 +51,25 @@ object UteisNavegacao {
         equipa: String? = null
     ) {
         val destino = when (modoJogo) {
-            "1x1" -> Pontuacao1x1Activity::class.java
-            "2x2" -> Pontuacao2x2Activity::class.java
+            GameConstants.MODO_1X1 -> Pontuacao1x1Activity::class.java
+            GameConstants.MODO_2X2 -> Pontuacao2x2Activity::class.java
             else -> throw IllegalArgumentException("Modo de jogo desconhecido")
         }
 
         val intent = Intent(context, destino)
-        codigoSala.let { intent.putExtra("codigoSala", it) }
+        codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
         adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
-        nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
-        modoJogo.let { intent.putExtra("modoJogo", it) }
-        pontuacao.let { intent.putExtra("pontuacao", it) }
-        pontuacao.let { intent.putExtra("totalPontos", it) }
-        numeroPerguntasCertas.let { intent.putExtra("numeroPerguntasCertas", it) }
-        totalPerguntascertas.let { intent.putExtra("totalPerguntascertas", it) }
-        totalPerguntascertas.let { intent.putExtra("totalRespostasCertas", it) }
-        totalPerguntas.let { intent.putExtra("totalPerguntas", it) }
+        nomeCategoria.let { intent.putExtra(IntentExtras.NOME_CATEGORIA, it) }
+        modoJogo.let { intent.putExtra(IntentExtras.MODO_JOGO, it) }
+        pontuacao.let { intent.putExtra(IntentExtras.PONTUACAO, it) }
+        pontuacao.let { intent.putExtra(IntentExtras.TOTAL_PONTOS, it) }
+        numeroPerguntasCertas.let { intent.putExtra(IntentExtras.NUMERO_PERGUNTAS_CERTAS, it) }
+        totalPerguntascertas.let { intent.putExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, it) }
+        totalPerguntascertas.let { intent.putExtra(IntentExtras.TOTAL_RESPOSTAS_CERTAS, it) }
+        totalPerguntas.let { intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, it) }
 
         if (equipa != null) {
-            intent.putExtra("equipa", equipa)
+            intent.putExtra(IntentExtras.EQUIPA, equipa)
         }
         context.startActivity(intent)
     }
@@ -75,11 +77,11 @@ object UteisNavegacao {
     // Função para abrir a sala de espera em modos de grupo
     fun abrirSalaDeEsperaGrupo(context: Context, codigoSala: String, nomeUtilizador: String?, nomeJogador: String?, nomeCategoria: String, admin: Boolean, modoJogo: String) {
         val intent = Intent(context, SalaDeEsperaGrupoActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
+        intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
         adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
-        intent.putExtra("nomeCategoria", nomeCategoria)
-        intent.putExtra("admin", admin)
-        intent.putExtra("modoJogo", modoJogo)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+        intent.putExtra(IntentExtras.ADMIN, admin)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
         context.startActivity(intent)
     }
 }

@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMainBinding
 import com.example.brainbrawl.repositories.JogadorRepository
 
@@ -25,16 +26,16 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Recuperar dados do savedInstanceState ou do intent se for a primeira vez
-        nomeUtilizador = savedInstanceState?.getString("nomeUtilizador")
-            ?: intent.getStringExtra("nomeUtilizador")
-        nomeJogador = savedInstanceState?.getString("nomeJogador")
-            ?: intent.getStringExtra("nomeJogador")
-        nomeCategoria = savedInstanceState?.getString("nomeCategoria")
-            ?: intent.getStringExtra("nomeCategoria")
-        codigoSala = savedInstanceState?.getString("codigoSala")
-            ?: intent.getStringExtra("codigoSala")
-        modoJogo = savedInstanceState?.getString("modoJogo")
-            ?: intent.getStringExtra("modoJogo")
+        nomeUtilizador = savedInstanceState?.getString(IntentExtras.NOME_UTILIZADOR)
+            ?: intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        nomeJogador = savedInstanceState?.getString(IntentExtras.NOME_JOGADOR)
+            ?: intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        nomeCategoria = savedInstanceState?.getString(IntentExtras.NOME_CATEGORIA)
+            ?: intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
+        codigoSala = savedInstanceState?.getString(IntentExtras.CODIGO_SALA)
+            ?: intent.getStringExtra(IntentExtras.CODIGO_SALA)
+        modoJogo = savedInstanceState?.getString(IntentExtras.MODO_JOGO)
+            ?: intent.getStringExtra(IntentExtras.MODO_JOGO)
 
         // Se o utilizador estiver autenticado, mostrar mensagem de boas-vindas e botão de amigos
         if (nomeUtilizador != null) {
@@ -42,7 +43,7 @@ class MainActivity : AppCompatActivity() {
             binding.btnAddAmigo.visibility = View.VISIBLE
             binding.btnAddAmigo.setOnClickListener {
                 val intent = Intent(this, AmigosActivity::class.java)
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 startActivity(intent)
             }
         } else if (nomeJogador != null) {
@@ -58,11 +59,11 @@ class MainActivity : AppCompatActivity() {
         binding.btnCriarSala.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
             if (nomeUtilizador != null) {
-                intent.putExtra("nomeUtilizador", nomeUtilizador)
-                intent.putExtra("admin", true)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+                intent.putExtra(IntentExtras.ADMIN, true)
             } else if (nomeJogador != null) {
-                intent.putExtra("nomeJogador", nomeJogador)
-                intent.putExtra("admin", true)
+                intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+                intent.putExtra(IntentExtras.ADMIN, true)
             }
             startActivity(intent)
         }
@@ -70,15 +71,15 @@ class MainActivity : AppCompatActivity() {
         binding.btnEntrarSala.setOnClickListener {
             val intent = Intent(this, SalaDeEsperaActivity::class.java)
             // Passa o nome do utilizador ou jogador (se já estiver preenchido)
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             startActivity(intent)
         }
 
         binding.btnExplorarCategorias.setOnClickListener {
             val intent = Intent(this, ExplorarCategoriasActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             startActivity(intent)
         }
 
@@ -96,10 +97,10 @@ class MainActivity : AppCompatActivity() {
     // Guardar estado da activity para rotações/dispositivo
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putString("nomeUtilizador", nomeUtilizador)
-        outState.putString("nomeJogador", nomeJogador)
-        outState.putString("nomeCategoria", nomeCategoria)
-        outState.putString("codigoSala", codigoSala)
-        outState.putString("modoJogo", modoJogo)
+        outState.putString(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        outState.putString(IntentExtras.NOME_JOGADOR, nomeJogador)
+        outState.putString(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+        outState.putString(IntentExtras.CODIGO_SALA, codigoSala)
+        outState.putString(IntentExtras.MODO_JOGO, modoJogo)
     }
 }

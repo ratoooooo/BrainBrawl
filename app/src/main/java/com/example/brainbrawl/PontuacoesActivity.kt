@@ -8,6 +8,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
 import com.example.brainbrawl.repositories.PontuacaoRepository
 import com.example.brainbrawl.services.EstatisticasService
@@ -34,12 +35,12 @@ class PontuacoesActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar dados passados do intent
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: "Jogador"
-        totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        totalPerguntas = intent.getIntExtra("totalPerguntas", 1)
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
+        totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
 
         // Chamar a função para carregar pontuação da sala
         carregarPontuacaoSala()

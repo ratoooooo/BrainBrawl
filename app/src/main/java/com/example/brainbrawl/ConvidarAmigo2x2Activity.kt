@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityConvidarAmigo2x2Binding
 import com.example.brainbrawl.repositories.AmigosRepository
 
@@ -24,8 +25,8 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar dados passados do intent
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        nomeCategoria = intent.getStringExtra("nomeCategoria")
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
 
         // Adapter para selecioar varios amigos
         convidarAmigoAdapter = Convidar2x2AmigoAdapter(amigos)
@@ -60,9 +61,9 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         Toast.makeText(this, "Convite 2x2 enviado!", Toast.LENGTH_SHORT).show()
         // Vai para sala de espera 2x2
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("nomeCategoria", categoriaSelecionada)
+        intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, categoriaSelecionada)
         startActivity(intent)
         finish()
     }

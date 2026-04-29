@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEsperaEliminadoBinding
 import com.example.brainbrawl.repositories.JogoRepository
 
@@ -29,15 +31,15 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: "Jogador"
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        modoJogo = intent.getStringExtra("modoJogo") ?: "eliminatorias"
-        totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
-        numeroPerguntasCertas = intent.getIntExtra("numeroPerguntasCertas", 0)
-        totalPerguntascertas = intent.getIntExtra("totalPerguntascertas", 0)
-        totalPerguntas = intent.getIntExtra("totalPerguntas", 1)
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_ELIMINATORIAS
+        totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
+        numeroPerguntasCertas = intent.getIntExtra(IntentExtras.NUMERO_PERGUNTAS_CERTAS, 0)
+        totalPerguntascertas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, 0)
+        totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
 
         binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
         escutarFimJogo()
@@ -58,7 +60,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         estadoListener = jogoRepository.escutarEstadoSala(
             codigoSala,
             onEstadoAlterado = { estado ->
-                if (estado == "terminado") {
+                if (estado == GameConstants.ESTADO_TERMINADO) {
                     abrirPodio()
                 }
             },
@@ -75,16 +77,16 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         estadoListener = null
 
         val intent = Intent(this, PontuacoesActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("nomeJogador", nomeJogador)
-        intent.putExtra("totalPontos", totalPontos)
-        intent.putExtra("nomeCategoria", nomeCategoria)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("numeroPerguntasCertas", numeroPerguntasCertas)
-        intent.putExtra("totalPerguntascertas", totalPerguntascertas)
-        intent.putExtra("respostasCertas", totalPerguntascertas)
-        intent.putExtra("totalPerguntas", totalPerguntas)
+        intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+        intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+        intent.putExtra(IntentExtras.TOTAL_PONTOS, totalPontos)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.NUMERO_PERGUNTAS_CERTAS, numeroPerguntasCertas)
+        intent.putExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, totalPerguntascertas)
+        intent.putExtra(IntentExtras.RESPOSTAS_CERTAS, totalPerguntascertas)
+        intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, totalPerguntas)
         startActivity(intent)
         finish()
     }

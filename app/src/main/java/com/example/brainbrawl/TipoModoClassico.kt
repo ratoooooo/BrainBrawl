@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirEscolherCategoriaActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityTipoModoClassicoBinding
 
 class TipoModoClassico : AppCompatActivity() {
@@ -14,17 +16,17 @@ class TipoModoClassico : AppCompatActivity() {
         setContentView(binding.root)
 
         // Receber dados passados do intent
-        val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        val modoJogo = intent.getStringExtra("modoJogo")
-        val nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
 
         // Configurar o botao para o modo 1x1, modo 2x2 e modo de todos contra todos
         binding.btnModo1x1.setOnClickListener {
-            iniciarModoCompetitivo("1x1", nomeUtilizador)
+            iniciarModoCompetitivo(GameConstants.MODO_1X1, nomeUtilizador)
         }
 
         binding.btnModo2x2.setOnClickListener {
-            iniciarModoCompetitivo("2x2", nomeUtilizador)
+            iniciarModoCompetitivo(GameConstants.MODO_2X2, nomeUtilizador)
         }
 
         binding.btnModoGrupo.setOnClickListener {
@@ -35,9 +37,9 @@ class TipoModoClassico : AppCompatActivity() {
         // Configurar o botão de voltar
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-            intent.putExtra("admin", false)
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            intent.putExtra(IntentExtras.ADMIN, false)
             startActivity(intent)
             finish()
         }
@@ -77,9 +79,9 @@ class TipoModoClassico : AppCompatActivity() {
             mostrarMensagemLoginObrigatorio()
         } else {
             val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
-            intent.putExtra("modoJogo", modo)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
-            intent.putExtra("admin", true)
+            intent.putExtra(IntentExtras.MODO_JOGO, modo)
+            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+            intent.putExtra(IntentExtras.ADMIN, true)
             startActivity(intent)
         }
     }

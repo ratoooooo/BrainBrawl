@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisConquistas.jogosBadges
 import com.example.brainbrawl.UteisConquistas.respostasBadges
 import com.example.brainbrawl.UteisConquistas.vitoriaBadges
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.repositories.JogadorRepository
@@ -25,12 +26,12 @@ class PerfilAmigoActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os dados passados pelo Intent
-        val nomeAmigo = intent.getStringExtra("nomeAmigo") ?: "Amigo Desconhecido"
-        val nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        val nomeAmigo = intent.getStringExtra(IntentExtras.NOME_AMIGO) ?: "Amigo Desconhecido"
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
 
         binding.btnVoltarPerfil.setOnClickListener {
             val intent = Intent(this, AmigosActivity::class.java)
-            intent.putExtra("nomeUtilizador", nomeUtilizador)
+            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
             startActivity(intent)
             finish()
         }
@@ -81,7 +82,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
                         .addOnSuccessListener {
                             Toast.makeText(this, "Amigo removido com sucesso!", Toast.LENGTH_SHORT).show()
                             val intent = Intent(this, AmigosActivity::class.java)
-                            intent.putExtra("nomeUtilizador", nomeUtilizador)
+                            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                             startActivity(intent)
                             finish()
                         }

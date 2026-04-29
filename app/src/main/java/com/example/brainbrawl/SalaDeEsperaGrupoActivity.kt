@@ -5,6 +5,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
 import com.example.brainbrawl.repositories.SalaRepository
 
@@ -18,7 +20,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
     private var nomeCategoria: String = ""
-    private var modoJogo: String = "classico"
+    private var modoJogo: String = GameConstants.MODO_CLASSICO
     private var admin = false
     private var nomeAtual: String = ""
     private var jogadoresNaSala: List<String> = emptyList()
@@ -33,12 +35,12 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        nomeJogador = intent.getStringExtra("nomeJogador")
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: "Todas as categorias"
-        modoJogo = intent.getStringExtra("modoJogo") ?: "classico"
-        admin = intent.getBooleanExtra("admin", false)
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: "Todas as categorias"
+        modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_CLASSICO
+        admin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
         nomeAtual = nomeUtilizador ?: nomeJogador ?: ""
 
         if (codigoSala.isBlank() || nomeAtual.isBlank()) {
@@ -106,13 +108,13 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
         estadoListener = salaRepository.escutarEstadoDaSala(
             codigoSala,
             onEstadoAlterado = { estado ->
-                if (estado == "em_jogo") {
+                if (estado == GameConstants.ESTADO_EM_JOGO) {
                     val intent = Intent(this@SalaDeEsperaGrupoActivity, JogoActivity::class.java)
-                    intent.putExtra("codigoSala", codigoSala)
-                    intent.putExtra("nomeUtilizador", nomeUtilizador ?: "")
-                    intent.putExtra("nomeJogador", nomeJogador ?: nomeAtual)
-                    intent.putExtra("nomeCategoria", nomeCategoria)
-                    intent.putExtra("modoJogo", modoJogo)
+                    intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+                    intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador ?: "")
+                    intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador ?: nomeAtual)
+                    intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+                    intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
                     startActivity(intent)
                     finish()
                 }
@@ -125,13 +127,13 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
 
     private fun jogadoresReais(): List<String> {
         return jogadoresNaSala.filter { jogador ->
-            jogador != nomeAtual && jogador != "admin" && jogadoresInfo[jogador] != true
+            jogador != nomeAtual && jogador != GameConstants.JOGADOR_ADMIN && jogadoresInfo[jogador] != true
         }
     }
 
     private fun jogadoresReais(jogadores: List<SalaRepository.JogadorSala>): List<String> {
         return jogadores.mapNotNull { jogador ->
-            if (jogador.nome != nomeAtual && jogador.nome != "admin" && !jogador.isHostOnly) {
+            if (jogador.nome != nomeAtual && jogador.nome != GameConstants.JOGADOR_ADMIN && !jogador.isHostOnly) {
                 jogador.nome
             } else {
                 null
@@ -150,7 +152,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
                     ).show()
                     return@addOnSuccessListener
                 }
-                salaRepository.atualizarEstadoSala(codigoSala, "em_jogo")
+                salaRepository.atualizarEstadoSala(codigoSala, GameConstants.ESTADO_EM_JOGO)
             }
             .addOnFailureListener {
                 Toast.makeText(this, "Erro ao validar jogadores.", Toast.LENGTH_SHORT).show()

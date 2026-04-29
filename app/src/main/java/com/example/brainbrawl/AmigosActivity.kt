@@ -6,6 +6,8 @@ import android.view.inputmethod.EditorInfo
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAmigosBinding
 import com.example.brainbrawl.models.Convite
 import com.example.brainbrawl.repositories.AmigosRepository
@@ -38,7 +40,7 @@ class AmigosActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os valores passados pela Intent
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
 
         // Configura o adaptador para a lista de amigos
         amigoAdapter = AmigoAdapter(amigos, avataresAmigos, estadoAmigos, nomeUtilizador)
@@ -91,7 +93,7 @@ class AmigosActivity : AppCompatActivity() {
         // Configurar o botão para voltar ao MainActivity
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
-            nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
+            nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             startActivity(intent)
             finish()
         }
@@ -251,12 +253,12 @@ class AmigosActivity : AppCompatActivity() {
 
         // Redirecionar para a sala de espera correspondente
         val intent = when (convite.modo) {
-            "2x2" -> Intent(this, SalaDeEspera2x2Activity::class.java)
+            GameConstants.MODO_2X2 -> Intent(this, SalaDeEspera2x2Activity::class.java)
             else -> Intent(this, SalaDeEspera1x1Activity::class.java)
         }
-        nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
-        convite.codigoSala.let { intent.putExtra("codigoSala", it) }
-        intent.putExtra("nomeCategoria", convite.nomeCategoria)
+        nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        convite.codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, convite.nomeCategoria)
         startActivity(intent)
         finish()
     }

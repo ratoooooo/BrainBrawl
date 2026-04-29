@@ -3,6 +3,8 @@ package com.example.brainbrawl
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolhaCategoriaModosBinding
 
 class EscolhaCategoriaModosActivity : AppCompatActivity() {
@@ -16,9 +18,9 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os dados passados pela Intent
-        val modoJogo = intent.getStringExtra("modoJogo")
-        val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        val nomeJogador = intent.getStringExtra("nomeJogador")
+        val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
 
         // Verificar se o modo de jogo é válido
         if (modoJogo == null) {
@@ -52,10 +54,10 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
 
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, TipoModoClassico::class.java)
-            intent.putExtra("modoJogo", "classico")
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-            intent.putExtra("admin", true)
+            intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_CLASSICO)
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            intent.putExtra(IntentExtras.ADMIN, true)
             startActivity(intent)
             finish()
         }
@@ -70,14 +72,14 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
     ) {
         // Redireciona para a activity correta com os dados necessários
         val intent = when (modoJogo) {
-            "1x1" -> Intent(this, ConvidarAmigo1x1Activity::class.java)
-            "2x2" -> Intent(this, ConvidarAmigo2x2Activity::class.java)
+            GameConstants.MODO_1X1 -> Intent(this, ConvidarAmigo1x1Activity::class.java)
+            GameConstants.MODO_2X2 -> Intent(this, ConvidarAmigo2x2Activity::class.java)
             else -> return
         }
-        modoJogo.let { intent.putExtra("modoJogo", it) }
-        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-        nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
+        modoJogo.let { intent.putExtra(IntentExtras.MODO_JOGO, it) }
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        nomeCategoria.let { intent.putExtra(IntentExtras.NOME_CATEGORIA, it) }
         startActivity(intent)
         finish()
     }

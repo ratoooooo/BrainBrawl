@@ -12,6 +12,8 @@ import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
 import com.example.brainbrawl.UteisNavegacao.enviarPontuacaoActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
@@ -60,8 +62,8 @@ class Jogo2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         //Guardar os dados passados pelo Intent
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         carregarOffsetServidor()
 
         // Lê a categoria REAL da sala do Firebase para garantir filtragem correta
@@ -256,7 +258,7 @@ class Jogo2x2Activity : AppCompatActivity() {
         handler.removeCallbacksAndMessages(null)
 
         // Guarda pontuação do jogador no nó da sua equipa
-        if (equipaDoJogador == "A" || equipaDoJogador == "B") {
+        if (equipaDoJogador == GameConstants.EQUIPA_A || equipaDoJogador == GameConstants.EQUIPA_B) {
             jogoCompetitivoRepository.guardarResultado2x2(
                 codigoSala,
                 equipaDoJogador,
@@ -278,7 +280,7 @@ class Jogo2x2Activity : AppCompatActivity() {
                 enviarPontuacaoActivity(
                     this@Jogo2x2Activity,
                     codigoSala,
-                    "2x2",
+                    GameConstants.MODO_2X2,
                     nomeUtilizador,
                     totalPontos,
                     categoria,

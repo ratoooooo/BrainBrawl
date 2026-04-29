@@ -13,6 +13,8 @@ import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.obterOpcoesAleatorias
 import com.example.brainbrawl.UteisJogo.tocarSom
 import com.example.brainbrawl.UteisNavegacao.adicionarDadosJogador
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.example.brainbrawl.repositories.JogoRepository
 import com.example.brainbrawl.services.GameService
@@ -74,10 +76,10 @@ class JogoActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Obter os dados passados da atividade anterior (Intent)
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: "Jogador"
-        nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
         carregarOffsetServidor()
 
         jogoRepository.obterInfoSala(codigoSala, nomeUtilizador, nomeJogador)
@@ -359,7 +361,7 @@ class JogoActivity : AppCompatActivity() {
         // Regista a resposta do jogador no Firebase
         jogoRepository.registarResposta(codigoSala, nomeJogador, acertouUltimaPergunta)
 
-        if (modoJogo == "eliminatorias" && !admin && !acertouUltimaPergunta) {
+        if (modoJogo == GameConstants.MODO_ELIMINATORIAS && !admin && !acertouUltimaPergunta) {
             handler.postDelayed({
                 eliminarJogador()
             }, 1200)
@@ -462,7 +464,7 @@ class JogoActivity : AppCompatActivity() {
                         progressBarAtivo = false
                         // Após 3 segundos, o admin avança para a próxima pergunta
                         handler.postDelayed({
-                            if (modoJogo == "eliminatorias") {
+                            if (modoJogo == GameConstants.MODO_ELIMINATORIAS) {
                                 verificarFimEliminatoriasOuAvancar()
                             } else {
                                 perguntaAtualIndex++
@@ -504,9 +506,9 @@ class JogoActivity : AppCompatActivity() {
                 // Conta quantos jogadores ainda estão na sala
                 val jogadoresRestantes = jogadores
                     .filter { jogador ->
-                        jogador.nome != "admin" &&
+                        jogador.nome != GameConstants.JOGADOR_ADMIN &&
                             !jogador.isHostOnly &&
-                            jogador.estado != "eliminado"
+                            jogador.estado != GameConstants.ESTADO_ELIMINADO
                     }
                     .map { it.nome }
                 if (gameService.deveTerminarEliminatorias(jogadoresRestantes)) {
@@ -577,7 +579,7 @@ class JogoActivity : AppCompatActivity() {
         pararSom()
         removerListeners()
         if (perguntaAtualIndex >= perguntas.size) {
-            if (modoJogo == "eliminatorias" && admin) {
+            if (modoJogo == GameConstants.MODO_ELIMINATORIAS && admin) {
                 terminarEliminatoriasEEnviar()
                 return
             }
@@ -596,7 +598,7 @@ class JogoActivity : AppCompatActivity() {
             return
         }
 
-        if (modoJogo == "eliminatorias") {
+        if (modoJogo == GameConstants.MODO_ELIMINATORIAS) {
             verificarFimEliminatoriasOuAvancar()
         } else {
             perguntaAtualIndex++
@@ -609,12 +611,12 @@ class JogoActivity : AppCompatActivity() {
     }
 
     private fun escutarFimEliminatorias() {
-        if (modoJogo != "eliminatorias" || estadoSalaListener != null) return
+        if (modoJogo != GameConstants.MODO_ELIMINATORIAS || estadoSalaListener != null) return
 
         estadoSalaListener = jogoRepository.escutarEstadoSala(
             codigoSala,
             onEstadoAlterado = { estado ->
-                if (estado == "terminado") {
+                if (estado == GameConstants.ESTADO_TERMINADO) {
                     guardarResultadoEEnviarPontuacoes()
                 }
             }
@@ -624,7 +626,7 @@ class JogoActivity : AppCompatActivity() {
     private fun terminarEliminatoriasEEnviar() {
         if (navegacaoPontuacoesIniciada) return
 
-        jogoRepository.atualizarEstadoSala(codigoSala, "terminado")
+        jogoRepository.atualizarEstadoSala(codigoSala, GameConstants.ESTADO_TERMINADO)
             .addOnCompleteListener {
                 guardarResultadoEEnviarPontuacoes()
             }
@@ -657,16 +659,16 @@ class JogoActivity : AppCompatActivity() {
     private fun abrirEsperaEliminadoActivity() {
         removerListeners()
         val intent = Intent(this, EsperaEliminadoActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("nomeJogador", nomeJogador)
-        intent.putExtra("totalPontos", totalPontos)
-        intent.putExtra("nomeCategoria", nomeCategoria)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("numeroPerguntasCertas", numeroPerguntasCertas)
-        intent.putExtra("totalPerguntascertas", totalPerguntascertas)
-        intent.putExtra("respostasCertas", totalPerguntascertas)
-        intent.putExtra("totalPerguntas", perguntas.size)
+        intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+        intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+        intent.putExtra(IntentExtras.TOTAL_PONTOS, totalPontos)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.NUMERO_PERGUNTAS_CERTAS, numeroPerguntasCertas)
+        intent.putExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, totalPerguntascertas)
+        intent.putExtra(IntentExtras.RESPOSTAS_CERTAS, totalPerguntascertas)
+        intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, perguntas.size)
         startActivity(intent)
         finish()
     }
@@ -674,15 +676,15 @@ class JogoActivity : AppCompatActivity() {
     // Função para enviar os dados do jogo para a atividade de pontuações
     private fun enviarPontuacaoActivity() {
         val intent = Intent(this, PontuacoesActivity::class.java)
-        intent.putExtra("codigoSala", codigoSala)
-        intent.putExtra("nomeJogador", nomeJogador)
-        intent.putExtra("totalPontos", totalPontos)
-        intent.putExtra("nomeCategoria", nomeCategoria)
-        intent.putExtra("nomeUtilizador", nomeUtilizador)
-        intent.putExtra("modoJogo", modoJogo)
-        intent.putExtra("numeroPerguntasCertas", numeroPerguntasCertas)
-        intent.putExtra("totalPerguntascertas", totalPerguntascertas)
-        intent.putExtra("totalPerguntas", perguntas.size)
+        intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+        intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+        intent.putExtra(IntentExtras.TOTAL_PONTOS, totalPontos)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.NUMERO_PERGUNTAS_CERTAS, numeroPerguntasCertas)
+        intent.putExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, totalPerguntascertas)
+        intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, perguntas.size)
         startActivity(intent)
         finish() // Fecha a atividade atual
     }

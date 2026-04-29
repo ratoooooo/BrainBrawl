@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisSala.criarSalaComCategoriaEEntrar
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
 import com.example.brainbrawl.UteisSala.gerarCodigoSala
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
 
@@ -28,10 +29,10 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os dados passados pela Intent
-        val modoJogo = intent.getStringExtra("modoJogo")
-        val nomeUtilizador = intent.getStringExtra("nomeUtilizador")
-        val nomeJogador = intent.getStringExtra("nomeJogador")
-        val admin = intent.getBooleanExtra("admin", false)
+        val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        val admin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
 
         if (modoJogo == null) {
             finish()
@@ -89,9 +90,9 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         }
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-            nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-            admin.let { intent.putExtra("admin", it) }
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            admin.let { intent.putExtra(IntentExtras.ADMIN, it) }
             startActivity(intent)
             finish()
         }
@@ -311,12 +312,12 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     ) {
         codigoSala = gerarCodigoSala()
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
-        nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
-        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
-        categoriaInicial?.let { intent.putExtra("nomeCategoria", it) }
-        codigoSala.let { intent.putExtra("codigoSala", it) }
-        modo.let { intent.putExtra("modoJogo", it) }
-        intent.putExtra("admin", admin)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        categoriaInicial?.let { intent.putExtra(IntentExtras.NOME_CATEGORIA, it) }
+        codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
+        modo.let { intent.putExtra(IntentExtras.MODO_JOGO, it) }
+        intent.putExtra(IntentExtras.ADMIN, admin)
         startActivity(intent)
         finish()
     }

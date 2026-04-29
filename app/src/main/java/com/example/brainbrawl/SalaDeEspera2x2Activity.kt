@@ -4,6 +4,8 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera2x2Binding
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
@@ -30,11 +32,11 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Receber dados passados do intent
-        codigoSala = intent.getStringExtra("codigoSala") ?: ""
-        nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        nomeJogador = intent.getStringExtra("nomeJogador") ?: nomeUtilizador
-        categoria = intent.getStringExtra("nomeCategoria")
-            ?: intent.getStringExtra("categoria")
+        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
+        categoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
+            ?: intent.getStringExtra(IntentExtras.CATEGORIA_LEGACY)
             ?: getString(R.string.categoria5)
 
         // Mostrar o código da sala
@@ -81,14 +83,14 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
             ModoCompetitivo.DOIS_CONTRA_DOIS,
             codigoSala,
             onEstadoAlterado = { estado ->
-                if (estado == "em_jogo") {
+                if (estado == GameConstants.ESTADO_EM_JOGO) {
                     val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
-                    codigoSala.let { intent.putExtra("codigoSala", it) }
-                    nomeUtilizador.let { intent.putExtra("nomeUtilizador", it) }
-                    nomeJogador.let { intent.putExtra("nomeJogador", it) }
+                    codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
+                    nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+                    nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
                     categoria?.let {
-                        intent.putExtra("nomeCategoria", it)
-                        intent.putExtra("categoria", it)
+                        intent.putExtra(IntentExtras.NOME_CATEGORIA, it)
+                        intent.putExtra(IntentExtras.CATEGORIA_LEGACY, it)
                     }
                     startActivity(intent)
                     finish()
@@ -104,7 +106,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                 jogoCompetitivoRepository.atualizarEstadoSala(
                     ModoCompetitivo.DOIS_CONTRA_DOIS,
                     codigoSala,
-                    "em_jogo"
+                    GameConstants.ESTADO_EM_JOGO
                 )
             }
         }
