@@ -1,5 +1,7 @@
 package com.example.brainbrawl.services
 
+import com.example.brainbrawl.config.GameConstants
+
 class ScoreService {
     data class ResultadoPontuacao(
         val pontos: Int,
@@ -12,13 +14,13 @@ class ScoreService {
         numeroPerguntasCertas: Int,
         bonus: Int
     ): ResultadoPontuacao {
-        val tempoUsado = if (modoJogo == "caotico") {
+        val tempoUsado = if (modoJogo == GameConstants.MODO_CAOTICO) {
             (10 - tempoRestante).toInt()
         } else {
             (20 - tempoRestante).toInt()
         }
 
-        var pontuacao = if (modoJogo == "caotico") {
+        var pontuacao = if (modoJogo == GameConstants.MODO_CAOTICO) {
             (10 - tempoUsado) * 30
         } else {
             (20 - tempoUsado) * 10

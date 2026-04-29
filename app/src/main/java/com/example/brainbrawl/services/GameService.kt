@@ -1,8 +1,10 @@
 package com.example.brainbrawl.services
 
+import com.example.brainbrawl.config.GameConstants
+
 class GameService {
     fun tempoTotal(modoJogo: String?): Double {
-        return if (modoJogo == "caotico") 10.0 else 20.0
+        return if (modoJogo == GameConstants.MODO_CAOTICO) 10.0 else 20.0
     }
 
     fun jogadoresRestantesEliminatorias(

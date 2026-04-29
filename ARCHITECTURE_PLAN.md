@@ -6,7 +6,9 @@ BrainBrawl e uma app Android nativa em Kotlin, com UI em XML/ViewBinding e Fireb
 
 Estrutura principal atual:
 
-- `app/src/main/java/com/example/brainbrawl/`: Activities, adapters, modelos simples e utilitarios misturados no mesmo pacote.
+- `app/src/main/java/com/example/brainbrawl/`: Activities, adapters e utilitarios ainda no pacote raiz.
+- `app/src/main/java/com/example/brainbrawl/models/`: modelos Firebase simples, criados com `data class` e valores por defeito para compatibilidade com Realtime Database.
+- `app/src/main/java/com/example/brainbrawl/config/`: constantes de paths Firebase, extras de intents e modos/estados de jogo.
 - `app/src/main/res/layout/`: ecras XML das Activities e itens de listas.
 - `app/src/main/res/drawable/`, `mipmap-*`, `raw/`: avatares, icones, fundos e sons.
 - `app/src/test/` e `app/src/androidTest/`: testes base gerados pelo Android Studio.
@@ -27,7 +29,7 @@ Ficheiros principais e responsabilidades:
 - `PontuacoesActivity.kt`, `Pontuacao1x1Activity.kt`, `Pontuacao2x2Activity.kt`: resultados e atualizacao de estatisticas.
 - `AmigosActivity.kt`, adapters de amigos/convites/pedidos: amizade e convites.
 - `UteisSala.kt`, `UteisNavegacao.kt`, `UteisJogo.kt`, `UteisValidacao.kt`, `UteisConquistas.kt`: logica partilhada.
-- `Perguntas.kt`, `Convite.kt`: modelos simples.
+- `models/Pergunta.kt`, `models/Convite.kt`, `models/Jogador.kt`, `models/SalaGrupo.kt`, `models/Sala1x1.kt`, `models/Sala2x2.kt`, `models/Categoria.kt`, `models/Pontuacao.kt`: modelos simples.
 
 Fluxo principal:
 
@@ -73,10 +75,21 @@ Estrutura criada para migracao futura:
 
 ## Plano de migracao por fases
 
-### Fase atual - repositories Firebase incrementais
+### Fase atual - models, config e repositories Firebase incrementais
 
 Criado:
 
+- `app/src/main/java/com/example/brainbrawl/models/Pergunta.kt`, movido do pacote default para `models`.
+- `app/src/main/java/com/example/brainbrawl/models/Convite.kt`, substituindo o modelo antigo de convite por um modelo gradual `Convite`.
+- `app/src/main/java/com/example/brainbrawl/models/Jogador.kt`.
+- `app/src/main/java/com/example/brainbrawl/models/SalaGrupo.kt`.
+- `app/src/main/java/com/example/brainbrawl/models/Sala1x1.kt`.
+- `app/src/main/java/com/example/brainbrawl/models/Sala2x2.kt`.
+- `app/src/main/java/com/example/brainbrawl/models/Categoria.kt`.
+- `app/src/main/java/com/example/brainbrawl/models/Pontuacao.kt`.
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`, com nomes de nodes/fields Firebase mantendo exatamente os valores atuais.
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`, com os nomes atuais dos extras de navegação.
+- `app/src/main/java/com/example/brainbrawl/config/GameConstants.kt`, com estados, modos e identificadores partilhados.
 - `app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt`, como primeira camada de acesso Firebase para salas no node Firebase `salas`.
 - `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`, como camada pequena para leituras simples do node Firebase `jogadores`.
 - `app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt`, como camada para categorias oficiais, categorias personalizadas, categorias publicas e perguntas.
@@ -127,6 +140,8 @@ Movido nesta fase:
 - `JogoCompetitivoRepository` ficou responsavel por paths competitivos existentes em `sala_1x1/{codigoSala}` e `sala_2x2/{codigoSala}`, mantendo os mesmos nomes de campos.
 - `PontuacaoRepository` ficou responsavel por paths de resultados existentes em `salas/{codigoSala}/jogadores`, `sala_1x1/{codigoSala}/pontuacoes`, `sala_2x2/{codigoSala}/equipaA`, `equipaB`, `pontuacoes_A`, `pontuacoes_B`, `totalPerguntasCertas_A`, `totalPerguntasCertas_B` e por updates no node `jogadores/{nome}`.
 - `EstatisticasService` ficou responsavel por calcular a nova media de `taxaAcertos`, decidir vencedores em solo/1x1/2x2, manter a regra antiga de empate 2x2 para estatisticas e montar o mapa de updates de estatisticas.
+- `FirebasePaths` passou a ser usado nos repositories para os nodes `jogadores`, `salas`, `sala_1x1`, `sala_2x2`, `categorias`, `categoriasPersonalizadas`, `categoriasPublicas`, `amigos`, `pedidos_amizade`, `convites_recebidos` e `convites_enviados`.
+- `GameConstants` passou a ser usado nos repositories/services para modos e estados como `classico`, `caotico`, `eliminado`, `1x1`, `2x2`, `pendente`, `aceite`, `on` e `off`.
 
 Mantido sem alteracoes:
 
@@ -141,10 +156,13 @@ Mantido sem alteracoes:
 - Perfis de convidados continuam sem ser criados: `PontuacaoRepository` so atualiza estatisticas quando `jogadores/{nome}` existe e tem `password`.
 - Admin host-only em jogos de grupo continua fora do podio/estatisticas: jogadores com `isHostOnly=true`, nome vazio ou `admin` sao ignorados.
 - Para evitar duplicacao por recriacao de Activity ou listeners repetidos, cada sala guarda marcadores transacionais em `estatisticasAtualizadas/{nomeJogador}` dentro da propria sala de resultado.
+- Extras de intents continuam com os mesmos valores (`nomeUtilizador`, `nomeJogador`, `codigoSala`, `nomeCategoria`, `modoJogo`, `admin`, `pontuacao`, `totalPerguntas`, `totalRespostasCertas`). A constante `IntentExtras` ja existe, mas a substituicao nas Activities fica gradual.
 
 Ainda falta migrar:
 
 - Migracao mais profunda de `JogoActivity.kt`, se for necessaria, para reduzir mais estado local e callbacks da Activity.
+- Substituir strings de intent extras nas Activities por `IntentExtras`, por familia de ecras, sem mudar navegacao.
+- Avaliar se os modelos internos pequenos dos repositories (`JogadorSala`, `CategoriaPublica`, `ResultadoJogador`) devem sair para `models/` numa fase seguinte ou continuar como DTOs locais.
 - UI para recusar pedidos/convites, caso seja criada mais tarde; os metodos Firebase de recusa/remocao ja existem em `AmigosRepository`, mas a UI atual continua igual.
 - Testes manuais completos em dois dispositivos/sessoes para amigos, convites, jogo de grupo, modos competitivos e confirmacao visual das estatisticas no perfil.
 
@@ -156,15 +174,14 @@ Proxima fase recomendada:
 
 Fase 1 - Contratos e constantes:
 
-- Criar objetos em `config/` para nomes de extras e paths Firebase.
-- Trocar strings soltas gradualmente.
+- Criado `FirebasePaths`, `IntentExtras` e `GameConstants`.
+- Trocar strings soltas gradualmente nas Activities que ainda usam extras diretamente.
 - Adicionar testes para conversao de extras e paths.
 
 Fase 2 - Modelos:
 
-- Mover `Pergunta` e `Convite1x1` para `models/`.
-- Criar modelos `JogadorSala`, `SalaGrupo`, `Sala1x1`, `Sala2x2`.
-- Manter typealiases ou imports temporarios para nao partir Activities.
+- `Pergunta`, `Convite`, `Jogador`, `SalaGrupo`, `Sala1x1`, `Sala2x2`, `Categoria` e `Pontuacao` foram criados em `models/`.
+- Migrar uso dos modelos novos apenas quando reduzir acoplamento, sem obrigar todos os DTOs locais a sair dos repositories de uma vez.
 
 Fase 3 - Repositories:
 
@@ -184,14 +201,12 @@ Fase 5 - Views/Controllers:
 
 ## Ordem recomendada para mover ficheiros
 
-1. `Perguntas.kt` -> `models/Pergunta.kt`.
-2. `Convite.kt` -> `models/Convite.kt`.
+1. Concluido: `Perguntas.kt` -> `models/Pergunta.kt`.
+2. Concluido: `Convite.kt` -> `models/Convite.kt`.
 3. `UteisValidacao.kt`, partes puras de `UteisJogo.kt` -> `utils/`.
-4. Firebase de amigos -> `repositories/UserRepository.kt`.
-5. Firebase de salas -> `repositories/RoomRepository.kt`.
-6. Perguntas/categorias -> `repositories/QuestionRepository.kt`.
-7. Pontuacao/estatisticas -> `services/ScoreService.kt`.
-8. Activities, uma familia de cada vez: auth, amigos, salas, jogo, pontuacoes.
+4. Refinar repositories existentes antes de criar novos nomes paralelos.
+5. Substituir extras hardcoded por `IntentExtras`, uma familia de Activities de cada vez.
+6. Activities, uma familia de cada vez: auth, amigos, salas, jogo, pontuacoes.
 
 ## Cuidados para nao partir o projeto
 

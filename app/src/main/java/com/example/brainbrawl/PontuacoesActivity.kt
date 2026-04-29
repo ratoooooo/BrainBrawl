@@ -19,15 +19,15 @@ class PontuacoesActivity : AppCompatActivity() {
     }
     private val pontuacaoRepository = PontuacaoRepository()
     private val estatisticasService = EstatisticasService()
+    private var pontuacoesListener: PontuacaoRepository.ListenerHandle? = null
+    private var estatisticasAtualizadas = false
     // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
     private lateinit var nomeCategoria: String
     private lateinit var nomeJogador: String
     private var totalPontos: Double = 0.0
-    private var respostasCertas: Int = 0
     private var totalPerguntas: Int = 1
-    private var totalRespostasCertas = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,9 +39,7 @@ class PontuacoesActivity : AppCompatActivity() {
         totalPontos = intent.getDoubleExtra("totalPontos", 0.0)
         nomeCategoria = intent.getStringExtra("nomeCategoria") ?: ""
         nomeUtilizador = intent.getStringExtra("nomeUtilizador") ?: ""
-        respostasCertas = intent.getIntExtra("respostasCertas", 0)
         totalPerguntas = intent.getIntExtra("totalPerguntas", 1)
-        totalRespostasCertas = intent.getIntExtra("totalPerguntascertas", 0)
 
         // Chamar a função para carregar pontuação da sala
         carregarPontuacaoSala()
@@ -53,15 +51,30 @@ class PontuacoesActivity : AppCompatActivity() {
         }
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        pontuacaoRepository.removerListener(pontuacoesListener)
+    }
+
     // Função para carrear a pontuação da sala
     private fun carregarPontuacaoSala() {
-        pontuacaoRepository.obterPontuacoesGrupo(codigoSala)
-            .addOnSuccessListener { resultados ->
-                val jogadores = estatisticasService.ordenarPodio(resultados)
-                val maxCertas = jogadores.maxOfOrNull { it.respostasCertas } ?: 0
+        pontuacoesListener = pontuacaoRepository.escutarResultadosGrupo(
+            codigoSala,
+            onResultados = { resumo ->
+                val jogadores = estatisticasService.ordenarPodio(resumo.jogadores)
+                val mostrarMvp = resumo.completos
+                val maxCertas = if (mostrarMvp) jogadores.maxOfOrNull { it.respostasCertas } ?: 0 else 0
                 val mvps = jogadores.filter { it.respostasCertas == maxCertas && maxCertas > 0 }.map { it.nome }
 
                 binding.layoutPodio.removeAllViews()
+                if (resumo.totalJogadores == 0) {
+                    mostrarMensagemPodio("Sem jogadores na sala.")
+                    return@escutarResultadosGrupo
+                }
+                if (!resumo.completos) {
+                    val total = resumo.totalJogadores.coerceAtLeast(1)
+                    mostrarMensagemPodio("A aguardar resultados... ${resumo.resultadosGuardados}/$total")
+                }
                 val inflater = LayoutInflater.from(this@PontuacoesActivity)
                 for ((index, jogador) in jogadores.withIndex()) {
                     val view = inflater.inflate(R.layout.item_podio, binding.layoutPodio, false)
@@ -80,22 +93,26 @@ class PontuacoesActivity : AppCompatActivity() {
                     txtPontos.text = jogador.pontos.toInt().toString()
                     binding.layoutPodio.addView(view)
                 }
-                if (jogadores.isEmpty()) {
+                if (resumo.completos && jogadores.isEmpty()) {
                     mostrarMensagemPodio("Sem jogadores na sala.")
                 }
 
-                pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
-                    tipoSala = PontuacaoRepository.TipoSala.GRUPO,
-                    codigoSala = codigoSala,
-                    resultados = jogadores,
-                    modo = EstatisticasService.Modo.SOLO,
-                    totalPerguntas = totalPerguntas
-                )
-            }
-            .addOnFailureListener {
+                if (resumo.completos && !estatisticasAtualizadas) {
+                    estatisticasAtualizadas = true
+                    pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+                        tipoSala = PontuacaoRepository.TipoSala.GRUPO,
+                        codigoSala = codigoSala,
+                        resultados = jogadores,
+                        modo = EstatisticasService.Modo.SOLO,
+                        totalPerguntas = totalPerguntas
+                    )
+                }
+            },
+            onErro = {
                 binding.layoutPodio.removeAllViews()
                 mostrarMensagemPodio("Erro ao carregar resultados")
             }
+        )
     }
 
     private fun mostrarMensagemPodio(mensagem: String) {

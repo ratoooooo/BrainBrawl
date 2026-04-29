@@ -2,6 +2,8 @@ package com.example.brainbrawl.repositories
 
 import com.example.brainbrawl.UteisFirebase.doubleValue
 import com.example.brainbrawl.UteisFirebase.intValue
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.services.EstatisticasService
 import com.example.brainbrawl.services.EstatisticasService.ResultadoJogador
 import com.google.android.gms.tasks.Task
@@ -19,15 +21,24 @@ class PontuacaoRepository(
     private val estatisticasService: EstatisticasService = EstatisticasService()
 ) {
     enum class TipoSala(val node: String) {
-        GRUPO("salas"),
-        UM_CONTRA_UM("sala_1x1"),
-        DOIS_CONTRA_DOIS("sala_2x2")
+        GRUPO(FirebasePaths.SALAS),
+        UM_CONTRA_UM(FirebasePaths.SALA_1X1),
+        DOIS_CONTRA_DOIS(FirebasePaths.SALA_2X2)
     }
 
     data class Resultado2x2(
         val equipaA: List<ResultadoJogador>,
         val equipaB: List<ResultadoJogador>
     )
+
+    data class ResultadosGrupo(
+        val jogadores: List<ResultadoJogador>,
+        val totalJogadores: Int,
+        val resultadosGuardados: Int
+    ) {
+        val completos: Boolean
+            get() = totalJogadores > 0 && resultadosGuardados >= totalJogadores
+    }
 
     data class ListenerHandle internal constructor(
         private val removerListener: () -> Unit
@@ -38,7 +49,7 @@ class PontuacaoRepository(
     }
 
     fun obterPontuacoesGrupo(codigoSala: String): Task<List<ResultadoJogador>> {
-        return salaRef(TipoSala.GRUPO, codigoSala).child("jogadores").get().continueWith { task ->
+        return salaRef(TipoSala.GRUPO, codigoSala).child(FirebasePaths.JOGADORES).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar resultados.")
             task.result.children.mapNotNull { jogadorSnapshot ->
                 jogadorSnapshot.toResultadoGrupo()
@@ -46,8 +57,27 @@ class PontuacaoRepository(
         }
     }
 
+    fun escutarResultadosGrupo(
+        codigoSala: String,
+        onResultados: (ResultadosGrupo) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(TipoSala.GRUPO, codigoSala).child(FirebasePaths.JOGADORES)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                onResultados(snapshot.toResultadosGrupo())
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
+    }
+
     fun obterPontuacaoGlobalJogador(nomeJogador: String): Task<Double> {
-        return database.child("jogadores").child(nomeJogador).child("pontuacao").get().continueWith { task ->
+        return database.child(FirebasePaths.JOGADORES).child(nomeJogador).child(FirebasePaths.PONTUACAO).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar pontuação.")
             task.result.doubleValue()
         }
@@ -58,7 +88,7 @@ class PontuacaoRepository(
         onPontuacoes: (List<ResultadoJogador>) -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = salaRef(TipoSala.UM_CONTRA_UM, codigoSala).child("pontuacoes")
+        val reference = salaRef(TipoSala.UM_CONTRA_UM, codigoSala).child(FirebasePaths.PONTUACOES)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val resultados = snapshot.children.mapNotNull { pontuacaoSnapshot ->
@@ -184,10 +214,10 @@ class PontuacaoRepository(
                     return@addOnSuccessListener
                 }
 
-                val jogadorRef = database.child("jogadores").child(resultado.nome)
+                val jogadorRef = database.child(FirebasePaths.JOGADORES).child(resultado.nome)
                 jogadorRef.get()
                     .addOnSuccessListener jogadorListener@{ snapshot ->
-                        if (!snapshot.exists() || !snapshot.hasChild("password")) {
+                        if (!snapshot.exists() || !snapshot.hasChild(FirebasePaths.PASSWORD)) {
                             atualizarProximoJogador(
                                 tipoSala,
                                 codigoSala,
@@ -244,7 +274,7 @@ class PontuacaoRepository(
     ): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
         val reference = salaRef(tipoSala, codigoSala)
-            .child("estatisticasAtualizadas")
+            .child(FirebasePaths.ESTATISTICAS_ATUALIZADAS)
             .child(nomeJogador)
 
         reference.runTransaction(object : Transaction.Handler {
@@ -270,41 +300,73 @@ class PontuacaoRepository(
 
     private fun DataSnapshot.toResultadoGrupo(): ResultadoJogador? {
         val nome = key ?: return null
-        val isHostOnly = child("isHostOnly").getValue(Boolean::class.java) == true
+        val isHostOnly = child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
         if (deveIgnorarJogador(nome) || isHostOnly) return null
 
         return ResultadoJogador(
             nome = nome,
-            pontos = child("pontuacao").doubleValue(),
-            respostasCertas = child("totalPerguntasCertas").intValue()
+            pontos = child(FirebasePaths.PONTUACAO).doubleValue(),
+            respostasCertas = respostasCertasGrupo()
         )
     }
 
-    private fun DataSnapshot.toResultado2x2(): Resultado2x2 {
-        val pontuacoesA = child("pontuacoes_A")
-        val pontuacoesB = child("pontuacoes_B")
-        val respostasA = child("totalPerguntasCertas_A")
-        val respostasB = child("totalPerguntasCertas_B")
+    private fun DataSnapshot.toResultadosGrupo(): ResultadosGrupo {
+        val jogadoresReais = children.filter { jogadorSnapshot ->
+            val nome = jogadorSnapshot.key.orEmpty()
+            val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
+            !deveIgnorarJogador(nome) && !isHostOnly
+        }
+        val resultados = jogadoresReais.mapNotNull { jogadorSnapshot ->
+            if (jogadorSnapshot.temResultadoGrupoGuardado()) {
+                jogadorSnapshot.toResultadoGrupo()
+            } else {
+                null
+            }
+        }
+        return ResultadosGrupo(
+            jogadores = resultados,
+            totalJogadores = jogadoresReais.size,
+            resultadosGuardados = resultados.size
+        )
+    }
 
-        val equipaA = child("equipaA").children.mapNotNull { jogadorSnapshot ->
+    private fun DataSnapshot.temResultadoGrupoGuardado(): Boolean {
+        return hasChild(FirebasePaths.TOTAL_RESPOSTAS_CERTAS) || hasChild(FirebasePaths.TOTAL_PERGUNTAS_CERTAS)
+    }
+
+    private fun DataSnapshot.respostasCertasGrupo(): Int {
+        return if (hasChild(FirebasePaths.TOTAL_RESPOSTAS_CERTAS)) {
+            child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue()
+        } else {
+            child(FirebasePaths.TOTAL_PERGUNTAS_CERTAS).intValue()
+        }
+    }
+
+    private fun DataSnapshot.toResultado2x2(): Resultado2x2 {
+        val pontuacoesA = child(FirebasePaths.PONTUACOES_A)
+        val pontuacoesB = child(FirebasePaths.PONTUACOES_B)
+        val respostasA = child(FirebasePaths.TOTAL_PERGUNTAS_CERTAS_A)
+        val respostasB = child(FirebasePaths.TOTAL_PERGUNTAS_CERTAS_B)
+
+        val equipaA = child(FirebasePaths.EQUIPA_A).children.mapNotNull { jogadorSnapshot ->
             val nome = jogadorSnapshot.key ?: return@mapNotNull null
             if (deveIgnorarJogador(nome)) return@mapNotNull null
             ResultadoJogador(
                 nome = nome,
                 pontos = pontuacoesA.child(nome).doubleValue(),
                 respostasCertas = respostasA.child(nome).intValue(),
-                equipa = "A"
+                equipa = GameConstants.EQUIPA_A
             )
         }
 
-        val equipaB = child("equipaB").children.mapNotNull { jogadorSnapshot ->
+        val equipaB = child(FirebasePaths.EQUIPA_B).children.mapNotNull { jogadorSnapshot ->
             val nome = jogadorSnapshot.key ?: return@mapNotNull null
             if (deveIgnorarJogador(nome)) return@mapNotNull null
             ResultadoJogador(
                 nome = nome,
                 pontos = pontuacoesB.child(nome).doubleValue(),
                 respostasCertas = respostasB.child(nome).intValue(),
-                equipa = "B"
+                equipa = GameConstants.EQUIPA_B
             )
         }
 
@@ -313,19 +375,19 @@ class PontuacaoRepository(
 
     private fun DataSnapshot.toEstatisticasAtuais(): EstatisticasService.EstatisticasAtuais {
         return EstatisticasService.EstatisticasAtuais(
-            pontuacao = child("pontuacao").doubleValue(),
-            taxaAcertos = child("taxaAcertos").doubleValue(),
-            totalJogos = child("totalJogos").intValue(),
-            totalVitorias = child("totalVitorias").intValue(),
-            totalRespostasCertas = child("totalRespostasCertas").intValue(),
-            totalVitoriasModo1x1 = child("totalVitoriasModo1x1").intValue(),
-            totalVitoriasModo2x2 = child("totalVitoriasModo2x2").intValue(),
-            totalVitoriasModoSolo = child("totalVitoriasModoSolo").intValue()
+            pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
+            taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue(),
+            totalJogos = child(FirebasePaths.TOTAL_JOGOS).intValue(),
+            totalVitorias = child(FirebasePaths.TOTAL_VITORIAS).intValue(),
+            totalRespostasCertas = child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue(),
+            totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
+            totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
+            totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue()
         )
     }
 
     private fun deveIgnorarJogador(nome: String): Boolean {
-        return nome.isBlank() || nome == "admin"
+        return nome.isBlank() || nome == GameConstants.JOGADOR_ADMIN
     }
 
     private fun salaRef(tipoSala: TipoSala, codigoSala: String): DatabaseReference {

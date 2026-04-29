@@ -1,6 +1,8 @@
 package com.example.brainbrawl.repositories
 
-import com.example.brainbrawl.Convite1x1
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.Convite
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -30,8 +32,8 @@ class AmigosRepository(
     fun adicionarAmigo(nomeUtilizador: String, nomeAmigo: String): Task<Void> {
         return database.updateChildren(
             mapOf(
-                "jogadores/$nomeUtilizador/amigos/$nomeAmigo" to true,
-                "jogadores/$nomeAmigo/amigos/$nomeUtilizador" to true
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.AMIGOS}/$nomeAmigo" to true,
+                "${FirebasePaths.JOGADORES}/$nomeAmigo/${FirebasePaths.AMIGOS}/$nomeUtilizador" to true
             )
         )
     }
@@ -39,8 +41,8 @@ class AmigosRepository(
     fun removerAmigo(nomeUtilizador: String, nomeAmigo: String): Task<Void> {
         return database.updateChildren(
             hashMapOf<String, Any?>(
-                "jogadores/$nomeUtilizador/amigos/$nomeAmigo" to null,
-                "jogadores/$nomeAmigo/amigos/$nomeUtilizador" to null
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.AMIGOS}/$nomeAmigo" to null,
+                "${FirebasePaths.JOGADORES}/$nomeAmigo/${FirebasePaths.AMIGOS}/$nomeUtilizador" to null
             )
         )
     }
@@ -60,17 +62,17 @@ class AmigosRepository(
     }
 
     fun enviarPedidoAmizade(nomeUtilizador: String, nomeAmigo: String): Task<Void> {
-        val pedido = mapOf("estado" to "pendente")
-        return jogadorRef(nomeAmigo).child("pedidos_amizade").child(nomeUtilizador).setValue(pedido)
+        val pedido = mapOf(FirebasePaths.ESTADO to GameConstants.ESTADO_PENDENTE)
+        return jogadorRef(nomeAmigo).child(FirebasePaths.PEDIDOS_AMIZADE).child(nomeUtilizador).setValue(pedido)
     }
 
     fun aceitarPedidoAmizade(nomeUtilizador: String, nomeOutro: String): Task<Void> {
         return database.updateChildren(
             hashMapOf<String, Any?>(
-                "jogadores/$nomeUtilizador/amigos/$nomeOutro" to true,
-                "jogadores/$nomeOutro/amigos/$nomeUtilizador" to true,
-                "jogadores/$nomeUtilizador/pedidos_amizade/$nomeOutro" to null,
-                "jogadores/$nomeOutro/pedidos_amizade/$nomeUtilizador" to null
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.AMIGOS}/$nomeOutro" to true,
+                "${FirebasePaths.JOGADORES}/$nomeOutro/${FirebasePaths.AMIGOS}/$nomeUtilizador" to true,
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.PEDIDOS_AMIZADE}/$nomeOutro" to null,
+                "${FirebasePaths.JOGADORES}/$nomeOutro/${FirebasePaths.PEDIDOS_AMIZADE}/$nomeUtilizador" to null
             )
         )
     }
@@ -78,30 +80,30 @@ class AmigosRepository(
     fun recusarPedidoAmizade(nomeUtilizador: String, nomeOutro: String): Task<Void> {
         return database.updateChildren(
             hashMapOf<String, Any?>(
-                "jogadores/$nomeUtilizador/pedidos_amizade/$nomeOutro" to null,
-                "jogadores/$nomeOutro/pedidos_amizade/$nomeUtilizador" to null
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.PEDIDOS_AMIZADE}/$nomeOutro" to null,
+                "${FirebasePaths.JOGADORES}/$nomeOutro/${FirebasePaths.PEDIDOS_AMIZADE}/$nomeUtilizador" to null
             )
         )
     }
 
     fun carregarPedidosRecebidos(nomeUtilizador: String): Task<List<String>> {
-        return jogadorRef(nomeUtilizador).child("pedidos_amizade").get().continueWith { task ->
+        return jogadorRef(nomeUtilizador).child(FirebasePaths.PEDIDOS_AMIZADE).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar pedidos.")
             task.result.toPedidosPendentes()
         }
     }
 
     fun carregarPedidosEnviados(nomeUtilizador: String): Task<List<String>> {
-        return database.child("jogadores").get().continueWith { task ->
+        return database.child(FirebasePaths.JOGADORES).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar pedidos enviados.")
             task.result.children.mapNotNull { jogador ->
                 val nomeOutro = jogador.key ?: return@mapNotNull null
-                val estado = jogador.child("pedidos_amizade")
+                val estado = jogador.child(FirebasePaths.PEDIDOS_AMIZADE)
                     .child(nomeUtilizador)
-                    .child("estado")
+                    .child(FirebasePaths.ESTADO)
                     .getValue(String::class.java)
                     .orEmpty()
-                if (estado == "pendente") nomeOutro else null
+                if (estado == GameConstants.ESTADO_PENDENTE) nomeOutro else null
             }
         }
     }
@@ -109,8 +111,8 @@ class AmigosRepository(
     fun carregarConvitesRecebidos(
         nomeUtilizador: String,
         nomeCategoriaPadrao: String
-    ): Task<List<Convite1x1>> {
-        return jogadorRef(nomeUtilizador).child("convites_recebidos").get().continueWith { task ->
+    ): Task<List<Convite>> {
+        return jogadorRef(nomeUtilizador).child(FirebasePaths.CONVITES_RECEBIDOS).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar convites.")
             task.result.children.mapNotNull { it.toConviteRecebido(nomeCategoriaPadrao) }
         }
@@ -140,7 +142,7 @@ class AmigosRepository(
         onPedidosAlterados: (List<String>) -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = jogadorRef(nomeUtilizador).child("pedidos_amizade")
+        val reference = jogadorRef(nomeUtilizador).child(FirebasePaths.PEDIDOS_AMIZADE)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 onPedidosAlterados(snapshot.toPedidosPendentes())
@@ -157,10 +159,10 @@ class AmigosRepository(
     fun observarConvitesRecebidos(
         nomeUtilizador: String,
         nomeCategoriaPadrao: String,
-        onConvitesAlterados: (List<Convite1x1>) -> Unit,
+        onConvitesAlterados: (List<Convite>) -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = jogadorRef(nomeUtilizador).child("convites_recebidos")
+        val reference = jogadorRef(nomeUtilizador).child(FirebasePaths.CONVITES_RECEBIDOS)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 onConvitesAlterados(snapshot.children.mapNotNull { it.toConviteRecebido(nomeCategoriaPadrao) })
@@ -185,20 +187,20 @@ class AmigosRepository(
         nomeCategoria: String
     ): Task<Void> {
         val conviteData = mapOf(
-            "estado" to "pendente",
-            "codigoSala" to codigoSala,
-            "nomeCategoria" to nomeCategoria
+            FirebasePaths.ESTADO to GameConstants.ESTADO_PENDENTE,
+            FirebasePaths.CODIGO_SALA to codigoSala,
+            FirebasePaths.NOME_CATEGORIA to nomeCategoria
         )
         return database.updateChildren(
             mapOf(
-                "sala_1x1/$codigoSala" to mapOf(
-                    "jogadores" to mapOf(nomeUtilizador to true, nomeAmigo to true),
-                    "admin" to nomeUtilizador,
-                    "estado" to "em_espera",
-                    "nomeCategoria" to nomeCategoria
+                "${FirebasePaths.SALA_1X1}/$codigoSala" to mapOf(
+                    FirebasePaths.JOGADORES to mapOf(nomeUtilizador to true, nomeAmigo to true),
+                    FirebasePaths.ADMIN to nomeUtilizador,
+                    FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
+                    FirebasePaths.NOME_CATEGORIA to nomeCategoria
                 ),
-                "jogadores/$nomeAmigo/convites_recebidos/$nomeUtilizador" to conviteData,
-                "jogadores/$nomeUtilizador/convites_enviados/$nomeAmigo" to conviteData
+                "${FirebasePaths.JOGADORES}/$nomeAmigo/${FirebasePaths.CONVITES_RECEBIDOS}/$nomeUtilizador" to conviteData,
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.CONVITES_ENVIADOS}/$nomeAmigo" to conviteData
             )
         )
     }
@@ -215,22 +217,22 @@ class AmigosRepository(
         }
 
         val conviteData = mapOf(
-            "estado" to "pendente",
-            "codigoSala" to codigoSala,
-            "modo" to "2x2",
-            "nomeCategoria" to nomeCategoria
+            FirebasePaths.ESTADO to GameConstants.ESTADO_PENDENTE,
+            FirebasePaths.CODIGO_SALA to codigoSala,
+            FirebasePaths.MODO to GameConstants.MODO_2X2,
+            FirebasePaths.NOME_CATEGORIA to nomeCategoria
         )
         val updates = hashMapOf<String, Any>(
-            "sala_2x2/$codigoSala" to mapOf(
-                "jogadores" to jogadores,
-                "admin" to nomeUtilizador,
-                "estado" to "em_espera",
-                "nomeCategoria" to nomeCategoria
+            "${FirebasePaths.SALA_2X2}/$codigoSala" to mapOf(
+                FirebasePaths.JOGADORES to jogadores,
+                FirebasePaths.ADMIN to nomeUtilizador,
+                FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
+                FirebasePaths.NOME_CATEGORIA to nomeCategoria
             )
         )
         for (amigo in amigosSelecionados) {
-            updates["jogadores/$amigo/convites_recebidos/$nomeUtilizador"] = conviteData
-            updates["jogadores/$nomeUtilizador/convites_enviados/$amigo"] = conviteData
+            updates["${FirebasePaths.JOGADORES}/$amigo/${FirebasePaths.CONVITES_RECEBIDOS}/$nomeUtilizador"] = conviteData
+            updates["${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.CONVITES_ENVIADOS}/$amigo"] = conviteData
         }
         return database.updateChildren(updates)
     }
@@ -238,8 +240,8 @@ class AmigosRepository(
     fun aceitarConvite(nomeUtilizador: String, nomeAmigo: String): Task<Void> {
         return database.updateChildren(
             mapOf(
-                "jogadores/$nomeUtilizador/convites_recebidos/$nomeAmigo/estado" to "aceite",
-                "jogadores/$nomeAmigo/convites_enviados/$nomeUtilizador/estado" to "aceite"
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.CONVITES_RECEBIDOS}/$nomeAmigo/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_ACEITE,
+                "${FirebasePaths.JOGADORES}/$nomeAmigo/${FirebasePaths.CONVITES_ENVIADOS}/$nomeUtilizador/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_ACEITE
             )
         )
     }
@@ -251,36 +253,36 @@ class AmigosRepository(
     fun removerConvite(nomeUtilizador: String, nomeAmigo: String): Task<Void> {
         return database.updateChildren(
             hashMapOf<String, Any?>(
-                "jogadores/$nomeUtilizador/convites_recebidos/$nomeAmigo" to null,
-                "jogadores/$nomeAmigo/convites_enviados/$nomeUtilizador" to null
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador/${FirebasePaths.CONVITES_RECEBIDOS}/$nomeAmigo" to null,
+                "${FirebasePaths.JOGADORES}/$nomeAmigo/${FirebasePaths.CONVITES_ENVIADOS}/$nomeUtilizador" to null
             )
         )
     }
 
     private fun jogadorRef(nomeJogador: String): DatabaseReference {
-        return database.child("jogadores").child(nomeJogador)
+        return database.child(FirebasePaths.JOGADORES).child(nomeJogador)
     }
 
     private fun amigosRef(nomeJogador: String): DatabaseReference {
-        return jogadorRef(nomeJogador).child("amigos")
+        return jogadorRef(nomeJogador).child(FirebasePaths.AMIGOS)
     }
 
     private fun DataSnapshot.toPedidosPendentes(): List<String> {
         return children.mapNotNull { pedido ->
             val nomeOutro = pedido.key ?: return@mapNotNull null
-            val estado = pedido.child("estado").getValue(String::class.java).orEmpty()
-            if (estado == "pendente") nomeOutro else null
+            val estado = pedido.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty()
+            if (estado == GameConstants.ESTADO_PENDENTE) nomeOutro else null
         }
     }
 
-    private fun DataSnapshot.toConviteRecebido(nomeCategoriaPadrao: String): Convite1x1? {
+    private fun DataSnapshot.toConviteRecebido(nomeCategoriaPadrao: String): Convite? {
         val nomeAmigo = key ?: return null
-        val estado = child("estado").getValue(String::class.java).orEmpty()
-        if (estado != "pendente") return null
+        val estado = child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty()
+        if (estado != GameConstants.ESTADO_PENDENTE) return null
 
-        val codigoSala = child("codigoSala").getValue(String::class.java).orEmpty()
-        val modo = child("modo").getValue(String::class.java) ?: "1x1"
-        val nomeCategoria = child("nomeCategoria").getValue(String::class.java) ?: nomeCategoriaPadrao
-        return Convite1x1(nomeAmigo, codigoSala, modo, nomeCategoria)
+        val codigoSala = child(FirebasePaths.CODIGO_SALA).getValue(String::class.java).orEmpty()
+        val modo = child(FirebasePaths.MODO).getValue(String::class.java) ?: GameConstants.MODO_1X1
+        val nomeCategoria = child(FirebasePaths.NOME_CATEGORIA).getValue(String::class.java) ?: nomeCategoriaPadrao
+        return Convite(nomeAmigo, codigoSala, modo, nomeCategoria)
     }
 }

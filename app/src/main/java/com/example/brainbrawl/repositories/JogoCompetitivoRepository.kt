@@ -1,6 +1,8 @@
 package com.example.brainbrawl.repositories
 
-import Pergunta
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.Pergunta
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot
@@ -16,8 +18,8 @@ class JogoCompetitivoRepository(
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 ) {
     enum class ModoCompetitivo(val node: String) {
-        UM_CONTRA_UM("sala_1x1"),
-        DOIS_CONTRA_DOIS("sala_2x2")
+        UM_CONTRA_UM(FirebasePaths.SALA_1X1),
+        DOIS_CONTRA_DOIS(FirebasePaths.SALA_2X2)
     }
 
     data class ListenerHandle internal constructor(
@@ -33,7 +35,7 @@ class JogoCompetitivoRepository(
         codigoSala: String,
         nomeUtilizador: String
     ): Task<Void> {
-        return salaRef(modo, codigoSala).child("jogadores").child(nomeUtilizador).setValue(true)
+        return salaRef(modo, codigoSala).child(FirebasePaths.JOGADORES).child(nomeUtilizador).setValue(true)
     }
 
     fun marcarPronto1x1(
@@ -42,13 +44,13 @@ class JogoCompetitivoRepository(
         pronto: Boolean = true
     ): Task<Void> {
         return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-            .child("prontos")
+            .child(FirebasePaths.PRONTOS)
             .child(nomeUtilizador)
             .setValue(pronto)
     }
 
     fun obterAdmin(modo: ModoCompetitivo, codigoSala: String): Task<String?> {
-        return salaRef(modo, codigoSala).child("admin").get().continueWith { task ->
+        return salaRef(modo, codigoSala).child(FirebasePaths.ADMIN).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao identificar admin.")
             task.result.getValue(String::class.java)
         }
@@ -60,7 +62,7 @@ class JogoCompetitivoRepository(
         onJogadoresAlterados: (List<String>) -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = salaRef(modo, codigoSala).child("jogadores")
+        val reference = salaRef(modo, codigoSala).child(FirebasePaths.JOGADORES)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 onJogadoresAlterados(snapshot.children.mapNotNull { it.key })
@@ -80,7 +82,7 @@ class JogoCompetitivoRepository(
         onEstadoAlterado: (String?) -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = salaRef(modo, codigoSala).child("estado")
+        val reference = salaRef(modo, codigoSala).child(FirebasePaths.ESTADO)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 onEstadoAlterado(snapshot.getValue(String::class.java))
@@ -116,7 +118,7 @@ class JogoCompetitivoRepository(
 
     fun obterProntos1x1(codigoSala: String): Task<List<String>> {
         return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-            .child("prontos")
+            .child(FirebasePaths.PRONTOS)
             .get()
             .continueWith { task ->
                 if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar jogadores prontos.")
@@ -129,7 +131,7 @@ class JogoCompetitivoRepository(
         codigoSala: String,
         estado: String
     ): Task<Void> {
-        return salaRef(modo, codigoSala).child("estado").setValue(estado)
+        return salaRef(modo, codigoSala).child(FirebasePaths.ESTADO).setValue(estado)
     }
 
     fun apagarSala(modo: ModoCompetitivo, codigoSala: String): Task<Void> {
@@ -139,8 +141,8 @@ class JogoCompetitivoRepository(
     fun removerJogador1x1(codigoSala: String, nomeUtilizador: String): Task<Void> {
         return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala).updateChildren(
             hashMapOf<String, Any?>(
-                "jogadores/$nomeUtilizador" to null,
-                "prontos/$nomeUtilizador" to null
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador" to null,
+                "${FirebasePaths.PRONTOS}/$nomeUtilizador" to null
             )
         )
     }
@@ -148,9 +150,9 @@ class JogoCompetitivoRepository(
     fun removerJogador2x2(codigoSala: String, nomeUtilizador: String): Task<Void> {
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
             hashMapOf<String, Any?>(
-                "jogadores/$nomeUtilizador" to null,
-                "equipaA/$nomeUtilizador" to null,
-                "equipaB/$nomeUtilizador" to null
+                "${FirebasePaths.JOGADORES}/$nomeUtilizador" to null,
+                "${FirebasePaths.EQUIPA_A}/$nomeUtilizador" to null,
+                "${FirebasePaths.EQUIPA_B}/$nomeUtilizador" to null
             )
         )
     }
@@ -162,10 +164,10 @@ class JogoCompetitivoRepository(
     ): Task<Void> {
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
             mapOf(
-                "equipaA" to equipaA.associateWith { true },
-                "equipaB" to equipaB.associateWith { true },
-                "pontuacaoA" to 0,
-                "pontuacaoB" to 0
+                FirebasePaths.EQUIPA_A to equipaA.associateWith { true },
+                FirebasePaths.EQUIPA_B to equipaB.associateWith { true },
+                FirebasePaths.PONTUACAO_A to 0,
+                FirebasePaths.PONTUACAO_B to 0
             )
         )
     }
@@ -175,7 +177,7 @@ class JogoCompetitivoRepository(
         codigoSala: String,
         categoriaPadrao: String
     ): Task<String> {
-        return salaRef(modo, codigoSala).child("nomeCategoria").get().continueWith { task ->
+        return salaRef(modo, codigoSala).child(FirebasePaths.NOME_CATEGORIA).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao ler categoria.")
             task.result.getValue(String::class.java) ?: categoriaPadrao
         }
@@ -185,11 +187,11 @@ class JogoCompetitivoRepository(
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar equipa.")
             val snapshot = task.result
-            val equipaA = snapshot.child("equipaA").children.mapNotNull { it.key }
-            val equipaB = snapshot.child("equipaB").children.mapNotNull { it.key }
+            val equipaA = snapshot.child(FirebasePaths.EQUIPA_A).children.mapNotNull { it.key }
+            val equipaB = snapshot.child(FirebasePaths.EQUIPA_B).children.mapNotNull { it.key }
             when {
-                equipaA.contains(nomeUtilizador) -> "A"
-                equipaB.contains(nomeUtilizador) -> "B"
+                equipaA.contains(nomeUtilizador) -> GameConstants.EQUIPA_A
+                equipaB.contains(nomeUtilizador) -> GameConstants.EQUIPA_B
                 else -> ""
             }
         }
@@ -202,7 +204,7 @@ class JogoCompetitivoRepository(
         categoriaTodas: String
     ): Task<List<Pergunta>> {
         val result = TaskCompletionSource<List<Pergunta>>()
-        val perguntasRef = salaRef(modo, codigoSala).child("perguntas")
+        val perguntasRef = salaRef(modo, codigoSala).child(FirebasePaths.PERGUNTAS)
 
         perguntasRef.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
@@ -234,7 +236,7 @@ class JogoCompetitivoRepository(
         onOffsetAlterado: (Long) -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = FirebaseDatabase.getInstance().getReference(".info/serverTimeOffset")
+        val reference = FirebaseDatabase.getInstance().getReference(FirebasePaths.SERVER_TIME_OFFSET)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 onOffsetAlterado(snapshot.getValue(Long::class.java) ?: 0L)
@@ -256,7 +258,7 @@ class JogoCompetitivoRepository(
     ): Task<Long> {
         val result = TaskCompletionSource<Long>()
         val inicioRef = salaRef(modo, codigoSala)
-            .child("perguntaInicios")
+            .child(FirebasePaths.PERGUNTA_INICIOS)
             .child(perguntaAtualIndex.toString())
 
         inicioRef.runTransaction(object : Transaction.Handler {
@@ -275,7 +277,7 @@ class JogoCompetitivoRepository(
 
                 inicioRef.get().addOnSuccessListener { inicioSnapshot ->
                     val inicio = inicioSnapshot.getValue(Long::class.java) ?: horaFallback
-                    salaRef(modo, codigoSala).child("perguntaHoraInicio").setValue(inicio)
+                    salaRef(modo, codigoSala).child(FirebasePaths.PERGUNTA_HORA_INICIO).setValue(inicio)
                     result.setResult(inicio)
                 }.addOnFailureListener {
                     result.setResult(horaFallback)
@@ -292,7 +294,7 @@ class JogoCompetitivoRepository(
         totalPontos: Double
     ): Task<Void> {
         return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-            .child("pontuacoes")
+            .child(FirebasePaths.PONTUACOES)
             .child(nomeUtilizador)
             .setValue(totalPontos)
     }
@@ -304,7 +306,7 @@ class JogoCompetitivoRepository(
         onAguardar: () -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val reference = salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala).child("pontuacoes")
+        val reference = salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala).child(FirebasePaths.PONTUACOES)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.childrenCount >= totalJogadoresEsperados) {
@@ -330,7 +332,7 @@ class JogoCompetitivoRepository(
         resposta: String
     ): Task<Void> {
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
-            .child("respostas")
+            .child(FirebasePaths.RESPOSTAS)
             .child(nomeUtilizador)
             .child(perguntaAtualIndex.toString())
             .setValue(resposta)
@@ -345,8 +347,8 @@ class JogoCompetitivoRepository(
     ): Task<Void> {
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
             mapOf(
-                "pontuacoes_$equipa/$nomeUtilizador" to totalPontos,
-                "totalPerguntasCertas_$equipa/$nomeUtilizador" to totalPerguntasCertas
+                "${FirebasePaths.PONTUACOES}_$equipa/$nomeUtilizador" to totalPontos,
+                "${FirebasePaths.TOTAL_PERGUNTAS_CERTAS}_$equipa/$nomeUtilizador" to totalPerguntasCertas
             )
         )
     }
@@ -358,8 +360,8 @@ class JogoCompetitivoRepository(
         onAguardar: () -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val pontuacoesARef = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).child("pontuacoes_A")
-        val pontuacoesBRef = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).child("pontuacoes_B")
+        val pontuacoesARef = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.PONTUACOES_A)
+        val pontuacoesBRef = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.PONTUACOES_B)
 
         fun remover(listener: ValueEventListener) {
             pontuacoesARef.removeEventListener(listener)
@@ -399,17 +401,17 @@ class JogoCompetitivoRepository(
     }
 
     private fun buscarPerguntasAleatorias(categoria: String, categoriaTodas: String): Task<List<Pergunta>> {
-        val categoriasRef = database.child("categorias")
+        val categoriasRef = database.child(FirebasePaths.CATEGORIAS)
         val task = if (categoria == categoriaTodas || categoria.isEmpty()) {
             categoriasRef.get().continueWith { taskSnapshot ->
                 if (!taskSnapshot.isSuccessful) throw taskSnapshot.exception ?: IllegalStateException("Erro ao buscar perguntas.")
                 taskSnapshot.result.children
-                    .flatMap { categoriaSnapshot -> categoriaSnapshot.child("perguntas").toPerguntas() }
+                    .flatMap { categoriaSnapshot -> categoriaSnapshot.child(FirebasePaths.PERGUNTAS).toPerguntas() }
                     .shuffled()
                     .take(8)
             }
         } else {
-            categoriasRef.child(categoria).child("perguntas").get().continueWith { taskSnapshot ->
+            categoriasRef.child(categoria).child(FirebasePaths.PERGUNTAS).get().continueWith { taskSnapshot ->
                 if (!taskSnapshot.isSuccessful) throw taskSnapshot.exception ?: IllegalStateException("Erro ao buscar perguntas.")
                 taskSnapshot.result.toPerguntas().shuffled().take(8)
             }
@@ -458,9 +460,9 @@ class JogoCompetitivoRepository(
                 return@mapNotNull perguntaCompleta
             }
 
-            val pergunta = perguntaSnapshot.child("pergunta").getValue(String::class.java)
-            val respostaCorreta = perguntaSnapshot.child("respostaCorreta").getValue(String::class.java)
-            val opcoes = perguntaSnapshot.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
+            val pergunta = perguntaSnapshot.child(FirebasePaths.PERGUNTA).getValue(String::class.java)
+            val respostaCorreta = perguntaSnapshot.child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java)
+            val opcoes = perguntaSnapshot.child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
             if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
                 Pergunta(pergunta, respostaCorreta, opcoes)
             } else {

@@ -1,5 +1,7 @@
 package com.example.brainbrawl.repositories
 
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseReference
@@ -35,26 +37,26 @@ class JogadorRepository(
     }
 
     fun obterAvatar(nomeJogador: String): Task<String> {
-        return jogadorRef(nomeJogador).child("avatar").get().continueWith { task ->
+        return jogadorRef(nomeJogador).child(FirebasePaths.AVATAR).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao obter avatar.")
             task.result.getValue(String::class.java) ?: AVATAR_PADRAO
         }
     }
 
     fun atualizarEstado(nomeJogador: String, estado: String): Task<Void> {
-        return jogadorRef(nomeJogador).child("estado").setValue(estado)
+        return jogadorRef(nomeJogador).child(FirebasePaths.ESTADO).setValue(estado)
     }
 
     fun marcarOnline(nomeJogador: String): Task<Void> {
-        return atualizarEstado(nomeJogador, "on")
+        return atualizarEstado(nomeJogador, GameConstants.ESTADO_ON)
     }
 
     fun marcarOffline(nomeJogador: String): Task<Void> {
-        return atualizarEstado(nomeJogador, "off")
+        return atualizarEstado(nomeJogador, GameConstants.ESTADO_OFF)
     }
 
     private fun jogadorRef(nomeJogador: String): DatabaseReference {
-        return database.child("jogadores").child(nomeJogador)
+        return database.child(FirebasePaths.JOGADORES).child(nomeJogador)
     }
 
     private fun DataSnapshot.toPerfilJogador(nomeJogador: String): PerfilJogador? {
@@ -62,18 +64,18 @@ class JogadorRepository(
 
         return PerfilJogador(
             nome = nomeJogador,
-            password = child("password").getValue(String::class.java).orEmpty(),
-            avatar = child("avatar").getValue(String::class.java) ?: AVATAR_PADRAO,
-            estado = child("estado").getValue(String::class.java) ?: "off",
+            password = child(FirebasePaths.PASSWORD).getValue(String::class.java).orEmpty(),
+            avatar = child(FirebasePaths.AVATAR).getValue(String::class.java) ?: AVATAR_PADRAO,
+            estado = child(FirebasePaths.ESTADO).getValue(String::class.java) ?: GameConstants.ESTADO_OFF,
             estatisticas = EstatisticasJogador(
-                pontuacao = child("pontuacao").doubleValue(),
-                taxaAcertos = child("taxaAcertos").doubleValue(),
-                totalJogos = child("totalJogos").intValue(),
-                totalVitorias = child("totalVitorias").intValue(),
-                totalRespostasCertas = child("totalRespostasCertas").intValue(),
-                totalVitoriasModo1x1 = child("totalVitoriasModo1x1").intValue(),
-                totalVitoriasModo2x2 = child("totalVitoriasModo2x2").intValue(),
-                totalVitoriasModoSolo = child("totalVitoriasModoSolo").intValue()
+                pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
+                taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue(),
+                totalJogos = child(FirebasePaths.TOTAL_JOGOS).intValue(),
+                totalVitorias = child(FirebasePaths.TOTAL_VITORIAS).intValue(),
+                totalRespostasCertas = child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue(),
+                totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
+                totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
+                totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue()
             )
         )
     }

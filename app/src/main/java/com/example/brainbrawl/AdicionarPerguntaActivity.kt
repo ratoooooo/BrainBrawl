@@ -26,6 +26,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     private var modoJogo: String = "classico"
     private var admin: Boolean = true
     private var perguntaEmEdicaoId: String? = null
+    private var categoriaEmEdicao: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -53,14 +54,17 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         }
 
         if (!categoriaInicial.isNullOrBlank()) {
+            categoriaEmEdicao = categoriaInicial
+            binding.txtTitulo.text = "Editar Categoria"
             binding.edtNovaCategoria.setText(categoriaInicial)
+            binding.edtNovaCategoria.isEnabled = false
             carregarPerguntasCategoria(categoriaInicial)
         }
 
         // Configurar o botão para enviar a pergunta
         binding.layoutBtnEnviar.setOnClickListener {
             //Guardar os dados dos editTexts
-            val nomeCategoria = binding.edtNovaCategoria.text.toString().trim()
+            val nomeCategoria = categoriaSelecionada()
             val pergunta = binding.edtPergunta.text.toString().trim()
             val opcaoA = binding.edtOpcaoA.text.toString().trim()
             val opcaoB = binding.edtOpcaoB.text.toString().trim()
@@ -128,7 +132,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         // Configurar o botão para voltar ao MainActivity
         binding.layoutBtnComecar.setOnClickListener {
             //Guardar os dados dos editTexts
-            val nomeCategoria = binding.edtNovaCategoria.text.toString().trim()
+            val nomeCategoria = categoriaSelecionada()
             if (nomeCategoria.isBlank()) {
                 Toast.makeText(this, "Indica a categoria personalizada.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
@@ -192,9 +196,15 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             val btnEliminar = Button(this)
             btnEliminar.text = "Eliminar"
             btnEliminar.setOnClickListener {
-                val categoria = binding.edtNovaCategoria.text.toString().trim()
+                val categoria = categoriaSelecionada()
                 categoriaRepository.eliminarPerguntaPersonalizada(nomeUtilizador, categoria, perguntaId)
-                    .addOnSuccessListener { carregarPerguntasCategoria(categoria) }
+                    .addOnSuccessListener {
+                        if (perguntaEmEdicaoId == perguntaId) {
+                            perguntaEmEdicaoId = null
+                            limparCampos()
+                        }
+                        carregarPerguntasCategoria(categoria)
+                    }
             }
             botoes.addView(btnEliminar)
 
@@ -211,6 +221,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     }
 
     private fun preencherFormulario(pergunta: String, opcoes: List<String>, respostaCorreta: String) {
+        binding.rgOpcoes.clearCheck()
         binding.edtPergunta.setText(pergunta)
         binding.edtOpcaoA.setText(opcoes.getOrNull(0) ?: "")
         binding.edtOpcaoB.setText(opcoes.getOrNull(1) ?: "")
@@ -243,6 +254,10 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         intent.putExtra("admin", admin)
         startActivity(intent)
         finish()
+    }
+
+    private fun categoriaSelecionada(): String {
+        return categoriaEmEdicao ?: binding.edtNovaCategoria.text.toString().trim()
     }
 
 }

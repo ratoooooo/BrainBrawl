@@ -38,6 +38,7 @@
     <string name="criar_sala">Create Room</string>
     <string name="entrar_sala">Join a Room</string>
     <string name="iniciar_jogo">Start Game</string>
+    <string name="sair">Log out</string>
 
     <!-- JoinRoom -->
     <string name="entrar_numa_sala">Join a Room</string>
@@ -85,6 +86,7 @@
     <string name="categoria4">General Knowledge</string>
     <string name="categoria5">All Categories</string>
     <string name="categoria6">Gentilics</string>
+    <string name="info_categorias">See category tips</string>
 
     <!-- item lista jogadores sala -->
     <string name="nome_amigo">Friends name</string>

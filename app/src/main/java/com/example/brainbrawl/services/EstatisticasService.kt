@@ -1,5 +1,8 @@
 package com.example.brainbrawl.services
 
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
+
 class EstatisticasService {
     enum class Modo {
         SOLO,
@@ -75,9 +78,9 @@ class EstatisticasService {
             Modo.SOLO,
             Modo.UM_CONTRA_UM -> setOfNotNull(ordenarPodio(resultados).firstOrNull()?.nome)
             Modo.DOIS_CONTRA_DOIS -> {
-                val totalA = resultados.filter { it.equipa == "A" }.sumOf { it.pontos }
-                val totalB = resultados.filter { it.equipa == "B" }.sumOf { it.pontos }
-                val equipaVencedora = if (totalA >= totalB) "A" else "B"
+                val totalA = resultados.filter { it.equipa == GameConstants.EQUIPA_A }.sumOf { it.pontos }
+                val totalB = resultados.filter { it.equipa == GameConstants.EQUIPA_B }.sumOf { it.pontos }
+                val equipaVencedora = if (totalA >= totalB) GameConstants.EQUIPA_A else GameConstants.EQUIPA_B
                 resultados.filter { it.equipa == equipaVencedora }.map { it.nome }.toSet()
             }
         }
@@ -124,24 +127,24 @@ class EstatisticasService {
         )
 
         val updates = mutableMapOf<String, Any>(
-            "pontuacao" to maxOf(resultado.pontos, estatisticasAtuais.pontuacao),
-            "totalJogos" to novoTotalJogos,
-            "totalVitorias" to novoTotalVitorias,
-            "totalRespostasCertas" to (estatisticasAtuais.totalRespostasCertas + resultado.respostasCertas),
-            "taxaAcertos" to novaTaxa
+            FirebasePaths.PONTUACAO to maxOf(resultado.pontos, estatisticasAtuais.pontuacao),
+            FirebasePaths.TOTAL_JOGOS to novoTotalJogos,
+            FirebasePaths.TOTAL_VITORIAS to novoTotalVitorias,
+            FirebasePaths.TOTAL_RESPOSTAS_CERTAS to (estatisticasAtuais.totalRespostasCertas + resultado.respostasCertas),
+            FirebasePaths.TAXA_ACERTOS to novaTaxa
         )
 
         when (modo) {
             Modo.SOLO -> {
-                updates["totalVitoriasModoSolo"] =
+                updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO] =
                     estatisticasAtuais.totalVitoriasModoSolo + if (venceu) 1 else 0
             }
             Modo.UM_CONTRA_UM -> {
-                updates["totalVitoriasModo1x1"] =
+                updates[FirebasePaths.TOTAL_VITORIAS_MODO_1X1] =
                     estatisticasAtuais.totalVitoriasModo1x1 + if (venceu) 1 else 0
             }
             Modo.DOIS_CONTRA_DOIS -> {
-                updates["totalVitoriasModo2x2"] =
+                updates[FirebasePaths.TOTAL_VITORIAS_MODO_2X2] =
                     estatisticasAtuais.totalVitoriasModo2x2 + if (venceu) 1 else 0
             }
         }

@@ -1,5 +1,7 @@
 package com.example.brainbrawl.repositories
 
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.google.android.gms.tasks.Task
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -46,7 +48,7 @@ class SalaRepository(
             val snapshot = task.result
             ResultadoProcuraSala(
                 existe = snapshot.exists(),
-                jogadorJaExiste = snapshot.child("jogadores").hasChild(nomeJogador)
+                jogadorJaExiste = snapshot.child(FirebasePaths.JOGADORES).hasChild(nomeJogador)
             )
         }
     }
@@ -71,18 +73,18 @@ class SalaRepository(
             if (task.result.exists()) {
                 jogadorRef.updateChildren(
                     mapOf(
-                        "estado" to "on",
-                        "isHostOnly" to admin
+                        FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
+                        FirebasePaths.IS_HOST_ONLY to admin
                     )
                 )
             } else {
                 jogadorRef.setValue(
                     mapOf(
-                        "nome" to nomeJogador,
-                        "pontuacao" to 0.0,
-                        "totalRespostasCertas" to 0,
-                        "estado" to "on",
-                        "isHostOnly" to admin
+                        FirebasePaths.NOME to nomeJogador,
+                        FirebasePaths.PONTUACAO to 0.0,
+                        FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
+                        FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
+                        FirebasePaths.IS_HOST_ONLY to admin
                     )
                 )
             }
@@ -98,7 +100,7 @@ class SalaRepository(
     }
 
     fun atualizarEstadoSala(codigoSala: String, estado: String): Task<Void> {
-        return salaRef(codigoSala).child("estado").setValue(estado)
+        return salaRef(codigoSala).child(FirebasePaths.ESTADO).setValue(estado)
     }
 
     fun obterJogadoresDaSala(codigoSala: String): Task<List<JogadorSala>> {
@@ -132,7 +134,7 @@ class SalaRepository(
         onEstadoAlterado: (String?) -> Unit,
         onErro: () -> Unit
     ): ListenerHandle {
-        val reference = salaRef(codigoSala).child("estado")
+        val reference = salaRef(codigoSala).child(FirebasePaths.ESTADO)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 onEstadoAlterado(snapshot.getValue(String::class.java))
@@ -170,11 +172,11 @@ class SalaRepository(
     }
 
     private fun salaRef(codigoSala: String): DatabaseReference {
-        return database.child("salas").child(codigoSala)
+        return database.child(FirebasePaths.SALAS).child(codigoSala)
     }
 
     private fun jogadoresRef(codigoSala: String): DatabaseReference {
-        return salaRef(codigoSala).child("jogadores")
+        return salaRef(codigoSala).child(FirebasePaths.JOGADORES)
     }
 
     private fun jogadorRef(codigoSala: String, nomeJogador: String): DatabaseReference {
@@ -186,7 +188,7 @@ class SalaRepository(
             val nome = jogadorSnapshot.key ?: return@mapNotNull null
             JogadorSala(
                 nome = nome,
-                isHostOnly = jogadorSnapshot.child("isHostOnly").getValue(Boolean::class.java) == true
+                isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
             )
         }
     }

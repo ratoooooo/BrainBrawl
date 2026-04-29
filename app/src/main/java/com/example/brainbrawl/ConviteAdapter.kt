@@ -6,11 +6,12 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.brainbrawl.models.Convite
 
 // Adapter para a lista de convites recebidos
 class ConviteAdapter(
-    private val convites: List<Convite1x1>,
-    private val onAceitarClick: (Convite1x1) -> Unit
+    private val convites: List<Convite>,
+    private val onAceitarClick: (Convite) -> Unit
 ) : RecyclerView.Adapter<ConviteAdapter.ConviteViewHolder>() {
 
     // ViewHolder para cada convite na lista de convites

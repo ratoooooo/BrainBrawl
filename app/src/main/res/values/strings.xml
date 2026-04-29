@@ -39,6 +39,7 @@
     <string name="criar_sala">Criar Sala</string>
     <string name="entrar_sala">Entrar numa Sala</string>
     <string name="iniciar_jogo">Iniciar Jogo</string>
+    <string name="sair">Sair</string>
 
     //JoinRoom
     <string name="entrar_numa_sala">Entrar numa Sala</string>
@@ -98,6 +99,7 @@
     <string name="categoria4">Cultura Geral</string>
     <string name="categoria5">Todas as Categorias</string>
     <string name="categoria6">Gentílicos</string>
+    <string name="info_categorias">Ver dicas das categorias</string>
 
     // item lista jogadores sala
     <string name="nome_amigo">Nome do amigo</string>

@@ -84,6 +84,9 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                 mostrarCategoriasPersonalizadas(modoJogo, nomeUtilizador, nomeJogador, admin)
             }
         }
+        binding.infoCategorias.setOnClickListener {
+            mostrarDicasCategorias()
+        }
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
             nomeUtilizador?.let { intent.putExtra("nomeUtilizador", it) }
@@ -92,6 +95,21 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    private fun mostrarDicasCategorias() {
+        UteisDicas.mostrarDicas(
+            this,
+            "Categorias",
+            listOf(
+                "História" to "Datas, povos e acontecimentos marcantes.",
+                "Geografia" to "Países, capitais, rios e mapas.",
+                "Desporto" to "Modalidades, atletas e grandes provas.",
+                "Cultura Geral" to "Conhecimento variado para todos.",
+                "Gentílicos" to "Nomes de povos e localidades.",
+                "Personalizadas" to "Cria perguntas e joga com amigos."
+            )
+        )
     }
 
     private fun mostrarCategoriasPersonalizadas(

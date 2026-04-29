@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.databinding.ActivityAmigosBinding
+import com.example.brainbrawl.models.Convite
 import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.repositories.JogadorRepository
 
@@ -23,7 +24,7 @@ class AmigosActivity : AppCompatActivity() {
     private val avataresAmigos = mutableListOf<String>()
     private val estadoAmigos = mutableListOf<String>()
 
-    private val convitesRecebidos = mutableListOf<Convite1x1>()
+    private val convitesRecebidos = mutableListOf<Convite>()
     private lateinit var conviteAdapter: ConviteAdapter
 
     private val pedidosAmizadeRecebidos = mutableListOf<String>()
@@ -199,7 +200,7 @@ class AmigosActivity : AppCompatActivity() {
     }
 
     // Função para atualizar os convites recebidos
-    private fun atualizarConvitesRecebidos(convites: List<Convite1x1>) {
+    private fun atualizarConvitesRecebidos(convites: List<Convite>) {
         // Limpa a lista de convites recebidos
         convitesRecebidos.clear()
         convitesRecebidos.addAll(convites)
@@ -243,7 +244,7 @@ class AmigosActivity : AppCompatActivity() {
     }
 
     // Função para aceitar um convite 1x1 ou 2x2
-    private fun aceitarConvite(convite: Convite1x1) {
+    private fun aceitarConvite(convite: Convite) {
         // Atualizar o estado do convite na base de dados
         amigosRepository.aceitarConvite(nomeUtilizador, convite.nomeAmigo)
         Toast.makeText(this, "Convite aceite!", Toast.LENGTH_SHORT).show()

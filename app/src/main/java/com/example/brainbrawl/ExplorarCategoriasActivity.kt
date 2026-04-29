@@ -36,6 +36,10 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             finish()
         }
 
+        binding.btnCriarCategoria.setOnClickListener {
+            abrirCriacaoCategoria()
+        }
+
         carregarCategorias()
     }
 
@@ -137,6 +141,21 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             true,
             "classico"
         ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
+    }
+
+    private fun abrirCriacaoCategoria() {
+        val utilizador = nomeUtilizador
+        if (utilizador.isNullOrBlank()) {
+            Toast.makeText(this, "Precisas de uma conta registada para criar categorias.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = Intent(this, AdicionarPerguntaActivity::class.java)
+        intent.putExtra("nomeUtilizador", utilizador)
+        nomeJogador?.let { intent.putExtra("nomeJogador", it) }
+        intent.putExtra("modoJogo", "classico")
+        intent.putExtra("admin", true)
+        startActivity(intent)
     }
 
     private fun guardarCategoria(categoria: CategoriaRepository.CategoriaPublica) {

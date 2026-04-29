@@ -46,6 +46,10 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
             abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria6))
         }
 
+        binding.infoCategorias.setOnClickListener {
+            mostrarDicasCategorias()
+        }
+
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, TipoModoClassico::class.java)
             intent.putExtra("modoJogo", "classico")
@@ -76,6 +80,21 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         nomeCategoria.let { intent.putExtra("nomeCategoria", it) }
         startActivity(intent)
         finish()
+    }
+
+    private fun mostrarDicasCategorias() {
+        UteisDicas.mostrarDicas(
+            this,
+            "Categorias",
+            listOf(
+                "História" to "Datas, povos e acontecimentos marcantes.",
+                "Geografia" to "Países, capitais, rios e mapas.",
+                "Desporto" to "Modalidades, atletas e grandes provas.",
+                "Cultura Geral" to "Conhecimento variado para todos.",
+                "Todas" to "Mistura perguntas de várias áreas.",
+                "Gentílicos" to "Nomes de povos e localidades."
+            )
+        )
     }
 
 }

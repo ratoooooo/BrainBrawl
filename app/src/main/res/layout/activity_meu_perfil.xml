@@ -244,15 +244,6 @@
                     android:textSize="20sp" />
             </LinearLayout>
 
-            <TextView
-                android:id="@+id/txtDetalhesPerfil"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:fontFamily="sans-serif"
-                android:lineSpacingExtra="3dp"
-                android:textColor="#222222"
-                android:textSize="14sp" />
         </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>

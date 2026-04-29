@@ -38,6 +38,7 @@
     <string name="criar_sala">Raum erstellen</string>
     <string name="entrar_sala">Raum beitreten</string>
     <string name="iniciar_jogo">Spiel starten</string>
+    <string name="sair">Abmelden</string>
 
     <!-- JoinRoom -->
     <string name="entrar_numa_sala">Raum beitreten</string>
@@ -97,6 +98,7 @@
     <string name="categoria4">Allgemeinwissen</string>
     <string name="categoria5">Alle Kategorien</string>
     <string name="categoria6">Gentilize</string>
+    <string name="info_categorias">Kategorietipps anzeigen</string>
 
     <!-- item lista jogadores sala -->
     <string name="nome_amigo">Name des Freundes</string>

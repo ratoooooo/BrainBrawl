@@ -1,6 +1,6 @@
 package com.example.brainbrawl
 
-import Pergunta
+import com.example.brainbrawl.models.Pergunta
 import android.content.Context
 import android.media.MediaPlayer
 import android.widget.Toast

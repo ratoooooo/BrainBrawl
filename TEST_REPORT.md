@@ -1,6 +1,79 @@
 # BrainBrawl - TEST_REPORT
 
-Data: 2026-04-28
+Data: 2026-04-29
+
+## Correções de bugs e UX antes da próxima fase de arquitetura
+
+### Bugs encontrados e causa provável
+
+- Modo caótico/grupo: o pódio do admin podia abrir antes dos jogadores gravarem os resultados finais. Além disso, a leitura do pódio procurava `totalPerguntasCertas`, mas `JogoRepository` grava `totalRespostasCertas` nos jogadores da sala.
+- Modo caótico/grupo: o admin host-only estava corretamente marcado com `isHostOnly=true`, mas a leitura one-shot de resultados tornava a experiência inconsistente quando o admin chegava ao pódio primeiro.
+- Editar categoria: ao abrir uma categoria existente, o campo do nome continuava editável. Se o utilizador alterasse o nome durante a edição de uma pergunta, a pergunta podia ser gravada noutra categoria usando o mesmo conteúdo, parecendo duplicação.
+- Meu perfil: ainda eram renderizados dados técnicos/sensíveis (`estado`, indicação de `password` e detalhes internos).
+- Explorar Categorias: não havia entrada direta para criar categoria personalizada.
+- Categorias: faltavam dicas/descrições equivalentes às dicas dos modos de jogo.
+- Main: o botão de voltar/sair estava no fluxo principal de ações, aumentando o risco de toque acidental.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/layout/activity_meu_perfil.xml`
+- `app/src/main/res/layout/activity_escolher_categoria.xml`
+- `app/src/main/res/layout/activity_escolha_categoria_modos.xml`
+- `app/src/main/res/layout/activity_explorar_categorias.xml`
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/values-en-rGB/strings.xml`
+- `app/src/main/res/values-de-rDE/strings.xml`
+
+### Bugs corrigidos
+
+- Pódio de grupo/caótico passou a escutar resultados em tempo real e só atualiza estatísticas quando todos os jogadores reais têm resultado guardado.
+- Leitura de respostas certas em grupo usa `totalRespostasCertas`, mantendo fallback para `totalPerguntasCertas` sem alterar a estrutura Firebase.
+- Admin host-only continua excluído do pódio/estatísticas por `isHostOnly=true`.
+- Edição de categoria existente bloqueia o nome da categoria e guarda perguntas pelo `perguntaId` original, evitando duplicação ao editar.
+- Eliminar pergunta em edição limpa o formulário e recarrega a lista da categoria correta.
+- Meu Perfil deixou de mostrar `estado`, `password`, toast de debug e bloco de detalhes técnicos.
+- Categorias ganharam botão de dicas com textos curtos e consistentes com `UteisDicas`.
+- Main moveu `Sair` para o canto superior esquerdo, mantendo a lógica de marcar offline e voltar ao login.
+- Explorar Categorias ganhou botão `Criar Categoria`; convidados são bloqueados com aviso e utilizadores registados entram no fluxo de criação com `nomeUtilizador`/`nomeJogador` preservados.
+
+### Testes feitos
+
+- `./gradlew build`
+  - Falhou no ambiente por Java `25.0.2`, incompatível com o Kotlin/Gradle do projeto.
+- `JAVA_HOME=/tmp/codex-jdks/jdk17/Contents/Home ./gradlew build`
+  - OK.
+- `JAVA_HOME=/tmp/codex-jdks/jdk17/Contents/Home ./gradlew testDebugUnitTest`
+  - OK.
+- Verificação estática dos fluxos alterados:
+  - sala caótica/grupo preserva `nomeUtilizador`/`nomeJogador` até `JogoActivity` e `PontuacoesActivity`;
+  - pódio ignora admin host-only e aguarda jogadores reais;
+  - edição usa categoria original e `perguntaId` original;
+  - perfil já não referencia o bloco removido;
+  - criar categoria em Explorar bloqueia convidados.
+
+### Pendentes
+
+- Teste manual com Firebase em dois dispositivos/emuladores:
+  - modo caótico com admin + jogador real até ao pódio;
+  - confirmar que o admin vê pontuação/respostas certas do jogador depois de gravadas;
+  - editar pergunta existente, criar nova pergunta e eliminar pergunta;
+  - confirmar visualmente dicas nas categorias em ecrã pequeno;
+  - confirmar Meu Perfil sem campos técnicos;
+  - confirmar botão `Sair` no novo local e fluxo de logout;
+  - confirmar botão `Criar Categoria` em Explorar Categorias para registado e convidado.
+
+### Notas
+
+- A estrutura Firebase não foi alterada.
+- Foi usado um JDK 17 temporário em `/tmp/codex-jdks` apenas para executar Gradle, porque o Java global da máquina é `25.0.2`.
 
 ## Migração de pontuações e estatísticas
 
@@ -447,3 +520,87 @@ Data: 2026-04-28
 - Confirmar que estatísticas continuam a atualizar.
 
 Não executei estes testes manuais nesta ronda porque o ambiente atual não tem duas sessões/dispositivos Firebase ativos controlados.
+
+---
+
+## Models e constantes/config
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/models/Pergunta.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Convite.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Jogador.kt`
+- `app/src/main/java/com/example/brainbrawl/models/SalaGrupo.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Sala1x1.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Sala2x2.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Categoria.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Pontuacao.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/config/GameConstants.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/UteisJogo.kt`
+- `app/src/main/java/com/example/brainbrawl/JogoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConviteAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/services/GameService.kt`
+- `app/src/main/java/com/example/brainbrawl/services/ScoreService.kt`
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- `Pergunta` saiu do pacote default e passou para `models/Pergunta.kt`.
+- O modelo de convite usado por amigos/convites passou para `models/Convite.kt`.
+- Foram criados modelos graduais para jogador, salas grupo/1x1/2x2, categoria e pontuação, todos como `data class` com defaults para compatibilidade Firebase.
+- Foram criadas constantes para paths Firebase, extras de intents e modos/estados.
+- Repositories e services passaram a usar `FirebasePaths` e `GameConstants` para os nomes pedidos, mantendo os mesmos valores de Firebase.
+
+### Mantido sem alterações
+
+- Estrutura Firebase.
+- Nomes reais dos nodes e campos Firebase.
+- Valores dos extras de intents.
+- UI, layouts e navegação.
+- Regras de pontuação, estados e modos.
+
+### Pendentes
+
+- Substituir strings de extras nas Activities por `IntentExtras`, gradualmente.
+- Decidir numa fase posterior se DTOs locais dos repositories devem passar para `models/`.
+- Testes manuais completos em dispositivos/sessões reais continuam necessários.
+
+### Como testar
+
+- Correr `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`.
+- Correr `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`.
+- Correr `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`.
+- Validar manualmente login, criação/entrada em sala, convites 1x1/2x2, jogo grupo, jogo 1x1, jogo 2x2 e pódios.
+- Confirmar no Firebase que continuam a ser usados os mesmos paths: `jogadores`, `salas`, `sala_1x1`, `sala_2x2`, `categorias`, `categoriasPersonalizadas`, `categoriasPublicas`, `amigos`, `pedidos_amizade`, `convites_recebidos` e `convites_enviados`.
+
+### Testes executados nesta ronda
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Verificações estáticas
+
+- Pesquisa nos repositories/services já não encontra hardcoded as strings pedidas para Firebase, extras, estados e modos.
+- `Pergunta` já não é importado a partir do pacote default.
+- `Convite1x1` deixou de existir como modelo; os fluxos de convite usam `models.Convite`.

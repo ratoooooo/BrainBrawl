@@ -1,5 +1,7 @@
 package com.example.brainbrawl.repositories
 
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot
@@ -22,9 +24,9 @@ class CategoriaRepository(
     ) {
         fun toMap(): Map<String, Any> {
             return mapOf(
-                "pergunta" to pergunta,
-                "respostaCorreta" to respostaCorreta,
-                "opcoes" to opcoes
+                FirebasePaths.PERGUNTA to pergunta,
+                FirebasePaths.RESPOSTA_CORRETA to respostaCorreta,
+                FirebasePaths.OPCOES to opcoes
             )
         }
     }
@@ -88,7 +90,7 @@ class CategoriaRepository(
     }
 
     fun carregarPerguntasCategoriaOficial(nomeCategoria: String): Task<List<Map<String, Any>>> {
-        return categoriasOficiaisRef().child(nomeCategoria).child("perguntas").get().continueWith { task ->
+        return categoriasOficiaisRef().child(nomeCategoria).child(FirebasePaths.PERGUNTAS).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar perguntas.")
             task.result.toPerguntasValidasMap(minimoOpcoes = 4, exigirQuatroOpcoes = true)
         }
@@ -98,7 +100,7 @@ class CategoriaRepository(
         return categoriasOficiaisRef().get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar categorias.")
             task.result.children.flatMap { categoriaSnapshot ->
-                categoriaSnapshot.child("perguntas").toPerguntasValidasMap(minimoOpcoes = 4, exigirQuatroOpcoes = true)
+                categoriaSnapshot.child(FirebasePaths.PERGUNTAS).toPerguntasValidasMap(minimoOpcoes = 4, exigirQuatroOpcoes = true)
             }
         }
     }
@@ -110,9 +112,9 @@ class CategoriaRepository(
                 val nome = categoriaSnapshot.key ?: return@mapNotNull null
                 CategoriaPersonalizada(
                     nome = nome,
-                    descricao = categoriaSnapshot.child("descricao").getValue(String::class.java).orEmpty(),
-                    categoriaPublicaId = categoriaSnapshot.child("categoriaPublicaId").getValue(String::class.java),
-                    estadoPublicacao = categoriaSnapshot.child("estadoPublicacao").getValue(String::class.java)
+                    descricao = categoriaSnapshot.child(FirebasePaths.DESCRICAO).getValue(String::class.java).orEmpty(),
+                    categoriaPublicaId = categoriaSnapshot.child(FirebasePaths.CATEGORIA_PUBLICA_ID).getValue(String::class.java),
+                    estadoPublicacao = categoriaSnapshot.child(FirebasePaths.ESTADO_PUBLICACAO).getValue(String::class.java)
                 )
             }.sortedBy { it.nome }
         }
@@ -139,7 +141,7 @@ class CategoriaRepository(
     }
 
     fun criarCategoriaPersonalizada(nomeUtilizador: String, nomeCategoria: String): Task<Void> {
-        return categoriasPersonalizadasRef(nomeUtilizador).child(nomeCategoria).child("nome").setValue(nomeCategoria)
+        return categoriasPersonalizadasRef(nomeUtilizador).child(nomeCategoria).child(FirebasePaths.NOME).setValue(nomeCategoria)
     }
 
     fun editarCategoria(nomeUtilizador: String, nomeCategoria: String, dados: Map<String, Any?>): Task<Void> {
@@ -157,11 +159,11 @@ class CategoriaRepository(
         pergunta: PerguntaCategoria
     ): Task<Void> {
         val categoriaRef = categoriasPersonalizadasRef(nomeUtilizador).child(nomeCategoria)
-        val perguntaKey = perguntaId ?: categoriaRef.child("perguntas").push().key
+        val perguntaKey = perguntaId ?: categoriaRef.child(FirebasePaths.PERGUNTAS).push().key
             ?: return failedTask("Erro ao gerar identificador da pergunta.")
         val updates = hashMapOf<String, Any>(
-            "nome" to nomeCategoria,
-            "perguntas/$perguntaKey" to pergunta.toMap()
+            FirebasePaths.NOME to nomeCategoria,
+            "${FirebasePaths.PERGUNTAS}/$perguntaKey" to pergunta.toMap()
         )
         return categoriaRef.updateChildren(updates)
     }
@@ -206,7 +208,7 @@ class CategoriaRepository(
             val categoria = snapshot.toCategoriaPublica() ?: return@continueWith null
             CategoriaPublicaDetalhe(
                 categoria = categoria,
-                perguntas = snapshot.child("perguntas").toPerguntasValidasMap(minimoOpcoes = 4, exigirQuatroOpcoes = true)
+                perguntas = snapshot.child(FirebasePaths.PERGUNTAS).toPerguntasValidasMap(minimoOpcoes = 4, exigirQuatroOpcoes = true)
             )
         }
     }
@@ -219,7 +221,7 @@ class CategoriaRepository(
         val result = TaskCompletionSource<Void>()
         val categoriaRef = categoriasPersonalizadasRef(nomeUtilizador).child(nomeCategoria)
         categoriaRef.get().addOnSuccessListener { snapshot ->
-            val perguntasValidas = snapshot.child("perguntas").toPerguntasValidasMap(
+            val perguntasValidas = snapshot.child(FirebasePaths.PERGUNTAS).toPerguntasValidasMap(
                 minimoOpcoes = 4,
                 exigirQuatroOpcoes = true
             )
@@ -228,11 +230,11 @@ class CategoriaRepository(
                 return@addOnSuccessListener
             }
 
-            val categoriaPublicaId = snapshot.child("categoriaPublicaId").getValue(String::class.java)
+            val categoriaPublicaId = snapshot.child(FirebasePaths.CATEGORIA_PUBLICA_ID).getValue(String::class.java)
                 ?: categoriaPublicaId(nomeUtilizador, nomeCategoria)
             val publicaRef = categoriasPublicasRef().child(categoriaPublicaId)
             publicaRef.get().addOnSuccessListener publicaListener@ { publicaSnapshot ->
-                val criadorExistente = publicaSnapshot.child("criadorId").getValue(String::class.java)
+                val criadorExistente = publicaSnapshot.child(FirebasePaths.CRIADOR_ID).getValue(String::class.java)
                 if (publicaSnapshot.exists() && criadorExistente != nomeUtilizador) {
                     result.setException(IllegalStateException("Só o criador pode atualizar esta categoria pública."))
                     return@publicaListener
@@ -240,26 +242,26 @@ class CategoriaRepository(
 
                 val agora = System.currentTimeMillis()
                 val dadosPublicos = hashMapOf<String, Any>(
-                    "id" to categoriaPublicaId,
-                    "nome" to nomeCategoria,
-                    "descricao" to (snapshot.child("descricao").getValue(String::class.java) ?: ""),
-                    "criador" to (nomeJogador ?: nomeUtilizador),
-                    "criadorId" to nomeUtilizador,
-                    "nomeUtilizador" to nomeUtilizador,
-                    "perguntas" to perguntasValidas,
-                    "usos" to (publicaSnapshot.child("usos").getValue(Int::class.java) ?: 0),
-                    "ratingMedio" to (publicaSnapshot.child("ratingMedio").getValue(Double::class.java) ?: 0.0),
-                    "totalAvaliacoes" to (publicaSnapshot.child("totalAvaliacoes").getValue(Int::class.java) ?: 0),
-                    "dataCriacao" to (snapshot.child("dataCriacao").getValue(Long::class.java) ?: agora),
-                    "dataPublicacao" to (publicaSnapshot.child("dataPublicacao").getValue(Long::class.java) ?: agora)
+                    FirebasePaths.ID to categoriaPublicaId,
+                    FirebasePaths.NOME to nomeCategoria,
+                    FirebasePaths.DESCRICAO to (snapshot.child(FirebasePaths.DESCRICAO).getValue(String::class.java) ?: ""),
+                    FirebasePaths.CRIADOR to (nomeJogador ?: nomeUtilizador),
+                    FirebasePaths.CRIADOR_ID to nomeUtilizador,
+                    FirebasePaths.NOME_UTILIZADOR to nomeUtilizador,
+                    FirebasePaths.PERGUNTAS to perguntasValidas,
+                    FirebasePaths.USOS to (publicaSnapshot.child(FirebasePaths.USOS).getValue(Int::class.java) ?: 0),
+                    FirebasePaths.RATING_MEDIO to (publicaSnapshot.child(FirebasePaths.RATING_MEDIO).getValue(Double::class.java) ?: 0.0),
+                    FirebasePaths.TOTAL_AVALIACOES to (publicaSnapshot.child(FirebasePaths.TOTAL_AVALIACOES).getValue(Int::class.java) ?: 0),
+                    FirebasePaths.DATA_CRIACAO to (snapshot.child(FirebasePaths.DATA_CRIACAO).getValue(Long::class.java) ?: agora),
+                    FirebasePaths.DATA_PUBLICACAO to (publicaSnapshot.child(FirebasePaths.DATA_PUBLICACAO).getValue(Long::class.java) ?: agora)
                 )
 
                 publicaRef.updateChildren(dadosPublicos).addOnSuccessListener {
                     categoriaRef.updateChildren(
                         mapOf(
-                            "categoriaPublicaId" to categoriaPublicaId,
-                            "estadoPublicacao" to "publica",
-                            "dataPublicacao" to ServerValue.TIMESTAMP
+                            FirebasePaths.CATEGORIA_PUBLICA_ID to categoriaPublicaId,
+                            FirebasePaths.ESTADO_PUBLICACAO to GameConstants.ESTADO_PUBLICA,
+                            FirebasePaths.DATA_PUBLICACAO to ServerValue.TIMESTAMP
                         )
                     ).addOnSuccessListener {
                         result.setResult(null)
@@ -284,7 +286,7 @@ class CategoriaRepository(
         val categoriaPublicaId = categoriaPublicaId(nomeUtilizador, nomeCategoria)
         val publicaRef = categoriasPublicasRef().child(categoriaPublicaId)
         publicaRef.get().addOnSuccessListener { snapshot ->
-            val criadorId = snapshot.child("criadorId").getValue(String::class.java)
+            val criadorId = snapshot.child(FirebasePaths.CRIADOR_ID).getValue(String::class.java)
             if (snapshot.exists() && criadorId != nomeUtilizador) {
                 result.setException(IllegalStateException("Só o criador pode remover esta categoria pública."))
                 return@addOnSuccessListener
@@ -292,8 +294,8 @@ class CategoriaRepository(
             publicaRef.removeValue().addOnSuccessListener {
                 categoriaRef.updateChildren(
                     mapOf(
-                        "categoriaPublicaId" to null,
-                        "estadoPublicacao" to "privada"
+                        FirebasePaths.CATEGORIA_PUBLICA_ID to null,
+                        FirebasePaths.ESTADO_PUBLICACAO to GameConstants.ESTADO_PRIVADA
                     )
                 ).addOnSuccessListener {
                     result.setResult(null)
@@ -314,7 +316,7 @@ class CategoriaRepository(
         val publicaRef = categoriasPublicasRef().child(categoriaPublicaId)
         publicaRef.get().addOnSuccessListener { publicaSnapshot ->
             val categoria = publicaSnapshot.toCategoriaPublica()
-            val perguntas = publicaSnapshot.child("perguntas").toPerguntasValidasMap(
+            val perguntas = publicaSnapshot.child(FirebasePaths.PERGUNTAS).toPerguntasValidasMap(
                 minimoOpcoes = 4,
                 exigirQuatroOpcoes = true
             )
@@ -327,13 +329,13 @@ class CategoriaRepository(
             pessoaisRef.get().addOnSuccessListener { pessoaisSnapshot ->
                 val nomeCopia = nomeDisponivel(categoria.nome, pessoaisSnapshot)
                 val copia = mapOf(
-                    "nome" to nomeCopia,
-                    "descricao" to publicaSnapshot.child("descricao").getValue(String::class.java).orEmpty(),
-                    "origemCategoriaPublica" to categoria.id,
-                    "criadorOriginal" to categoria.criador,
-                    "criadorOriginalId" to categoria.criadorId,
-                    "dataCriacao" to ServerValue.TIMESTAMP,
-                    "perguntas" to perguntas
+                    FirebasePaths.NOME to nomeCopia,
+                    FirebasePaths.DESCRICAO to publicaSnapshot.child(FirebasePaths.DESCRICAO).getValue(String::class.java).orEmpty(),
+                    FirebasePaths.ORIGEM_CATEGORIA_PUBLICA to categoria.id,
+                    FirebasePaths.CRIADOR_ORIGINAL to categoria.criador,
+                    FirebasePaths.CRIADOR_ORIGINAL_ID to categoria.criadorId,
+                    FirebasePaths.DATA_CRIACAO to ServerValue.TIMESTAMP,
+                    FirebasePaths.PERGUNTAS to perguntas
                 )
                 pessoaisRef.child(nomeCopia).setValue(copia).addOnSuccessListener {
                     result.setResult(null)
@@ -351,7 +353,7 @@ class CategoriaRepository(
 
     fun incrementarUsos(categoriaPublicaId: String): Task<Void> {
         val result = TaskCompletionSource<Void>()
-        categoriasPublicasRef().child(categoriaPublicaId).child("usos")
+        categoriasPublicasRef().child(categoriaPublicaId).child(FirebasePaths.USOS)
             .runTransaction(object : Transaction.Handler {
                 override fun doTransaction(currentData: MutableData): Transaction.Result {
                     val usosAtuais = currentData.getValue(Int::class.java) ?: 0
@@ -379,19 +381,19 @@ class CategoriaRepository(
         categoriasPublicasRef().child(categoriaPublicaId).runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
                 if (currentData.value == null) return Transaction.abort()
-                val avaliacoes = currentData.child("avaliacoes")
+                val avaliacoes = currentData.child(FirebasePaths.AVALIACOES)
                 if (avaliacoes.child(nomeUtilizador).value != null) return Transaction.abort()
 
-                val totalAtual = currentData.child("totalAvaliacoes").getValue(Int::class.java) ?: 0
-                val mediaAtual = currentData.child("ratingMedio").getValue(Double::class.java) ?: 0.0
+                val totalAtual = currentData.child(FirebasePaths.TOTAL_AVALIACOES).getValue(Int::class.java) ?: 0
+                val mediaAtual = currentData.child(FirebasePaths.RATING_MEDIO).getValue(Double::class.java) ?: 0.0
                 val novoTotal = totalAtual + 1
                 val novaMedia = ((mediaAtual * totalAtual) + valor) / novoTotal
 
-                currentData.child("totalAvaliacoes").value = novoTotal
-                currentData.child("ratingMedio").value = novaMedia
+                currentData.child(FirebasePaths.TOTAL_AVALIACOES).value = novoTotal
+                currentData.child(FirebasePaths.RATING_MEDIO).value = novaMedia
                 avaliacoes.child(nomeUtilizador).value = mapOf(
-                    "valor" to valor,
-                    "data" to ServerValue.TIMESTAMP
+                    FirebasePaths.VALOR to valor,
+                    FirebasePaths.DATA to ServerValue.TIMESTAMP
                 )
                 return Transaction.success(currentData)
             }
@@ -412,25 +414,25 @@ class CategoriaRepository(
     }
 
     private fun categoriasOficiaisRef(): DatabaseReference {
-        return database.child("categorias")
+        return database.child(FirebasePaths.CATEGORIAS)
     }
 
     private fun categoriasPersonalizadasRef(nomeUtilizador: String): DatabaseReference {
-        return database.child("jogadores").child(nomeUtilizador).child("categoriasPersonalizadas")
+        return database.child(FirebasePaths.JOGADORES).child(nomeUtilizador).child(FirebasePaths.CATEGORIAS_PERSONALIZADAS)
     }
 
     private fun perguntasPersonalizadasRef(nomeUtilizador: String, nomeCategoria: String): DatabaseReference {
-        return categoriasPersonalizadasRef(nomeUtilizador).child(nomeCategoria).child("perguntas")
+        return categoriasPersonalizadasRef(nomeUtilizador).child(nomeCategoria).child(FirebasePaths.PERGUNTAS)
     }
 
     private fun categoriasPublicasRef(): DatabaseReference {
-        return database.child("categoriasPublicas")
+        return database.child(FirebasePaths.CATEGORIAS_PUBLICAS)
     }
 
     private fun DataSnapshot.toPerguntaCategoria(): PerguntaCategoria? {
-        val pergunta = child("pergunta").getValue(String::class.java) ?: return null
-        val respostaCorreta = child("respostaCorreta").getValue(String::class.java) ?: ""
-        val opcoes = child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
+        val pergunta = child(FirebasePaths.PERGUNTA).getValue(String::class.java) ?: return null
+        val respostaCorreta = child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java) ?: ""
+        val opcoes = child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
         return PerguntaCategoria(
             id = key,
             pergunta = pergunta,
@@ -444,15 +446,15 @@ class CategoriaRepository(
         exigirQuatroOpcoes: Boolean
     ): List<Map<String, Any>> {
         return children.mapNotNull { perguntaSnap ->
-            val pergunta = perguntaSnap.child("pergunta").getValue(String::class.java)
-            val respostaCorreta = perguntaSnap.child("respostaCorreta").getValue(String::class.java)
-            val opcoes = perguntaSnap.child("opcoes").children.mapNotNull { it.getValue(String::class.java) }
+            val pergunta = perguntaSnap.child(FirebasePaths.PERGUNTA).getValue(String::class.java)
+            val respostaCorreta = perguntaSnap.child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java)
+            val opcoes = perguntaSnap.child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
             val opcoesValidas = if (exigirQuatroOpcoes) opcoes.size == 4 else opcoes.size >= minimoOpcoes
             if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoesValidas) {
                 mapOf(
-                    "pergunta" to pergunta,
-                    "respostaCorreta" to respostaCorreta,
-                    "opcoes" to opcoes
+                    FirebasePaths.PERGUNTA to pergunta,
+                    FirebasePaths.RESPOSTA_CORRETA to respostaCorreta,
+                    FirebasePaths.OPCOES to opcoes
                 )
             } else {
                 null
@@ -461,20 +463,20 @@ class CategoriaRepository(
     }
 
     private fun DataSnapshot.toCategoriaPublica(): CategoriaPublica? {
-        val id = child("id").getValue(String::class.java) ?: key ?: return null
-        val nome = child("nome").getValue(String::class.java) ?: return null
+        val id = child(FirebasePaths.ID).getValue(String::class.java) ?: key ?: return null
+        val nome = child(FirebasePaths.NOME).getValue(String::class.java) ?: return null
         return CategoriaPublica(
             id = id,
             nome = nome,
-            descricao = child("descricao").getValue(String::class.java).orEmpty(),
-            criador = child("criador").getValue(String::class.java)
-                ?: child("criadorId").getValue(String::class.java).orEmpty(),
-            criadorId = child("criadorId").getValue(String::class.java)
-                ?: child("nomeUtilizador").getValue(String::class.java).orEmpty(),
-            totalPerguntas = child("perguntas").childrenCount.toInt(),
-            usos = child("usos").getValue(Int::class.java) ?: 0,
-            ratingMedio = child("ratingMedio").getValue(Double::class.java) ?: 0.0,
-            totalAvaliacoes = child("totalAvaliacoes").getValue(Int::class.java) ?: 0
+            descricao = child(FirebasePaths.DESCRICAO).getValue(String::class.java).orEmpty(),
+            criador = child(FirebasePaths.CRIADOR).getValue(String::class.java)
+                ?: child(FirebasePaths.CRIADOR_ID).getValue(String::class.java).orEmpty(),
+            criadorId = child(FirebasePaths.CRIADOR_ID).getValue(String::class.java)
+                ?: child(FirebasePaths.NOME_UTILIZADOR).getValue(String::class.java).orEmpty(),
+            totalPerguntas = child(FirebasePaths.PERGUNTAS).childrenCount.toInt(),
+            usos = child(FirebasePaths.USOS).getValue(Int::class.java) ?: 0,
+            ratingMedio = child(FirebasePaths.RATING_MEDIO).getValue(Double::class.java) ?: 0.0,
+            totalAvaliacoes = child(FirebasePaths.TOTAL_AVALIACOES).getValue(Int::class.java) ?: 0
         )
     }
 

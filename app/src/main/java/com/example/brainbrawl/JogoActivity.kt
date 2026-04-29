@@ -1,6 +1,6 @@
 package com.example.brainbrawl
 
-import Pergunta
+import com.example.brainbrawl.models.Pergunta
 import android.content.Intent
 import android.icu.text.DecimalFormat
 import android.media.MediaPlayer
