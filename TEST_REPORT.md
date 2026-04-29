@@ -928,3 +928,43 @@ Não executei estes testes manuais nesta ronda porque o ambiente atual não tem 
 ### Pendentes
 
 - Nenhum extra hardcoded ficou por migrar nas chamadas de Intent pesquisadas em Kotlin.
+
+---
+
+## Firebase Rules - Fase Baseline
+
+### Ficheiros alterados
+
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
+- `TEST_REPORT.md`
+
+### O que foi criado
+
+- Criado `firebase-rules.json` com regras baseline para Firebase Realtime Database.
+- As rules mantem a estrutura Firebase atual: `jogadores`, `salas`, `sala_1x1`, `sala_2x2`, `categorias`, `categoriasPublicas`, categorias personalizadas, amigos, pedidos e convites.
+- Paths desconhecidos ficam bloqueados por defeito.
+- `categorias` fica apenas de leitura.
+- Nodes principais passam a validar tipos basicos e a rejeitar campos inesperados nos objetos principais.
+- `jogadores/{nome}/password` fica validado como hash SHA-256 hexadecimal e nao pode ser trocado numa atualizacao normal de jogador existente.
+
+### Mantido sem alterações
+
+- Codigo Kotlin da app.
+- Estrutura Firebase existente.
+- Login manual por `jogadores/{nome}/password`.
+- Fluxos de salas, amigos, convites, categorias, pontuacoes e estatisticas.
+
+### Limitações assumidas
+
+- Como a app ainda nao usa Firebase Auth, as rules nao conseguem provar a identidade real do jogador.
+- Leituras em `jogadores` continuam abertas porque o login manual e alguns fluxos sociais precisam ler perfis/password hash.
+- Escritas em salas e categorias publicas ainda dependem fortemente do cliente para respeitar regras de negocio.
+- Seguranca forte exige migracao futura para Firebase Auth, com `auth.uid`, ownership nos dados e, idealmente, Cloud Functions/backend para resultados e estatisticas.
+
+### Verificações executadas
+
+- Analise estatica dos paths Firebase usados em Kotlin.
+- `jq empty firebase-rules.json`
+  - OK.
+- Testes funcionais contra Firebase real ainda nao executados nesta fase.

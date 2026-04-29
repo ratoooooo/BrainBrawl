@@ -1,0 +1,531 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "categorias": {
+      ".read": true,
+      ".write": false
+    },
+
+    "categoriasPublicas": {
+      ".read": true,
+      "$categoriaId": {
+        ".write": "data.exists() || newData.exists()",
+        "id": {
+          ".validate": "newData.isString()"
+        },
+        "nome": {
+          ".validate": "newData.isString()"
+        },
+        "descricao": {
+          ".validate": "newData.isString()"
+        },
+        "criador": {
+          ".validate": "newData.isString()"
+        },
+        "criadorId": {
+          ".validate": "newData.isString()"
+        },
+        "nomeUtilizador": {
+          ".validate": "newData.isString()"
+        },
+        "perguntas": {
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "usos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "ratingMedio": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
+        },
+        "totalAvaliacoes": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "avaliacoes": {
+          "$nomeJogador": {
+            "valor": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5"
+            },
+            "data": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "dataCriacao": {
+          ".validate": "newData.isNumber()"
+        },
+        "dataPublicacao": {
+          ".validate": "newData.isNumber()"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "jogadores": {
+      ".read": true,
+      "$nomeJogador": {
+        ".write": "!data.exists() || (data.exists() && newData.exists() && newData.child('password').val() == data.child('password').val())",
+        ".validate": "newData.hasChildren(['password', 'avatar'])",
+        "password": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+        },
+        "avatar": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off')"
+        },
+        "pontuacao": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "taxaAcertos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "totalJogos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitorias": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalRespostasCertas": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitoriasModo1x1": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitoriasModo2x2": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitoriasModoSolo": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "amigos": {
+          "$nomeAmigo": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "pedidos_amizade": {
+          "$nomeOutro": {
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "convites_recebidos": {
+          "$nomeOutro": {
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString()"
+            },
+            "modo": {
+              ".validate": "newData.isString() && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "convites_enviados": {
+          "$nomeOutro": {
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString()"
+            },
+            "modo": {
+              ".validate": "newData.isString() && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "categoriasPersonalizadas": {
+          "$nomeCategoria": {
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "descricao": {
+              ".validate": "newData.isString()"
+            },
+            "categoriaPublicaId": {
+              ".validate": "newData.isString()"
+            },
+            "estadoPublicacao": {
+              ".validate": "newData.isString()"
+            },
+            "origemCategoriaPublica": {
+              ".validate": "newData.isString()"
+            },
+            "criadorOriginal": {
+              ".validate": "newData.isString()"
+            },
+            "criadorOriginalId": {
+              ".validate": "newData.isString()"
+            },
+            "dataCriacao": {
+              ".validate": "newData.isNumber()"
+            },
+            "dataPublicacao": {
+              ".validate": "newData.isNumber()"
+            },
+            "perguntas": {
+              "$perguntaId": {
+                "pergunta": {
+                  ".validate": "newData.isString()"
+                },
+                "respostaCorreta": {
+                  ".validate": "newData.isString()"
+                },
+                "opcoes": {
+                  "$opcaoId": {
+                    ".validate": "newData.isString()"
+                  }
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "salas": {
+      ".read": true,
+      "$codigoSala": {
+        ".write": "data.exists() || newData.exists()",
+        "horaCriacao": {
+          ".validate": "newData.isNumber()"
+        },
+        "admin": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".validate": "newData.isString() && (newData.val() == 'em_espera' || newData.val() == 'em_jogo' || newData.val() == 'terminado')"
+        },
+        "modoJogo": {
+          ".validate": "newData.isString()"
+        },
+        "categoria": {
+          ".validate": "newData.isString()"
+        },
+        "nomeCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "categoriaPersonalizada": {
+          ".validate": "newData.isBoolean()"
+        },
+        "donoCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "categoriaPublica": {
+          ".validate": "newData.isBoolean()"
+        },
+        "categoriaPublicaId": {
+          ".validate": "newData.isString()"
+        },
+        "criadorCategoriaPublica": {
+          ".validate": "newData.isString()"
+        },
+        "criadorCategoriaPublicaId": {
+          ".validate": "newData.isString()"
+        },
+        "perguntaAtualIndex": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "perguntaHoraInicio": {
+          ".validate": "newData.isNumber()"
+        },
+        "perguntaAtual": {
+          "respostas": {
+            "$nomeJogador": {
+              ".validate": "newData.isBoolean()"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "jogadores": {
+          "$nomeJogador": {
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "pontuacao": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "totalRespostasCertas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "totalPerguntasCertas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off' || newData.val() == 'eliminado')"
+            },
+            "isHostOnly": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "perguntas": {
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "estatisticasAtualizadas": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "sala_1x1": {
+      ".read": true,
+      "$codigoSala": {
+        ".write": "data.exists() || newData.exists()",
+        "admin": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".validate": "newData.isString() && (newData.val() == 'em_espera' || newData.val() == 'em_jogo' || newData.val() == 'terminado')"
+        },
+        "nomeCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "novaSalaDesforra": {
+          ".validate": "newData.isString()"
+        },
+        "jogadores": {
+          "$nomeJogador": {
+            ".validate": "!newData.exists() || newData.isBoolean() || newData.hasChild('desforra')",
+            "desforra": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "prontos": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "perguntas": {
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "perguntaInicios": {
+          "$indice": {
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "perguntaHoraInicio": {
+          ".validate": "newData.isNumber()"
+        },
+        "pontuacoes": {
+          "$nomeJogador": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "estatisticasAtualizadas": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "sala_2x2": {
+      ".read": true,
+      "$codigoSala": {
+        ".write": "data.exists() || newData.exists()",
+        "admin": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".validate": "newData.isString() && (newData.val() == 'em_espera' || newData.val() == 'em_jogo' || newData.val() == 'terminado')"
+        },
+        "nomeCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "jogadores": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "equipaA": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "equipaB": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "pontuacaoA": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "pontuacaoB": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "perguntas": {
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "perguntaInicios": {
+          "$indice": {
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "perguntaHoraInicio": {
+          ".validate": "newData.isNumber()"
+        },
+        "respostas": {
+          "$nomeJogador": {
+            "$indice": {
+              ".validate": "newData.isString()"
+            }
+          }
+        },
+        "pontuacoes_A": {
+          "$nomeJogador": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "pontuacoes_B": {
+          "$nomeJogador": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "totalPerguntasCertas_A": {
+          "$nomeJogador": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "totalPerguntasCertas_B": {
+          "$nomeJogador": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "estatisticasAtualizadas": {
+          "$nomeJogador": {
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "$other": {
+      ".read": false,
+      ".write": false,
+      ".validate": false
+    }
+  }
+}
