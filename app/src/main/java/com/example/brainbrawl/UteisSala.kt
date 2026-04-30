@@ -1,40 +1,54 @@
 package com.example.brainbrawl
 
 import android.content.Context
+import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.routes.UteisNavegacao.abrirSalaDeEsperaGrupo
 import com.example.brainbrawl.repositories.CategoriaRepository
 import com.example.brainbrawl.repositories.SalaRepository
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 
 object UteisSala {
     private val salaRepository = SalaRepository()
     private val categoriaRepository = CategoriaRepository()
+    private val authService = AuthService()
 
     // Funçao utilizada para criar uma sala caótica e ir buscar todas as perguntas de todas as categorias
-    fun criarSalaCaoticaEEntrar(context: Context, nomeUtilizador: String?, nomeJogador: String?, onError: (String) -> Unit = {}) {
+    fun criarSalaCaoticaEEntrar(
+        context: Context,
+        nomeUtilizador: String?,
+        nomeJogador: String?,
+        uid: String? = null,
+        onError: (String) -> Unit = {}
+    ) {
         val codigoSala = gerarCodigoSala()
-        // Determina o nome do admin e do jogador principal
-        val nomeAdmin = nomeUtilizador ?: nomeJogador
-        if (nomeAdmin == null) {
+        val jogadorAdmin = identidadeJogador(uid, nomeUtilizador, nomeJogador)
+        if (jogadorAdmin.nomeDisplay.isBlank()) {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
         // Busca todas as perguntas de todas as categorias
         categoriaRepository.carregarTodasPerguntasOficiais().addOnSuccessListener { todasPerguntas ->
             val perguntasRandom = todasPerguntas.shuffled().take(8)
-            val salaData = mapOf(
-                "horaCriacao" to System.currentTimeMillis(),
-                "admin" to nomeAdmin,
-                "estado" to "em_espera",
-                "modoJogo" to "caotico",
-                "jogadores" to mapOf<String, Any>(
-                    nomeAdmin to mapOf("nome" to nomeAdmin, "pontuacao" to 0.0, "isHostOnly" to true)
-                ),
-                "categoria" to "Todas as categorias",
-                "perguntas" to perguntasRandom
-            )
+            val salaData = dadosSalaBase(jogadorAdmin, "Todas as categorias", GameConstants.MODO_CAOTICO, perguntasRandom) +
+                mapOf(
+                    FirebasePaths.JOGADORES to mapOf(
+                        jogadorAdmin.chaveSala to jogadorAdmin.toFirebaseMap(isHostOnly = true)
+                    )
+                )
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
-                abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, "Todas as categorias", true, "caotico")
+                abrirSalaDeEsperaGrupo(
+                    context,
+                    codigoSala,
+                    nomeUtilizador,
+                    nomeJogador,
+                    "Todas as categorias",
+                    true,
+                    GameConstants.MODO_CAOTICO,
+                    jogadorAdmin.uid
+                )
             }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
         }.addOnFailureListener { onError(it.message ?: "Erro ao buscar categorias") }
     }
@@ -48,27 +62,29 @@ object UteisSala {
         nomeCategoria: String,
         admin: Boolean,
         modoJogo: String,
+        uid: String? = null,
         onError: (String) -> Unit = {}
     ) {
-        val nomeAdmin = nomeUtilizador ?: nomeJogador
-        if (nomeAdmin == null) {
+        val jogadorAdmin = identidadeJogador(uid, nomeUtilizador, nomeJogador)
+        if (jogadorAdmin.nomeDisplay.isBlank()) {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
         // Busca as perguntas da categoria específica
         categoriaRepository.carregarPerguntasCategoriaOficial(nomeCategoria).addOnSuccessListener { perguntas ->
             val perguntasRandom = perguntas.shuffled().take(8)
-            val salaData = mapOf(
-                "horaCriacao" to System.currentTimeMillis(),
-                "admin" to nomeAdmin,
-                "estado" to "em_espera",
-                "modoJogo" to modoJogo,
-                "jogadores" to mapOf<String, Any>(),
-                "categoria" to nomeCategoria,
-                "perguntas" to perguntasRandom
-            )
+            val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntasRandom)
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
-                abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, nomeCategoria, admin, modoJogo)
+                abrirSalaDeEsperaGrupo(
+                    context,
+                    codigoSala,
+                    nomeUtilizador,
+                    nomeJogador,
+                    nomeCategoria,
+                    admin,
+                    modoJogo,
+                    jogadorAdmin.uid
+                )
             }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
         }.addOnFailureListener { onError(it.message ?: "Erro ao buscar perguntas") }
     }
@@ -80,30 +96,26 @@ object UteisSala {
         nomeCategoria: String,
         admin: Boolean,
         modoJogo: String,
+        uid: String? = null,
         onError: (String) -> Unit = {}
     ) {
-        categoriaRepository.carregarPerguntasCategoriaPersonalizada(nomeUtilizador, nomeCategoria)
+        val jogadorAdmin = identidadeJogador(uid, nomeUtilizador, null)
+        categoriaRepository.carregarPerguntasCategoriaPersonalizada(jogadorAdmin.uid, nomeUtilizador, nomeCategoria)
             .addOnSuccessListener { perguntas ->
                 if (perguntas.isEmpty()) {
                     onError("A categoria personalizada ainda não tem perguntas válidas.")
                     return@addOnSuccessListener
                 }
 
-                val salaData = mapOf(
-                    "horaCriacao" to System.currentTimeMillis(),
-                    "admin" to nomeUtilizador,
-                    "estado" to "em_espera",
-                    "modoJogo" to modoJogo,
-                    "jogadores" to mapOf<String, Any>(),
-                    "categoria" to nomeCategoria,
-                    "nomeCategoria" to nomeCategoria,
-                    "categoriaPersonalizada" to true,
-                    "donoCategoria" to nomeUtilizador,
-                    "perguntas" to perguntas.shuffled().take(8)
-                )
+                val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntas.shuffled().take(8)) +
+                    mapOf(
+                        "categoriaPersonalizada" to true,
+                        "donoCategoria" to nomeUtilizador,
+                        FirebasePaths.DONO_UID to jogadorAdmin.uid
+                    )
 
                 salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
-                    abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, null, nomeCategoria, admin, modoJogo)
+                    abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, null, nomeCategoria, admin, modoJogo, jogadorAdmin.uid)
                 }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
             }.addOnFailureListener { onError(it.message ?: "Erro ao buscar perguntas personalizadas") }
     }
@@ -116,10 +128,11 @@ object UteisSala {
         categoriaPublicaId: String,
         admin: Boolean,
         modoJogo: String = "classico",
+        uid: String? = null,
         onError: (String) -> Unit = {}
     ) {
-        val nomeAdmin = nomeUtilizador ?: nomeJogador
-        if (nomeAdmin.isNullOrBlank()) {
+        val jogadorAdmin = identidadeJogador(uid, nomeUtilizador, nomeJogador)
+        if (jogadorAdmin.nomeDisplay.isBlank()) {
             onError("Nome de utilizador ou jogador não fornecido!")
             return
         }
@@ -140,25 +153,53 @@ object UteisSala {
                 return@addOnSuccessListener
             }
 
-            val salaData = mapOf(
-                "horaCriacao" to System.currentTimeMillis(),
-                "admin" to nomeAdmin,
-                "estado" to "em_espera",
-                "modoJogo" to modoJogo,
-                "jogadores" to mapOf<String, Any>(),
-                "categoria" to nomeCategoria,
-                "nomeCategoria" to nomeCategoria,
-                "categoriaPublica" to true,
-                "categoriaPublicaId" to categoriaPublicaId,
-                "criadorCategoriaPublica" to criador,
-                "criadorCategoriaPublicaId" to criadorId,
-                "perguntas" to perguntas.shuffled().take(8)
-            )
+            val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntas.shuffled().take(8)) +
+                mapOf(
+                    "categoriaPublica" to true,
+                    "categoriaPublicaId" to categoriaPublicaId,
+                    "criadorCategoriaPublica" to criador,
+                    "criadorCategoriaPublicaId" to criadorId
+                )
 
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
                 categoriaRepository.incrementarUsos(categoriaPublicaId)
-                abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, nomeCategoria, admin, modoJogo)
+                abrirSalaDeEsperaGrupo(context, codigoSala, nomeUtilizador, nomeJogador, nomeCategoria, admin, modoJogo, jogadorAdmin.uid)
             }.addOnFailureListener { onError(it.message ?: "Erro desconhecido") }
         }.addOnFailureListener { onError(it.message ?: "Erro ao buscar categoria pública") }
+    }
+
+    private fun identidadeJogador(
+        uid: String?,
+        nomeUtilizador: String?,
+        nomeJogador: String?
+    ): JogadorSalaIdentidade {
+        return JogadorSalaIdentidade.from(
+            uid?.takeIf { it.isNotBlank() } ?: authService.utilizadorAtual()?.uid,
+            nomeUtilizador,
+            nomeJogador
+        )
+    }
+
+    private fun dadosSalaBase(
+        jogadorAdmin: JogadorSalaIdentidade,
+        nomeCategoria: String,
+        modoJogo: String,
+        perguntas: List<Any>
+    ): Map<String, Any> {
+        val dados = linkedMapOf<String, Any>(
+            "horaCriacao" to System.currentTimeMillis(),
+            FirebasePaths.ADMIN to jogadorAdmin.nomeDisplay,
+            FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
+            FirebasePaths.MODO_JOGO to modoJogo,
+            FirebasePaths.JOGADORES to mapOf<String, Any>(),
+            "categoria" to nomeCategoria,
+            FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+            FirebasePaths.PERGUNTAS to perguntas
+        )
+        if (jogadorAdmin.uid.isNotBlank()) {
+            dados[FirebasePaths.ADMIN_ID] = jogadorAdmin.uid
+            dados[FirebasePaths.ADMIN_UID] = jogadorAdmin.uid
+        }
+        return dados
     }
 }

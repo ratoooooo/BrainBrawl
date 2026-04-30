@@ -1,8 +1,29 @@
 # BrainBrawl - Architecture Plan
 
+## Fase final UID/Auth hardening
+
+Estado atualizado em 2026-04-30:
+
+- `uid` fica como identificador primario para novos dados autenticados.
+- `nomeUtilizador` continua apenas como display/fallback legado enquanto existirem dados antigos por nome.
+- `adminUid` foi adicionado como campo novo de sala, mantendo `adminId` e `admin` por compatibilidade.
+- As salas novas autenticadas escrevem `adminUid`/`adminId` com o UID do Firebase Auth.
+- O jogo e as pontuacoes continuam a resolver jogadores por UID primeiro e por nome/chave antiga apenas quando a sala ou perfil antigo ainda precisa disso.
+- `MeuPerfilActivity`/`MeuPerfilViewModel` passaram a carregar o perfil por UID primeiro.
+- `UteisNavegacao` e ecras de modo/categoria/pontuacao/categorias publicas recuperam o UID tambem de `FirebaseAuth.currentUser` quando o extra nao veio na Intent.
+- `CategoriaRepository` deixou de expor overloads publicos que aceitavam apenas `nomeUtilizador`; os metodos publicos de categorias personalizadas/publicas recebem `uid` e mantem fallback interno por nome.
+- `AmigosRepository` passou a considerar `uid` tambem nas chaves de leitura social hibrida.
+- `firebase-rules.json` foi preparado para `auth.uid` em `jogadores/{uid}`, `salas`, `sala_1x1`, `sala_2x2` e `categoriasPublicas`, com excecoes legadas explicitas para convidados/dados antigos.
+
+Decisao de compatibilidade:
+
+- Dados antigos em `jogadores/{nomeUtilizador}` nao sao apagados nem migrados em massa.
+- As leituras continuam tolerantes a `nomeUtilizador`, `nomeJogador`, `nomeDisplay`, `adminId` e chaves antigas de sala.
+- Escritas novas com Auth devem cair em UID; se nao houver Auth ou UID, o fallback por nome continua limitado aos fluxos legados/convidados.
+
 ## Mapa atual do projeto
 
-BrainBrawl e uma app Android nativa em Kotlin, com UI em XML/ViewBinding e Firebase Realtime Database como backend. O ponto de entrada esta em `LoginActivity`, declarado como `MAIN/LAUNCHER` no `AndroidManifest.xml`.
+BrainBrawl e uma app Android nativa em Kotlin, com UI em XML/ViewBinding, Firebase Authentication e Firebase Realtime Database como backend. O ponto de entrada esta em `LoginActivity`, declarado como `MAIN/LAUNCHER` no `AndroidManifest.xml`.
 
 Estrutura principal atual:
 
@@ -19,8 +40,8 @@ Estrutura principal atual:
 
 Ficheiros principais e responsabilidades:
 
-- `LoginActivity.kt`: login manual por nome/password guardados em `jogadores/{nome}` e entrada como convidado.
-- `RegistarActivity.kt`: cria jogador, hash SHA-256 da password e avatar inicial.
+- `LoginActivity.kt`: login com Firebase Auth por email/password, fallback temporario para login antigo por nome/password e entrada como convidado.
+- `RegistarActivity.kt`: cria conta Firebase Auth por email/password e perfil principal em `jogadores/{uid}`.
 - `MainActivity.kt`: menu principal, cria sala, entra em sala, abre amigos e logout.
 - `EscolherModoActivity.kt`, `TipoModoClassico.kt`, `EscolherCategoriaActivity.kt`, `EscolhaCategoriaModosActivity.kt`: selecao de modo/categoria.
 - `SalaDeEsperaActivity.kt`: entrada por codigo em salas de grupo (`salas`).
@@ -37,8 +58,8 @@ Ficheiros principais e responsabilidades:
 
 Fluxo principal:
 
-1. `LoginActivity` autentica ou cria jogador temporario.
-2. `MainActivity` recebe `nomeUtilizador` ou `nomeJogador`.
+1. `LoginActivity` autentica por Firebase Auth, reusa `currentUser`, aceita fallback legado por nome/password ou cria jogador temporario.
+2. `MainActivity` recebe `uid`/`email` quando ha Firebase Auth e continua a receber `nomeUtilizador` ou `nomeJogador` para compatibilidade.
 3. Criar sala: `EscolherModoActivity` -> `TipoModoClassico`/categoria -> cria dados no Firebase.
 4. Entrar em sala: `SalaDeEsperaActivity` valida codigo e adiciona jogador a `salas/{codigo}/jogadores`.
 5. Sala de espera observa jogadores e `estado`.
@@ -52,7 +73,7 @@ Fluxo principal:
 - Activities concentram UI, navegacao, regras de jogo e acesso Firebase no mesmo ficheiro.
 - Existem varios nomes para a mesma informacao: `categoria`, `nomeCategoria`, `pontuacao`, `totalPontos`, `totalPerguntascertas`, `totalRespostasCertas`.
 - A estrutura Firebase esta dividida em `salas`, `sala_1x1`, `sala_2x2` com contratos diferentes.
-- A autenticacao e manual, sem Firebase Auth; isto simplifica testes, mas deixa passwords e permissoes dependentes de regras da Realtime Database.
+- A autenticacao esta em migracao hibrida: novas contas usam Firebase Auth e perfil em `jogadores/{uid}`, mas varios fluxos ainda usam `nomeUtilizador` como chave temporaria.
 - Muitos listeners sao anonimos e nao sao removidos em todas as Activities.
 - As estatisticas sao atualizadas nas Activities de resultado e podem ser incrementadas mais de uma vez se a Activity recriar ou se listeners dispararem novamente.
 - Modelos como `Pergunta` estao fora do pacote Kotlin, o que obriga imports de pacote default e dificulta organizacao futura.
@@ -106,12 +127,13 @@ Criado:
 - `app/src/main/java/com/example/brainbrawl/services/ScoreService.kt`, para o calculo puro de pontuacao do jogo de grupo.
 - `app/src/main/java/com/example/brainbrawl/services/ScoreCompetitivoService.kt`, para o calculo puro de pontuacao dos modos 1x1 e 2x2.
 - `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`, para calculo puro de taxa de acertos, vencedor por modo, podio 2x2 e validacao anti-duplicacao.
+- `app/src/main/java/com/example/brainbrawl/services/AuthService.kt`, como wrapper pequeno de Firebase Auth para `currentUser`, registo, login e logout.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt`, como ViewModel leve para expor amigos, pedidos de amizade, convites e eventos sociais simples.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/CategoriasViewModel.kt`, como ViewModel leve para categorias personalizadas, publicacao/remocao publica e eliminacao de categoria.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/ExplorarCategoriasViewModel.kt`, como ViewModel leve para observar categorias publicas, guardar copia e avaliar categoria.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt`, como ViewModel leve para carregar, validar, guardar e eliminar perguntas de categorias personalizadas.
-- `app/src/main/java/com/example/brainbrawl/viewmodels/LoginViewModel.kt`, como ViewModel leve para validacao de login, comparacao de hash, entrada como convidado e estado online.
-- `app/src/main/java/com/example/brainbrawl/viewmodels/RegistarViewModel.kt`, como ViewModel leve para validacao de registo, verificacao de jogador existente, hash da password e criacao do jogador com avatar.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/LoginViewModel.kt`, como ViewModel leve para login Firebase Auth por email/password, sessao persistente por `currentUser`, fallback legado por nome/password, entrada como convidado e estado online.
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RegistarViewModel.kt`, como ViewModel leve para validacao de registo, criacao de conta Firebase Auth e criacao do perfil em `jogadores/{uid}`.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt`, como primeiro ViewModel leve para expor avatar e estatisticas do proprio perfil.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt`, como primeiro ViewModel leve para expor avatar/estatisticas do amigo e evento simples de remocao de amigo.
 - `app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt`, como ViewModel leve para entrada/sala de espera de grupo, jogadores, estado, inicio e saida da sala.
@@ -157,9 +179,10 @@ Movido nesta fase:
 - Em `EscolherCategoriaActivity.kt`, listar categorias personalizadas/publicas, publicar categoria, remover publicacao e eliminar categoria passaram para `CategoriasViewModel`; dialog, toasts, criacao de sala e navegacao continuam na Activity.
 - Em `ExplorarCategoriasActivity.kt`, observar categorias publicas, guardar copia de categoria publica e avaliar categoria passaram para `ExplorarCategoriasViewModel`; cards, dialog de avaliacao, toasts e navegacao continuam na Activity.
 - Em `AdicionarPerguntaActivity.kt`, carregar perguntas editaveis, validar pergunta, guardar pergunta e eliminar pergunta passaram para `EditarCategoriaViewModel`; formulario, lista visual, limpar campos e navegacao continuam na Activity.
-- Em `LoginActivity.kt`, validacao de campos, leitura de perfil, comparacao de password/hash, entrada como convidado e marcacao online passaram para `LoginViewModel`; toasts e navegacao continuam na Activity.
-- Em `RegistarActivity.kt`, validacao de campos, verificacao de jogador existente, hash da password, montagem do nome do avatar e criacao do jogador passaram para `RegistarViewModel`/`JogadorRepository`; grelha de avatares, toasts e navegacao continuam na Activity.
-- Em `JogadorRepository.kt`, foram adicionados metodos pequenos para verificar existencia e criar jogador registado, mantendo os mesmos campos Firebase do registo manual atual.
+- Em `LoginActivity.kt`, validacao de campos, Firebase Auth por email/password, deteccao de `currentUser`, fallback legado por nome/password, entrada como convidado e marcacao online passaram para `LoginViewModel`; toasts e navegacao continuam na Activity.
+- Em `RegistarActivity.kt`, validacao de nome/email/password, criacao de conta Firebase Auth, montagem do nome do avatar e criacao do perfil em `jogadores/{uid}` passaram para `RegistarViewModel`/`JogadorRepository`; grelha de avatares, toasts e navegacao continuam na Activity.
+- Em `MainActivity.kt`, o logout passou a chamar `AuthService.terminarSessao()` alem de marcar o jogador offline; `uid` e `email` sao preservados nos extras de base quando disponiveis.
+- Em `JogadorRepository.kt`, foram adicionados metodos pequenos para criar perfil autenticado, obter perfil/avatar por `uid` ou por `nomeUtilizador` e atualizar estado de forma hibrida, mantendo suporte aos perfis antigos por nome.
 - Em `MeuPerfilActivity.kt`, o carregamento de perfil, avatar e estatisticas passou para `MeuPerfilViewModel`, que continua a chamar `JogadorRepository`.
 - Em `PerfilAmigoActivity.kt`, o carregamento de perfil, avatar e estatisticas passou para `PerfilAmigoViewModel`, que continua a chamar `JogadorRepository`.
 - Em `PerfilAmigoActivity.kt`, a remocao de amigo passou a ser iniciada pelo `PerfilAmigoViewModel`, mantendo toast e navegacao na Activity.
@@ -171,17 +194,33 @@ Movido nesta fase:
 - Em `JogoActivity.kt`, carregar perguntas, observar `perguntaAtualIndex`, observar fim de eliminatorias, sincronizar `serverTimeOffset`/`perguntaHoraInicio`, enviar respostas, calcular pontuacao, obter jogadores restantes, eliminar jogadores, avancar perguntas, guardar resultado final e detectar fim de jogo passaram para `JogoViewModel`.
 - Em `Jogo1x1Activity.kt`, leitura de categoria, carregamento/criacao das perguntas, sincronizacao de inicio de pergunta, offset do servidor, calculo de pontuacao, guardar pontuacao final, espera pelo podio e deteccao de fim de jogo passaram para `Jogo1x1ViewModel`.
 - Em `Jogo2x2Activity.kt`, leitura de categoria, identificacao da equipa, carregamento/criacao das perguntas, sincronizacao de inicio de pergunta, offset do servidor, envio de resposta, calculo de pontuacao, guardar resultado por equipa, espera pelo podio e deteccao de fim de jogo passaram para `Jogo2x2ViewModel`.
+- Bloco UID 3 - Jogo: `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity` passaram a receber/preservar `uid` quando existe Firebase Auth, mantendo `nomeUtilizador`/`nomeJogador` como display e fallback para convidados/dados antigos.
+- Bloco UID 3 - Jogo: `JogoRepository` resolve a chave efetiva do jogador em `salas/{codigoSala}/jogadores` por `uid`, `nomeUtilizador`, `nomeJogador`, `nomeDisplay` ou chave antiga antes de gravar respostas, eliminacao e resultado final.
+- Bloco UID 3 - Jogo: `JogoCompetitivoRepository` passou a guardar/ler jogadores competitivos como identidade hibrida, cria convites 1x1/2x2 com `uid` como chave principal quando disponivel, preserva `admin` para display e adiciona `adminId` como identificador autenticado.
+- Bloco UID 3 - Jogo: respostas 2x2, pontuacoes 1x1, pontuacoes por equipa 2x2, prontidao, equipas e remocao de jogador usam a chave efetiva resolvida da sala, evitando duplicar jogadores quando uma sala antiga ainda esta por nome.
+- Bloco UID 3 - Jogo: `UteisSala`, Activities de sala/categoria e helpers de navegacao preservam o extra `uid` ate ao jogo e ate as Activities de pontuacao, sem alterar UI, navegacao, tempos ou regras de pontuacao.
+- Bloco UID 4 - Pontuacoes e Estatisticas: `EstatisticasService.ResultadoJogador` passou a transportar `uid`, chave real da sala, `nomeUtilizador` e `nomeJogador`; `nome` fica como display e `identificadorEstatisticas` escolhe `uid` quando existe.
+- Bloco UID 4 - Pontuacoes e Estatisticas: `PontuacaoRepository` le resultados finais de grupo/1x1/2x2 juntando pontuacoes com metadados dos jogadores, resolve o perfil global por `uid` primeiro e por `nomeUtilizador`/nome como fallback legado.
+- Bloco UID 4 - Pontuacoes e Estatisticas: updates de `pontuacao`, `totalJogos`, vitorias por modo, `totalRespostasCertas` e `taxaAcertos` escrevem no perfil resolvido em `jogadores/{uid}` quando existe, sem criar perfil para convidados.
+- Bloco UID 4 - Pontuacoes e Estatisticas: marcadores anti-duplicacao em `estatisticasAtualizadas` usam `uid` quando disponivel e caem para chave/nome nos dados convidados ou legados; a transacao continua a impedir duplicacao por recriacao da Activity.
+- Bloco UID 4 - Pontuacoes e Estatisticas: `Pontuacao1x1Activity` mantem UI/desforra, mas passa a identificar jogador/adversario por identidade hibrida e cria a sala de desforra com `uid` como chave principal quando possivel.
+- Bloco UID 4 - Pontuacoes e Estatisticas: `Pontuacao2x2Activity` continua a mostrar o podio igual, mas a deteccao de recorde local procura o jogador por `uid`/chaves de compatibilidade.
+- Bloco UID 5 - Categorias: `CategoriaRepository` passou a resolver categorias personalizadas por `uid` primeiro e por `nomeUtilizador` como fallback, juntando categorias antigas e novas sem duplicar nomes.
+- Bloco UID 5 - Categorias: criacao, edicao, eliminacao e perguntas de categorias personalizadas escrevem em `jogadores/{uid}/categoriasPersonalizadas` quando existe Auth, preservando leitura/escrita na chave antiga quando a categoria ja esta em `jogadores/{nomeUtilizador}`.
+- Bloco UID 5 - Categorias: categorias publicas guardam `criadorUid`, `criadorId`, `nomeUtilizador` e `nomeDisplay`; a publicacao procura ids publicos antigos e novos antes de criar, evitando duplicar categorias publicas existentes.
+- Bloco UID 5 - Categorias: guardar copia de categoria publica e avaliacoes usam `uid` como chave principal quando disponivel, com fallback por `nomeUtilizador`; convidados continuam bloqueados para criar, publicar, guardar copia e avaliar.
+- Bloco UID 5 - Categorias: `UteisSala` carrega perguntas de categorias personalizadas por identidade hibrida e guarda `donoUid` nos metadados da sala quando existe, sem alterar regras de jogo, UI ou navegacao.
 - `JogoActivity.kt`, `Jogo1x1Activity.kt` e `Jogo2x2Activity.kt` continuam responsaveis por UI, opcoes aleatorias visuais, timers visuais, progress bar, animacao/sons, toasts e navegacao.
 - Os ViewModels de salas guardam os handles dos listeners e removem-nos em chamadas explicitas das Activities e tambem em `onCleared`.
 - Os ViewModels de jogo guardam os handles de listeners Firebase e removem-nos em `removerListeners()` e `onCleared`, evitando listeners duplicados na migracao de jogo.
 - A Activity continua responsavel por UI, toasts e navegacao.
 - O repository ficou responsavel por criar/procurar sala, adicionar/remover jogador, apagar sala, atualizar estado, obter jogadores e gerir listeners de jogadores/estado/sala apagada.
-- `JogadorRepository` ficou responsavel por obter perfil, obter avatar e atualizar estado `on`/`off`.
-- `CategoriaRepository` ficou responsavel por paths `categorias`, `jogadores/{nome}/categoriasPersonalizadas` e `categoriasPublicas`, incluindo validacao simples de perguntas, transacoes de usos e avaliacao.
+- `JogadorRepository` ficou responsavel por obter perfil, obter avatar, criar perfil Auth em `jogadores/{uid}` e atualizar estado `on`/`off`, aceitando `uid` ou `nomeUtilizador` durante a fase hibrida.
+- `CategoriaRepository` ficou responsavel por paths `categorias`, `jogadores/{uidOuNome}/categoriasPersonalizadas` e `categoriasPublicas`, incluindo validacao simples de perguntas, transacoes de usos, avaliacao e fallback para categorias antigas por nome.
 - `AmigosRepository` ficou responsavel por paths sociais existentes em `jogadores/{nome}/amigos`, `pedidos_amizade`, `convites_recebidos`, `convites_enviados`, alem da criacao de convites com salas `sala_1x1` e `sala_2x2`. A remocao de amizade agora remove os dois lados.
 - `JogoRepository` ficou responsavel por paths de jogo de grupo em `salas/{codigoSala}`, mantendo os mesmos nomes de campos.
 - `JogoCompetitivoRepository` ficou responsavel por paths competitivos existentes em `sala_1x1/{codigoSala}` e `sala_2x2/{codigoSala}`, mantendo os mesmos nomes de campos.
-- `PontuacaoRepository` ficou responsavel por paths de resultados existentes em `salas/{codigoSala}/jogadores`, `sala_1x1/{codigoSala}/pontuacoes`, `sala_2x2/{codigoSala}/equipaA`, `equipaB`, `pontuacoes_A`, `pontuacoes_B`, `totalPerguntasCertas_A`, `totalPerguntasCertas_B` e por updates no node `jogadores/{nome}`.
+- `PontuacaoRepository` ficou responsavel por paths de resultados existentes em `salas/{codigoSala}/jogadores`, `sala_1x1/{codigoSala}/pontuacoes`, `sala_2x2/{codigoSala}/equipaA`, `equipaB`, `pontuacoes_A`, `pontuacoes_B`, `totalPerguntasCertas_A`, `totalPerguntasCertas_B` e por updates no perfil global resolvido em `jogadores/{uid}` com fallback por nome legado.
 - `EstatisticasService` ficou responsavel por calcular a nova media de `taxaAcertos`, decidir vencedores em solo/1x1/2x2, manter a regra antiga de empate 2x2 para estatisticas e montar o mapa de updates de estatisticas.
 - `FirebasePaths` passou a ser usado nos repositories para os nodes `jogadores`, `salas`, `sala_1x1`, `sala_2x2`, `categorias`, `categoriasPersonalizadas`, `categoriasPublicas`, `amigos`, `pedidos_amizade`, `convites_recebidos` e `convites_enviados`.
 - `GameConstants` passou a ser usado nos repositories/services para modos e estados como `classico`, `caotico`, `eliminado`, `1x1`, `2x2`, `pendente`, `aceite`, `on` e `off`.
@@ -204,13 +243,17 @@ Mantido sem alteracoes:
 - Layouts, textos principais de UI, regras de inicio da sala de espera e navegacao para `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity`.
 - Layouts e estrutura visual de `LoginActivity`, `RegistarActivity`, `AmigosActivity`, `EscolherCategoriaActivity`, `ExplorarCategoriasActivity`, `AdicionarPerguntaActivity`, `MeuPerfilActivity` e `PerfilAmigoActivity`.
 - UI de `JogoActivity`, `Jogo1x1Activity`, `Jogo2x2Activity`, categorias, regras dos modos classico/caotico/eliminatorias, adapters e layouts sociais.
-- Perfis de convidados continuam sem ser criados: `PontuacaoRepository` so atualiza estatisticas quando `jogadores/{nome}` existe e tem `password`.
+- Perfis de convidados continuam sem ser criados: `PontuacaoRepository` so atualiza estatisticas quando encontra um perfil existente em `jogadores/{uid}` ou no fallback legado por nome.
 - Admin host-only em jogos de grupo continua fora do podio/estatisticas: jogadores com `isHostOnly=true`, nome vazio ou `admin` sao ignorados.
-- Para evitar duplicacao por recriacao de Activity ou listeners repetidos, cada sala guarda marcadores transacionais em `estatisticasAtualizadas/{nomeJogador}` dentro da propria sala de resultado.
+- Para evitar duplicacao por recriacao de Activity ou listeners repetidos, cada sala guarda marcadores transacionais em `estatisticasAtualizadas/{uidOuNome}` dentro da propria sala de resultado.
 - Extras de intents continuam com os mesmos valores (`nomeUtilizador`, `nomeJogador`, `codigoSala`, `nomeCategoria`, `modoJogo`, `admin`, `pontuacao`, `totalPerguntas`, `totalRespostasCertas`) e as chamadas de Intent conhecidas em Kotlin usam `IntentExtras`.
+- Novos extras `uid` e `email` foram adicionados para preparar a migracao completa sem remover `nomeUtilizador`.
+- O login antigo por `jogadores/{nome}/password` continua disponivel como fallback quando o identificador nao e email.
 
 Ainda falta migrar:
 
+- Migrar gradualmente os ultimos metadados de display/compatibilidade para ficarem apenas como fallback; amigos, salas, jogo, pontuacoes, estatisticas e categorias ja estao em modo hibrido com fallback.
+- Publicar e validar as rules novas num projeto Firebase de teste antes de usar em producao.
 - Continuar apenas ajustes pequenos depois de validar perfil/amigos/categorias/autenticacao/salas/jogo manualmente, sem refactor total.
 - Revisao final de extras hardcoded concluida; nao foram encontrados literais restantes nas chamadas de Intent pesquisadas em Kotlin.
 - Avaliar se os modelos internos pequenos dos repositories (`JogadorSala`, `CategoriaPublica`, `ResultadoJogador`) devem sair para `models/` numa fase seguinte ou continuar como DTOs locais.
@@ -219,9 +262,10 @@ Ainda falta migrar:
 
 Proxima fase recomendada:
 
-- Validar manualmente amigos, pedidos, convites, salas de grupo, grupo/classico/caotico/eliminatorias e modos 1x1/2x2 em dois dispositivos/sessoes.
+- Cloud Functions: mover ranking, estatisticas finais, validacao de resultados e anti-cheat para backend confiavel.
+- Validar manualmente amigos, pedidos, convites, salas, jogo, pontuacoes, estatisticas e categorias em dois dispositivos/sessoes antes de remover fallbacks legados.
+- Mapear e migrar writes legados que ainda podem cair em `jogadores/{nomeUtilizador}` por compatibilidade antes de remover fallback.
 - Se necessario depois dos testes manuais, afinar persistencia de respostas certas no 1x1 para guardar o total de cada jogador no node da sala, sem depender do intent de cada cliente.
-- Considerar apenas refinamentos pequenos de estado interno em `JogoActivity.kt`, `Jogo1x1Activity.kt` e `Jogo2x2Activity.kt` se os testes manuais mostrarem necessidade real.
 
 Fase 1 - Contratos e constantes:
 

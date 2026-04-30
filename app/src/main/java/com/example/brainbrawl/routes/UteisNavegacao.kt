@@ -10,9 +10,16 @@ import com.example.brainbrawl.SalaDeEsperaActivity
 import com.example.brainbrawl.SalaDeEsperaGrupoActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
+import com.example.brainbrawl.services.AuthService
 
 object UteisNavegacao {
-    fun adicionarDadosJogador(intent: Intent, nomeUtilizador: String?, nomeJogador: String?) {
+    private val authService = AuthService()
+
+    fun adicionarDadosJogador(intent: Intent, nomeUtilizador: String?, nomeJogador: String?, uid: String? = null) {
+        val uidEfetivo = uid?.takeIf { it.isNotBlank() } ?: authService.utilizadorAtual()?.uid
+        if (!uidEfetivo.isNullOrBlank()) {
+            intent.putExtra(IntentExtras.UID, uidEfetivo)
+        }
         if (!nomeUtilizador.isNullOrBlank()) {
             intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
         }
@@ -21,24 +28,24 @@ object UteisNavegacao {
         }
     }
 
-    fun abrirMainActivity(context: Context, nomeUtilizador: String?, nomeJogador: String?) {
+    fun abrirMainActivity(context: Context, nomeUtilizador: String?, nomeJogador: String?, uid: String? = null) {
         val intent = Intent(context, MainActivity::class.java)
-        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador, uid)
         context.startActivity(intent)
     }
 
-    fun abrirEntradaSalaActivity(context: Context, nomeUtilizador: String?, nomeJogador: String?) {
+    fun abrirEntradaSalaActivity(context: Context, nomeUtilizador: String?, nomeJogador: String?, uid: String? = null) {
         val intent = Intent(context, SalaDeEsperaActivity::class.java)
-        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador, uid)
         context.startActivity(intent)
     }
 
     // Função para abrir activity de categoria
-    fun abrirEscolherCategoriaActivity(context: Context, modoJogo: String, nomeUtilizador: String?, nomeJogador: String?, admin: Boolean) {
+    fun abrirEscolherCategoriaActivity(context: Context, modoJogo: String, nomeUtilizador: String?, nomeJogador: String?, admin: Boolean, uid: String? = null) {
         val intent = Intent(context, EscolherCategoriaActivity::class.java)
         intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
         intent.putExtra(IntentExtras.ADMIN, admin)
-        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador, uid)
         context.startActivity(intent)
     }
 
@@ -54,7 +61,8 @@ object UteisNavegacao {
         totalPerguntascertas: Int,
         numeroPerguntasCertas: Int,
         totalPerguntas: Int,
-        equipa: String? = null
+        equipa: String? = null,
+        uid: String? = null
     ) {
         val destino = when (modoJogo) {
             GameConstants.MODO_1X1 -> Pontuacao1x1Activity::class.java
@@ -64,7 +72,7 @@ object UteisNavegacao {
 
         val intent = Intent(context, destino)
         codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
-        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador, uid)
         nomeCategoria.let { intent.putExtra(IntentExtras.NOME_CATEGORIA, it) }
         modoJogo.let { intent.putExtra(IntentExtras.MODO_JOGO, it) }
         pontuacao.let { intent.putExtra(IntentExtras.PONTUACAO, it) }
@@ -81,10 +89,10 @@ object UteisNavegacao {
     }
 
     // Função para abrir a sala de espera em modos de grupo
-    fun abrirSalaDeEsperaGrupo(context: Context, codigoSala: String, nomeUtilizador: String?, nomeJogador: String?, nomeCategoria: String, admin: Boolean, modoJogo: String) {
+    fun abrirSalaDeEsperaGrupo(context: Context, codigoSala: String, nomeUtilizador: String?, nomeJogador: String?, nomeCategoria: String, admin: Boolean, modoJogo: String, uid: String? = null) {
         val intent = Intent(context, SalaDeEsperaGrupoActivity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
-        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador)
+        adicionarDadosJogador(intent, nomeUtilizador, nomeJogador, uid)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
         intent.putExtra(IntentExtras.ADMIN, admin)
         intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)

@@ -14,6 +14,7 @@ import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
 import com.example.brainbrawl.models.Pergunta
 import com.example.brainbrawl.routes.UteisNavegacao.enviarPontuacaoActivity
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.UteisPerguntas.obterOpcoesAleatorias
 import com.example.brainbrawl.viewmodels.Jogo2x2Event
 import com.example.brainbrawl.viewmodels.Jogo2x2ViewModel
@@ -29,7 +30,9 @@ class Jogo2x2Activity : AppCompatActivity() {
     }
 
     private lateinit var codigoSala: String
+    private lateinit var uid: String
     private lateinit var nomeUtilizador: String
+    private lateinit var nomeJogador: String
     private lateinit var perguntaAtual: Pergunta
 
     private var mediaPlayer: MediaPlayer? = null
@@ -42,19 +45,26 @@ class Jogo2x2Activity : AppCompatActivity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private val formatoDecimal = DecimalFormat("#.#")
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
 
         configurarObservers()
         configurarBotoes()
         viewModel.iniciar(
             codigoSala = codigoSala,
+            uid = uid,
             nomeUtilizador = nomeUtilizador,
+            nomeJogador = nomeJogador,
             categoriaPadrao = getString(R.string.categoria5),
             categoriaTodas = getString(R.string.categoria5)
         )
@@ -270,11 +280,12 @@ class Jogo2x2Activity : AppCompatActivity() {
             dados.nomeUtilizador,
             dados.totalPontos,
             dados.categoria,
-            dados.nomeUtilizador,
+            dados.nomeJogador,
             dados.totalPerguntasCertas,
             dados.numeroPerguntasCertas,
             dados.totalPerguntas,
-            dados.equipa
+            dados.equipa,
+            uid = dados.uid
         )
         finish()
     }

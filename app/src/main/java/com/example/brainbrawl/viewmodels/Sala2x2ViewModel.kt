@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
 
@@ -20,22 +21,20 @@ class Sala2x2ViewModel(
     private var jogadoresListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var estadoListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var salaListener: JogoCompetitivoRepository.ListenerHandle? = null
-    private var jogadoresNaSala: List<String> = emptyList()
+    private var jogadoresNaSala: List<JogoCompetitivoRepository.JogadorCompetitivo> = emptyList()
     private var admin = false
-    private var nomeUtilizador = ""
+    private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
+    private var chaveJogador = ""
     private var saidaManual = false
 
-    fun iniciar(codigoSala: String, nomeUtilizador: String) {
-        this.nomeUtilizador = nomeUtilizador
+    fun iniciar(codigoSala: String, uid: String, nomeUtilizador: String, nomeJogador: String) {
+        jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+        chaveJogador = jogadorAtual.chaveSala
         saidaManual = false
-        jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala, nomeUtilizador)
-        jogoCompetitivoRepository.obterAdmin(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
-            .addOnSuccessListener { nomeAdmin ->
-                admin = if (nomeAdmin.isNullOrBlank()) {
-                    jogadoresNaSala.firstOrNull() == nomeUtilizador
-                } else {
-                    nomeAdmin == nomeUtilizador
-                }
+        jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala, jogadorAtual)
+            .addOnSuccessListener { jogadorNaSala ->
+                chaveJogador = jogadorNaSala.chave
+                atualizarAdmin(codigoSala)
                 publicarEstadoEGuardarEquipas(codigoSala)
             }
     }
@@ -45,8 +44,9 @@ class Sala2x2ViewModel(
         jogadoresListener = jogoCompetitivoRepository.escutarJogadores(
             ModoCompetitivo.DOIS_CONTRA_DOIS,
             codigoSala,
-            onJogadoresAlterados = { nomes ->
-                jogadoresNaSala = nomes
+            onJogadoresAlterados = { jogadores ->
+                jogadoresNaSala = jogadores
+                atualizarAdmin(codigoSala)
                 publicarEstadoEGuardarEquipas(codigoSala)
             }
         )
@@ -93,7 +93,7 @@ class Sala2x2ViewModel(
         if (admin) {
             jogoCompetitivoRepository.apagarSala(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
         } else {
-            jogoCompetitivoRepository.removerJogador2x2(codigoSala, nomeUtilizador)
+            jogoCompetitivoRepository.removerJogador2x2(codigoSala, jogadorAtual, chaveJogador)
         }
     }
 
@@ -117,14 +117,28 @@ class Sala2x2ViewModel(
         val equipaB = jogadoresNaSala.drop(2).take(2)
         val salaCompleta = jogadoresNaSala.size == 4
         _estado.value = Sala2x2UiState(
-            equipaA = equipaA,
-            equipaB = equipaB,
+            equipaA = equipaA.map { it.nomeDisplay },
+            equipaB = equipaB.map { it.nomeDisplay },
             podeIniciar = admin && salaCompleta
         )
 
         if (admin && salaCompleta) {
             jogoCompetitivoRepository.guardarEquipas2x2(codigoSala, equipaA, equipaB)
         }
+    }
+
+    private fun atualizarAdmin(codigoSala: String) {
+        jogoCompetitivoRepository.obterChavesAdmin(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+            .addOnSuccessListener { chavesAdmin ->
+                admin = if (chavesAdmin.isEmpty()) {
+                    jogadoresNaSala.firstOrNull()?.chave == chaveJogador
+                } else {
+                    chavesAdmin.any { chave ->
+                        chave == chaveJogador || chave in jogadorAtual.chavesCompatibilidade
+                    }
+                }
+                publicarEstadoEGuardarEquipas(codigoSala)
+            }
     }
 
     private fun removerJogadoresListener() {

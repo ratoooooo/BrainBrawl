@@ -82,6 +82,21 @@ class ExampleUnitTest {
     }
 
     @Test
+    fun vencedorUsaUidQuandoResultadoTemIdentidadeAutenticada() {
+        val resultados = listOf(
+            EstatisticasService.ResultadoJogador(nome = "Ana", pontos = 150.0, uid = "uid-ana", nomeUtilizador = "Ana"),
+            EstatisticasService.ResultadoJogador(nome = "Beto", pontos = 120.0, uid = "uid-beto", nomeUtilizador = "Beto")
+        )
+
+        assertEquals(
+            setOf("uid-ana"),
+            estatisticasService.vencedores(resultados, EstatisticasService.Modo.UM_CONTRA_UM)
+        )
+        assertTrue(resultados.first().corresponde("Ana"))
+        assertTrue(resultados.first().corresponde("uid-ana"))
+    }
+
+    @Test
     fun empate2x2MantemVitoriaDaEquipaAParaEstatisticas() {
         val resultados = listOf(
             EstatisticasService.ResultadoJogador(nome = "A1", pontos = 100.0, equipa = "A"),

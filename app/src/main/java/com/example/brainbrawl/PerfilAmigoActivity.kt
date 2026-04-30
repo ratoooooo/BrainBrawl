@@ -12,6 +12,7 @@ import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
 import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.PerfilAmigoEvent
 import com.example.brainbrawl.viewmodels.PerfilAmigoUiState
 import com.example.brainbrawl.viewmodels.PerfilAmigoViewModel
@@ -23,6 +24,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[PerfilAmigoViewModel::class.java]
     }
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,32 +32,36 @@ class PerfilAmigoActivity : AppCompatActivity() {
 
         // Guardar os dados passados pelo Intent
         val nomeAmigo = intent.getStringExtra(IntentExtras.NOME_AMIGO) ?: "Amigo Desconhecido"
+        val uidAmigo = intent.getStringExtra(IntentExtras.UID_AMIGO) ?: ""
+        val uidUtilizador = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
 
         binding.btnVoltarPerfil.setOnClickListener {
             val intent = Intent(this, AmigosActivity::class.java)
             intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+            uidUtilizador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
             startActivity(intent)
             finish()
         }
 
         viewModel.perfil.observe(this) { perfil ->
-            mostrarPerfil(perfil, nomeUtilizador)
+            mostrarPerfil(perfil, uidUtilizador, nomeUtilizador)
         }
         viewModel.evento.observe(this) { evento ->
             if (evento == PerfilAmigoEvent.AmigoRemovido) {
                 Toast.makeText(this, "Amigo removido com sucesso!", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, AmigosActivity::class.java)
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+                uidUtilizador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
                 startActivity(intent)
                 viewModel.consumirEvento()
                 finish()
             }
         }
-        viewModel.carregarPerfil(nomeAmigo)
+        viewModel.carregarPerfil(uidAmigo.ifBlank { nomeAmigo }, nomeAmigo)
     }
 
-    private fun mostrarPerfil(perfil: PerfilAmigoUiState, nomeUtilizador: String) {
+    private fun mostrarPerfil(perfil: PerfilAmigoUiState, uidUtilizador: String, nomeUtilizador: String) {
         if (!perfil.perfilExiste) {
             binding.imgAvatarAmigo.setImageResource(R.drawable.avatar_1_playstore)
             binding.txtNomeAmigo.text = perfil.nome
@@ -97,7 +103,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
 
         if (perfil.perfilExiste) {
             binding.btnRemoverAmigo.setOnClickListener {
-                viewModel.removerAmigo(nomeUtilizador, perfil.nome)
+                viewModel.removerAmigo(uidUtilizador, nomeUtilizador, perfil.utilizador)
                 binding.btnRemoverAmigo.isEnabled = false
             }
         }

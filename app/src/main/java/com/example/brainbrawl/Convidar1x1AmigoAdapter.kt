@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.brainbrawl.models.UtilizadorSocial
 
 class Convidar1x1AmigoAdapter(
-    private val amigos: List<String>,
-    private val onDesafiarClick: (String) -> Unit
+    private val amigos: List<UtilizadorSocial>,
+    private val onDesafiarClick: (UtilizadorSocial) -> Unit
 ) : RecyclerView.Adapter<Convidar1x1AmigoAdapter.ConvidarAmigoViewHolder>() {
 
     // ViewHolder para cada amigo na lista de amigos
@@ -28,7 +29,7 @@ class Convidar1x1AmigoAdapter(
     // Define o nome do amigo e o que acontece ao clicar no botão de desafiar
     override fun onBindViewHolder(holder: ConvidarAmigoViewHolder, position: Int) {
         val amigo = amigos[position]
-        holder.txtNomeAmigo.text = amigo
+        holder.txtNomeAmigo.text = amigo.nomeDisplay
         holder.btnDesafiar.setOnClickListener { onDesafiarClick(amigo) }
     }
 

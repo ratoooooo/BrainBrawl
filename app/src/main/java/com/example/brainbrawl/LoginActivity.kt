@@ -26,13 +26,14 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         configurarObservers()
+        viewModel.verificarSessaoAtual()
 
         // Configurar os botoes de login, registo e iniciar jogo sem conta
         binding.btnEntrar.setOnClickListener {
             // Guarda os valores inseridos nos campos
-            val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
+            val identificador = binding.edtNomeJogador.text.toString().trim()
             val password = binding.edtPasswordJogador.text.toString().trim()
-            viewModel.entrar(nomeUtilizador, password)
+            viewModel.entrar(identificador, password)
         }
         binding.btnRegisto.setOnClickListener {
             startActivity(Intent(this, RegistarActivity::class.java))
@@ -58,13 +59,22 @@ class LoginActivity : AppCompatActivity() {
             is LoginEvent.LoginSucesso -> {
                 Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, MainActivity::class.java)
-                evento.nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, evento.nomeUtilizador)
+                evento.uid?.let { intent.putExtra(IntentExtras.UID, it) }
+                evento.email?.let { intent.putExtra(IntentExtras.EMAIL, it) }
                 startActivity(intent)
                 finish()
             }
             LoginEvent.SenhaIncorreta -> {
                 Toast.makeText(this, "Senha incorreta", Toast.LENGTH_SHORT).show()
                 binding.edtPasswordJogador.text.clear()
+            }
+            LoginEvent.ErroAutenticacao -> {
+                Toast.makeText(this, "Email ou senha incorretos", Toast.LENGTH_SHORT).show()
+                binding.edtPasswordJogador.text.clear()
+            }
+            LoginEvent.ErroPerfilAuth -> {
+                Toast.makeText(this, "Conta autenticada sem perfil de jogador", Toast.LENGTH_SHORT).show()
             }
             LoginEvent.JogadorNaoEncontrado -> {
                 Toast.makeText(this, "Jogador não encontrado", Toast.LENGTH_SHORT).show()

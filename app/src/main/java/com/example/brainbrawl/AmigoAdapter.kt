@@ -8,12 +8,14 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.brainbrawl.config.IntentExtras
+import com.example.brainbrawl.models.UtilizadorSocial
 
 class AmigoAdapter(
-    private val amigos: List<String>,
+    private val amigos: List<UtilizadorSocial>,
     private val avatares: List<String>,
     private val estados: List<String>,
     private val nomeUtilizador: String,
+    private val uidUtilizador: String,
 ) : RecyclerView.Adapter<AmigoAdapter.AmigoViewHolder>() {
 
     // ViewHolder para cada amigo da lista de amigos
@@ -33,7 +35,7 @@ class AmigoAdapter(
     // Liga os dados do amigo ao ViewHolder
     override fun onBindViewHolder(holder: AmigoViewHolder, position: Int) {
         val amigo = amigos[position]
-        holder.txtNomeAmigo.text = amigo
+        holder.txtNomeAmigo.text = amigo.nomeDisplay
 
         // Define o avatar do amigo (ou avatar default)
         val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
@@ -47,18 +49,21 @@ class AmigoAdapter(
         holder.viewEstadoAmigo.background.setTint(cor)
 
         // Se o amigo for o próprio utilizador, abre o perfil pessoal
-        if (amigo == nomeUtilizador) {
+        if (amigo.corresponde(uidUtilizador, nomeUtilizador)) {
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, MeuPerfilActivity::class.java)
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+                uidUtilizador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
                 context.startActivity(intent)
             }
         } else {
             // Caso contrário, abre o perfil do amigo
             holder.itemView.setOnClickListener {
                 val intent = Intent(context, PerfilAmigoActivity::class.java)
-                intent.putExtra(IntentExtras.NOME_AMIGO, amigo)
+                intent.putExtra(IntentExtras.NOME_AMIGO, amigo.nomeDisplay)
+                amigo.uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID_AMIGO, it) }
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+                uidUtilizador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
                 context.startActivity(intent)
             }
         }

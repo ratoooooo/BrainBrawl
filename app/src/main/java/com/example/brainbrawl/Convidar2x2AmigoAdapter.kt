@@ -6,9 +6,10 @@ import android.view.ViewGroup
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.brainbrawl.models.UtilizadorSocial
 
 class Convidar2x2AmigoAdapter(
-    private val amigos: List<String>
+    private val amigos: List<UtilizadorSocial>
 ) : RecyclerView.Adapter<Convidar2x2AmigoAdapter.AmigoViewHolder>() {
 
     // Conjunto para armazenar os amigos selecionados
@@ -30,19 +31,20 @@ class Convidar2x2AmigoAdapter(
     // Vincula os dados do amigo à ViewHolder
     override fun onBindViewHolder(holder: AmigoViewHolder, position: Int) {
         val amigo = amigos[position]
-        holder.txtNomeAmigo.text = amigo
+        val chaveAmigo = amigo.chavePrimaria
+        holder.txtNomeAmigo.text = amigo.nomeDisplay
         holder.checkBox.setOnCheckedChangeListener(null)
-        holder.checkBox.isChecked = selecionados.contains(amigo)
+        holder.checkBox.isChecked = selecionados.contains(chaveAmigo)
 
         holder.checkBox.setOnCheckedChangeListener { _, isChecked ->
             if (isChecked) {
                 if (selecionados.size < 3) {
-                    selecionados.add(amigo)
+                    selecionados.add(chaveAmigo)
                 } else {
                     holder.checkBox.isChecked = false
                 }
             } else {
-                selecionados.remove(amigo)
+                selecionados.remove(chaveAmigo)
             }
         }
     }
@@ -51,5 +53,5 @@ class Convidar2x2AmigoAdapter(
     override fun getItemCount() = amigos.size
 
     // Retorna a lista de amigos selecionados
-    fun getSelecionados(): List<String> = selecionados.toList()
+    fun getSelecionados(): List<UtilizadorSocial> = amigos.filter { it.chavePrimaria in selecionados }
 }

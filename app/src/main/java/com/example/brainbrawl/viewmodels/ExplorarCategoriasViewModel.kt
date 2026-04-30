@@ -30,13 +30,13 @@ class ExplorarCategoriasViewModel(
         )
     }
 
-    fun guardarCategoria(nomeUtilizador: String, categoria: CategoriaRepository.CategoriaPublica) {
-        if (nomeUtilizador.isBlank()) {
+    fun guardarCategoria(uid: String, nomeUtilizador: String, categoria: CategoriaRepository.CategoriaPublica) {
+        if (uid.isBlank() && nomeUtilizador.isBlank()) {
             _evento.value = ExplorarCategoriasEvent.LoginNecessarioGuardar
             return
         }
 
-        categoriaRepository.guardarCopiaCategoriaPublica(nomeUtilizador, categoria.id)
+        categoriaRepository.guardarCopiaCategoriaPublica(uid, nomeUtilizador, categoria.id)
             .addOnSuccessListener {
                 _evento.value = ExplorarCategoriasEvent.CategoriaGuardada
             }
@@ -45,13 +45,13 @@ class ExplorarCategoriasViewModel(
             }
     }
 
-    fun avaliarCategoria(categoriaId: String, nomeUtilizador: String, valor: Int) {
-        if (nomeUtilizador.isBlank()) {
+    fun avaliarCategoria(categoriaId: String, uid: String, nomeUtilizador: String, valor: Int) {
+        if (uid.isBlank() && nomeUtilizador.isBlank()) {
             _evento.value = ExplorarCategoriasEvent.LoginNecessarioAvaliar
             return
         }
 
-        categoriaRepository.avaliarCategoria(categoriaId, nomeUtilizador, valor)
+        categoriaRepository.avaliarCategoria(categoriaId, uid, nomeUtilizador, valor)
             .addOnSuccessListener { resultado ->
                 _evento.value = when (resultado) {
                     CategoriaRepository.ResultadoAvaliacao.GUARDADA -> ExplorarCategoriasEvent.AvaliacaoGuardada

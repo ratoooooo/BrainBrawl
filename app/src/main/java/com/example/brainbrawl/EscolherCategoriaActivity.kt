@@ -16,6 +16,7 @@ import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.CategoriasEvent
 import com.example.brainbrawl.viewmodels.CategoriasUiState
 import com.example.brainbrawl.viewmodels.CategoriasViewModel
@@ -28,6 +29,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[CategoriasViewModel::class.java]
     }
+    private val authService = AuthService()
     private var contextoCategorias: ContextoCategorias? = null
     private var dialogCategoriasPersonalizadas: AlertDialog? = null
 
@@ -39,6 +41,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
         val admin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
 
         if (modoJogo == null) {
@@ -62,7 +65,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         // Função lambda para criar uma sala com a categoria escolhida e entrar nela
         val criarSala = { categoriaEscolhida: String ->
             criarSalaComCategoriaEEntrar(
-                this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo
+                this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo, uid
             ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
         }
 
@@ -88,10 +91,10 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             criarSala(categoriaFirebase[getString(R.string.categoria5)] ?: "Gentílicos")
         }
         binding.btnCriarCategoria.setOnClickListener {
-            if (nomeUtilizador.isNullOrBlank()) {
+            if (uid.isNullOrBlank() && nomeUtilizador.isNullOrBlank()) {
                 Toast.makeText(this, "Inicia sessão para criar categorias personalizadas.", Toast.LENGTH_SHORT).show()
             } else {
-                mostrarCategoriasPersonalizadas(modoJogo, nomeUtilizador, nomeJogador, admin)
+                mostrarCategoriasPersonalizadas(modoJogo, nomeUtilizador.orEmpty(), nomeJogador, admin, uid)
             }
         }
         binding.infoCategorias.setOnClickListener {
@@ -101,6 +104,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             val intent = Intent(this, EscolherModoActivity::class.java)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
             admin.let { intent.putExtra(IntentExtras.ADMIN, it) }
             startActivity(intent)
             finish()
@@ -126,10 +130,11 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         modo: String,
         nomeUtilizador: String,
         nomeJogador: String?,
-        admin: Boolean
+        admin: Boolean,
+        uid: String?
     ) {
-        contextoCategorias = ContextoCategorias(modo, nomeUtilizador, nomeJogador, admin)
-        viewModel.carregarCategoriasPersonalizadas(nomeUtilizador)
+        contextoCategorias = ContextoCategorias(modo, nomeUtilizador, nomeJogador, admin, uid)
+        viewModel.carregarCategoriasPersonalizadas(uid.orEmpty(), nomeUtilizador)
     }
 
     private fun configurarObservers() {
@@ -167,11 +172,11 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     private fun recarregarDialogCategorias() {
         val contexto = contextoCategorias ?: return
         dialogCategoriasPersonalizadas?.dismiss()
-        mostrarCategoriasPersonalizadas(contexto.modo, contexto.nomeUtilizador, contexto.nomeJogador, contexto.admin)
+        mostrarCategoriasPersonalizadas(contexto.modo, contexto.nomeUtilizador, contexto.nomeJogador, contexto.admin, contexto.uid)
     }
 
     private fun mostrarDialogCategoriasPersonalizadas(
-        estado: CategoriasUiState,
+                estado: CategoriasUiState,
         contexto: ContextoCategorias
     ) {
                 val categoriasPublicasIds = estado.publicas.map { it.id }.toSet()
@@ -208,7 +213,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                 }
 
                 estado.personalizadas.forEach { categoria ->
-                    val categoriaPublicaId = categoriaPublicaId(contexto.nomeUtilizador, categoria.nome)
+                    val categoriaPublicaId = categoriaPublicaId(categoria.chaveDono.ifBlank { contexto.identificadorDono }, categoria.nome)
                     val jaPublica = !categoria.categoriaPublicaId.isNullOrBlank() ||
                         categoriasPublicasIds.contains(categoriaPublicaId)
                     val container = LinearLayout(this).apply {
@@ -244,7 +249,8 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                             contexto.nomeUtilizador,
                             categoria.nome,
                             true,
-                            contexto.modo
+                            contexto.modo,
+                            contexto.uid
                         ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
                     })
 
@@ -273,11 +279,11 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                         )
                     }
                     botoesPublicos.addView(criarBotaoCategoria(if (jaPublica) "Atualizar pública" else "Tornar pública") {
-                        viewModel.publicarCategoria(contexto.nomeUtilizador, contexto.nomeJogador, categoria.nome)
+                        viewModel.publicarCategoria(contexto.uid.orEmpty(), contexto.nomeUtilizador, contexto.nomeJogador, categoria.nome)
                     })
                     if (jaPublica) {
                         botoesPublicos.addView(criarBotaoCategoria("Remover pública") {
-                            viewModel.removerCategoriaPublica(contexto.nomeUtilizador, categoria.nome)
+                            viewModel.removerCategoriaPublica(contexto.uid.orEmpty(), contexto.nomeUtilizador, categoria.nome)
                         })
                     }
                     container.addView(botoesPublicos)
@@ -316,7 +322,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             .setMessage("Queres eliminar \"$categoria\"?")
             .setNegativeButton("Cancelar", null)
             .setPositiveButton("Eliminar") { _, _ ->
-                viewModel.eliminarCategoria(contexto.nomeUtilizador, categoria)
+                viewModel.eliminarCategoria(contexto.uid.orEmpty(), contexto.nomeUtilizador, categoria)
             }
             .show()
     }
@@ -332,6 +338,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
         nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        contextoCategorias?.uid?.let { intent.putExtra(IntentExtras.UID, it) }
         categoriaInicial?.let { intent.putExtra(IntentExtras.NOME_CATEGORIA, it) }
         codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
         modo.let { intent.putExtra(IntentExtras.MODO_JOGO, it) }
@@ -349,6 +356,10 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         val modo: String,
         val nomeUtilizador: String,
         val nomeJogador: String?,
-        val admin: Boolean
-    )
+        val admin: Boolean,
+        val uid: String?
+    ) {
+        val identificadorDono: String
+            get() = uid.orEmpty().ifBlank { nomeUtilizador }
+    }
 }

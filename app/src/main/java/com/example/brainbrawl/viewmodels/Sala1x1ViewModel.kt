@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
 
@@ -20,23 +21,21 @@ class Sala1x1ViewModel(
     private var jogadoresListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var estadoListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var salaListener: JogoCompetitivoRepository.ListenerHandle? = null
-    private var jogadoresNaSala: List<String> = emptyList()
+    private var jogadoresNaSala: List<JogoCompetitivoRepository.JogadorCompetitivo> = emptyList()
     private var admin = false
-    private var nomeUtilizador = ""
+    private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
+    private var chaveJogador = ""
     private var saidaManual = false
 
-    fun iniciar(codigoSala: String, nomeUtilizador: String) {
-        this.nomeUtilizador = nomeUtilizador
+    fun iniciar(codigoSala: String, uid: String, nomeUtilizador: String, nomeJogador: String) {
+        jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+        chaveJogador = jogadorAtual.chaveSala
         saidaManual = false
-        jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, nomeUtilizador)
-        jogoCompetitivoRepository.marcarPronto1x1(codigoSala, nomeUtilizador)
-        jogoCompetitivoRepository.obterAdmin(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-            .addOnSuccessListener { nomeAdmin ->
-                admin = if (nomeAdmin.isNullOrBlank()) {
-                    jogadoresNaSala.firstOrNull() == nomeUtilizador
-                } else {
-                    nomeAdmin == nomeUtilizador
-                }
+        jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, jogadorAtual)
+            .addOnSuccessListener { jogadorNaSala ->
+                chaveJogador = jogadorNaSala.chave
+                jogoCompetitivoRepository.marcarPronto1x1(codigoSala, chaveJogador)
+                atualizarAdmin(codigoSala)
                 publicarEstado()
             }
     }
@@ -46,8 +45,9 @@ class Sala1x1ViewModel(
         jogadoresListener = jogoCompetitivoRepository.escutarJogadores(
             ModoCompetitivo.UM_CONTRA_UM,
             codigoSala,
-            onJogadoresAlterados = { nomes ->
-                jogadoresNaSala = nomes
+            onJogadoresAlterados = { jogadores ->
+                jogadoresNaSala = jogadores
+                atualizarAdmin(codigoSala)
                 publicarEstado()
             }
         )
@@ -104,7 +104,7 @@ class Sala1x1ViewModel(
         if (admin) {
             jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
         } else {
-            jogoCompetitivoRepository.removerJogador1x1(codigoSala, nomeUtilizador)
+            jogoCompetitivoRepository.removerJogador1x1(codigoSala, jogadorAtual, chaveJogador)
         }
     }
 
@@ -125,10 +125,24 @@ class Sala1x1ViewModel(
 
     private fun publicarEstado() {
         _estado.value = SalaCompetitivaUiState(
-            jogadores = jogadoresNaSala,
+            jogadores = jogadoresNaSala.map { it.nomeDisplay },
             admin = admin,
             podeIniciar = admin && jogadoresNaSala.size == 2
         )
+    }
+
+    private fun atualizarAdmin(codigoSala: String) {
+        jogoCompetitivoRepository.obterChavesAdmin(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+            .addOnSuccessListener { chavesAdmin ->
+                admin = if (chavesAdmin.isEmpty()) {
+                    jogadoresNaSala.firstOrNull()?.chave == chaveJogador
+                } else {
+                    chavesAdmin.any { chave ->
+                        chave == chaveJogador || chave in jogadorAtual.chavesCompatibilidade
+                    }
+                }
+                publicarEstado()
+            }
     }
 
     private fun removerJogadoresListener() {

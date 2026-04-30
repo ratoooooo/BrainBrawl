@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
 import com.example.brainbrawl.repositories.JogoRepository
 import com.example.brainbrawl.services.GameService
@@ -27,9 +28,11 @@ class JogoViewModel(
     private val perguntas = mutableListOf<Pergunta>()
 
     private var codigoSala: String = ""
+    private var uid: String = ""
     private var nomeUtilizador: String = ""
     private var nomeJogador: String = ""
     private var nomeCategoria: String = ""
+    private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var modoJogo: String? = null
     private var admin = false
     private var perguntaAtualIndex = 0
@@ -49,17 +52,20 @@ class JogoViewModel(
 
     fun iniciar(
         codigoSala: String,
+        uid: String,
         nomeUtilizador: String,
         nomeJogador: String,
         nomeCategoria: String
     ) {
         this.codigoSala = codigoSala
+        this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
         this.nomeCategoria = nomeCategoria
+        this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
 
         observarOffsetServidor()
-        jogoRepository.obterInfoSala(codigoSala, nomeUtilizador, nomeJogador)
+        jogoRepository.obterInfoSala(codigoSala, jogadorAtual)
             .addOnSuccessListener { infoSala ->
                 admin = infoSala.admin
                 modoJogo = infoSala.modoJogo
@@ -99,7 +105,7 @@ class JogoViewModel(
             numeroPerguntasCertas = 0
         }
 
-        jogoRepository.registarResposta(codigoSala, nomeJogador, acertouUltimaPergunta)
+        jogoRepository.registarResposta(codigoSala, jogadorAtual, acertouUltimaPergunta)
 
         return JogoRespostaResultado(
             acertou = acertouUltimaPergunta,
@@ -113,7 +119,7 @@ class JogoViewModel(
         eliminacaoEmCurso = true
         jogoRepository.marcarJogadorEliminado(
             codigoSala,
-            nomeJogador,
+            jogadorAtual,
             totalPontos,
             totalPerguntascertas
         )
@@ -309,6 +315,7 @@ class JogoViewModel(
                 val jogadoresRestantes = jogadores
                     .filter { jogador ->
                         jogador.nome != GameConstants.JOGADOR_ADMIN &&
+                            jogador.chave != GameConstants.JOGADOR_ADMIN &&
                             !jogador.isHostOnly &&
                             jogador.estado != GameConstants.ESTADO_ELIMINADO
                     }
@@ -358,7 +365,7 @@ class JogoViewModel(
         if (!admin) {
             jogoRepository.guardarResultadoJogador(
                 codigoSala,
-                nomeJogador,
+                jogadorAtual,
                 totalPontos,
                 totalPerguntascertas
             ).addOnCompleteListener {
@@ -372,6 +379,7 @@ class JogoViewModel(
     private fun dadosNavegacao(): JogoResultadoDados {
         return JogoResultadoDados(
             codigoSala = codigoSala,
+            uid = uid,
             nomeJogador = nomeJogador,
             totalPontos = totalPontos,
             nomeCategoria = nomeCategoria,
@@ -409,6 +417,7 @@ data class JogoRespostaResultado(
 
 data class JogoResultadoDados(
     val codigoSala: String,
+    val uid: String,
     val nomeJogador: String,
     val totalPontos: Double,
     val nomeCategoria: String,

@@ -1,6 +1,198 @@
 # BrainBrawl - TEST_REPORT
 
-Data: 2026-04-29
+Data: 2026-04-30
+
+## Fase final - UID como chave principal
+
+### Ficheiros principais alterados nesta ronda
+
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
+- `ARCHITECTURE_PLAN.md`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/routes/UteisNavegacao.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisSala.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- Activities de modo/categorias/perfil/pontuacoes que recuperam UID por Intent/Auth fallback.
+
+### O que foi validado
+
+- `uid` continua a ser a chave principal em novos perfis, salas, jogadores de sala, pontuacoes e categorias quando existe Firebase Auth.
+- `nomeUtilizador` fica preservado como display e fallback para dados antigos.
+- `adminUid` passa a ser gravado em salas novas autenticadas, mantendo `adminId` para compatibilidade.
+- Categorias personalizadas/publicas ja nao expõem overloads publicos por apenas `nomeUtilizador`; o fallback por nome ficou interno.
+- `firebase-rules.json` valida JSON e inclui regras baseadas em `auth.uid` para perfis, salas, jogadores de sala, categorias e criador de categorias publicas.
+- O projeto nao compila com o `java` default da maquina (`25.0.2`) por limitacao do Kotlin/Gradle DSL: `JavaVersion.parse(25.0.2)`.
+- Os comandos foram executados com o JBR do Android Studio (`/Applications/Android Studio.app/Contents/jbr/Contents/Home`, Java 21).
+
+### Verificacoes executadas
+
+- `node -e "JSON.parse(require('fs').readFileSync('firebase-rules.json','utf8'))"`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Fallbacks que continuam intencionais
+
+- `jogadores/{nomeUtilizador}` para perfis legados e login antigo por nome/password.
+- Categorias antigas em `jogadores/{nomeUtilizador}/categoriasPersonalizadas`.
+- Salas antigas cujos jogadores, prontidao, respostas ou pontuacoes ainda estejam por nome.
+- `adminId`/`admin` em salas antigas, ao lado do novo `adminUid`.
+- `nomeUtilizador`, `nomeJogador` e `nomeDisplay` em modelos de sala, pontuacao e UI.
+
+### Segurança ainda pendente
+
+- Estatisticas finais continuam calculadas no cliente; as rules impedem escrita no perfil de outro utilizador, mas nao provam que os totais do proprio utilizador sao justos.
+- Incrementos de `usos` e transacoes de avaliacao de categorias publicas ainda precisam de tolerancia para compatibilidade.
+- Cloud Functions continuam recomendadas para ranking, estatisticas, validacao de fim de jogo e protecao forte contra resultados fabricados.
+
+## Firebase Rules - perfil Auth em jogadores/{uid}
+
+### Ficheiros alterados nesta ronda
+
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
+- `TEST_REPORT.md`
+
+### O que foi corrigido
+
+- `jogadores/{uid}` agora permite escrita quando existe utilizador autenticado e `auth.uid == uid`.
+- Escrita em perfis Auth fica limitada ao proprio utilizador.
+- A validacao de `jogadores/{id}` passou a aceitar dois formatos: perfil Auth por `uid` e perfil legado com `password`.
+- Perfis Auth validam `uid`, `nomeUtilizador`, `email`, `avatar`, `estado`, `pontuacao`, `taxaAcertos`, `totalJogos`, `totalRespostasCertas`, `totalVitorias`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2` e `totalVitoriasModoSolo`.
+- Mantida leitura de `jogadores` para login/perfil e compatibilidade temporaria com queries por `nomeUtilizador`/`email`.
+- Nao houve alteracao de estrutura Firebase nem de codigo Kotlin.
+
+### Motivo
+
+- A conta Firebase Auth era criada, mas o perfil em Realtime Database falhava porque as rules antigas exigiam `password` em todos os nodes de `jogadores`.
+- Como perfis Auth novos vivem em `jogadores/{uid}` e nao guardam `password`, a validacao rejeitava a escrita com `Permission denied`.
+
+### Testes feitos
+
+- Validacao sintatica de `firebase-rules.json` com `JSON.parse`.
+  - OK.
+
+### Testes manuais recomendados apos publicar as rules
+
+1. Criar nova conta com email/password e confirmar criacao de `jogadores/{uid}`.
+2. Confirmar que `uid` no perfil e igual ao `uid` do Firebase Authentication.
+3. Fazer login com a nova conta e confirmar que ja nao aparece `Conta autenticada sem perfil de jogador`.
+4. Confirmar que perfis antigos por nome continuam legiveis e nao foram apagados.
+5. Tentar atualizar o perfil autenticado normal pela app e confirmar sucesso.
+
+## Firebase Rules - indices para Auth hibrido
+
+### Ficheiros alterados nesta ronda
+
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
+- `TEST_REPORT.md`
+
+### O que foi corrigido
+
+- Adicionado `.indexOn` em `jogadores` para `nomeUtilizador`.
+- Adicionado tambem indice para `email`, preparando consultas por email durante a migracao Firebase Auth.
+- Nao houve alteracao de estrutura Firebase.
+- Nao houve alteracao de codigo Kotlin.
+
+### Motivo
+
+- A fase Auth hibrida cria perfis novos em `jogadores/{uid}`.
+- Para continuar compatível com fluxos que ainda passam `nomeUtilizador`, o app resolve perfis com query por `nomeUtilizador`.
+- Sem indice, o Realtime Database devolve o erro: `Index not defined, add ".indexOn": "nomeUtilizador"`.
+
+### Testes feitos
+
+- Validacao sintatica de `firebase-rules.json` com `JSON.parse`.
+  - OK.
+
+## Migração Firebase Authentication - base
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/services/AuthService.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/build.gradle.kts`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/LoginViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RegistarViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/LoginActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/res/layout/activity_login.xml`
+- `app/src/main/res/layout/activity_registar.xml`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Adicionada dependencia `com.google.firebase:firebase-auth` usando o Firebase BoM existente.
+- Criado `AuthService` para encapsular `FirebaseAuth.currentUser`, `createUserWithEmailAndPassword`, `signInWithEmailAndPassword` e `signOut`.
+- `RegistarViewModel` passou a criar conta Firebase Auth por email/password e, apos obter `uid`, criar perfil em `jogadores/{uid}`.
+- O perfil Auth guarda `uid`, `nomeUtilizador`, `email`, `avatar`, `estado`, `pontuacao`, `taxaAcertos`, `totalJogos`, `totalRespostasCertas`, `totalVitorias`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2` e `totalVitoriasModoSolo`.
+- `RegistarActivity` ganhou campo de email e, apos registo, abre diretamente `MainActivity`.
+- `LoginViewModel` passou a fazer login por email/password com Firebase Auth e a reutilizar `FirebaseAuth.currentUser` para sessao persistente.
+- `LoginActivity` redireciona para `MainActivity` quando ja existe `currentUser` com perfil.
+- `MainActivity` passou a chamar `FirebaseAuth.signOut()` no logout e a preservar `uid`/`email` nos extras de base.
+- `JogadorRepository` passou a resolver perfil/avatar/estado por `uid` ou por `nomeUtilizador`, mantendo suporte aos perfis antigos.
+- O login antigo por `jogadores/{nome}/password` continua disponivel quando o identificador inserido nao e email.
+
+### Estrutura nova usada
+
+- Perfil principal novo: `jogadores/{uid}`.
+- Campos novos/preparados: `uid`, `email`, `nomeUtilizador`.
+- Extras novos/preparados: `IntentExtras.UID` (`uid`) e `IntentExtras.EMAIL` (`email`).
+- Compatibilidade: `nomeUtilizador` continua a ser transportado nos extras e usado pelos fluxos ainda nao migrados.
+
+### Ainda usa `nomeUtilizador`
+
+- Amigos e convites.
+- Categorias personalizadas/publicas.
+- Salas de espera e jogo.
+- Pontuacoes/estatisticas finais.
+- Navegacao existente entre Activities.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Criar nova conta com nome, email e password; confirmar que entra direto no `MainActivity`.
+2. Confirmar no Firebase que foi criado `jogadores/{uid}` com `uid`, `nomeUtilizador`, `email`, avatar e estatisticas a zero.
+3. Fechar e reabrir a app; confirmar que `LoginActivity` detecta `currentUser` e abre `MainActivity`.
+4. Fazer logout no botão de voltar/sair da Main; confirmar `FirebaseAuth.signOut()` e regresso ao Login.
+5. Fazer login com email/password; confirmar entrada no Main e `estado = on`.
+6. Fazer login legado com nome/password de uma conta antiga; confirmar que ainda funciona.
+7. Entrar sem conta; confirmar que o fluxo convidado continua igual.
+8. Confirmar que dados antigos em `jogadores/{nome}` nao foram apagados.
+
+### Proximos passos
+
+- Migrar repositories sociais/categorias/salas/pontuacoes para receber e persistir `uid`.
+- Criar uma estrategia de mapeamento para resultados que ainda chegam com `nomeUtilizador`.
+- Atualizar Firebase Rules para `auth.uid` quando os writes principais ja estiverem em `jogadores/{uid}`.
 
 ## Migração MVVM leve - jogo
 
@@ -48,6 +240,211 @@ Data: 2026-04-29
 6. 2x2: iniciar com quatro jogadores, confirmar equipa correta, envio de resposta em `respostas/{jogador}/{indice}`, resultado por `pontuacoes_A`/`pontuacoes_B`, espera por todos e podio final.
 7. Em todos os modos, sair/rodar ecras durante jogo e confirmar que nao aparecem perguntas duplicadas, timers duplicados ou listeners a disparar depois de sair.
 8. Confirmar no Firebase que `salas`, `sala_1x1` e `sala_2x2` mantem os mesmos paths/campos.
+
+## Migracao UID - Bloco 3 Jogo
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/JogoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisSala.kt`
+- `app/src/main/java/com/example/brainbrawl/routes/UteisNavegacao.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolhaCategoriaModosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- As Activities de jogo leem `IntentExtras.UID` e usam `AuthService.currentUser` como fallback, mantendo `nomeUtilizador` e `nomeJogador` para display/compatibilidade.
+- `JogoViewModel`, `Jogo1x1ViewModel` e `Jogo2x2ViewModel` passaram a trabalhar com `JogadorSalaIdentidade`, cuja chave principal e o `uid` quando existe.
+- `JogoRepository` resolve a chave real do jogador em `salas/{codigo}/jogadores` antes de escrever respostas, eliminacao e resultado final.
+- `JogoCompetitivoRepository` resolve jogadores 1x1/2x2 por `uid`, chave antiga, `nomeUtilizador`, `nomeJogador` ou `nomeDisplay`.
+- Convites 1x1/2x2 criam salas competitivas com jogadores em formato hibrido e `adminId`, preservando `admin` como nome de display.
+- Prontos, equipas, respostas 2x2 e pontuacoes competitivas usam a chave efetiva da sala.
+- A passagem de `uid` foi preservada nos fluxos de modo/categoria/sala/jogo/pontuacao sem alterar UI, navegacao, regras, tempos ou nomes de paths Firebase.
+
+### Compatibilidade mantida
+
+- Salas antigas com jogadores guardados por nome continuam a ser encontradas pela lista de chaves de compatibilidade.
+- Convidados continuam sem `uid` e usam `nomeJogador`/`nomeUtilizador` como fallback.
+- `nomeUtilizador` e `nomeJogador` continuam a ser enviados para as Activities de pontuacao para manter os contratos atuais.
+- Listeners existentes continuam guardados em ViewModels/repositories e removidos por `removerListeners()`/`onCleared`.
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew :app:compileDebugKotlin`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Grupo/classico: criar sala autenticado, entrar com outro jogador, confirmar no Firebase que `salas/{codigo}/jogadores/{uid}` e usado quando ha Auth e que o nome mostrado continua legivel.
+2. Grupo/caotico: confirmar tempo de 10 segundos, respostas em `perguntaAtual/respostas/{chaveJogador}` e resultado final no mesmo jogador da sala.
+3. Eliminatorias: errar uma resposta, confirmar `estado=eliminado`, `pontuacao` e `totalRespostasCertas` no jogador correto; confirmar fim quando resta um jogador real.
+4. 1x1: enviar convite, aceitar, confirmar `sala_1x1/{codigo}/jogadores/{uid}`, `prontos/{uid}` e `pontuacoes/{uid}` quando autenticado.
+5. 2x2: criar convite com quatro jogadores, confirmar `equipaA`/`equipaB`, `respostas/{uid}/{indice}`, `pontuacoes_A`/`pontuacoes_B` e espera pelo podio.
+6. Compatibilidade: repetir com uma sala antiga por nome e confirmar que nao cria jogador duplicado ao responder/finalizar.
+
+### Ainda depende de `nomeUtilizador`
+
+- Activities de pontuacao e `PontuacaoRepository` ainda usam nomes para display, recordes, estatisticas e desforra.
+- Categorias personalizadas/publicas continuam a usar `nomeUtilizador` como dono/criador.
+- Alguns extras de navegacao continuam a transportar `nomeUtilizador` por compatibilidade e display.
+- Estatisticas finais ainda precisam do Bloco Pontuacoes para escrever definitivamente em `jogadores/{uid}`.
+
+### Proximo bloco sugerido
+
+- Pontuacoes: migrar `PontuacaoRepository`, `PontuacoesActivity`, `Pontuacao1x1Activity` e `Pontuacao2x2Activity` para separar `uid` de nome de display e atualizar estatisticas por `uid`.
+
+## Migracao UID - Bloco 4 Pontuacoes e Estatisticas
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- `ResultadoJogador` passou a transportar `uid`, chave real da sala, `nomeUtilizador` e `nomeJogador`, mantendo `nome` como texto de podio/display.
+- Leitura de resultados finais de grupo, 1x1 e 2x2 passa a preservar metadados de identidade quando existem e a cair para a chave/nome antigo em salas legadas.
+- Atualizacao de estatisticas globais resolve o perfil em `jogadores/{uid}` primeiro, com fallback por chave/nome legado, sem criar perfil para convidados.
+- Vencedores e marcadores `estatisticasAtualizadas` usam `uid` quando existe; convidados/dados antigos continuam a usar chave ou nome.
+- `Pontuacao1x1Activity` usa identidade hibrida para reconhecer jogador atual/adversario, atualizar apenas o jogador local e criar sala de desforra com chave principal por `uid` quando possivel.
+- `Pontuacao2x2Activity` usa identidade hibrida para detetar o recorde do jogador local.
+
+### Mantido sem alterações
+
+- UI, textos, layouts, navegacao, regras de pontuacao e regras de vencedores.
+- Paths principais de salas/resultados: `salas`, `sala_1x1`, `sala_2x2`, `pontuacoes`, `pontuacoes_A`, `pontuacoes_B` e `totalPerguntasCertas_*`.
+- Admin host-only continua fora do podio/estatisticas.
+- Convidados continuam sem perfil em `jogadores`.
+- Contratos das Activities de pontuacao continuam a receber `nomeUtilizador`/`nomeJogador` para display e compatibilidade.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Grupo: criar sala autenticado, jogar ate ao podio e confirmar que `estatisticasAtualizadas/{uid}` e `jogadores/{uid}` sao usados quando ha Auth.
+2. Caotico: repetir grupo em modo caotico e confirmar que tempos/pontuacao nao mudaram e as estatisticas atualizam uma vez.
+3. Eliminatorias: eliminar jogadores, abrir podio final e confirmar que jogadores reais atualizam estatisticas e admin host-only fica fora.
+4. 1x1: terminar partida com dois autenticados, confirmar podio, estatisticas por `uid` e desforra com jogadores na nova sala por `uid`.
+5. 2x2: terminar com quatro jogadores, confirmar podio por equipa, vencedor igual ao anterior e estatisticas/vitorias 2x2 por `uid`.
+6. Convidado: jogar como convidado e confirmar que aparece no podio, mas nao e criado perfil em `jogadores`.
+7. Admin host-only: iniciar/observar grupo como admin host-only e confirmar que nao entra no podio nem nas estatisticas.
+
+### Ainda depende de `nomeUtilizador`
+
+- Display de podios e nomes nos resultados.
+- Fallback para perfis legados e salas antigas.
+- Categorias personalizadas/publicas, criador/dono e alguns paths `jogadores/{nomeUtilizador}/categoriasPersonalizadas`.
+- Extras de navegacao mantidos por compatibilidade.
+
+### Proximo bloco recomendado
+
+- Categorias/ownership: migrar criador, dono, categorias personalizadas/publicas e publicacoes para `uid`, mantendo `nomeUtilizador` como display e fallback legado.
+
+## Migracao UID - Bloco 5 Categorias
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Categoria.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/CategoriasViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/ExplorarCategoriasViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisSala.kt`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Categorias personalizadas passam a ser procuradas por `uid` primeiro e por `nomeUtilizador` como fallback legado.
+- Criacao de categorias e novas perguntas passa a escrever em `jogadores/{uid}/categoriasPersonalizadas` quando existe Auth.
+- Edicao, eliminacao e leitura de perguntas resolvem a categoria existente antes de escrever, para nao perder perguntas antigas por nome.
+- Categorias publicas passam a guardar `criadorUid`, `criadorId`, `nomeUtilizador` e `nomeDisplay`.
+- Publicacao verifica ids publicos antigos e novos antes de criar/atualizar, reduzindo risco de duplicar categorias publicas.
+- Guardar copia de categoria publica usa `uid` como dono quando existe.
+- Avaliacoes usam `uid` como chave principal e verificam chaves antigas para impedir avaliacao duplicada.
+- Convidados continuam impedidos de criar, publicar, guardar copia e avaliar.
+- Salas criadas a partir de categoria personalizada carregam perguntas com identidade hibrida e guardam `donoUid` nos metadados quando disponivel.
+
+### Mantido sem alterações
+
+- UI, textos, layouts e navegacao.
+- Estrutura principal dos nodes `categorias`, `categoriasPublicas` e `categoriasPersonalizadas`.
+- Perguntas existentes em categorias antigas por nome continuam legiveis.
+- Contador de usos continua transacional em `categoriasPublicas/{id}/usos`.
+- Jogar com categoria publica continua permitido para jogadores com nome/identidade, mantendo o fluxo atual.
+
+### Verificações executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente
+
+1. Criar categoria: iniciar sessao, criar categoria nova e confirmar `jogadores/{uid}/categoriasPersonalizadas/{categoria}`.
+2. Editar pergunta: abrir categoria criada e editar uma pergunta sem criar categoria duplicada.
+3. Eliminar pergunta: eliminar pergunta e confirmar que apenas a pergunta escolhida saiu.
+4. Publicar categoria: tornar publica e confirmar `criadorUid`, `nomeUtilizador`, `nomeDisplay`, perguntas e `categoriaPublicaId`.
+5. Explorar categoria publica: abrir explorar, ver nome/criador/rating/usos e jogar sem mudar UI.
+6. Guardar copia: guardar categoria publica e confirmar copia em `jogadores/{uid}/categoriasPersonalizadas`.
+7. Jogar com categoria publica: iniciar sala, confirmar perguntas carregadas e incremento de `usos`.
+
+### Ainda depende de `nomeUtilizador`
+
+- Display do criador/dono.
+- Fallback para categorias personalizadas antigas em `jogadores/{nomeUtilizador}`.
+- Fallback de avaliacoes/publicacoes antigas que usavam nome como chave.
+- Extras de navegacao preservados para compatibilidade.
+
+### Proximo bloco recomendado
+
+- Firebase Rules/Auth hardening: proteger writes por `auth.uid` em jogadores, categorias, amigos, salas e estatisticas, mantendo fallback apenas onde ainda houver dados antigos.
 
 ## Migração MVVM leve - salas
 
@@ -1288,3 +1685,71 @@ Não executei estes testes manuais nesta ronda porque o ambiente atual não tem 
   - OK.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
   - OK.
+
+---
+
+## Migracao UID - Bloco 1 Amigos
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/AmigoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/PedidoAmizadeAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Convidar1x1AmigoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/Convidar2x2AmigoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/models/UtilizadorSocial.kt`
+- `app/src/main/java/com/example/brainbrawl/models/PedidoAmizade.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Convite.kt`
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `firebase-rules.json`
+- `TEST_REPORT.md`
+
+### O que foi migrado
+
+- Adicionado `UtilizadorSocial` para transportar `uid`, `nomeUtilizador`, chave real do perfil e chave de origem antiga.
+- `AmigosRepository` passou a resolver jogadores por UID primeiro e por `nomeUtilizador` como fallback.
+- Listas de amigos, pedidos e convites passam a usar identidade interna por UID quando existe.
+- A UI continua a mostrar `nomeUtilizador` via `nomeDisplay`.
+- Listeners sociais observam o caminho principal e tambem o caminho antigo por nome quando for diferente, para manter dados antigos visiveis.
+- Pedidos de amizade carregam/removem chaves antigas e novas para evitar duplicados presos durante a fase hibrida.
+- Convites recebidos mantem a chave original do convite para aceitar/remover convites antigos sem depender de todos os dados ja estarem migrados.
+- `PerfilAmigoActivity` recebe opcionalmente `uidAmigo`, mas continua compatível com `nomeAmigo`.
+- Fluxos de convite 1x1/2x2 usam UID para os nodes sociais; a sala criada continua com nomes para nao antecipar a migracao do bloco Salas.
+- `firebase-rules.json` passou a permitir writes sociais autenticados quando `auth.uid` corresponde ao dono do node, a chave do outro utilizador ou ao `nomeUtilizador` legado resolvido a partir de `jogadores/{auth.uid}`.
+
+### Mantido sem alterações
+
+- UI, layouts, textos e navegacao visual.
+- Extras existentes `nomeUtilizador` e `nomeAmigo`.
+- Estrutura das salas `sala_1x1` e `sala_2x2`, para nao misturar este bloco com Salas/Jogo.
+- Compatibilidade com amigos, pedidos e convites guardados com chave antiga por nome.
+
+### Verificações executadas
+
+- `./gradlew test`
+  - Bloqueado no ambiente local com Java `25.0.2`, antes da compilacao do projeto: `JavaVersion.parse(25.0.2)`.
+- `jq empty firebase-rules.json`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew test`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Ainda usa `nomeUtilizador`
+
+- Salas e sala de espera.
+- Jogo 1x1, 2x2 e grupo.
+- Pontuacoes e estatisticas.
+- Categorias personalizadas/publicas.
+- Navegacao geral e extras de compatibilidade.
+- Display de perfil, amigos, pedidos e convites.
+
+### Proximo bloco sugerido
+
+- Salas, antes de Jogo. As salas sao o contrato que liga convites, espera, admin, equipas e arranque do jogo; migrar esse ponto primeiro reduz o risco quando o bloco Jogo passar a usar UID.

@@ -15,16 +15,17 @@ class EditarCategoriaViewModel(
     private val _evento = MutableLiveData<EditarCategoriaEvent?>()
     val evento: LiveData<EditarCategoriaEvent?> = _evento
 
-    fun carregarPerguntasCategoria(nomeUtilizador: String, nomeCategoria: String) {
+    fun carregarPerguntasCategoria(uid: String, nomeUtilizador: String, nomeCategoria: String) {
         if (nomeCategoria.isBlank()) return
 
-        categoriaRepository.carregarPerguntasEditaveis(nomeUtilizador, nomeCategoria)
+        categoriaRepository.carregarPerguntasEditaveis(uid, nomeUtilizador, nomeCategoria)
             .addOnSuccessListener { perguntas ->
                 _perguntas.value = perguntas
             }
     }
 
     fun guardarPergunta(
+        uid: String,
         nomeUtilizador: String,
         nomeCategoria: String,
         perguntaId: String?,
@@ -52,6 +53,7 @@ class EditarCategoriaViewModel(
         }
 
         categoriaRepository.guardarPerguntaPersonalizada(
+            uid,
             nomeUtilizador,
             nomeCategoria,
             perguntaId,
@@ -63,25 +65,25 @@ class EditarCategoriaViewModel(
         )
             .addOnSuccessListener {
                 _evento.value = EditarCategoriaEvent.PerguntaGuardada
-                carregarPerguntasCategoria(nomeUtilizador, nomeCategoria)
+                carregarPerguntasCategoria(uid, nomeUtilizador, nomeCategoria)
             }
             .addOnFailureListener { error ->
                 _evento.value = EditarCategoriaEvent.ErroGuardar(error.message.orEmpty())
             }
     }
 
-    fun eliminarPergunta(nomeUtilizador: String, nomeCategoria: String, perguntaId: String) {
-        categoriaRepository.eliminarPerguntaPersonalizada(nomeUtilizador, nomeCategoria, perguntaId)
+    fun eliminarPergunta(uid: String, nomeUtilizador: String, nomeCategoria: String, perguntaId: String) {
+        categoriaRepository.eliminarPerguntaPersonalizada(uid, nomeUtilizador, nomeCategoria, perguntaId)
             .addOnSuccessListener {
                 _evento.value = EditarCategoriaEvent.PerguntaEliminada(perguntaId)
-                carregarPerguntasCategoria(nomeUtilizador, nomeCategoria)
+                carregarPerguntasCategoria(uid, nomeUtilizador, nomeCategoria)
             }
     }
 
-    fun criarCategoriaPersonalizada(nomeUtilizador: String, nomeCategoria: String) {
+    fun criarCategoriaPersonalizada(uid: String, nomeUtilizador: String, nomeCategoria: String) {
         if (nomeCategoria.isBlank()) return
 
-        categoriaRepository.criarCategoriaPersonalizada(nomeUtilizador, nomeCategoria)
+        categoriaRepository.criarCategoriaPersonalizada(uid, nomeUtilizador, nomeCategoria)
             .addOnSuccessListener {
                 _evento.value = EditarCategoriaEvent.CategoriaCriada
             }

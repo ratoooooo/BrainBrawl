@@ -8,6 +8,7 @@ import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoMultiBinding
 import com.example.brainbrawl.repositories.PontuacaoRepository
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.services.EstatisticasService
 import com.google.firebase.database.FirebaseDatabase
 
@@ -18,8 +19,10 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private val database = FirebaseDatabase.getInstance().reference
     private val pontuacaoRepository = PontuacaoRepository()
     private val estatisticasService = EstatisticasService()
+    private val authService = AuthService()
 
     private lateinit var codigoSala: String
+    private var uid: String = ""
     private lateinit var nomeUtilizador: String
     private var nomeJogador: String = ""
     private lateinit var nomeCategoria: String
@@ -35,6 +38,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
         // Guardar dados passados pelo intent
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: "Todas as categorias"
@@ -47,7 +51,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
         binding.btnVoltar.setOnClickListener {
             database.child("sala_2x2").child(codigoSala).removeValue()
-            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador.ifBlank { null })
+            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador.ifBlank { null }, uid.ifBlank { null })
             finish()
         }
     }
@@ -104,12 +108,27 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     }
 
     private fun mostrarNovoRecordSeAplicavel(resultados: List<EstatisticasService.ResultadoJogador>) {
-        val resultadoAtual = resultados.firstOrNull { it.nome == nomeUtilizador } ?: return
-        pontuacaoRepository.obterPontuacaoGlobalJogador(nomeUtilizador)
+        val resultadoAtual = resultados.firstOrNull { resultado ->
+            identificadoresJogadorAtual().any { resultado.corresponde(it) }
+        } ?: return
+        pontuacaoRepository.obterPontuacaoGlobalJogador(identificadorPontuacaoGlobal())
             .addOnSuccessListener { pontuacaoGuardada ->
                 if (resultadoAtual.pontos > pontuacaoGuardada) {
                     Toast.makeText(this@Pontuacao2x2Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()
                 }
             }
+    }
+
+    private fun identificadoresJogadorAtual(): List<String> {
+        return listOf(
+            uid,
+            nomeUtilizador,
+            nomeJogador,
+            nomeUtilizador.ifBlank { nomeJogador }
+        ).filter { it.isNotBlank() }.distinct()
+    }
+
+    private fun identificadorPontuacaoGlobal(): String {
+        return uid.ifBlank { nomeUtilizador.ifBlank { nomeJogador } }
     }
 }

@@ -3,6 +3,7 @@ package com.example.brainbrawl.repositories
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
@@ -22,32 +23,52 @@ class JogadorRepository(
     )
 
     data class PerfilJogador(
+        val uid: String,
         val nome: String,
+        val nomeUtilizador: String,
+        val email: String,
         val password: String,
         val avatar: String,
         val estado: String,
         val estatisticas: EstatisticasJogador
     )
 
-    fun obterPerfil(nomeJogador: String): Task<PerfilJogador?> {
-        return jogadorRef(nomeJogador).get().continueWith { task ->
-            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao obter perfil.")
-            task.result.toPerfilJogador(nomeJogador)
-        }
+    fun obterPerfil(identificador: String): Task<PerfilJogador?> {
+        val result = TaskCompletionSource<PerfilJogador?>()
+        procurarJogador(
+            identificador = identificador,
+            onSuccess = { snapshot ->
+                result.setResult(snapshot?.toPerfilJogador())
+            },
+            onFailure = { exception ->
+                result.setException(exception)
+            }
+        )
+        return result.task
     }
 
     fun verificarJogadorExiste(nomeJogador: String): Task<Boolean> {
-        return jogadorRef(nomeJogador).get().continueWith { task ->
-            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar jogador.")
-            task.result.exists()
-        }
+        val result = TaskCompletionSource<Boolean>()
+        procurarJogador(
+            identificador = nomeJogador,
+            onSuccess = { snapshot ->
+                result.setResult(snapshot != null)
+            },
+            onFailure = { exception ->
+                result.setException(exception)
+            }
+        )
+        return result.task
     }
 
     fun criarJogador(nomeJogador: String, passwordHash: String, avatar: String): Task<Void> {
         val jogadorData = mapOf(
+            FirebasePaths.NOME_UTILIZADOR to nomeJogador,
             FirebasePaths.PASSWORD to passwordHash,
             FirebasePaths.AVATAR to avatar,
+            FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
             FirebasePaths.PONTUACAO to 0.0,
+            FirebasePaths.TAXA_ACERTOS to 0.0,
             FirebasePaths.TOTAL_JOGOS to 0,
             FirebasePaths.TOTAL_VITORIAS to 0,
             FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
@@ -58,34 +79,133 @@ class JogadorRepository(
         return jogadorRef(nomeJogador).setValue(jogadorData)
     }
 
-    fun obterAvatar(nomeJogador: String): Task<String> {
-        return jogadorRef(nomeJogador).child(FirebasePaths.AVATAR).get().continueWith { task ->
-            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao obter avatar.")
-            task.result.getValue(String::class.java) ?: AVATAR_PADRAO
+    fun criarPerfilAutenticado(
+        uid: String,
+        nomeUtilizador: String,
+        email: String,
+        avatar: String
+    ): Task<Void> {
+        val jogadorData = mapOf(
+            FirebasePaths.UID to uid,
+            FirebasePaths.NOME_UTILIZADOR to nomeUtilizador,
+            FirebasePaths.EMAIL to email,
+            FirebasePaths.AVATAR to avatar,
+            FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
+            FirebasePaths.PONTUACAO to 0.0,
+            FirebasePaths.TAXA_ACERTOS to 0.0,
+            FirebasePaths.TOTAL_JOGOS to 0,
+            FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
+            FirebasePaths.TOTAL_VITORIAS to 0,
+            FirebasePaths.TOTAL_VITORIAS_MODO_1X1 to 0,
+            FirebasePaths.TOTAL_VITORIAS_MODO_2X2 to 0,
+            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0
+        )
+        return jogadorRef(uid).setValue(jogadorData)
+    }
+
+    fun obterAvatar(identificador: String): Task<String> {
+        val result = TaskCompletionSource<String>()
+        procurarJogador(
+            identificador = identificador,
+            onSuccess = { snapshot ->
+                result.setResult(snapshot?.child(FirebasePaths.AVATAR)?.getValue(String::class.java) ?: AVATAR_PADRAO)
+            },
+            onFailure = { exception ->
+                result.setException(exception)
+            }
+        )
+        return result.task
+    }
+
+    fun atualizarEstado(identificador: String, estado: String): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        procurarJogador(
+            identificador = identificador,
+            onSuccess = { snapshot ->
+                val key = snapshot?.key
+                if (key == null) {
+                    result.setResult(null)
+                } else {
+                    jogadorRef(key).child(FirebasePaths.ESTADO).setValue(estado)
+                        .addOnSuccessListener {
+                            result.setResult(null)
+                        }
+                        .addOnFailureListener { exception ->
+                            result.setException(exception)
+                        }
+                }
+            },
+            onFailure = { exception ->
+                result.setException(exception)
+            }
+        )
+        return result.task
+    }
+
+    fun marcarOnline(identificador: String): Task<Void> {
+        return atualizarEstado(identificador, GameConstants.ESTADO_ON)
+    }
+
+    fun marcarOffline(identificador: String): Task<Void> {
+        return atualizarEstado(identificador, GameConstants.ESTADO_OFF)
+    }
+
+    private fun procurarJogador(
+        identificador: String,
+        onSuccess: (DataSnapshot?) -> Unit,
+        onFailure: (Exception) -> Unit
+    ) {
+        if (identificador.isBlank()) {
+            onSuccess(null)
+            return
         }
+
+        jogadorRef(identificador).get()
+            .addOnSuccessListener { snapshot ->
+                if (snapshot.exists()) {
+                    onSuccess(snapshot)
+                    return@addOnSuccessListener
+                }
+
+                jogadoresRef()
+                    .orderByChild(FirebasePaths.NOME_UTILIZADOR)
+                    .equalTo(identificador)
+                    .limitToFirst(1)
+                    .get()
+                    .addOnSuccessListener { querySnapshot ->
+                        onSuccess(querySnapshot.children.firstOrNull())
+                    }
+                    .addOnFailureListener { exception ->
+                        onFailure(exception)
+                    }
+            }
+            .addOnFailureListener { exception ->
+                onFailure(exception)
+            }
     }
 
-    fun atualizarEstado(nomeJogador: String, estado: String): Task<Void> {
-        return jogadorRef(nomeJogador).child(FirebasePaths.ESTADO).setValue(estado)
+    private fun jogadoresRef(): DatabaseReference {
+        return database.child(FirebasePaths.JOGADORES)
     }
 
-    fun marcarOnline(nomeJogador: String): Task<Void> {
-        return atualizarEstado(nomeJogador, GameConstants.ESTADO_ON)
+    private fun jogadorRef(identificador: String): DatabaseReference {
+        return jogadoresRef().child(identificador)
     }
 
-    fun marcarOffline(nomeJogador: String): Task<Void> {
-        return atualizarEstado(nomeJogador, GameConstants.ESTADO_OFF)
-    }
-
-    private fun jogadorRef(nomeJogador: String): DatabaseReference {
-        return database.child(FirebasePaths.JOGADORES).child(nomeJogador)
-    }
-
-    private fun DataSnapshot.toPerfilJogador(nomeJogador: String): PerfilJogador? {
+    private fun DataSnapshot.toPerfilJogador(): PerfilJogador? {
         if (!exists()) return null
 
+        val key = key.orEmpty()
+        val uid = child(FirebasePaths.UID).getValue(String::class.java) ?: key
+        val nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).getValue(String::class.java)
+            ?: child(FirebasePaths.NOME).getValue(String::class.java)
+            ?: key
+
         return PerfilJogador(
-            nome = nomeJogador,
+            uid = uid,
+            nome = nomeUtilizador,
+            nomeUtilizador = nomeUtilizador,
+            email = child(FirebasePaths.EMAIL).getValue(String::class.java).orEmpty(),
             password = child(FirebasePaths.PASSWORD).getValue(String::class.java).orEmpty(),
             avatar = child(FirebasePaths.AVATAR).getValue(String::class.java) ?: AVATAR_PADRAO,
             estado = child(FirebasePaths.ESTADO).getValue(String::class.java) ?: GameConstants.ESTADO_OFF,

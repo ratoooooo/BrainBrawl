@@ -7,10 +7,13 @@ import com.example.brainbrawl.routes.UteisNavegacao.abrirEscolherCategoriaActivi
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityTipoModoClassicoBinding
+import com.example.brainbrawl.services.AuthService
 
 class TipoModoClassico : AppCompatActivity() {
     // Acessar os elementos do layout
     private val binding by lazy { ActivityTipoModoClassicoBinding.inflate(layoutInflater) }
+    private val authService = AuthService()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
@@ -19,19 +22,20 @@ class TipoModoClassico : AppCompatActivity() {
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
+        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
 
         // Configurar o botao para o modo 1x1, modo 2x2 e modo de todos contra todos
         binding.btnModo1x1.setOnClickListener {
-            iniciarModoCompetitivo(GameConstants.MODO_1X1, nomeUtilizador)
+            iniciarModoCompetitivo(GameConstants.MODO_1X1, nomeUtilizador, nomeJogador, uid)
         }
 
         binding.btnModo2x2.setOnClickListener {
-            iniciarModoCompetitivo(GameConstants.MODO_2X2, nomeUtilizador)
+            iniciarModoCompetitivo(GameConstants.MODO_2X2, nomeUtilizador, nomeJogador, uid)
         }
 
         binding.btnModoGrupo.setOnClickListener {
             // Chama a função para abrir a EscolherCategoriaActivity com o modo de jogo selecionado
-            abrirEscolherCategoriaActivity(this, modoJogo.toString(), nomeUtilizador, nomeJogador, true)
+            abrirEscolherCategoriaActivity(this, modoJogo.toString(), nomeUtilizador, nomeJogador, true, uid)
         }
 
         // Configurar o botão de voltar
@@ -39,6 +43,7 @@ class TipoModoClassico : AppCompatActivity() {
             val intent = Intent(this, EscolherModoActivity::class.java)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
             intent.putExtra(IntentExtras.ADMIN, false)
             startActivity(intent)
             finish()
@@ -73,7 +78,7 @@ class TipoModoClassico : AppCompatActivity() {
     }
 
     // Função para iniciar o modo competitivo 1x1 ou 2x2
-    private fun iniciarModoCompetitivo(modo: String, nomeUtilizador: String?) {
+    private fun iniciarModoCompetitivo(modo: String, nomeUtilizador: String?, nomeJogador: String?, uid: String?) {
         // Caso seja um jogador temporário, mostra mensagem de login obrigatório
         if (nomeUtilizador.isNullOrEmpty()) {
             mostrarMensagemLoginObrigatorio()
@@ -81,6 +86,8 @@ class TipoModoClassico : AppCompatActivity() {
             val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
             intent.putExtra(IntentExtras.MODO_JOGO, modo)
             intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
             intent.putExtra(IntentExtras.ADMIN, true)
             startActivity(intent)
         }

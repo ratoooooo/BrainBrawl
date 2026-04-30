@@ -2,12 +2,42 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Fase final UID/Auth hardening
+
+Atualizado em 2026-04-30.
+
+O ficheiro `firebase-rules.json` passou a preparar a fase em que `auth.uid` e a unica chave principal:
+
+- `jogadores/{uid}` so pode ser escrito pelo proprio utilizador autenticado (`auth.uid == uid`).
+- Perfis legados por nome continuam aceites sem Auth apenas para compatibilidade temporaria com o login antigo.
+- `salas/{codigo}`, `sala_1x1/{codigo}` e `sala_2x2/{codigo}` validam `adminUid`/`adminId` e permitem updates de estado apenas ao admin autenticado, mantendo fallback legado para convidados/dados antigos sem Auth.
+- `jogadores` dentro das salas podem ser escritos pelo proprio `uid`, pelo UID guardado no objeto do jogador ou pelo admin da sala.
+- `categoriasPublicas/{id}` passa a validar `criadorUid` e permite criacao/edicao pelo criador autenticado; avaliacoes e incrementos de uso continuam tolerantes para preservar os fluxos atuais.
+- `jogadores/{uid}/categoriasPersonalizadas` passa a exigir `auth.uid == uid` quando ha Auth.
+- Paths desconhecidos continuam bloqueados.
+
+Campos novos/preparados:
+
+- `adminUid` em salas novas autenticadas.
+- `criadorUid` em categorias publicas.
+- `donoUid` em categorias personalizadas e salas que usam categorias personalizadas.
+- `.indexOn` em `jogadores`: `uid`, `nomeUtilizador` e `email`.
+
+Limites conhecidos desta fase:
+
+- As rules impedem que um utilizador autenticado escreva diretamente em `jogadores/{uid}` de outro utilizador.
+- As rules ainda nao conseguem provar estatisticas finais justas, porque a app cliente continua a calcular e escrever resultados.
+- Fallbacks `auth == null` continuam em salas e alguns fluxos para nao quebrar convidados e dados antigos; devem ser removidos quando a app deixar de aceitar login legado/convidados em writes sensiveis.
+- Ranking, validacao de resultados, anti-cheat e atualizacao autoritativa de estatisticas devem passar para Cloud Functions ou backend confiavel.
+
 ## Contexto atual
 
-- A app usa Firebase Realtime Database com login manual.
-- O login compara a password introduzida com o hash guardado em `jogadores/{nome}/password`.
-- A app nao usa Firebase Authentication, por isso as rules nao recebem `auth.uid`, email, claims, nem qualquer identidade confiavel do jogador.
-- Como consequencia, o servidor nao consegue distinguir o jogador legitimo de outro cliente que escreva diretamente na base de dados.
+- A app usa Firebase Realtime Database e iniciou a migracao para Firebase Authentication.
+- Novas contas Auth criam perfil em `jogadores/{uid}` com `uid`, `nomeUtilizador` e `email`.
+- O login antigo por `jogadores/{nome}/password` ainda existe como compatibilidade temporaria.
+- Durante a fase hibrida, varios fluxos continuam a resolver dados antigos por `nomeUtilizador`.
+- As rules permitem criar/atualizar o perfil Auth em `jogadores/{uid}` apenas quando `auth.uid == uid`.
+- O ownership por `auth.uid` ja esta preparado nos paths principais, mas ainda existem fallbacks legados para compatibilidade.
 
 ## Paths analisados
 
@@ -25,74 +55,87 @@ Os paths usados no projeto estao concentrados principalmente em `FirebasePaths.k
 - `categorias`
 - `categoriasPublicas`
 
+## Indices de queries
+
+O node `jogadores` declara:
+
+- `.indexOn: ["uid", "nomeUtilizador", "email"]`
+
+Isto suporta as queries da fase hibrida Auth, especialmente a resolucao direta por UID e a resolucao de perfis antigos por `nomeUtilizador`. O indice por `email` fica preparado para consultas por email sem alterar a estrutura Firebase.
+
 Tambem existem ainda alguns acessos diretos em `RegistarActivity`, `Pontuacao1x1Activity` e `Pontuacao2x2Activity`, mas esta fase nao altera codigo da app.
 
 ## O que fica protegido
 
 - O acesso a paths desconhecidos fica bloqueado por defeito.
 - `categorias` fica apenas de leitura pela app cliente.
-- Criacao de jogadores passa por validacao basica de formato: password como hash SHA-256 hexadecimal, avatar como string e estatisticas numericas.
+- Criacao/atualizacao de perfil Auth em `jogadores/{uid}` exige utilizador autenticado e `auth.uid == uid`.
+- Perfis Auth validam os campos atuais: `uid`, `nomeUtilizador`, `email`, `avatar`, `estado`, `pontuacao`, `taxaAcertos`, `totalJogos`, `totalRespostasCertas`, `totalVitorias`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2` e `totalVitoriasModoSolo`.
+- Criacao de jogadores legados continua a passar por validacao basica de formato: password como hash SHA-256 hexadecimal, avatar como string e estatisticas numericas.
 - A password de um jogador existente nao pode ser alterada por uma escrita normal no mesmo node.
 - Estruturas conhecidas de salas, categorias publicas, categorias personalizadas, convites, pedidos, amigos, pontuacoes e estatisticas passam a validar tipos basicos.
 - Campos inesperados ficam bloqueados nos principais objetos atraves de `$other.validate = false`.
 - Pontuacoes, totais, usos e avaliacoes ficam limitados a valores numericos nao negativos quando aplicavel.
 
-## Limitacoes da autenticacao manual
+## Compatibilidade temporaria com perfis antigos
 
-Estas rules melhoram a forma dos dados, mas nao garantem identidade real.
+O node `jogadores` continua legivel pelo cliente porque a fase hibrida ainda precisa de:
 
-Sem Firebase Auth, as rules nao conseguem provar que:
+- resolver perfis por `nomeUtilizador`;
+- suportar login antigo por `jogadores/{nome}/password`;
+- manter dados existentes sem migracao destrutiva.
 
-- quem escreve em `jogadores/Alice` e mesmo a Alice;
-- quem aceita um convite e o destinatario do convite;
-- quem altera `salas/{codigo}/estado` e o admin da sala;
-- quem escreve uma pontuacao e o jogador dono dessa pontuacao;
-- quem publica ou remove uma categoria publica e o criador original;
-- quem atualiza estatisticas finais nao esta a inflacionar resultados.
-
-Como a app atual precisa ler `jogadores/{nome}/password` para fazer login manual, o node `jogadores` continua legivel pelo cliente. Isto e um risco estrutural do desenho atual, mesmo com hashes em vez de passwords em texto claro.
+Para compatibilidade, escritas sem Auth em perfis antigos continuam aceites quando respeitam a validacao legada com `password` e `avatar`. Perfis novos de Firebase Auth devem ser escritos em `jogadores/{uid}` e so passam se o utilizador autenticado for o proprio `uid`.
 
 ## Riscos que continuam
 
-- Qualquer cliente com acesso ao projeto Firebase pode tentar criar salas, alterar salas existentes ou escrever resultados validos em termos de tipo.
-- Um utilizador pode tentar manipular estatisticas, pedidos de amizade, convites e categorias publicas porque as rules nao tem uma identidade autenticada para comparar.
-- As rules nao conseguem impor ownership forte em `categoriasPersonalizadas`, `categoriasPublicas`, `amigos`, `convites_*` ou `pedidos_amizade`.
+Estas rules melhoram a forma dos dados e protegem o perfil Auth principal, mas alguns fluxos ainda nao tem ownership forte.
+
+Enquanto existirem paths baseados em nome, salas ou codigos temporarios, as rules nao conseguem provar que:
+
+- quem escreve em `jogadores/Alice` e mesmo a Alice;
+- quem aceita um convite e o destinatario do convite;
+- quem atualiza estatisticas finais nao esta a inflacionar resultados.
+
+- Um utilizador autenticado ainda pode tentar inflacionar as proprias estatisticas se fabricar resultados de sala validos em termos de tipo.
+- Compatibilidade com convidados/dados antigos ainda deixa algumas janelas `auth == null` em salas, usos e fluxos antigos.
 - A validacao nao substitui regras de negocio server-side. Ela apenas reduz writes malformados e bloqueia paths/campos desconhecidos.
 - Hashes de password continuam expostos a leitura pela app, abrindo espaco para ataques offline se a base de dados for lida por clientes nao confiaveis.
 
 ## O que ainda depende do cliente
 
-- Validar credenciais no login.
-- Decidir quem e admin de uma sala.
+- Suportar login legado por nome/password enquanto a migracao nao for encerrada.
 - Validar se um jogador pode iniciar jogo.
-- Garantir que cada jogador so escreve a sua propria resposta/pontuacao.
+- Garantir regras completas de resposta/pontuacao em dados antigos ou convidados sem Auth.
 - Garantir que estatisticas sao atualizadas uma unica vez por jogador/sala.
-- Impedir que um utilizador edite dados sociais ou categorias de outro utilizador.
 - Validar regras completas de jogo, fim de partida e vencedores.
 
 ## Recomendacao futura
 
-A seguranca forte deve migrar para Firebase Authentication.
+A app ja usa Firebase Authentication nos fluxos novos. A seguranca forte agora deve mover writes sensiveis para um backend confiavel e remover fallbacks legados quando a base estiver migrada.
 
 Plano recomendado:
 
-1. Criar utilizadores com Firebase Auth e guardar perfil publico em `jogadores/{uid}` ou `jogadoresPorNome/{nome}`.
-2. Separar dados publicos de dados privados. Passwords deixam de existir na Realtime Database.
-3. Usar `auth.uid` nas rules para permitir escrita apenas no proprio perfil.
-4. Guardar `ownerUid`, `adminUid`, `criadorUid` e participantes das salas/categorias.
-5. Reescrever rules para comparar `auth.uid` com esses campos.
-6. Mover calculos sensiveis, como estatisticas finais e validacao de resultados, para Cloud Functions ou outro backend confiavel.
-
-Exemplos de regras futuras com Auth:
-
-- `jogadores/{uid}`: escrita apenas se `auth.uid == uid`.
-- `salas/{codigo}/jogadores/{uid}`: escrita apenas pelo proprio jogador ou pelo admin da sala.
-- `salas/{codigo}/estado`: escrita apenas se `auth.uid == data.child('adminUid').val()`.
-- `categoriasPublicas/{id}`: update/delete apenas se `auth.uid == data.child('criadorUid').val()`.
+1. Remover login legado por `jogadores/{nome}/password` depois de migrar/criar contas Auth para todos.
+2. Separar dados publicos e privados, removendo hashes de password da Realtime Database.
+3. Remover fallbacks `auth == null` de salas, convites, categorias e resultados.
+4. Normalizar participantes por UID em todos os paths antigos ainda por nome.
+5. Mover estatisticas finais, ranking, validacao de resultados e anti-cheat para Cloud Functions.
+6. Depois das Cloud Functions, bloquear writes diretos do cliente em estatisticas globais.
 
 ## Aplicacao das rules
 
 O ficheiro `firebase-rules.json` foi criado para ser importado/publicado manualmente no Firebase Console ou via Firebase CLI.
+
+No Firebase Console:
+
+1. Abrir o projeto BrainBrawl.
+2. Ir a Realtime Database.
+3. Abrir o separador Rules.
+4. Substituir o conteudo pelo JSON de `firebase-rules.json`.
+5. Clicar em Publish.
+
+Opcionalmente, via Firebase CLI, publicar com `firebase deploy --only database`.
 
 Antes de usar em producao, validar num projeto de testes com:
 

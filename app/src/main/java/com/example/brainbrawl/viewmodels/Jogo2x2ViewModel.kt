@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
@@ -22,7 +23,11 @@ class Jogo2x2ViewModel(
 
     private val perguntas = mutableListOf<Pergunta>()
     private var codigoSala: String = ""
+    private var uid: String = ""
     private var nomeUtilizador: String = ""
+    private var nomeJogador: String = ""
+    private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
+    private var chaveJogador: String = ""
     private var categoria: String = ""
     private var equipaDoJogador: String = ""
     private var perguntaAtualIndex = 0
@@ -38,12 +43,18 @@ class Jogo2x2ViewModel(
 
     fun iniciar(
         codigoSala: String,
+        uid: String,
         nomeUtilizador: String,
+        nomeJogador: String,
         categoriaPadrao: String,
         categoriaTodas: String
     ) {
         this.codigoSala = codigoSala
+        this.uid = uid
         this.nomeUtilizador = nomeUtilizador
+        this.nomeJogador = nomeJogador
+        this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+        this.chaveJogador = jogadorAtual.chaveSala
 
         observarOffsetServidor()
         jogoCompetitivoRepository.carregarNomeCategoria(
@@ -85,7 +96,7 @@ class Jogo2x2ViewModel(
 
         jogoCompetitivoRepository.guardarResposta2x2(
             codigoSala,
-            nomeUtilizador,
+            chaveJogador,
             perguntaAtualIndex,
             opcaoEscolhida
         )
@@ -103,7 +114,7 @@ class Jogo2x2ViewModel(
             jogoCompetitivoRepository.guardarResultado2x2(
                 codigoSala,
                 equipaDoJogador,
-                nomeUtilizador,
+                chaveJogador,
                 totalPontos,
                 totalPerguntascertas
             )
@@ -132,9 +143,10 @@ class Jogo2x2ViewModel(
     }
 
     private fun identificarEquipaECarregarPerguntas(categoriaTodas: String) {
-        jogoCompetitivoRepository.identificarEquipa2x2(codigoSala, nomeUtilizador)
-            .addOnSuccessListener { equipa ->
-                equipaDoJogador = equipa
+        jogoCompetitivoRepository.identificarEquipa2x2(codigoSala, jogadorAtual)
+            .addOnSuccessListener { equipaJogador ->
+                equipaDoJogador = equipaJogador.equipa
+                chaveJogador = equipaJogador.chaveJogador
                 carregarOuCriarPerguntas(categoriaTodas)
             }
             .addOnFailureListener {
@@ -219,7 +231,9 @@ class Jogo2x2ViewModel(
         return JogoCompetitivoPontuacaoDados(
             codigoSala = codigoSala,
             modoJogo = GameConstants.MODO_2X2,
+            uid = uid,
             nomeUtilizador = nomeUtilizador,
+            nomeJogador = nomeJogador.ifBlank { jogadorAtual.nomeDisplay },
             totalPontos = totalPontos,
             categoria = categoria,
             totalPerguntasCertas = totalPerguntascertas,
@@ -244,7 +258,9 @@ data class JogoCompetitivoRespostaResultado(
 data class JogoCompetitivoPontuacaoDados(
     val codigoSala: String,
     val modoJogo: String,
+    val uid: String,
     val nomeUtilizador: String,
+    val nomeJogador: String,
     val totalPontos: Double,
     val categoria: String,
     val totalPerguntasCertas: Int,

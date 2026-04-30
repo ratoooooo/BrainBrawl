@@ -6,12 +6,14 @@ import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolhaCategoriaModosBinding
+import com.example.brainbrawl.services.AuthService
 
 class EscolhaCategoriaModosActivity : AppCompatActivity() {
     // Aceder os elementos do layout
     private val binding by lazy {
         ActivityEscolhaCategoriaModosBinding.inflate(layoutInflater)
     }
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -21,6 +23,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
 
         // Verificar se o modo de jogo é válido
         if (modoJogo == null) {
@@ -30,22 +33,22 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
 
         // Configurar os botões de categoria
         binding.btnCategoria1.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria1))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, uid, getString(R.string.categoria1))
         }
         binding.btnCategoria2.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria2))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, uid, getString(R.string.categoria2))
         }
         binding.btnCategoria3.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria3))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, uid, getString(R.string.categoria3))
         }
         binding.btnCategoria4.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria4))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, uid, getString(R.string.categoria4))
         }
         binding.btnCategoria5.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria5))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, uid, getString(R.string.categoria5))
         }
         binding.btnCategoria6.setOnClickListener {
-            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, getString(R.string.categoria6))
+            abrirProximaActivity(modoJogo, nomeUtilizador, nomeJogador, uid, getString(R.string.categoria6))
         }
 
         binding.infoCategorias.setOnClickListener {
@@ -57,6 +60,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
             intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_CLASSICO)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
             intent.putExtra(IntentExtras.ADMIN, true)
             startActivity(intent)
             finish()
@@ -68,6 +72,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         modoJogo: String,
         nomeUtilizador: String?,
         nomeJogador: String?,
+        uid: String?,
         nomeCategoria: String
     ) {
         // Redireciona para a activity correta com os dados necessários
@@ -79,6 +84,7 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
         modoJogo.let { intent.putExtra(IntentExtras.MODO_JOGO, it) }
         nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
         nomeCategoria.let { intent.putExtra(IntentExtras.NOME_CATEGORIA, it) }
         startActivity(intent)
         finish()

@@ -2,8 +2,10 @@ package com.example.brainbrawl.repositories
 
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
 import com.google.android.gms.tasks.Task
+import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
@@ -20,6 +22,7 @@ class JogoRepository(
     )
 
     data class JogadorEliminatorias(
+        val chave: String,
         val nome: String,
         val estado: String,
         val isHostOnly: Boolean
@@ -36,25 +39,29 @@ class JogoRepository(
 
     fun obterInfoSala(
         codigoSala: String,
-        nomeUtilizador: String,
-        nomeJogador: String
+        jogador: JogadorSalaIdentidade
     ): Task<SalaInfo> {
-        val salaRef = salaRef(codigoSala)
-        return salaRef.child(FirebasePaths.ADMIN).get().continueWithTask { adminTask ->
-            if (!adminTask.isSuccessful) {
-                throw adminTask.exception ?: IllegalStateException("Erro ao identificar admin.")
+        return salaRef(codigoSala).get().continueWith { task ->
+            if (!task.isSuccessful) {
+                throw task.exception ?: IllegalStateException("Erro ao carregar sala.")
             }
-            val nomeAdmin = adminTask.result.getValue(String::class.java).orEmpty()
-            val isAdmin = nomeAdmin == nomeUtilizador || nomeAdmin == nomeJogador
-            salaRef.child(FirebasePaths.MODO_JOGO).get().continueWith { modoTask ->
-                if (!modoTask.isSuccessful) {
-                    throw modoTask.exception ?: IllegalStateException("Erro ao carregar modo de jogo.")
-                }
-                SalaInfo(
-                    admin = isAdmin,
-                    modoJogo = modoTask.result.getValue(String::class.java) ?: GameConstants.MODO_CLASSICO
-                )
-            }
+            val sala = task.result
+            val admin = sala.child(FirebasePaths.ADMIN).texto()
+            val adminId = sala.child(FirebasePaths.ADMIN_ID).texto()
+            val adminUid = sala.child(FirebasePaths.ADMIN_UID).texto()
+            val jogadorNaSala = sala.child(FirebasePaths.JOGADORES).encontrarJogador(jogador)
+            val isHostOnly = jogadorNaSala?.child(FirebasePaths.IS_HOST_ONLY)?.getValue(Boolean::class.java) == true
+            val isAdmin = admin in jogador.chavesCompatibilidade ||
+                adminId in jogador.chavesCompatibilidade ||
+                adminUid in jogador.chavesCompatibilidade ||
+                jogadorNaSala?.key.orEmpty() in jogador.chavesCompatibilidade ||
+                isHostOnly
+
+            SalaInfo(
+                admin = isAdmin,
+                modoJogo = sala.child(FirebasePaths.MODO_JOGO).getValue(String::class.java)
+                    ?: GameConstants.MODO_CLASSICO
+            )
         }
     }
 
@@ -113,11 +120,14 @@ class JogoRepository(
         }
     }
 
-    fun registarResposta(codigoSala: String, nomeJogador: String, acertou: Boolean): Task<Void> {
-        return salaRef(codigoSala).child(FirebasePaths.PERGUNTA_ATUAL)
-            .child(FirebasePaths.RESPOSTAS)
-            .child(nomeJogador)
-            .setValue(acertou)
+    fun registarResposta(codigoSala: String, jogador: JogadorSalaIdentidade, acertou: Boolean): Task<Void> {
+        return resolverChaveJogador(codigoSala, jogador).continueWithTask { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao identificar jogador.")
+            salaRef(codigoSala).child(FirebasePaths.PERGUNTA_ATUAL)
+                .child(FirebasePaths.RESPOSTAS)
+                .child(task.result)
+                .setValue(acertou)
+        }
     }
 
     fun escutarOffsetServidor(
@@ -149,9 +159,10 @@ class JogoRepository(
         return salaRef(codigoSala).child(FirebasePaths.JOGADORES).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao obter jogadores.")
             task.result.children.mapNotNull { jogadorSnapshot ->
-                val nome = jogadorSnapshot.key ?: return@mapNotNull null
+                val chave = jogadorSnapshot.key ?: return@mapNotNull null
                 JogadorEliminatorias(
-                    nome = nome,
+                    chave = chave,
+                    nome = jogadorSnapshot.nomeDisplay().ifBlank { chave },
                     estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty(),
                     isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
                 )
@@ -159,18 +170,24 @@ class JogoRepository(
         }
     }
 
-    fun removerJogador(codigoSala: String, nomeJogador: String): Task<Void> {
-        return salaRef(codigoSala).child(FirebasePaths.JOGADORES).child(nomeJogador).removeValue()
+    fun removerJogador(codigoSala: String, jogador: JogadorSalaIdentidade): Task<Void> {
+        return resolverChaveJogador(codigoSala, jogador).continueWithTask { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao identificar jogador.")
+            salaRef(codigoSala).child(FirebasePaths.JOGADORES).child(task.result).removeValue()
+        }
     }
 
     fun marcarJogadorEliminado(
         codigoSala: String,
-        nomeJogador: String,
+        jogador: JogadorSalaIdentidade,
         totalPontos: Double,
         totalRespostasCertas: Int
     ): Task<Void> {
-        return salaRef(codigoSala).child(FirebasePaths.JOGADORES).child(nomeJogador).updateChildren(
+        return atualizarDadosJogador(
+            codigoSala,
+            jogador,
             mapOf(
+                FirebasePaths.NOME_DISPLAY to jogador.nomeDisplay,
                 FirebasePaths.ESTADO to GameConstants.ESTADO_ELIMINADO,
                 FirebasePaths.PONTUACAO to totalPontos,
                 FirebasePaths.TOTAL_RESPOSTAS_CERTAS to totalRespostasCertas
@@ -180,12 +197,15 @@ class JogoRepository(
 
     fun guardarResultadoJogador(
         codigoSala: String,
-        nomeJogador: String,
+        jogador: JogadorSalaIdentidade,
         totalPontos: Double,
         totalRespostasCertas: Int
     ): Task<Void> {
-        return salaRef(codigoSala).child(FirebasePaths.JOGADORES).child(nomeJogador).updateChildren(
+        return atualizarDadosJogador(
+            codigoSala,
+            jogador,
             mapOf(
+                FirebasePaths.NOME_DISPLAY to jogador.nomeDisplay,
                 FirebasePaths.PONTUACAO to totalPontos,
                 FirebasePaths.TOTAL_RESPOSTAS_CERTAS to totalRespostasCertas
             )
@@ -228,6 +248,51 @@ class JogoRepository(
 
     private fun salaRef(codigoSala: String): DatabaseReference {
         return database.child(FirebasePaths.SALAS).child(codigoSala)
+    }
+
+    private fun resolverChaveJogador(codigoSala: String, jogador: JogadorSalaIdentidade): Task<String> {
+        return salaRef(codigoSala).child(FirebasePaths.JOGADORES).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao identificar jogador.")
+            task.result.encontrarJogador(jogador)?.key ?: jogador.chaveSala
+        }
+    }
+
+    private fun atualizarDadosJogador(
+        codigoSala: String,
+        jogador: JogadorSalaIdentidade,
+        dados: Map<String, Any>
+    ): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        resolverChaveJogador(codigoSala, jogador)
+            .addOnSuccessListener { chave ->
+                salaRef(codigoSala).child(FirebasePaths.JOGADORES).child(chave).updateChildren(dados)
+                    .addOnSuccessListener { result.setResult(null) }
+                    .addOnFailureListener { result.setException(it) }
+            }
+            .addOnFailureListener { result.setException(it) }
+        return result.task
+    }
+
+    private fun DataSnapshot.encontrarJogador(jogador: JogadorSalaIdentidade): DataSnapshot? {
+        return children.firstOrNull { jogadorSnapshot ->
+            val chave = jogadorSnapshot.key.orEmpty()
+            chave in jogador.chavesCompatibilidade ||
+                jogadorSnapshot.child(FirebasePaths.UID).texto() in jogador.chavesCompatibilidade ||
+                jogadorSnapshot.child(FirebasePaths.NOME_UTILIZADOR).texto() in jogador.chavesCompatibilidade ||
+                jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto() in jogador.chavesCompatibilidade ||
+                jogadorSnapshot.nomeDisplay() in jogador.chavesCompatibilidade
+        }
+    }
+
+    private fun DataSnapshot.nomeDisplay(): String {
+        return child(FirebasePaths.NOME_DISPLAY).texto()
+            .ifBlank { child(FirebasePaths.NOME_UTILIZADOR).texto() }
+            .ifBlank { child(FirebasePaths.NOME_JOGADOR).texto() }
+            .ifBlank { child(FirebasePaths.NOME).texto() }
+    }
+
+    private fun DataSnapshot.texto(): String {
+        return getValue(String::class.java).orEmpty()
     }
 
     private fun DataSnapshot.intValue(): Int {

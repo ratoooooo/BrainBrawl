@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEsperaEliminadoBinding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.EsperaEliminadoEvent
 import com.example.brainbrawl.viewmodels.EsperaEliminadoViewModel
 
@@ -18,8 +19,10 @@ class EsperaEliminadoActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[EsperaEliminadoViewModel::class.java]
     }
+    private val authService = AuthService()
 
     private lateinit var codigoSala: String
+    private var uid: String = ""
     private lateinit var nomeJogador: String
     private lateinit var nomeCategoria: String
     private lateinit var nomeUtilizador: String
@@ -35,6 +38,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
@@ -81,6 +85,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
 
         val intent = Intent(this, PontuacoesActivity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+        uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
         intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
         intent.putExtra(IntentExtras.TOTAL_PONTOS, totalPontos)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)

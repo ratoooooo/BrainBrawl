@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
@@ -22,7 +23,11 @@ class Jogo1x1ViewModel(
 
     private val perguntas = mutableListOf<Pergunta>()
     private var codigoSala: String = ""
+    private var uid: String = ""
     private var nomeUtilizador: String = ""
+    private var nomeJogador: String = ""
+    private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
+    private var chaveJogador: String = ""
     private var categoria: String = ""
     private var perguntaAtualIndex = 0
     private var totalPontos = 0.0
@@ -37,24 +42,28 @@ class Jogo1x1ViewModel(
 
     fun iniciar(
         codigoSala: String,
+        uid: String,
         nomeUtilizador: String,
+        nomeJogador: String,
         categoriaPadrao: String,
         categoriaTodas: String
     ) {
         this.codigoSala = codigoSala
+        this.uid = uid
         this.nomeUtilizador = nomeUtilizador
+        this.nomeJogador = nomeJogador
+        this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+        this.chaveJogador = jogadorAtual.chaveSala
 
         observarOffsetServidor()
-        jogoCompetitivoRepository.carregarNomeCategoria(
-            ModoCompetitivo.UM_CONTRA_UM,
-            codigoSala,
-            categoriaPadrao
-        ).addOnSuccessListener { nomeCategoria ->
-            categoria = nomeCategoria
-            carregarOuCriarPerguntas(categoriaTodas)
-        }.addOnFailureListener {
-            _evento.value = Jogo1x1Event.ErroLerCategoria
-        }
+        jogoCompetitivoRepository.resolverJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, jogadorAtual)
+            .addOnSuccessListener { jogadorNaSala ->
+                chaveJogador = jogadorNaSala.chave
+                carregarCategoriaEContinuar(categoriaPadrao, categoriaTodas)
+            }
+            .addOnFailureListener {
+                carregarCategoriaEContinuar(categoriaPadrao, categoriaTodas)
+            }
     }
 
     fun responder(
@@ -91,7 +100,7 @@ class Jogo1x1ViewModel(
     }
 
     fun finalizarJogo() {
-        jogoCompetitivoRepository.guardarPontuacao1x1(codigoSala, nomeUtilizador, totalPontos)
+        jogoCompetitivoRepository.guardarPontuacao1x1(codigoSala, chaveJogador, totalPontos)
             .addOnSuccessListener {
                 aguardarPodioCompleto()
             }
@@ -139,6 +148,19 @@ class Jogo1x1ViewModel(
                 "Erro ao carregar perguntas"
             }
             _evento.value = Jogo1x1Event.ErroPerguntas(mensagem)
+        }
+    }
+
+    private fun carregarCategoriaEContinuar(categoriaPadrao: String, categoriaTodas: String) {
+        jogoCompetitivoRepository.carregarNomeCategoria(
+            ModoCompetitivo.UM_CONTRA_UM,
+            codigoSala,
+            categoriaPadrao
+        ).addOnSuccessListener { nomeCategoria ->
+            categoria = nomeCategoria
+            carregarOuCriarPerguntas(categoriaTodas)
+        }.addOnFailureListener {
+            _evento.value = Jogo1x1Event.ErroLerCategoria
         }
     }
 
@@ -197,7 +219,9 @@ class Jogo1x1ViewModel(
         return JogoCompetitivoPontuacaoDados(
             codigoSala = codigoSala,
             modoJogo = GameConstants.MODO_1X1,
+            uid = uid,
             nomeUtilizador = nomeUtilizador,
+            nomeJogador = nomeJogador.ifBlank { jogadorAtual.nomeDisplay },
             totalPontos = totalPontos,
             categoria = categoria,
             totalPerguntasCertas = totalPerguntascertas,

@@ -70,6 +70,20 @@
             android:textColorHint="#6C757D" />
 
         <EditText
+            android:id="@+id/edt_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
+            android:textSize="16sp"
+            android:background="@drawable/edt_borda_preta"
+            android:paddingHorizontal="16dp"
+            android:paddingVertical="12dp"
+            android:textColor="#0D0D0D"
+            android:textColorHint="#6C757D" />
+
+        <EditText
             android:id="@+id/edt_password_jogador"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

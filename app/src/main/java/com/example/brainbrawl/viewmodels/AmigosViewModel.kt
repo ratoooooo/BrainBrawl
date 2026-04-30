@@ -4,6 +4,8 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.models.Convite
+import com.example.brainbrawl.models.PedidoAmizade
+import com.example.brainbrawl.models.UtilizadorSocial
 import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.repositories.JogadorRepository
 
@@ -15,8 +17,8 @@ class AmigosViewModel(
     private val _amigos = MutableLiveData<AmigosListaUiState>()
     val amigos: LiveData<AmigosListaUiState> = _amigos
 
-    private val _pedidos = MutableLiveData<List<String>>()
-    val pedidos: LiveData<List<String>> = _pedidos
+    private val _pedidos = MutableLiveData<List<PedidoAmizade>>()
+    val pedidos: LiveData<List<PedidoAmizade>> = _pedidos
 
     private val _convites = MutableLiveData<List<Convite>>()
     val convites: LiveData<List<Convite>> = _convites
@@ -27,39 +29,44 @@ class AmigosViewModel(
     private var amigosListenerHandle: AmigosRepository.ListenerHandle? = null
     private var pedidosListenerHandle: AmigosRepository.ListenerHandle? = null
     private var convitesListenerHandle: AmigosRepository.ListenerHandle? = null
-    private var nomesAmigosAtuais: List<String> = emptyList()
+    private var utilizadorAtual: UtilizadorSocial? = null
+    private var amigosAtuais: List<UtilizadorSocial> = emptyList()
 
-    fun carregarListaAmigos(nomeUtilizador: String) {
-        if (nomeUtilizador.isEmpty()) return
-
-        amigosRepository.carregarListaAmigos(nomeUtilizador)
-            .addOnSuccessListener { nomesAmigos ->
-                atualizarListaAmigos(nomeUtilizador, nomesAmigos)
-            }
+    fun carregarListaAmigos(uid: String, nomeUtilizador: String) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.carregarListaAmigos(utilizador)
+                .addOnSuccessListener { amigos ->
+                    atualizarListaAmigos(utilizador, amigos)
+                }
+        }
     }
 
-    fun iniciarListenersSociais(nomeUtilizador: String, nomeCategoriaPadrao: String) {
-        if (nomeUtilizador.isEmpty() || amigosListenerHandle != null) return
+    fun iniciarListenersSociais(uid: String, nomeUtilizador: String, nomeCategoriaPadrao: String) {
+        if ((uid.isBlank() && nomeUtilizador.isBlank()) || amigosListenerHandle != null) return
 
-        amigosListenerHandle = amigosRepository.observarAmigos(
-            nomeUtilizador,
-            onAmigosAlterados = { nomesAmigos ->
-                atualizarListaAmigos(nomeUtilizador, nomesAmigos)
-            }
-        )
-        pedidosListenerHandle = amigosRepository.observarPedidosRecebidos(
-            nomeUtilizador,
-            onPedidosAlterados = { pedidosRecebidos ->
-                _pedidos.value = pedidosRecebidos
-            }
-        )
-        convitesListenerHandle = amigosRepository.observarConvitesRecebidos(
-            nomeUtilizador,
-            nomeCategoriaPadrao,
-            onConvitesAlterados = { convitesRecebidos ->
-                _convites.value = convitesRecebidos
-            }
-        )
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            if (amigosListenerHandle != null) return@resolverUtilizadorAtual
+
+            amigosListenerHandle = amigosRepository.observarAmigos(
+                utilizador,
+                onAmigosAlterados = { amigos ->
+                    atualizarListaAmigos(utilizador, amigos)
+                }
+            )
+            pedidosListenerHandle = amigosRepository.observarPedidosRecebidos(
+                utilizador,
+                onPedidosAlterados = { pedidosRecebidos ->
+                    _pedidos.value = pedidosRecebidos
+                }
+            )
+            convitesListenerHandle = amigosRepository.observarConvitesRecebidos(
+                utilizador,
+                nomeCategoriaPadrao,
+                onConvitesAlterados = { convitesRecebidos ->
+                    _convites.value = convitesRecebidos
+                }
+            )
+        }
     }
 
     fun removerListenersSociais() {
@@ -71,90 +78,109 @@ class AmigosViewModel(
         convitesListenerHandle = null
     }
 
-    fun pesquisarUtilizador(nomeUtilizador: String, nomePesquisa: String) {
-        if (nomePesquisa.isEmpty() || nomePesquisa == nomeUtilizador) {
+    fun pesquisarUtilizador(uid: String, nomeUtilizador: String, nomePesquisa: String) {
+        if (nomePesquisa.isEmpty()) {
             _evento.value = AmigosEvent.PesquisaOculta
             return
         }
 
-        amigosRepository.pesquisarJogadorParaAdicionar(nomePesquisa).addOnSuccessListener { existe ->
-            if (existe) {
-                if (nomesAmigosAtuais.contains(nomePesquisa)) {
-                    _evento.value = AmigosEvent.JogadorJaAmigo(nomePesquisa)
-                } else {
-                    _evento.value = AmigosEvent.JogadorEncontrado(nomePesquisa)
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.pesquisarJogadorParaAdicionar(nomePesquisa).addOnSuccessListener { jogador ->
+                when {
+                    jogador == null -> _evento.value = AmigosEvent.JogadorNaoEncontrado
+                    jogador.corresponde(utilizador) -> _evento.value = AmigosEvent.PesquisaOculta
+                    amigosAtuais.any { it.corresponde(jogador) } -> {
+                        _evento.value = AmigosEvent.JogadorJaAmigo(jogador.nomeDisplay)
+                    }
+                    else -> _evento.value = AmigosEvent.JogadorEncontrado(jogador.nomeDisplay)
                 }
-            } else {
-                _evento.value = AmigosEvent.JogadorNaoEncontrado
             }
         }
     }
 
-    fun enviarPedidoAmizade(nomeUtilizador: String, nomeNovoAmigo: String) {
-        if (nomeNovoAmigo.isEmpty() || nomeNovoAmigo == nomeUtilizador) return
+    fun enviarPedidoAmizade(uid: String, nomeUtilizador: String, nomeNovoAmigo: String) {
+        if (nomeNovoAmigo.isEmpty()) return
 
-        if (nomesAmigosAtuais.contains(nomeNovoAmigo)) {
-            _evento.value = AmigosEvent.PedidoJaAmigo
-            return
-        }
-
-        amigosRepository.enviarPedidoAmizade(nomeUtilizador, nomeNovoAmigo)
-            .addOnSuccessListener {
-                _evento.value = AmigosEvent.PedidoEnviado
-            }
-            .addOnFailureListener {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.pesquisarJogadorParaAdicionar(nomeNovoAmigo).addOnSuccessListener { amigo ->
+                when {
+                    amigo == null -> _evento.value = AmigosEvent.JogadorNaoEncontrado
+                    amigo.corresponde(utilizador) -> _evento.value = AmigosEvent.PesquisaOculta
+                    amigosAtuais.any { it.corresponde(amigo) } -> _evento.value = AmigosEvent.PedidoJaAmigo
+                    else -> {
+                        amigosRepository.enviarPedidoAmizade(utilizador, amigo)
+                            .addOnSuccessListener {
+                                _evento.value = AmigosEvent.PedidoEnviado
+                            }
+                            .addOnFailureListener {
+                                _evento.value = AmigosEvent.ErroEnviarPedido
+                            }
+                    }
+                }
+            }.addOnFailureListener {
                 _evento.value = AmigosEvent.ErroEnviarPedido
             }
+        }
     }
 
-    fun aceitarPedidoAmizade(nomeUtilizador: String, nomeOutro: String) {
-        amigosRepository.aceitarPedidoAmizade(nomeUtilizador, nomeOutro)
-            .addOnSuccessListener {
-                _evento.value = AmigosEvent.PedidoAceite
-            }
+    fun aceitarPedidoAmizade(uid: String, nomeUtilizador: String, pedido: PedidoAmizade) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.aceitarPedidoAmizade(utilizador, pedido)
+                .addOnSuccessListener {
+                    _evento.value = AmigosEvent.PedidoAceite
+                }
+        }
     }
 
-    fun recusarPedidoAmizade(nomeUtilizador: String, nomeOutro: String) {
-        amigosRepository.recusarPedidoAmizade(nomeUtilizador, nomeOutro)
-            .addOnSuccessListener {
-                _evento.value = AmigosEvent.PedidoRecusado
-            }
+    fun recusarPedidoAmizade(uid: String, nomeUtilizador: String, pedido: PedidoAmizade) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.recusarPedidoAmizade(utilizador, pedido)
+                .addOnSuccessListener {
+                    _evento.value = AmigosEvent.PedidoRecusado
+                }
+        }
     }
 
-    fun carregarPedidosRecebidos(nomeUtilizador: String) {
-        if (nomeUtilizador.isEmpty()) return
-
-        amigosRepository.carregarPedidosRecebidos(nomeUtilizador)
-            .addOnSuccessListener { pedidosRecebidos ->
-                _pedidos.value = pedidosRecebidos
-            }
+    fun carregarPedidosRecebidos(uid: String, nomeUtilizador: String) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.carregarPedidosRecebidos(utilizador)
+                .addOnSuccessListener { pedidosRecebidos ->
+                    _pedidos.value = pedidosRecebidos
+                }
+        }
     }
 
-    fun carregarConvitesRecebidos(nomeUtilizador: String, nomeCategoriaPadrao: String) {
-        if (nomeUtilizador.isEmpty()) return
-
-        amigosRepository.carregarConvitesRecebidos(nomeUtilizador, nomeCategoriaPadrao)
-            .addOnSuccessListener { convitesRecebidos ->
-                _convites.value = convitesRecebidos
-            }
+    fun carregarConvitesRecebidos(uid: String, nomeUtilizador: String, nomeCategoriaPadrao: String) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.carregarConvitesRecebidos(utilizador, nomeCategoriaPadrao)
+                .addOnSuccessListener { convitesRecebidos ->
+                    _convites.value = convitesRecebidos
+                }
+        }
     }
 
-    fun aceitarConvite(nomeUtilizador: String, convite: Convite) {
-        amigosRepository.aceitarConvite(nomeUtilizador, convite.nomeAmigo)
+    fun aceitarConvite(uid: String, nomeUtilizador: String, convite: Convite) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.aceitarConvite(utilizador, convite)
+        }
     }
 
-    fun recusarConvite(nomeUtilizador: String, convite: Convite) {
-        amigosRepository.recusarConvite(nomeUtilizador, convite.nomeAmigo)
-            .addOnSuccessListener {
-                _evento.value = AmigosEvent.ConviteRecusado
-            }
+    fun recusarConvite(uid: String, nomeUtilizador: String, convite: Convite) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.recusarConvite(utilizador, convite)
+                .addOnSuccessListener {
+                    _evento.value = AmigosEvent.ConviteRecusado
+                }
+        }
     }
 
-    fun removerConvite(nomeUtilizador: String, convite: Convite) {
-        amigosRepository.removerConvite(nomeUtilizador, convite.nomeAmigo)
-            .addOnSuccessListener {
-                _evento.value = AmigosEvent.ConviteRemovido
-            }
+    fun removerConvite(uid: String, nomeUtilizador: String, convite: Convite) {
+        resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
+            amigosRepository.removerConvite(utilizador, convite)
+                .addOnSuccessListener {
+                    _evento.value = AmigosEvent.ConviteRemovido
+                }
+        }
     }
 
     fun consumirEvento() {
@@ -166,35 +192,60 @@ class AmigosViewModel(
         super.onCleared()
     }
 
-    private fun atualizarListaAmigos(nomeUtilizador: String, nomesAmigos: List<String>) {
-        val nomesBase = mutableListOf(nomeUtilizador)
+    private fun resolverUtilizadorAtual(
+        uid: String,
+        nomeUtilizador: String,
+        onSuccess: (UtilizadorSocial) -> Unit
+    ) {
+        val atual = utilizadorAtual
+        if (atual != null && atual.corresponde(uid, nomeUtilizador)) {
+            onSuccess(atual)
+            return
+        }
+
+        val identificador = uid.ifBlank { nomeUtilizador }
+        amigosRepository.resolverUtilizador(identificador, nomeUtilizador)
+            .addOnSuccessListener { utilizador ->
+                val resolvido = utilizador ?: UtilizadorSocial(
+                    uid = uid,
+                    nomeUtilizador = nomeUtilizador,
+                    chavePerfil = identificador,
+                    chaveOrigem = nomeUtilizador
+                )
+                utilizadorAtual = resolvido
+                onSuccess(resolvido)
+            }
+    }
+
+    private fun atualizarListaAmigos(utilizador: UtilizadorSocial, amigos: List<UtilizadorSocial>) {
+        val utilizadoresBase = mutableListOf(utilizador)
         val avataresBase = mutableListOf(AVATAR_PADRAO)
         val estadosBase = mutableListOf(ESTADO_ON)
 
-        jogadorRepository.obterPerfil(nomeUtilizador)
+        jogadorRepository.obterPerfil(utilizador.chavePrimaria)
             .addOnSuccessListener { perfil ->
                 avataresBase[0] = perfil?.avatar ?: AVATAR_PADRAO
                 estadosBase[0] = perfil?.estado ?: ESTADO_ON
 
-                val amigosTemp = nomesAmigos.filter { it != nomeUtilizador }
+                val amigosTemp = amigos.filterNot { it.corresponde(utilizador) }
                 val avataresTemp = MutableList(amigosTemp.size) { AVATAR_PADRAO }
                 val estadosTemp = MutableList(amigosTemp.size) { ESTADO_OFF }
 
                 if (amigosTemp.isEmpty()) {
-                    publicarAmigos(nomesBase, avataresBase, estadosBase)
+                    publicarAmigos(utilizadoresBase, avataresBase, estadosBase)
                     return@addOnSuccessListener
                 }
 
                 var loaded = 0
-                amigosTemp.forEachIndexed { index, nomeAmigo ->
-                    jogadorRepository.obterPerfil(nomeAmigo)
+                amigosTemp.forEachIndexed { index, amigo ->
+                    jogadorRepository.obterPerfil(amigo.chavePrimaria)
                         .addOnSuccessListener { perfilAmigo ->
                             avataresTemp[index] = perfilAmigo?.avatar ?: AVATAR_PADRAO
                             estadosTemp[index] = perfilAmigo?.estado ?: ESTADO_OFF
                             loaded++
                             if (loaded == amigosTemp.size) {
                                 publicarAmigos(
-                                    nomesBase + amigosTemp,
+                                    utilizadoresBase + amigosTemp,
                                     avataresBase + avataresTemp,
                                     estadosBase + estadosTemp
                                 )
@@ -204,7 +255,7 @@ class AmigosViewModel(
                             loaded++
                             if (loaded == amigosTemp.size) {
                                 publicarAmigos(
-                                    nomesBase + amigosTemp,
+                                    utilizadoresBase + amigosTemp,
                                     avataresBase + avataresTemp,
                                     estadosBase + estadosTemp
                                 )
@@ -214,9 +265,13 @@ class AmigosViewModel(
             }
     }
 
-    private fun publicarAmigos(nomes: List<String>, avatares: List<String>, estados: List<String>) {
-        nomesAmigosAtuais = nomes
-        _amigos.value = AmigosListaUiState(nomes, avatares, estados)
+    private fun publicarAmigos(
+        utilizadores: List<UtilizadorSocial>,
+        avatares: List<String>,
+        estados: List<String>
+    ) {
+        amigosAtuais = utilizadores
+        _amigos.value = AmigosListaUiState(utilizadores, avatares, estados)
     }
 
     private companion object {
@@ -227,7 +282,7 @@ class AmigosViewModel(
 }
 
 data class AmigosListaUiState(
-    val nomes: List<String>,
+    val utilizadores: List<UtilizadorSocial>,
     val avatares: List<String>,
     val estados: List<String>
 )

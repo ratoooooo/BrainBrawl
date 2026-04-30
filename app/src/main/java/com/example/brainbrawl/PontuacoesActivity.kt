@@ -11,6 +11,7 @@ import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
 import com.example.brainbrawl.repositories.PontuacaoRepository
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.services.EstatisticasService
 
 class PontuacoesActivity : AppCompatActivity() {
@@ -20,6 +21,7 @@ class PontuacoesActivity : AppCompatActivity() {
     }
     private val pontuacaoRepository = PontuacaoRepository()
     private val estatisticasService = EstatisticasService()
+    private val authService = AuthService()
     private var pontuacoesListener: PontuacaoRepository.ListenerHandle? = null
     private var estatisticasAtualizadas = false
     // Variáveis para armazenar informações da sala e do jogador
@@ -27,6 +29,7 @@ class PontuacoesActivity : AppCompatActivity() {
     private lateinit var nomeUtilizador: String
     private lateinit var nomeCategoria: String
     private lateinit var nomeJogador: String
+    private var uid: String = ""
     private var totalPontos: Double = 0.0
     private var totalPerguntas: Int = 1
 
@@ -37,6 +40,7 @@ class PontuacoesActivity : AppCompatActivity() {
         // Guardar dados passados do intent
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
+        uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
@@ -47,7 +51,7 @@ class PontuacoesActivity : AppCompatActivity() {
 
         // Configurar o botao de voltar
         binding.btnVoltar.setOnClickListener {
-            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador)
+            abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador, uid.ifBlank { null })
             finish()
         }
     }

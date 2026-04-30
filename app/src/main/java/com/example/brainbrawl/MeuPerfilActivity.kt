@@ -9,6 +9,7 @@ import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
 import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.MeuPerfilUiState
 import com.example.brainbrawl.viewmodels.MeuPerfilViewModel
 
@@ -19,18 +20,20 @@ class MeuPerfilActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[MeuPerfilViewModel::class.java]
     }
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guarda o nome do utilizador passado pelo Intent
-        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: return
+        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        if (uid.isBlank() && nomeUtilizador.isBlank()) return
 
         viewModel.perfil.observe(this) { perfil ->
             mostrarPerfil(perfil)
         }
-        viewModel.carregarPerfil(nomeUtilizador)
+        viewModel.carregarPerfil(uid, nomeUtilizador)
     }
 
     private fun mostrarPerfil(perfil: MeuPerfilUiState) {

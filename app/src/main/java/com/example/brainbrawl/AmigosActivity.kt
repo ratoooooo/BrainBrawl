@@ -11,6 +11,9 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAmigosBinding
 import com.example.brainbrawl.models.Convite
+import com.example.brainbrawl.models.PedidoAmizade
+import com.example.brainbrawl.models.UtilizadorSocial
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.AmigosEvent
 import com.example.brainbrawl.viewmodels.AmigosListaUiState
 import com.example.brainbrawl.viewmodels.AmigosViewModel
@@ -22,9 +25,11 @@ class AmigosActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[AmigosViewModel::class.java]
     }
+    private val authService = AuthService()
     // Variáveis para armazenar os dados dos amigos, convites e pedidos de amizade
+    private var uid: String = ""
     private var nomeUtilizador: String = ""
-    private val amigos = mutableListOf<String>()
+    private val amigos = mutableListOf<UtilizadorSocial>()
     private lateinit var amigoAdapter: AmigoAdapter
     private val avataresAmigos = mutableListOf<String>()
     private val estadoAmigos = mutableListOf<String>()
@@ -32,7 +37,7 @@ class AmigosActivity : AppCompatActivity() {
     private val convitesRecebidos = mutableListOf<Convite>()
     private lateinit var conviteAdapter: ConviteAdapter
 
-    private val pedidosAmizadeRecebidos = mutableListOf<String>()
+    private val pedidosAmizadeRecebidos = mutableListOf<PedidoAmizade>()
     private lateinit var pedidoAdapter: PedidoAmizadeAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,10 +45,13 @@ class AmigosActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar os valores passados pela Intent
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
 
         // Configura o adaptador para a lista de amigos
-        amigoAdapter = AmigoAdapter(amigos, avataresAmigos, estadoAmigos, nomeUtilizador)
+        amigoAdapter = AmigoAdapter(amigos, avataresAmigos, estadoAmigos, nomeUtilizador, uid)
         binding.recyclerAmigos.layoutManager = LinearLayoutManager(this)
         binding.recyclerAmigos.adapter = amigoAdapter
 
@@ -54,8 +62,8 @@ class AmigosActivity : AppCompatActivity() {
         binding.recyclerConvites.layoutManager = LinearLayoutManager(this)
         binding.recyclerConvites.adapter = conviteAdapter
 
-        pedidoAdapter = PedidoAmizadeAdapter(pedidosAmizadeRecebidos) { nomeOutro ->
-            aceitarPedidoAmizade(nomeOutro)
+        pedidoAdapter = PedidoAmizadeAdapter(pedidosAmizadeRecebidos) { pedido ->
+            aceitarPedidoAmizade(pedido)
         }
         binding.recyclerPedidosAmizade.layoutManager = LinearLayoutManager(this)
         binding.recyclerPedidosAmizade.adapter = pedidoAdapter
@@ -77,12 +85,13 @@ class AmigosActivity : AppCompatActivity() {
         //Configurar botao de adicionar amigo
         binding.btnAdicionarAmigo.setOnClickListener {
             val nomeNovoAmigo = binding.edtPesquisar.text.toString().trim()
-            viewModel.enviarPedidoAmizade(nomeUtilizador, nomeNovoAmigo)
+            viewModel.enviarPedidoAmizade(uid, nomeUtilizador, nomeNovoAmigo)
         }
         // Configurar o botão para voltar ao MainActivity
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
             startActivity(intent)
             finish()
         }
@@ -90,7 +99,7 @@ class AmigosActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        viewModel.iniciarListenersSociais(nomeUtilizador, getString(R.string.categoria5))
+        viewModel.iniciarListenersSociais(uid, nomeUtilizador, getString(R.string.categoria5))
     }
 
     override fun onStop() {
@@ -162,7 +171,7 @@ class AmigosActivity : AppCompatActivity() {
         amigos.clear()
         avataresAmigos.clear()
         estadoAmigos.clear()
-        amigos.addAll(estado.nomes)
+        amigos.addAll(estado.utilizadores)
         avataresAmigos.addAll(estado.avatares)
         estadoAmigos.addAll(estado.estados)
         amigoAdapter.notifyDataSetChanged()
@@ -180,7 +189,7 @@ class AmigosActivity : AppCompatActivity() {
     }
 
     // Função para atualizar os pedidos de amizade recebidos
-    private fun atualizarPedidosAmizadeRecebidos(pedidos: List<String>) {
+    private fun atualizarPedidosAmizadeRecebidos(pedidos: List<PedidoAmizade>) {
         // Limpa a lista de pedidos de amizade recebidos
         pedidosAmizadeRecebidos.clear()
         pedidosAmizadeRecebidos.addAll(pedidos)
@@ -192,13 +201,13 @@ class AmigosActivity : AppCompatActivity() {
     // Função para pesquisar um utilizador
     private fun pesquisarUtilizador(nome: String) {
         // Pesquisar na base de dados se o utilizador existe
-        viewModel.pesquisarUtilizador(nomeUtilizador, nome)
+        viewModel.pesquisarUtilizador(uid, nomeUtilizador, nome)
     }
 
     // Função para aceitar um convite 1x1 ou 2x2
     private fun aceitarConvite(convite: Convite) {
         // Atualizar o estado do convite na base de dados
-        viewModel.aceitarConvite(nomeUtilizador, convite)
+        viewModel.aceitarConvite(uid, nomeUtilizador, convite)
         Toast.makeText(this, "Convite aceite!", Toast.LENGTH_SHORT).show()
 
         // Redirecionar para a sala de espera correspondente
@@ -207,6 +216,7 @@ class AmigosActivity : AppCompatActivity() {
             else -> Intent(this, SalaDeEspera1x1Activity::class.java)
         }
         nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
         convite.codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
         intent.putExtra(IntentExtras.NOME_CATEGORIA, convite.nomeCategoria)
         startActivity(intent)
@@ -214,8 +224,8 @@ class AmigosActivity : AppCompatActivity() {
     }
 
     // Função para aceitar um pedido de amizade
-    private fun aceitarPedidoAmizade(nomeOutro: String) {
+    private fun aceitarPedidoAmizade(pedido: PedidoAmizade) {
         // Atualizar o estado do pedido de amizade na base de dados
-        viewModel.aceitarPedidoAmizade(nomeUtilizador, nomeOutro)
+        viewModel.aceitarPedidoAmizade(uid, nomeUtilizador, pedido)
     }
 }

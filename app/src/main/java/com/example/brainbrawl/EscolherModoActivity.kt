@@ -10,12 +10,15 @@ import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolherModoBinding
+import com.example.brainbrawl.services.AuthService
 
 class EscolherModoActivity : AppCompatActivity() {
     // Acessar os elementos do layout
     private val binding by lazy { ActivityEscolherModoBinding.inflate(layoutInflater) }
+    private val authService = AuthService()
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
+    private var uid: String? = null
     private var admin: Boolean = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,6 +28,7 @@ class EscolherModoActivity : AppCompatActivity() {
         // Guardar os dados passados pelo Intent
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
         admin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
 
         // Configurar os botoes de medos
@@ -32,15 +36,15 @@ class EscolherModoActivity : AppCompatActivity() {
             abrirTipoModoClassico(GameConstants.MODO_CLASSICO)
         }
         binding.btnModoEliminatorias.setOnClickListener {
-            abrirEscolherCategoriaActivity(this, GameConstants.MODO_ELIMINATORIAS, nomeUtilizador, nomeJogador, true)
+            abrirEscolherCategoriaActivity(this, GameConstants.MODO_ELIMINATORIAS, nomeUtilizador, nomeJogador, true, uid)
             finish()
         }
         binding.btnModoCaotico.setOnClickListener {
             //Verifica se o nome Utilizador ou nomeJogador foi passado
             if (nomeUtilizador != null) {
-                criarSalaCaoticaEEntrar(this, nomeUtilizador, null)
+                criarSalaCaoticaEEntrar(this, nomeUtilizador, null, uid)
             } else if (nomeJogador != null) {
-                criarSalaCaoticaEEntrar(this, null, nomeJogador)
+                criarSalaCaoticaEEntrar(this, null, nomeJogador, uid)
             } else {
                 Toast.makeText(this, "Indique o seu nome!", Toast.LENGTH_SHORT).show()
             }
@@ -52,6 +56,7 @@ class EscolherModoActivity : AppCompatActivity() {
             val intent = Intent(this, MainActivity::class.java)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
             intent.putExtra(IntentExtras.ADMIN, false)
             startActivity(intent)
             finish()
@@ -67,6 +72,7 @@ class EscolherModoActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.MODO_JOGO, modo)
         nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
         intent.putExtra(IntentExtras.ADMIN, true)
         intent.putExtra(IntentExtras.CODIGO_SALA, gerarCodigoSala())
         startActivity(intent)

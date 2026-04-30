@@ -7,6 +7,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.SalaEntradaEvent
 import com.example.brainbrawl.viewmodels.SalaGrupoViewModel
 
@@ -15,12 +16,17 @@ class SalaDeEsperaActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[SalaGrupoViewModel::class.java]
     }
+    private val authService = AuthService()
+    private var uid: String = ""
     private var nomeUtilizador: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
 
@@ -43,7 +49,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
 
             val codSala = binding.edtCodigoSala.text.toString().trim()
             val nomeJogadorAtual = binding.edtNomeJogador.text.toString().trim()
-            viewModel.entrarEmSala(codSala, nomeJogadorAtual, nomeUtilizador)
+            viewModel.entrarEmSala(codSala, nomeJogadorAtual, uid, nomeUtilizador)
         }
 
         binding.btnVoltar.setOnClickListener {
@@ -85,18 +91,24 @@ class SalaDeEsperaActivity : AppCompatActivity() {
                 binding.edtCodigoSala.isEnabled = false
                 binding.edtNomeJogador.isEnabled = false
                 Toast.makeText(this, "Jogador adicionado com sucesso!", Toast.LENGTH_SHORT).show()
-                irParaSalaDeEsperaGrupo(evento.codigoSala, evento.nomeJogador, evento.nomeUtilizador)
+                irParaSalaDeEsperaGrupo(evento.codigoSala, evento.nomeJogador, evento.nomeUtilizador, evento.uid)
             }
         }
     }
 
 // Função para ir para a sala de espera do grupo
-    private fun irParaSalaDeEsperaGrupo(codigoSala: String, nomeJogador: String, nomeUtilizador: String?) {
+    private fun irParaSalaDeEsperaGrupo(
+        codigoSala: String,
+        nomeJogador: String,
+        nomeUtilizador: String?,
+        uid: String
+    ) {
         // Redireciona para a SalaDeEsperaGrupoActivity com os dados necessários
         val intent = Intent(this, SalaDeEsperaGrupoActivity::class.java)
         intent.putExtra(IntentExtras.ADMIN, false)
         codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
         nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
         nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         startActivity(intent)
         finish()

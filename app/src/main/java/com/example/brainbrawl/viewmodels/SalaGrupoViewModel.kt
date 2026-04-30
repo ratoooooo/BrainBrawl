@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.SalaRepository
 import com.example.brainbrawl.utils.UteisValidacao
@@ -27,13 +28,14 @@ class SalaGrupoViewModel(
     private var salaListener: SalaRepository.ListenerHandle? = null
     private var saidaManual = false
     private var nomeAtual: String = ""
+    private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var admin = false
 
     fun criarSala(codigoSala: String, dadosSala: Map<String, Any>) {
         salaRepository.criarSala(codigoSala, dadosSala)
     }
 
-    fun entrarEmSala(codigoSala: String, nomeJogador: String, nomeUtilizador: String?) {
+    fun entrarEmSala(codigoSala: String, nomeJogador: String, uid: String, nomeUtilizador: String?) {
         if (codigoSala.isEmpty()) {
             _entrada.value = SalaEntradaEvent.CodigoVazio
             return
@@ -45,7 +47,8 @@ class SalaGrupoViewModel(
             return
         }
 
-        salaRepository.procurarSalaPorCodigo(codigoSala, nomeJogador)
+        val jogador = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+        salaRepository.procurarSalaPorCodigo(codigoSala, jogador)
             .addOnSuccessListener { resultado ->
                 if (!resultado.existe) {
                     _entrada.value = SalaEntradaEvent.CodigoInvalido
@@ -58,15 +61,15 @@ class SalaGrupoViewModel(
                 }
 
                 if (!nomeUtilizador.isNullOrEmpty()) {
-                    jogadorRepository.obterAvatar(nomeUtilizador)
+                    jogadorRepository.obterAvatar(uid.ifBlank { nomeUtilizador })
                         .addOnSuccessListener { avatar ->
-                            adicionarJogadorComAvatar(nomeJogador, codigoSala, avatar, nomeUtilizador)
+                            adicionarJogadorComAvatar(jogador, codigoSala, avatar, nomeUtilizador)
                         }
                         .addOnFailureListener {
-                            adicionarJogadorComAvatar(nomeJogador, codigoSala, AVATAR_PADRAO, nomeUtilizador)
+                            adicionarJogadorComAvatar(jogador, codigoSala, AVATAR_PADRAO, nomeUtilizador)
                         }
                 } else {
-                    adicionarJogadorComAvatar(nomeJogador, codigoSala, AVATAR_PADRAO, null)
+                    adicionarJogadorComAvatar(jogador, codigoSala, AVATAR_PADRAO, null)
                 }
             }
             .addOnFailureListener { error ->
@@ -74,11 +77,12 @@ class SalaGrupoViewModel(
             }
     }
 
-    fun iniciarSala(codigoSala: String, nomeAtual: String, admin: Boolean) {
-        this.nomeAtual = nomeAtual
+    fun iniciarSala(codigoSala: String, jogador: JogadorSalaIdentidade, admin: Boolean) {
+        this.jogadorAtual = jogador
+        this.nomeAtual = jogador.nomeDisplay
         this.admin = admin
         saidaManual = false
-        salaRepository.garantirJogadorNaSala(codigoSala, nomeAtual, admin)
+        salaRepository.garantirJogadorNaSala(codigoSala, jogador, admin)
     }
 
     fun observarJogadores(codigoSala: String) {
@@ -138,12 +142,12 @@ class SalaGrupoViewModel(
             }
     }
 
-    fun sairDaSala(codigoSala: String, nomeAtual: String, admin: Boolean) {
+    fun sairDaSala(codigoSala: String, jogador: JogadorSalaIdentidade, admin: Boolean) {
         saidaManual = true
         if (admin) {
             salaRepository.apagarSala(codigoSala)
         } else {
-            salaRepository.removerJogadorDaSala(codigoSala, nomeAtual)
+            salaRepository.removerJogadorDaSala(codigoSala, jogador)
         }
     }
 
@@ -167,19 +171,19 @@ class SalaGrupoViewModel(
     }
 
     private fun adicionarJogadorComAvatar(
-        nomeJogador: String,
+        jogador: JogadorSalaIdentidade,
         codigoSala: String,
         avatar: String,
         nomeUtilizador: String?
     ) {
-        val jogadorData = mapOf(
-            "nome" to nomeJogador,
-            "pontuacao" to 0,
-            "avatar" to avatar,
-            "estado" to "on"
+        val jogadorData = jogador.toFirebaseMap(isHostOnly = false, avatar = avatar)
+        salaRepository.adicionarJogadorASala(codigoSala, jogador, jogadorData)
+        _entrada.value = SalaEntradaEvent.JogadorAdicionado(
+            codigoSala = codigoSala,
+            nomeJogador = jogador.nomeDisplay,
+            uid = jogador.uid,
+            nomeUtilizador = nomeUtilizador
         )
-        salaRepository.adicionarJogadorASala(codigoSala, nomeJogador, jogadorData)
-        _entrada.value = SalaEntradaEvent.JogadorAdicionado(codigoSala, nomeJogador, nomeUtilizador)
     }
 
     private fun jogadoresReais(nomes: List<String>, jogadoresInfo: Map<String, Boolean>): List<String> {
@@ -223,6 +227,7 @@ sealed class SalaEntradaEvent {
     data class JogadorAdicionado(
         val codigoSala: String,
         val nomeJogador: String,
+        val uid: String,
         val nomeUtilizador: String?
     ) : SalaEntradaEvent()
 }

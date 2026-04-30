@@ -31,13 +31,13 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Campo nome -->
+    <!-- Campo email/nome -->
     <EditText
         android:id="@+id/edt_nome_jogador"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="@string/insira_nome"
-        android:inputType="textPersonName"
+        android:hint="Email ou nome"
+        android:inputType="textEmailAddress"
         android:textSize="16sp"
         android:background="@drawable/edt_borda_preta"
         android:paddingHorizontal="16dp"

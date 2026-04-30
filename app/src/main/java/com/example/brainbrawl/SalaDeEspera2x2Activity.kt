@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera2x2Binding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.Sala2x2Event
 import com.example.brainbrawl.viewmodels.Sala2x2UiState
 import com.example.brainbrawl.viewmodels.Sala2x2ViewModel
@@ -18,8 +19,10 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[Sala2x2ViewModel::class.java]
     }
+    private val authService = AuthService()
     // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String
+    private var uid: String = ""
     private lateinit var nomeUtilizador: String
     private var nomeJogador: String = ""
     private var categoria: String? = null
@@ -30,6 +33,9 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
 
         // Receber dados passados do intent
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
         categoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
@@ -40,7 +46,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         binding.txtCodigoSala.text = "Código da sala: $codigoSala"
 
         configurarObservers()
-        viewModel.iniciar(codigoSala, nomeUtilizador)
+        viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador)
         viewModel.observarJogadores(codigoSala)
         viewModel.observarEstadoSala(codigoSala)
         viewModel.observarSalaApagada(codigoSala)
@@ -84,6 +90,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
             Sala2x2Event.JogoIniciado -> {
                 val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
                 codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
+                uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
                 nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
                 nomeJogador.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
                 categoria?.let {
@@ -94,7 +101,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                 finish()
             }
             Sala2x2Event.SalaEncerrada -> {
-                abrirMainActivity(this@SalaDeEspera2x2Activity, nomeUtilizador, nomeJogador)
+                abrirMainActivity(this@SalaDeEspera2x2Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
                 finish()
             }
         }
@@ -102,7 +109,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
 
     private fun sairDaSala() {
         viewModel.sairDaSala(codigoSala)
-        abrirMainActivity(this, nomeUtilizador, nomeJogador)
+        abrirMainActivity(this, nomeUtilizador, nomeJogador, uid.ifBlank { null })
         finish()
     }
 }

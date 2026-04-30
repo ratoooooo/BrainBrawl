@@ -16,6 +16,7 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityExplorarCategoriasBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.ExplorarCategoriasEvent
 import com.example.brainbrawl.viewmodels.ExplorarCategoriasUiState
 import com.example.brainbrawl.viewmodels.ExplorarCategoriasViewModel
@@ -25,8 +26,10 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[ExplorarCategoriasViewModel::class.java]
     }
+    private val authService = AuthService()
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
+    private var uid: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -34,11 +37,13 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
 
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
 
         binding.btnVoltar.setOnClickListener {
             val intent = Intent(this, MainActivity::class.java)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
             startActivity(intent)
             finish()
         }
@@ -176,33 +181,35 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             nomeJogador,
             categoria.id,
             true,
-            GameConstants.MODO_CLASSICO
+            GameConstants.MODO_CLASSICO,
+            uid
         ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
     }
 
     private fun abrirCriacaoCategoria() {
         val utilizador = nomeUtilizador
-        if (utilizador.isNullOrBlank()) {
+        if (uid.isNullOrBlank() && utilizador.isNullOrBlank()) {
             Toast.makeText(this, "Precisas de uma conta registada para criar categorias.", Toast.LENGTH_SHORT).show()
             return
         }
 
         val intent = Intent(this, AdicionarPerguntaActivity::class.java)
-        intent.putExtra(IntentExtras.NOME_UTILIZADOR, utilizador)
+        utilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
         intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_CLASSICO)
         intent.putExtra(IntentExtras.ADMIN, true)
         startActivity(intent)
     }
 
     private fun guardarCategoria(categoria: CategoriaRepository.CategoriaPublica) {
-        viewModel.guardarCategoria(nomeUtilizador.orEmpty(), categoria)
+        viewModel.guardarCategoria(uid.orEmpty(), nomeUtilizador.orEmpty(), categoria)
     }
 
     private fun mostrarAvaliacao(categoria: CategoriaRepository.CategoriaPublica) {
         val utilizador = nomeUtilizador
-        if (utilizador.isNullOrBlank()) {
-            viewModel.avaliarCategoria(categoria.id, "", 1)
+        if (uid.isNullOrBlank() && utilizador.isNullOrBlank()) {
+            viewModel.avaliarCategoria(categoria.id, "", "", 1)
             return
         }
 
@@ -210,14 +217,14 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Avaliar ${categoria.nome}")
             .setItems(opcoes) { _, which ->
-                avaliarCategoria(categoria.id, utilizador, which + 1)
+                avaliarCategoria(categoria.id, utilizador.orEmpty(), which + 1)
             }
             .setNegativeButton("Cancelar", null)
             .show()
     }
 
     private fun avaliarCategoria(categoriaId: String, utilizador: String, valor: Int) {
-        viewModel.avaliarCategoria(categoriaId, utilizador, valor)
+        viewModel.avaliarCategoria(categoriaId, uid.orEmpty(), utilizador, valor)
     }
 
     private fun dp(valor: Int): Int = (valor * resources.displayMetrics.density).toInt()

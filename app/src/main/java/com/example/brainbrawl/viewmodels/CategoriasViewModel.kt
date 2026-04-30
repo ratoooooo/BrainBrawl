@@ -15,8 +15,8 @@ class CategoriasViewModel(
     private val _evento = MutableLiveData<CategoriasEvent?>()
     val evento: LiveData<CategoriasEvent?> = _evento
 
-    fun carregarCategoriasPersonalizadas(nomeUtilizador: String) {
-        categoriaRepository.carregarCategoriasPersonalizadas(nomeUtilizador)
+    fun carregarCategoriasPersonalizadas(uid: String, nomeUtilizador: String) {
+        categoriaRepository.carregarCategoriasPersonalizadas(uid, nomeUtilizador)
             .addOnSuccessListener { categorias ->
                 categoriaRepository.carregarCategoriasPublicas()
                     .addOnSuccessListener { publicas ->
@@ -28,8 +28,8 @@ class CategoriasViewModel(
             }
     }
 
-    fun criarCategoriaPersonalizada(nomeUtilizador: String, nomeCategoria: String) {
-        categoriaRepository.criarCategoriaPersonalizada(nomeUtilizador, nomeCategoria)
+    fun criarCategoriaPersonalizada(uid: String, nomeUtilizador: String, nomeCategoria: String) {
+        categoriaRepository.criarCategoriaPersonalizada(uid, nomeUtilizador, nomeCategoria)
             .addOnSuccessListener {
                 _evento.value = CategoriasEvent.CategoriaCriada
             }
@@ -38,8 +38,8 @@ class CategoriasViewModel(
             }
     }
 
-    fun eliminarCategoria(nomeUtilizador: String, nomeCategoria: String) {
-        categoriaRepository.eliminarCategoria(nomeUtilizador, nomeCategoria)
+    fun eliminarCategoria(uid: String, nomeUtilizador: String, nomeCategoria: String) {
+        categoriaRepository.eliminarCategoria(uid, nomeUtilizador, nomeCategoria)
             .addOnSuccessListener {
                 _evento.value = CategoriasEvent.CategoriaEliminada
             }
@@ -48,8 +48,8 @@ class CategoriasViewModel(
             }
     }
 
-    fun publicarCategoria(nomeUtilizador: String, nomeJogador: String?, nomeCategoria: String) {
-        categoriaRepository.publicarCategoria(nomeUtilizador, nomeJogador, nomeCategoria)
+    fun publicarCategoria(uid: String, nomeUtilizador: String, nomeJogador: String?, nomeCategoria: String) {
+        categoriaRepository.publicarCategoria(uid, nomeUtilizador, nomeJogador, nomeCategoria)
             .addOnSuccessListener {
                 _evento.value = CategoriasEvent.CategoriaPublicada
             }
@@ -58,8 +58,8 @@ class CategoriasViewModel(
             }
     }
 
-    fun removerCategoriaPublica(nomeUtilizador: String, nomeCategoria: String) {
-        categoriaRepository.removerCategoriaPublica(nomeUtilizador, nomeCategoria)
+    fun removerCategoriaPublica(uid: String, nomeUtilizador: String, nomeCategoria: String) {
+        categoriaRepository.removerCategoriaPublica(uid, nomeUtilizador, nomeCategoria)
             .addOnSuccessListener {
                 _evento.value = CategoriasEvent.CategoriaPublicaRemovida
             }

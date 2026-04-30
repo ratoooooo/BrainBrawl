@@ -15,6 +15,7 @@ import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.example.brainbrawl.models.Pergunta
 import com.example.brainbrawl.routes.UteisNavegacao.adicionarDadosJogador
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.UteisPerguntas.obterOpcoesAleatorias
 import com.example.brainbrawl.viewmodels.JogoEvent
 import com.example.brainbrawl.viewmodels.JogoPerguntaUiState
@@ -29,6 +30,7 @@ class JogoActivity : AppCompatActivity() {
     }
 
     private lateinit var codigoSala: String
+    private lateinit var uid: String
     private lateinit var nomeJogador: String
     private lateinit var nomeCategoria: String
     private lateinit var nomeUtilizador: String
@@ -46,18 +48,22 @@ class JogoActivity : AppCompatActivity() {
     private var mediaPlayer: MediaPlayer? = null
     private val handler = Handler(Looper.getMainLooper())
     private val formatoDecimal = DecimalFormat("#.#")
+    private val authService = AuthService()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
 
         configurarObservers()
-        viewModel.iniciar(codigoSala, nomeUtilizador, nomeJogador, nomeCategoria)
+        viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador, nomeCategoria)
     }
 
     override fun onDestroy() {
@@ -355,7 +361,7 @@ class JogoActivity : AppCompatActivity() {
 
     private fun abrirMainAposErro() {
         val intent = Intent(this@JogoActivity, MainActivity::class.java)
-        adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador)
+        adicionarDadosJogador(intent, nomeUtilizador.ifBlank { null }, nomeJogador, uid.ifBlank { null })
         startActivity(intent)
         finish()
     }
@@ -364,6 +370,7 @@ class JogoActivity : AppCompatActivity() {
         viewModel.removerListeners()
         val intent = Intent(this, EsperaEliminadoActivity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, dados.codigoSala)
+        intent.putExtra(IntentExtras.UID, dados.uid)
         intent.putExtra(IntentExtras.NOME_JOGADOR, dados.nomeJogador)
         intent.putExtra(IntentExtras.TOTAL_PONTOS, dados.totalPontos)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, dados.nomeCategoria)
@@ -380,6 +387,7 @@ class JogoActivity : AppCompatActivity() {
     private fun enviarPontuacaoActivity(dados: JogoResultadoDados) {
         val intent = Intent(this, PontuacoesActivity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, dados.codigoSala)
+        intent.putExtra(IntentExtras.UID, dados.uid)
         intent.putExtra(IntentExtras.NOME_JOGADOR, dados.nomeJogador)
         intent.putExtra(IntentExtras.TOTAL_PONTOS, dados.totalPontos)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, dados.nomeCategoria)

@@ -16,6 +16,7 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAdicionarPerguntaBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.EditarCategoriaEvent
 import com.example.brainbrawl.viewmodels.EditarCategoriaViewModel
 
@@ -27,8 +28,10 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[EditarCategoriaViewModel::class.java]
     }
+    private val authService = AuthService()
     private var nomeUtilizador: String = ""
     private var nomeJogador: String? = null
+    private var uid: String? = null
     private var modoJogo: String = GameConstants.MODO_CLASSICO
     private var admin: Boolean = true
     private var perguntaEmEdicaoId: String? = null
@@ -49,11 +52,12 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
 
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+        uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
         modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_CLASSICO
         admin = intent.getBooleanExtra(IntentExtras.ADMIN, true)
         val categoriaInicial = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
 
-        if (nomeUtilizador.isBlank()) {
+        if (uid.isNullOrBlank() && nomeUtilizador.isBlank()) {
             Toast.makeText(this, "Só jogadores registados podem criar categorias personalizadas.", Toast.LENGTH_LONG).show()
             finish()
             return
@@ -89,6 +93,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             }
 
             viewModel.guardarPergunta(
+                uid.orEmpty(),
                 nomeUtilizador,
                 nomeCategoria,
                 perguntaEmEdicaoId,
@@ -116,7 +121,8 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
                 nomeUtilizador,
                 nomeCategoria,
                 true,
-                modoJogo
+                modoJogo,
+                uid
             ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
         }
 
@@ -126,7 +132,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     }
 
     private fun carregarPerguntasCategoria(nomeCategoria: String) {
-        viewModel.carregarPerguntasCategoria(nomeUtilizador, nomeCategoria)
+        viewModel.carregarPerguntasCategoria(uid.orEmpty(), nomeUtilizador, nomeCategoria)
     }
 
     private fun configurarObservers() {
@@ -199,7 +205,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             btnEliminar.text = "Eliminar"
             btnEliminar.setOnClickListener {
                 val categoria = categoriaSelecionada()
-                viewModel.eliminarPergunta(nomeUtilizador, categoria, perguntaId)
+                viewModel.eliminarPergunta(uid.orEmpty(), nomeUtilizador, categoria, perguntaId)
             }
             botoes.addView(btnEliminar)
 
@@ -246,6 +252,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
         intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
         nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
         intent.putExtra(IntentExtras.ADMIN, admin)
         startActivity(intent)
         finish()

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
+import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.Sala1x1Event
 import com.example.brainbrawl.viewmodels.Sala1x1ViewModel
 import com.example.brainbrawl.viewmodels.SalaCompetitivaUiState
@@ -19,9 +20,11 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
     private val viewModel by lazy {
         ViewModelProvider(this)[Sala1x1ViewModel::class.java]
     }
+    private val authService = AuthService()
 
     // Variáveis para a lógica da sala
     private lateinit var codigoSala: String
+    private var uid: String = ""
     private lateinit var nomeUtilizador: String
     private var nomeJogador: String = ""
     private lateinit var nomeCategoria: String
@@ -32,6 +35,9 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
         // Guardar dados passados pelo intent
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: getString(R.string.categoria5)
@@ -40,7 +46,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
 
         configurarObservers()
-        viewModel.iniciar(codigoSala, nomeUtilizador)
+        viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador)
         viewModel.observarJogadores(codigoSala)
         viewModel.observarEstadoSala(codigoSala)
         viewModel.observarSalaApagada(codigoSala)
@@ -84,6 +90,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
             Sala1x1Event.JogoIniciado -> {
                 val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+                uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
                 intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
@@ -92,7 +99,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
             }
             Sala1x1Event.SalaEncerrada -> {
                 Toast.makeText(this@SalaDeEspera1x1Activity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
-                abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador)
+                abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
                 finish()
             }
             Sala1x1Event.AguardarAdversario ->
@@ -104,7 +111,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
     private fun sairDaSala() {
         viewModel.sairDaSala(codigoSala)
-        abrirMainActivity(this, nomeUtilizador, nomeJogador)
+        abrirMainActivity(this, nomeUtilizador, nomeJogador, uid.ifBlank { null })
         finish()
     }
 }

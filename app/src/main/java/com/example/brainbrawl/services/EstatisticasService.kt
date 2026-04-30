@@ -14,8 +14,24 @@ class EstatisticasService {
         val nome: String,
         val pontos: Double,
         val respostasCertas: Int = 0,
-        val equipa: String? = null
-    )
+        val equipa: String? = null,
+        val uid: String = "",
+        val chave: String = "",
+        val nomeUtilizador: String = "",
+        val nomeJogador: String = ""
+    ) {
+        val identificadorEstatisticas: String
+            get() = uid.ifBlank { chave.ifBlank { nomeUtilizador.ifBlank { nomeJogador.ifBlank { nome } } } }
+
+        val chavesCompatibilidade: List<String>
+            get() = listOf(identificadorEstatisticas, uid, chave, nomeUtilizador, nomeJogador, nome)
+                .filter { it.isNotBlank() }
+                .distinct()
+
+        fun corresponde(identificador: String): Boolean {
+            return identificador.isNotBlank() && identificador in chavesCompatibilidade
+        }
+    }
 
     data class EstatisticasAtuais(
         val pontuacao: Double,
@@ -76,18 +92,18 @@ class EstatisticasService {
 
         return when (modo) {
             Modo.SOLO,
-            Modo.UM_CONTRA_UM -> setOfNotNull(ordenarPodio(resultados).firstOrNull()?.nome)
+            Modo.UM_CONTRA_UM -> setOfNotNull(ordenarPodio(resultados).firstOrNull()?.identificadorEstatisticas)
             Modo.DOIS_CONTRA_DOIS -> {
                 val totalA = resultados.filter { it.equipa == GameConstants.EQUIPA_A }.sumOf { it.pontos }
                 val totalB = resultados.filter { it.equipa == GameConstants.EQUIPA_B }.sumOf { it.pontos }
                 val equipaVencedora = if (totalA >= totalB) GameConstants.EQUIPA_A else GameConstants.EQUIPA_B
-                resultados.filter { it.equipa == equipaVencedora }.map { it.nome }.toSet()
+                resultados.filter { it.equipa == equipaVencedora }.map { it.identificadorEstatisticas }.toSet()
             }
         }
     }
 
     fun deveAtualizarEstatisticas(jaAtualizadas: Boolean, resultados: List<ResultadoJogador>): Boolean {
-        return !jaAtualizadas && resultados.any { it.nome.isNotBlank() }
+        return !jaAtualizadas && resultados.any { it.identificadorEstatisticas.isNotBlank() }
     }
 
     fun calcularTaxaAcertos(

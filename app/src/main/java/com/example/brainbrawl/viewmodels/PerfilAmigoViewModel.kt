@@ -3,6 +3,7 @@ package com.example.brainbrawl.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.brainbrawl.models.UtilizadorSocial
 import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.repositories.JogadorRepository
 
@@ -17,29 +18,43 @@ class PerfilAmigoViewModel(
     private val _evento = MutableLiveData<PerfilAmigoEvent?>()
     val evento: LiveData<PerfilAmigoEvent?> = _evento
 
-    fun carregarPerfil(nomeAmigo: String) {
-        jogadorRepository.obterPerfil(nomeAmigo).addOnSuccessListener { perfil ->
-            _perfil.value = if (perfil != null) {
-                PerfilAmigoUiState(
-                    nome = nomeAmigo,
-                    avatar = perfil.avatar,
-                    pontuacao = perfil.estatisticas.pontuacao,
-                    taxaAcertos = perfil.estatisticas.taxaAcertos,
-                    totalJogos = perfil.estatisticas.totalJogos,
-                    totalVitorias = perfil.estatisticas.totalVitorias,
-                    totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
-                    perfilExiste = true
-                )
-            } else {
-                PerfilAmigoUiState.perfilDesconhecido(nomeAmigo)
+    fun carregarPerfil(identificadorAmigo: String, nomeAmigoFallback: String) {
+        amigosRepository.resolverUtilizador(identificadorAmigo, nomeAmigoFallback)
+            .addOnSuccessListener { utilizador ->
+                if (utilizador == null) {
+                    _perfil.value = PerfilAmigoUiState.perfilDesconhecido(nomeAmigoFallback)
+                    return@addOnSuccessListener
+                }
+
+                jogadorRepository.obterPerfil(utilizador.chavePrimaria).addOnSuccessListener { perfil ->
+                    _perfil.value = if (perfil != null) {
+                        PerfilAmigoUiState(
+                            utilizador = utilizador,
+                            nome = perfil.nomeUtilizador.ifBlank { utilizador.nomeDisplay },
+                            avatar = perfil.avatar,
+                            pontuacao = perfil.estatisticas.pontuacao,
+                            taxaAcertos = perfil.estatisticas.taxaAcertos,
+                            totalJogos = perfil.estatisticas.totalJogos,
+                            totalVitorias = perfil.estatisticas.totalVitorias,
+                            totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
+                            perfilExiste = true
+                        )
+                    } else {
+                        PerfilAmigoUiState.perfilDesconhecido(utilizador.nomeDisplay, utilizador)
+                    }
+                }
             }
-        }
     }
 
-    fun removerAmigo(nomeUtilizador: String, nomeAmigo: String) {
-        amigosRepository.removerAmigo(nomeUtilizador, nomeAmigo)
-            .addOnSuccessListener {
-                _evento.value = PerfilAmigoEvent.AmigoRemovido
+    fun removerAmigo(uidUtilizador: String, nomeUtilizador: String, amigo: UtilizadorSocial) {
+        val identificador = uidUtilizador.ifBlank { nomeUtilizador }
+        amigosRepository.resolverUtilizador(identificador, nomeUtilizador)
+            .addOnSuccessListener { utilizador ->
+                if (utilizador == null) return@addOnSuccessListener
+                amigosRepository.removerAmigo(utilizador, amigo)
+                    .addOnSuccessListener {
+                        _evento.value = PerfilAmigoEvent.AmigoRemovido
+                    }
             }
     }
 
@@ -49,6 +64,7 @@ class PerfilAmigoViewModel(
 }
 
 data class PerfilAmigoUiState(
+    val utilizador: UtilizadorSocial,
     val nome: String,
     val avatar: String,
     val pontuacao: Double,
@@ -61,8 +77,14 @@ data class PerfilAmigoUiState(
     companion object {
         private const val AVATAR_PADRAO = "avatar_1_playstore"
 
-        fun perfilDesconhecido(nomeAmigo: String): PerfilAmigoUiState {
+        fun perfilDesconhecido(nomeAmigo: String, utilizador: UtilizadorSocial? = null): PerfilAmigoUiState {
+            val utilizadorFallback = utilizador ?: UtilizadorSocial(
+                nomeUtilizador = nomeAmigo,
+                chavePerfil = nomeAmigo,
+                chaveOrigem = nomeAmigo
+            )
             return PerfilAmigoUiState(
+                utilizador = utilizadorFallback,
                 nome = nomeAmigo,
                 avatar = AVATAR_PADRAO,
                 pontuacao = 0.0,

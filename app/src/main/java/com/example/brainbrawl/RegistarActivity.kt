@@ -59,8 +59,9 @@ class RegistarActivity : AppCompatActivity() {
         binding.btnRegistar.setOnClickListener {
             // GGuardar os dados inseridos nos campos de texto
             val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
+            val email = binding.edtEmail.text.toString().trim()
             val password = binding.edtPasswordJogador.text.toString().trim()
-            viewModel.registar(nomeUtilizador, password, avatarSelecionadoIndex)
+            viewModel.registar(nomeUtilizador, email, password, avatarSelecionadoIndex)
         }
 
         // Configurar botão de voltar
@@ -91,9 +92,14 @@ class RegistarActivity : AppCompatActivity() {
             is RegistarEvent.ErroCriarJogador -> {
                 Toast.makeText(this, "Erro ao criar jogador: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
             }
+            is RegistarEvent.ErroCriarAuth -> {
+                Toast.makeText(this, "Erro ao criar conta: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+            }
             is RegistarEvent.RegistoSucesso -> {
-                val intent = Intent(this, LoginActivity::class.java)
+                val intent = Intent(this, MainActivity::class.java)
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, evento.nomeUtilizador)
+                intent.putExtra(IntentExtras.UID, evento.uid)
+                intent.putExtra(IntentExtras.EMAIL, evento.email)
                 startActivity(intent)
                 finish()
             }

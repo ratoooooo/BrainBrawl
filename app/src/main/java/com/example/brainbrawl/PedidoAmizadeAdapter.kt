@@ -6,10 +6,11 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.brainbrawl.models.PedidoAmizade
 
 class PedidoAmizadeAdapter(
-    private val pedidos: List<String>,
-    private val onAceitarClick: (String) -> Unit
+    private val pedidos: List<PedidoAmizade>,
+    private val onAceitarClick: (PedidoAmizade) -> Unit
 ) : RecyclerView.Adapter<PedidoAmizadeAdapter.PedidoViewHolder>() {
 
     // ViewHolder para cada item do RecyclerView
@@ -27,9 +28,9 @@ class PedidoAmizadeAdapter(
 
     // Liga os dados do pedido à ViewHolder
     override fun onBindViewHolder(holder: PedidoViewHolder, position: Int) {
-        val nomeOutro = pedidos[position]
-        holder.txtNomePedido.text = nomeOutro
-        holder.btnAceitar.setOnClickListener { onAceitarClick(nomeOutro) }
+        val pedido = pedidos[position]
+        holder.txtNomePedido.text = pedido.utilizador.nomeDisplay
+        holder.btnAceitar.setOnClickListener { onAceitarClick(pedido) }
     }
 
     override fun getItemCount() = pedidos.size

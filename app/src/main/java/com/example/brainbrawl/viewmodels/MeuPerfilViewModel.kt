@@ -12,11 +12,12 @@ class MeuPerfilViewModel(
     private val _perfil = MutableLiveData<MeuPerfilUiState>()
     val perfil: LiveData<MeuPerfilUiState> = _perfil
 
-    fun carregarPerfil(nomeUtilizador: String) {
-        jogadorRepository.obterPerfil(nomeUtilizador).addOnSuccessListener { perfil ->
+    fun carregarPerfil(uid: String, nomeUtilizador: String) {
+        val identificador = uid.ifBlank { nomeUtilizador }
+        jogadorRepository.obterPerfil(identificador).addOnSuccessListener { perfil ->
             if (perfil != null) {
                 _perfil.value = MeuPerfilUiState(
-                    nome = nomeUtilizador,
+                    nome = perfil.nomeUtilizador.ifBlank { nomeUtilizador },
                     avatar = perfil.avatar,
                     pontuacao = perfil.estatisticas.pontuacao,
                     taxaAcertos = perfil.estatisticas.taxaAcertos,

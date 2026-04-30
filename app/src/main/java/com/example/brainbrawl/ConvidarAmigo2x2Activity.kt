@@ -8,15 +8,20 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityConvidarAmigo2x2Binding
+import com.example.brainbrawl.models.UtilizadorSocial
 import com.example.brainbrawl.repositories.AmigosRepository
+import com.example.brainbrawl.services.AuthService
 
 class ConvidarAmigo2x2Activity : AppCompatActivity() {
     private val binding by lazy {
         ActivityConvidarAmigo2x2Binding.inflate(layoutInflater)
     }
     private val amigosRepository = AmigosRepository()
+    private val authService = AuthService()
+    private var uid: String = ""
     private var nomeUtilizador: String = ""
-    private val amigos = mutableListOf<String>()
+    private var utilizadorAtual: UtilizadorSocial? = null
+    private val amigos = mutableListOf<UtilizadorSocial>()
     private lateinit var convidarAmigoAdapter: Convidar2x2AmigoAdapter
     private var nomeCategoria: String? = null
 
@@ -25,6 +30,9 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         setContentView(binding.root)
 
         // Guardar dados passados do intent
+        uid = intent.getStringExtra(IntentExtras.UID)
+            ?: authService.utilizadorAtual()?.uid
+            ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
 
@@ -49,11 +57,12 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
     }
 
     // Função para enviar convites para o modo 2x2
-    private fun enviarConvite2x2(amigosSelecionados: List<String>) {
+    private fun enviarConvite2x2(amigosSelecionados: List<UtilizadorSocial>) {
+        val utilizador = utilizadorAtual ?: return
         val codigoSala = gerarCodigoSala()
         val categoriaSelecionada = nomeCategoria ?: getString(R.string.categoria5)
         amigosRepository.enviarConvite2x2(
-            nomeUtilizador,
+            utilizador,
             amigosSelecionados,
             codigoSala,
             categoriaSelecionada
@@ -63,6 +72,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
         intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+        uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
         intent.putExtra(IntentExtras.NOME_CATEGORIA, categoriaSelecionada)
         startActivity(intent)
         finish()
@@ -71,10 +81,16 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
     //Função para carregar a lista de amigos do utilizador
     private fun carregarListaAmigos() {
         amigos.clear()
-        amigosRepository.carregarListaAmigos(nomeUtilizador)
-            .addOnSuccessListener { nomesAmigos ->
-                amigos.addAll(nomesAmigos)
-                convidarAmigoAdapter.notifyDataSetChanged()
+        amigosRepository.resolverUtilizador(uid.ifBlank { nomeUtilizador }, nomeUtilizador)
+            .addOnSuccessListener { utilizador ->
+                val atual = utilizador ?: return@addOnSuccessListener
+                utilizadorAtual = atual
+                if (nomeUtilizador.isBlank()) nomeUtilizador = atual.nomeDisplay
+                amigosRepository.carregarListaAmigos(atual)
+                    .addOnSuccessListener { amigosCarregados ->
+                        amigos.addAll(amigosCarregados)
+                        convidarAmigoAdapter.notifyDataSetChanged()
+                    }
             }
     }
 }

@@ -1,9 +1,12 @@
 package com.example.brainbrawl.config
 
 object IntentExtras {
+    const val UID = "uid"
+    const val EMAIL = "email"
     const val NOME_UTILIZADOR = "nomeUtilizador"
     const val NOME_JOGADOR = "nomeJogador"
     const val NOME_AMIGO = "nomeAmigo"
+    const val UID_AMIGO = "uidAmigo"
     const val CODIGO_SALA = "codigoSala"
     const val NOME_CATEGORIA = "nomeCategoria"
     const val CATEGORIA_LEGACY = "categoria"
