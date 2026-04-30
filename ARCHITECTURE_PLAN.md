@@ -16,6 +16,7 @@ Estado atualizado em 2026-04-30:
 - `RankingActivity` adiciona um ranking global simples acessivel pela `MainActivity`, com `RankingViewModel`, `RankingRepository`, `RankingJogador` e `RecyclerView`.
 - O ranking le `jogadores`, ordena por `pontuacao`, limita inicialmente a top 100 e mantém compatibilidade com perfis novos por UID e perfis legados por `nomeUtilizador`.
 - O ranking passou a suportar multiplos tipos com o mesmo fluxo (`GLOBAL`, `SOLO`, `1x1`, `2x2`), mudando apenas o campo de ordenacao Firebase e mantendo fallback para `0` em campos ausentes.
+- Foi adicionado sistema progressivo de XP/Niveis por jogador (`xpTotal`, `nivel`, `xpNoNivelAtual`, `xpNecessarioProximoNivel`) calculado no fecho de jogo junto com estatisticas, sem alterar a pontuacao.
 - `firebase-rules.json` foi preparado para `auth.uid` em `jogadores/{uid}`, `salas`, `sala_1x1`, `sala_2x2` e `categoriasPublicas`, com excecoes legadas explicitas para convidados/dados antigos.
 
 Decisao de compatibilidade:
@@ -70,7 +71,7 @@ Fluxo principal:
 6. Sala de espera observa jogadores e `estado`.
 7. Quando `estado = em_jogo`, abre `JogoActivity`, `Jogo1x1Activity` ou `Jogo2x2Activity`.
 8. Jogo carrega perguntas, gere timer, respostas e pontuacao.
-9. Resultado abre a Activity de pontuacao e atualiza estatisticas.
+9. Resultado abre a Activity de pontuacao e atualiza estatisticas, incluindo progressao de XP/Niveis por perfil.
 10. Logout volta ao login e marca `estado = off` para utilizadores registados.
 
 ## Problemas da arquitetura atual

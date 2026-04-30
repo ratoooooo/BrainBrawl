@@ -143,6 +143,18 @@
         "totalVitoriasModoSolo": {
           ".validate": "newData.isNumber() && newData.val() >= 0"
         },
+        "xpTotal": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "nivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 1"
+        },
+        "xpNoNivelAtual": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "xpNecessarioProximoNivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
         "amigos": {
           "$outroId": {
             ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId)",

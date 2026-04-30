@@ -11,5 +11,6 @@ data class RankingJogador(
     val taxaAcertos: Double = 0.0,
     val totalVitoriasModoSolo: Int = 0,
     val totalVitoriasModo1x1: Int = 0,
-    val totalVitoriasModo2x2: Int = 0
+    val totalVitoriasModo2x2: Int = 0,
+    val nivel: Int = 1
 )

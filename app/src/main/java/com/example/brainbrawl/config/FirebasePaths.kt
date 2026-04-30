@@ -59,6 +59,10 @@ object FirebasePaths {
     const val UID = "uid"
     const val USOS = "usos"
     const val VALOR = "valor"
+    const val XP_TOTAL = "xpTotal"
+    const val NIVEL = "nivel"
+    const val XP_NO_NIVEL_ATUAL = "xpNoNivelAtual"
+    const val XP_NECESSARIO_PROXIMO_NIVEL = "xpNecessarioProximoNivel"
 
     const val CATEGORIA_PUBLICA_ID = "categoriaPublicaId"
     const val CRIADOR = "criador"

@@ -4,6 +4,8 @@ import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 
 class EstatisticasService {
+    private val progressaoService = ProgressaoService()
+
     enum class Modo {
         SOLO,
         UM_CONTRA_UM,
@@ -41,7 +43,8 @@ class EstatisticasService {
         val totalRespostasCertas: Int,
         val totalVitoriasModo1x1: Int,
         val totalVitoriasModo2x2: Int,
-        val totalVitoriasModoSolo: Int
+        val totalVitoriasModoSolo: Int,
+        val xpTotal: Int
     )
 
     data class Podio2x2(
@@ -143,12 +146,23 @@ class EstatisticasService {
         )
 
         val updates = mutableMapOf<String, Any>(
-            FirebasePaths.PONTUACAO to maxOf(resultado.pontos, estatisticasAtuais.pontuacao),
+            FirebasePaths.PONTUACAO to (estatisticasAtuais.pontuacao + resultado.pontos),
             FirebasePaths.TOTAL_JOGOS to novoTotalJogos,
             FirebasePaths.TOTAL_VITORIAS to novoTotalVitorias,
             FirebasePaths.TOTAL_RESPOSTAS_CERTAS to (estatisticasAtuais.totalRespostasCertas + resultado.respostasCertas),
             FirebasePaths.TAXA_ACERTOS to novaTaxa
         )
+
+        val xpGanho = progressaoService.calcularXpGanho(
+            respostasCertas = resultado.respostasCertas,
+            venceu = venceu
+        )
+        val novoXpTotal = estatisticasAtuais.xpTotal + xpGanho
+        val estadoProgressao = progressaoService.calcularEstadoProgressao(novoXpTotal)
+        updates[FirebasePaths.XP_TOTAL] = estadoProgressao.xpTotal
+        updates[FirebasePaths.NIVEL] = estadoProgressao.nivel
+        updates[FirebasePaths.XP_NO_NIVEL_ATUAL] = estadoProgressao.xpNoNivelAtual
+        updates[FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL] = estadoProgressao.xpNecessarioProximoNivel
 
         when (modo) {
             Modo.SOLO -> {

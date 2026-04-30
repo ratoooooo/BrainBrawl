@@ -62,6 +62,8 @@ class MeuPerfilActivity : AppCompatActivity() {
         // Mostra os dados do perfil
         binding.txtNomeAmigo.text = perfil.nome
         binding.txtPontuacao.text = "Pontuação: ${perfil.pontuacao}"
+        binding.txtNivel.text = "Nível ${perfil.nivel}"
+        binding.txtXpProgress.text = "${perfil.xpNoNivelAtual} / ${perfil.xpNecessarioProximoNivel} XP"
         binding.txtTotalJogos.text = "Total de Jogos: ${perfil.totalJogos}"
         binding.txtTotalVitorias.text = "Total de Vitórias: ${perfil.totalVitorias}"
         binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(perfil.taxaAcertos)}%"

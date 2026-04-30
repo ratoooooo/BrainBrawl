@@ -1,6 +1,7 @@
 package com.example.brainbrawl
 
 import com.example.brainbrawl.services.EstatisticasService
+import com.example.brainbrawl.services.ProgressaoService
 import com.example.brainbrawl.services.ScoreCompetitivoService
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertEquals
@@ -10,6 +11,7 @@ import org.junit.Test
 class ExampleUnitTest {
     private val scoreCompetitivoService = ScoreCompetitivoService()
     private val estatisticasService = EstatisticasService()
+    private val progressaoService = ProgressaoService()
 
     @Test
     fun pontuacaoCompetitivaSemBonusMantemFormulaAtual() {
@@ -118,5 +120,68 @@ class ExampleUnitTest {
 
         assertFalse(estatisticasService.deveAtualizarEstatisticas(true, resultados))
         assertTrue(estatisticasService.deveAtualizarEstatisticas(false, resultados))
+    }
+
+    @Test
+    fun progressaoNovoJogadorComecaNoNivelUm() {
+        val estado = progressaoService.calcularEstadoProgressao(0)
+
+        assertEquals(1, estado.nivel)
+        assertEquals(0, estado.xpNoNivelAtual)
+        assertEquals(300, estado.xpNecessarioProximoNivel)
+    }
+
+    @Test
+    fun progressaoPassar300XpSobeParaNivelDois() {
+        val estado = progressaoService.calcularEstadoProgressao(300)
+
+        assertEquals(2, estado.nivel)
+        assertEquals(0, estado.xpNoNivelAtual)
+        assertEquals(450, estado.xpNecessarioProximoNivel)
+    }
+
+    @Test
+    fun progressaoPassar750XpTotalFicaNivelTresComProgressoCorreto() {
+        val estado = progressaoService.calcularEstadoProgressao(750)
+
+        assertEquals(3, estado.nivel)
+        assertEquals(0, estado.xpNoNivelAtual)
+        assertEquals(600, estado.xpNecessarioProximoNivel)
+    }
+
+    @Test
+    fun progressaoSuportaMultiplosNiveisDeUmaVez() {
+        val estado = progressaoService.calcularEstadoProgressao(3000)
+
+        assertTrue(estado.nivel > 1)
+        assertTrue(estado.xpNoNivelAtual >= 0)
+        assertTrue(estado.xpNoNivelAtual < estado.xpNecessarioProximoNivel)
+    }
+
+    @Test
+    fun atualizacaoEstatisticasSomaPontuacaoAoTotalExistente() {
+        val updates = estatisticasService.calcularAtualizacao(
+            estatisticasAtuais = EstatisticasService.EstatisticasAtuais(
+                pontuacao = 1000.0,
+                taxaAcertos = 50.0,
+                totalJogos = 10,
+                totalVitorias = 4,
+                totalRespostasCertas = 40,
+                totalVitoriasModo1x1 = 1,
+                totalVitoriasModo2x2 = 1,
+                totalVitoriasModoSolo = 2,
+                xpTotal = 0
+            ),
+            resultado = EstatisticasService.ResultadoJogador(
+                nome = "Jogador",
+                pontos = 2100.0,
+                respostasCertas = 8
+            ),
+            modo = EstatisticasService.Modo.SOLO,
+            venceu = true,
+            totalPerguntas = 8
+        )
+
+        assertEquals(3100.0, updates["pontuacao"] as Double, 0.0001)
     }
 }

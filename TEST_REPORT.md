@@ -2,6 +2,112 @@
 
 Data: 2026-04-30
 
+## Auditoria - pontuacao, estatisticas, ranking e XP
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `TEST_REPORT.md`
+
+### Causas exatas encontradas
+
+- A pontuacao global do perfil estava a ser atualizada por maximo (`maxOf`) em vez de acumulacao; isto impedia somar resultados de jogos sucessivos (ex.: jogo com 2100 nao era somado ao total ja existente).
+- No fluxo de pontuacao de grupo (`PontuacoesActivity`), a app tentava atualizar estatisticas/XP de todos os jogadores a partir de um unico cliente.
+- Com regras por `auth.uid` em `jogadores/{uid}`, esse padrao podia falhar para jogadores terceiros e interromper o fluxo, deixando pontuacao/XP por gravar.
+
+### Correcao aplicada
+
+- `EstatisticasService.calcularAtualizacao` passou a somar pontuacao: `pontuacaoAtual + pontosDoJogo`.
+- `PontuacoesActivity` passou a atualizar apenas o jogador atual (`jogadoresParaAtualizar`), alinhado com o padrao ja usado em `Pontuacao1x1Activity` e `Pontuacao2x2Activity`.
+- Manteve-se a anti-duplicacao existente por sala em `estatisticasAtualizadas/{identificador}`.
+- Regras de pontuacao do jogo e regras de XP mantidas sem alteracoes.
+
+### Verificacao de regras Firebase
+
+- Confirmado que `firebase-rules.json` ja permite e valida os campos:
+  - `pontuacao`
+  - `totalJogos`
+  - `totalVitorias`
+  - `totalVitoriasModoSolo`
+  - `totalVitoriasModo1x1`
+  - `totalVitoriasModo2x2`
+  - `totalRespostasCertas`
+  - `taxaAcertos`
+  - `xpTotal`
+  - `nivel`
+  - `xpNoNivelAtual`
+  - `xpNecessarioProximoNivel`
+
+## Sistema de XP + Niveis
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Jogador.kt`
+- `app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt`
+- `app/src/main/java/com/example/brainbrawl/services/ProgressaoService.kt`
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RankingAdapter.kt`
+- `app/src/main/res/layout/activity_meu_perfil.xml`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `firebase-rules.json`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### O que foi implementado
+
+- Sistema progressivo de XP separado da pontuacao:
+  - `+50 XP` por jogo terminado
+  - `+100 XP` extra por vitoria
+  - `+10 XP` por resposta certa
+- Regra de nivel progressiva aplicada:
+  - `xpNecessario = 300 + ((nivelAtual - 1) * 150)`
+- `ProgressaoService` novo para:
+  - calcular XP ganho
+  - calcular `nivel`, `xpNoNivelAtual` e `xpNecessarioProximoNivel` a partir de `xpTotal`
+  - suportar multiplos niveis ganhos de uma vez
+- Integracao no fluxo existente de estatisticas em `EstatisticasService.calcularAtualizacao` para atualizar:
+  - `xpTotal`
+  - `nivel`
+  - `xpNoNivelAtual`
+  - `xpNecessarioProximoNivel`
+- Anti-duplicacao preservada:
+  - continua a usar os marcadores transacionais `estatisticasAtualizadas/{identificador}` por sala
+- Convidados continuam sem criar perfil e sem ganhar XP, pois apenas perfis resolvidos em `jogadores/{uid|legado}` sao atualizados.
+- Compatibilidade com perfis antigos:
+  - fallback de leitura para `xpTotal=0`, `nivel=1`, `xpNoNivelAtual=0`, `xpNecessarioProximoNivel=300`
+- UI do perfil atualizada para mostrar:
+  - `Nível X`
+  - `XP atual / XP necessário`
+- Ranking mostra nivel de forma simples junto ao nome (`Nv X`).
+- Firebase Rules atualizadas para validar campos XP/nivel como numeros nao negativos (nivel >= 1).
+
+## Correcao 2x2 - vitorias por modo
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `TEST_REPORT.md`
+
+### Causa exata
+
+- Em `Pontuacao2x2Activity`, o fluxo 2x2 chamava `atualizarEstatisticasSalaUmaVez` sem `jogadoresParaAtualizar`, tentando atualizar estatisticas de todos os jogadores a partir de um unico cliente.
+- Com `uid` como chave principal e rules atuais, cada cliente so deve atualizar o proprio perfil em `jogadores/{uid}`; no 1x1 esse filtro ja existia.
+- Isso podia impedir o incremento correto de `totalVitoriasModo2x2` para os vencedores.
+
+### O que foi corrigido
+
+- `Pontuacao2x2Activity` passou a atualizar estatisticas apenas para o jogador atual (`jogadoresParaAtualizar = identificadoresJogadorAtual().toSet()`), alinhado com o padrao do 1x1.
+- A atualizacao ficou condicionada a podio completo (`podio.size >= 4`) para evitar calcular vencedores com resultados parciais.
+- Foi adicionado controlo local `estatisticasAtualizadas` para evitar chamadas repetidas durante o mesmo ciclo de vida da Activity; a protecao transacional em `estatisticasAtualizadas/{identificador}` continua ativa para reaberturas.
+- Regra de empate 2x2 foi mantida sem alteracoes.
+
 ## Ranking por Modo
 
 ### Ficheiros alterados nesta ronda

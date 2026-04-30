@@ -31,6 +31,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private var totalRespostasCertas: Int = 0
 
     private var pontuacaoListener: PontuacaoRepository.ListenerHandle? = null
+    private var estatisticasAtualizadas = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -96,13 +97,20 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
                 val resultados = resultado.equipaA + resultado.equipaB
                 mostrarNovoRecordSeAplicavel(resultados)
-                pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
-                    tipoSala = PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS,
-                    codigoSala = codigoSala,
-                    resultados = resultados,
-                    modo = EstatisticasService.Modo.DOIS_CONTRA_DOIS,
-                    totalPerguntas = 8
-                )
+
+                if (podio.size >= 4 && !estatisticasAtualizadas) {
+                    estatisticasAtualizadas = true
+                    pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+                        tipoSala = PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS,
+                        codigoSala = codigoSala,
+                        resultados = resultados,
+                        modo = EstatisticasService.Modo.DOIS_CONTRA_DOIS,
+                        totalPerguntas = 8,
+                        jogadoresParaAtualizar = identificadoresJogadorAtual().toSet()
+                    ).addOnFailureListener {
+                        estatisticasAtualizadas = false
+                    }
+                }
             }
         )
     }

@@ -81,7 +81,8 @@ class RankingRepository(
             taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue(),
             totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
             totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
-            totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue()
+            totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
+            nivel = child(FirebasePaths.NIVEL).intValue().coerceAtLeast(1)
         )
     }
 

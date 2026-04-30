@@ -32,7 +32,7 @@ class RankingAdapter(
     override fun onBindViewHolder(holder: RankingViewHolder, position: Int) {
         val jogador = jogadores[position]
         holder.txtPosicao.text = "#${jogador.posicao}"
-        holder.txtNome.text = jogador.nomeDisplay
+        holder.txtNome.text = "${jogador.nomeDisplay} • Nv ${jogador.nivel}"
         holder.txtValorLabel.text = rankingTipo.valorLabel
         holder.txtPontuacao.text = rankingTipo.valorOrdenacao(jogador).formatarNumero()
         holder.txtTotalJogos.text = "Jogos: ${jogador.totalJogos}"

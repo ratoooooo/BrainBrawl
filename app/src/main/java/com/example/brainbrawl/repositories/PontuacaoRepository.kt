@@ -108,6 +108,7 @@ class PontuacaoRepository(
                 val resultados = snapshot.child(FirebasePaths.PONTUACOES).children.mapNotNull { pontuacaoSnapshot ->
                     val chave = pontuacaoSnapshot.key ?: return@mapNotNull null
                     if (deveIgnorarJogador(chave)) return@mapNotNull null
+
                     jogadoresSnapshot.child(chave).toResultadoJogador(
                         chave = chave,
                         pontos = pontuacaoSnapshot.doubleValue(),
@@ -196,8 +197,10 @@ class PontuacaoRepository(
         }
 
         val resultado = resultados[index]
+
         if (deveIgnorarJogador(resultado.nome) ||
-            !deveAtualizarResultado(resultado, jogadoresParaAtualizar)) {
+            !deveAtualizarResultado(resultado, jogadoresParaAtualizar)
+        ) {
             atualizarProximoJogador(
                 tipoSala,
                 codigoSala,
@@ -212,27 +215,57 @@ class PontuacaoRepository(
             return
         }
 
-        marcarEstatisticasJogadorComoAtualizadas(tipoSala, codigoSala, resultado.identificadorEstatisticas)
-            .addOnSuccessListener { podeAtualizar ->
-                if (!podeAtualizar) {
-                    atualizarProximoJogador(
-                        tipoSala,
-                        codigoSala,
-                        resultados,
-                        vencedores,
-                        modo,
-                        totalPerguntas,
-                        jogadoresParaAtualizar,
-                        index + 1,
-                        result
-                    )
-                    return@addOnSuccessListener
-                }
+        marcarEstatisticasJogadorComoAtualizadas(
+            tipoSala,
+            codigoSala,
+            resultado.identificadorEstatisticas
+        ).addOnSuccessListener { podeAtualizar ->
+            if (!podeAtualizar) {
+                atualizarProximoJogador(
+                    tipoSala,
+                    codigoSala,
+                    resultados,
+                    vencedores,
+                    modo,
+                    totalPerguntas,
+                    jogadoresParaAtualizar,
+                    index + 1,
+                    result
+                )
+                return@addOnSuccessListener
+            }
 
-                resolverPerfilJogador(resultado)
-                    .addOnSuccessListener jogadorListener@{ perfil ->
-                        val snapshot = perfil?.snapshot
-                        if (perfil == null || snapshot == null || !snapshot.ePerfilJogador()) {
+            resolverPerfilJogador(resultado)
+                .addOnSuccessListener jogadorListener@{ perfil ->
+                    val snapshot = perfil?.snapshot
+
+                    if (perfil == null || snapshot == null || !snapshot.ePerfilJogador()) {
+                        atualizarProximoJogador(
+                            tipoSala,
+                            codigoSala,
+                            resultados,
+                            vencedores,
+                            modo,
+                            totalPerguntas,
+                            jogadoresParaAtualizar,
+                            index + 1,
+                            result
+                        )
+                        return@jogadorListener
+                    }
+
+                    val jogadorRef = database.child(FirebasePaths.JOGADORES).child(perfil.chave)
+
+                    val updates = estatisticasService.calcularAtualizacao(
+                        estatisticasAtuais = snapshot.toEstatisticasAtuais(),
+                        resultado = resultado,
+                        modo = modo,
+                        venceu = vencedores.contains(resultado.identificadorEstatisticas),
+                        totalPerguntas = totalPerguntas
+                    )
+
+                    jogadorRef.updateChildren(updates)
+                        .addOnSuccessListener {
                             atualizarProximoJogador(
                                 tipoSala,
                                 codigoSala,
@@ -244,43 +277,17 @@ class PontuacaoRepository(
                                 index + 1,
                                 result
                             )
-                            return@jogadorListener
                         }
-
-                        val jogadorRef = database.child(FirebasePaths.JOGADORES).child(perfil.chave)
-                        val updates = estatisticasService.calcularAtualizacao(
-                            estatisticasAtuais = snapshot.toEstatisticasAtuais(),
-                            resultado = resultado,
-                            modo = modo,
-                            venceu = vencedores.contains(resultado.identificadorEstatisticas),
-                            totalPerguntas = totalPerguntas
-                        )
-
-                        jogadorRef.updateChildren(updates)
-                            .addOnSuccessListener {
-                                atualizarProximoJogador(
-                                    tipoSala,
-                                    codigoSala,
-                                    resultados,
-                                    vencedores,
-                                    modo,
-                                    totalPerguntas,
-                                    jogadoresParaAtualizar,
-                                    index + 1,
-                                    result
-                                )
-                            }
-                            .addOnFailureListener { error ->
-                                result.setException(error)
-                            }
-                    }
-                    .addOnFailureListener { error ->
-                        result.setException(error)
-                    }
-            }
-            .addOnFailureListener { error ->
-                result.setException(error)
-            }
+                        .addOnFailureListener { error ->
+                            result.setException(error)
+                        }
+                }
+                .addOnFailureListener { error ->
+                    result.setException(error)
+                }
+        }.addOnFailureListener { error ->
+            result.setException(error)
+        }
     }
 
     private fun marcarEstatisticasJogadorComoAtualizadas(
@@ -289,6 +296,7 @@ class PontuacaoRepository(
         identificadorJogador: String
     ): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
+
         if (identificadorJogador.isBlank()) {
             result.setResult(false)
             return result.task
@@ -303,6 +311,7 @@ class PontuacaoRepository(
                 if (currentData.getValue(Boolean::class.java) == true) {
                     return Transaction.abort()
                 }
+
                 currentData.value = true
                 return Transaction.success(currentData)
             }
@@ -312,6 +321,7 @@ class PontuacaoRepository(
                     result.setException(error.toException())
                     return
                 }
+
                 result.setResult(committed)
             }
         })
@@ -322,6 +332,7 @@ class PontuacaoRepository(
     private fun DataSnapshot.toResultadoGrupo(): ResultadoJogador? {
         val chave = key ?: return null
         val isHostOnly = child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
+
         if (deveIgnorarJogador(chave) || isHostOnly) return null
 
         return toResultadoJogador(
@@ -337,6 +348,7 @@ class PontuacaoRepository(
             val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
             !deveIgnorarJogador(nome) && !isHostOnly
         }
+
         val resultados = jogadoresReais.mapNotNull { jogadorSnapshot ->
             if (jogadorSnapshot.temResultadoGrupoGuardado()) {
                 jogadorSnapshot.toResultadoGrupo()
@@ -344,6 +356,7 @@ class PontuacaoRepository(
                 null
             }
         }
+
         return ResultadosGrupo(
             jogadores = resultados,
             totalJogadores = jogadoresReais.size,
@@ -352,7 +365,8 @@ class PontuacaoRepository(
     }
 
     private fun DataSnapshot.temResultadoGrupoGuardado(): Boolean {
-        return hasChild(FirebasePaths.TOTAL_RESPOSTAS_CERTAS) || hasChild(FirebasePaths.TOTAL_PERGUNTAS_CERTAS)
+        return hasChild(FirebasePaths.PONTUACAO) &&
+                (hasChild(FirebasePaths.TOTAL_RESPOSTAS_CERTAS) || hasChild(FirebasePaths.TOTAL_PERGUNTAS_CERTAS))
     }
 
     private fun DataSnapshot.respostasCertasGrupo(): Int {
@@ -372,6 +386,11 @@ class PontuacaoRepository(
         val equipaA = child(FirebasePaths.EQUIPA_A).children.mapNotNull { jogadorSnapshot ->
             val chave = jogadorSnapshot.key ?: return@mapNotNull null
             if (deveIgnorarJogador(chave)) return@mapNotNull null
+
+            if (!pontuacoesA.hasChild(chave) || !respostasA.hasChild(chave)) {
+                return@mapNotNull null
+            }
+
             jogadorSnapshot.toResultadoJogador(
                 chave = chave,
                 pontos = pontuacoesA.child(chave).doubleValue(),
@@ -383,6 +402,11 @@ class PontuacaoRepository(
         val equipaB = child(FirebasePaths.EQUIPA_B).children.mapNotNull { jogadorSnapshot ->
             val chave = jogadorSnapshot.key ?: return@mapNotNull null
             if (deveIgnorarJogador(chave)) return@mapNotNull null
+
+            if (!pontuacoesB.hasChild(chave) || !respostasB.hasChild(chave)) {
+                return@mapNotNull null
+            }
+
             jogadorSnapshot.toResultadoJogador(
                 chave = chave,
                 pontos = pontuacoesB.child(chave).doubleValue(),
@@ -421,7 +445,8 @@ class PontuacaoRepository(
             totalRespostasCertas = child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue(),
             totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
             totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
-            totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue()
+            totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
+            xpTotal = child(FirebasePaths.XP_TOTAL).intValue()
         )
     }
 
@@ -444,11 +469,13 @@ class PontuacaoRepository(
                 FirebasePaths.NOME_UTILIZADOR to resultado.nome,
                 FirebasePaths.NOME to resultado.nome
             ).filter { it.second.isNotBlank() }.distinct()
+
             procurarPerfilPorCampo(consultas, 0, result)
             return
         }
 
         val candidato = candidatos[index]
+
         database.child(FirebasePaths.JOGADORES).child(candidato).get()
             .addOnSuccessListener { snapshot ->
                 if (snapshot.exists()) {
@@ -473,6 +500,7 @@ class PontuacaoRepository(
         }
 
         val (campo, valor) = consultas[index]
+
         database.child(FirebasePaths.JOGADORES)
             .orderByChild(campo)
             .equalTo(valor)
@@ -481,6 +509,7 @@ class PontuacaoRepository(
             .addOnSuccessListener { snapshot ->
                 val perfil = snapshot.children.firstOrNull()
                 val chave = perfil?.key
+
                 if (perfil != null && chave != null) {
                     result.setResult(PerfilResolvido(chave, perfil))
                 } else {
@@ -494,14 +523,17 @@ class PontuacaoRepository(
 
     private fun DataSnapshot.ePerfilJogador(): Boolean {
         return exists() && (
-            hasChild(FirebasePaths.UID) ||
-                hasChild(FirebasePaths.NOME_UTILIZADOR) ||
-                hasChild(FirebasePaths.PASSWORD) ||
-                hasChild(FirebasePaths.EMAIL)
-            )
+                hasChild(FirebasePaths.UID) ||
+                        hasChild(FirebasePaths.NOME_UTILIZADOR) ||
+                        hasChild(FirebasePaths.PASSWORD) ||
+                        hasChild(FirebasePaths.EMAIL)
+                )
     }
 
-    private fun deveAtualizarResultado(resultado: ResultadoJogador, jogadoresParaAtualizar: Set<String>?): Boolean {
+    private fun deveAtualizarResultado(
+        resultado: ResultadoJogador,
+        jogadoresParaAtualizar: Set<String>?
+    ): Boolean {
         return jogadoresParaAtualizar == null || jogadoresParaAtualizar.any { resultado.corresponde(it) }
     }
 

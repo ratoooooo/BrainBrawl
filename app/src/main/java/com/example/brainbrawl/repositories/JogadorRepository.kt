@@ -19,7 +19,11 @@ class JogadorRepository(
         val totalRespostasCertas: Int,
         val totalVitoriasModo1x1: Int,
         val totalVitoriasModo2x2: Int,
-        val totalVitoriasModoSolo: Int
+        val totalVitoriasModoSolo: Int,
+        val xpTotal: Int,
+        val nivel: Int,
+        val xpNoNivelAtual: Int,
+        val xpNecessarioProximoNivel: Int
     )
 
     data class PerfilJogador(
@@ -74,7 +78,11 @@ class JogadorRepository(
             FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_2X2 to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_1X1 to 0,
-            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0
+            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0,
+            FirebasePaths.XP_TOTAL to 0,
+            FirebasePaths.NIVEL to 1,
+            FirebasePaths.XP_NO_NIVEL_ATUAL to 0,
+            FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL to 300
         )
         return jogadorRef(nomeJogador).setValue(jogadorData)
     }
@@ -98,7 +106,11 @@ class JogadorRepository(
             FirebasePaths.TOTAL_VITORIAS to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_1X1 to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_2X2 to 0,
-            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0
+            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0,
+            FirebasePaths.XP_TOTAL to 0,
+            FirebasePaths.NIVEL to 1,
+            FirebasePaths.XP_NO_NIVEL_ATUAL to 0,
+            FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL to 300
         )
         return jogadorRef(uid).setValue(jogadorData)
     }
@@ -217,7 +229,11 @@ class JogadorRepository(
                 totalRespostasCertas = child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue(),
                 totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
                 totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
-                totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue()
+                totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
+                xpTotal = child(FirebasePaths.XP_TOTAL).intValue(),
+                nivel = child(FirebasePaths.NIVEL).intValue().coerceAtLeast(1),
+                xpNoNivelAtual = child(FirebasePaths.XP_NO_NIVEL_ATUAL).intValue(),
+                xpNecessarioProximoNivel = child(FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL).intValue().takeIf { it > 0 } ?: 300
             )
         )
     }
