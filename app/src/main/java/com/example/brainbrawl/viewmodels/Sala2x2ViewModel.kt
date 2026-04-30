@@ -26,16 +26,17 @@ class Sala2x2ViewModel(
     private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var chaveJogador = ""
     private var saidaManual = false
+    private var aIniciarJogo = false
 
     fun iniciar(codigoSala: String, uid: String, nomeUtilizador: String, nomeJogador: String) {
         jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
         chaveJogador = jogadorAtual.chaveSala
         saidaManual = false
+        aIniciarJogo = false
         jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala, jogadorAtual)
             .addOnSuccessListener { jogadorNaSala ->
                 chaveJogador = jogadorNaSala.chave
-                atualizarAdmin(codigoSala)
-                publicarEstadoEGuardarEquipas(codigoSala)
+                atualizarAdminEPublicar(codigoSala)
             }
     }
 
@@ -46,8 +47,7 @@ class Sala2x2ViewModel(
             codigoSala,
             onJogadoresAlterados = { jogadores ->
                 jogadoresNaSala = jogadores
-                atualizarAdmin(codigoSala)
-                publicarEstadoEGuardarEquipas(codigoSala)
+                atualizarAdminEPublicar(codigoSala)
             }
         )
     }
@@ -79,13 +79,31 @@ class Sala2x2ViewModel(
     }
 
     fun iniciarJogo(codigoSala: String) {
-        if (admin && jogadoresNaSala.size == 4) {
-            jogoCompetitivoRepository.atualizarEstadoSala(
-                ModoCompetitivo.DOIS_CONTRA_DOIS,
-                codigoSala,
-                GameConstants.ESTADO_EM_JOGO
-            )
-        }
+        val jogadores = jogadoresUnicos()
+        if (!admin || jogadores.size != 4 || aIniciarJogo) return
+        aIniciarJogo = true
+        publicarEstado()
+
+        val equipaA = jogadores.take(2)
+        val equipaB = jogadores.drop(2).take(2)
+
+        jogoCompetitivoRepository.guardarEquipas2x2(codigoSala, equipaA, equipaB)
+            .addOnSuccessListener {
+                jogoCompetitivoRepository.atualizarEstadoSala(
+                    ModoCompetitivo.DOIS_CONTRA_DOIS,
+                    codigoSala,
+                    GameConstants.ESTADO_EM_JOGO
+                ).addOnFailureListener {
+                    aIniciarJogo = false
+                    publicarEstado()
+                    _evento.value = Sala2x2Event.ErroIniciarJogo
+                }
+            }
+            .addOnFailureListener {
+                aIniciarJogo = false
+                publicarEstado()
+                _evento.value = Sala2x2Event.ErroIniciarJogo
+            }
     }
 
     fun sairDaSala(codigoSala: String) {
@@ -112,33 +130,69 @@ class Sala2x2ViewModel(
         super.onCleared()
     }
 
-    private fun publicarEstadoEGuardarEquipas(codigoSala: String) {
-        val equipaA = jogadoresNaSala.take(2)
-        val equipaB = jogadoresNaSala.drop(2).take(2)
-        val salaCompleta = jogadoresNaSala.size == 4
-        _estado.value = Sala2x2UiState(
-            equipaA = equipaA.map { it.nomeDisplay },
-            equipaB = equipaB.map { it.nomeDisplay },
-            podeIniciar = admin && salaCompleta
-        )
-
-        if (admin && salaCompleta) {
-            jogoCompetitivoRepository.guardarEquipas2x2(codigoSala, equipaA, equipaB)
+    private fun atualizarAdminEPublicar(codigoSala: String) {
+        jogoCompetitivoRepository.verificarAdmin(
+            ModoCompetitivo.DOIS_CONTRA_DOIS,
+            codigoSala,
+            jogadorAtual,
+            chaveJogador
+        ).addOnSuccessListener { isAdmin ->
+            admin = isAdmin
+            publicarEstado()
+        }.addOnFailureListener {
+            admin = false
+            publicarEstado()
         }
     }
 
-    private fun atualizarAdmin(codigoSala: String) {
-        jogoCompetitivoRepository.obterChavesAdmin(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
-            .addOnSuccessListener { chavesAdmin ->
-                admin = if (chavesAdmin.isEmpty()) {
-                    jogadoresNaSala.firstOrNull()?.chave == chaveJogador
+    private fun publicarEstado() {
+        val jogadores = jogadoresUnicos()
+        val equipaA = jogadores.take(2)
+        val equipaB = jogadores.drop(2).take(2)
+        val salaCompleta = jogadores.size == 4
+        _estado.value = Sala2x2UiState(
+            equipaA = equipaA.map { it.nomeDisplay },
+            equipaB = equipaB.map { it.nomeDisplay },
+            podeIniciar = admin && salaCompleta && !aIniciarJogo
+        )
+    }
+
+    private fun jogadoresUnicos(): List<JogoCompetitivoRepository.JogadorCompetitivo> {
+        return jogadoresNaSala
+            .filterNot { it.chave == GameConstants.JOGADOR_ADMIN }
+            .fold(emptyList()) { acumulado, jogador ->
+                val existenteIndex = acumulado.indexOfFirst { it.corresponde(jogador) }
+                if (existenteIndex == -1) {
+                    acumulado + jogador
                 } else {
-                    chavesAdmin.any { chave ->
-                        chave == chaveJogador || chave in jogadorAtual.chavesCompatibilidade
+                    acumulado.toMutableList().apply {
+                        this[existenteIndex] = this[existenteIndex].preferir(jogador)
                     }
                 }
-                publicarEstadoEGuardarEquipas(codigoSala)
             }
+    }
+
+    private fun JogoCompetitivoRepository.JogadorCompetitivo.corresponde(
+        outro: JogoCompetitivoRepository.JogadorCompetitivo
+    ): Boolean {
+        return identificadores().any { it in outro.identificadores() }
+    }
+
+    private fun JogoCompetitivoRepository.JogadorCompetitivo.preferir(
+        outro: JogoCompetitivoRepository.JogadorCompetitivo
+    ): JogoCompetitivoRepository.JogadorCompetitivo {
+        return when {
+            outro.uid.isNotBlank() && outro.chave == outro.uid -> outro
+            uid.isNotBlank() && chave == uid -> this
+            outro.uid.isNotBlank() && uid.isBlank() -> outro
+            else -> this
+        }
+    }
+
+    private fun JogoCompetitivoRepository.JogadorCompetitivo.identificadores(): List<String> {
+        return listOf(chave, uid, nomeUtilizador, nomeJogador, nomeDisplay)
+            .filter { it.isNotBlank() }
+            .distinct()
     }
 
     private fun removerJogadoresListener() {
@@ -166,4 +220,5 @@ data class Sala2x2UiState(
 sealed class Sala2x2Event {
     data object JogoIniciado : Sala2x2Event()
     data object SalaEncerrada : Sala2x2Event()
+    data object ErroIniciarJogo : Sala2x2Event()
 }

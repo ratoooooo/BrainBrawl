@@ -2,6 +2,147 @@
 
 Data: 2026-04-30
 
+## Correcao 2x2 - inicio da sala, equipas e podio
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `TEST_REPORT.md`
+
+### Causa exata
+
+- A sala 2x2 pre-cria jogadores a partir dos convites e cada cliente volta a confirmar a sua presenca ao entrar na sala. Em contas hibridas/legadas, a mesma pessoa podia chegar com chave `uid` ou chave `nomeUtilizador`, deixando a contagem crua de `jogadores` diferente dos 4 jogadores reais.
+- `Sala2x2ViewModel` usava `jogadoresNaSala.size == 4`; com duplicados por uid/nome o botao podia ficar desativado apesar de a UI mostrar quatro pessoas.
+- A identificacao de admin tambem era fragil porque comparava apenas os campos `adminUid/adminId/admin` contra a identidade local, sem cruzar a entrada real do jogador em `jogadores`.
+- `guardarEquipas2x2` escrevia os nos inteiros `equipaA` e `equipaB`. As Firebase Rules de `sala_2x2` autorizam escrita nos filhos `equipaA/{jogadorId}` e `equipaB/{jogadorId}`; por isso o clique do admin podia falhar antes de mudar `estado` para `em_jogo`.
+- Quando um perfil social era resolvido por fallback legado, a criacao 2x2 podia perder o `uid` Auth do criador, gravando `adminUid` vazio ou incompatível com as rules.
+
+### O que foi corrigido
+
+- `Sala2x2ViewModel` deduplica jogadores por `uid`, `nomeUtilizador`, `nomeJogador`, `nomeDisplay` e chave Firebase antes de contar a sala e formar equipas.
+- O botao iniciar fica ativo apenas quando o utilizador atual e admin real e existem 4 jogadores reais unicos.
+- O inicio 2x2 grava `equipaA/{chaveJogador}` e `equipaB/{chaveJogador}` por jogador, respeitando as rules, e so depois muda `estado` para `em_jogo`.
+- A sala deixa de tentar gravar equipas automaticamente durante a publicacao de estado da UI; as equipas sao gravadas no clique de iniciar.
+- `JogoCompetitivoRepository.verificarAdmin` cruza `adminUid/adminId/admin` com a entrada real do jogador na sala, mantendo fallback por nome.
+- `ConvidarAmigo2x2Activity` preserva o `uid` Auth local quando o perfil social resolvido vem sem uid.
+- `AmigosRepository` tenta resolver por `nomeUtilizador` quando a procura direta por `uid` nao encontra perfil, mantendo compatibilidade com dados legados.
+- O pódio 2x2 continua a esperar pelos jogadores reais de `equipaA/equipaB` e pelos nos de pontuacao e total de certas de cada chave.
+
+### Verificacoes executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Nota: permanece apenas o warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+
+### Nos Firebase esperados
+
+Antes de iniciar o jogo:
+
+- `sala_2x2/{codigo}/admin`
+- `sala_2x2/{codigo}/adminId`
+- `sala_2x2/{codigo}/adminUid`
+- `sala_2x2/{codigo}/estado = em_espera`
+- `sala_2x2/{codigo}/nomeCategoria`
+- `sala_2x2/{codigo}/jogadores/{chaveJogador}` para 4 jogadores reais, preferencialmente UIDs quando existem.
+- Cada jogador em `jogadores/{chaveJogador}` deve ter `uid`, `nomeUtilizador`/`nomeDisplay` quando disponiveis.
+
+Depois do admin clicar iniciar:
+
+- `sala_2x2/{codigo}/equipaA/{chaveJogador}` com 2 jogadores.
+- `sala_2x2/{codigo}/equipaB/{chaveJogador}` com 2 jogadores.
+- `sala_2x2/{codigo}/estado = em_jogo`.
+- `sala_2x2/{codigo}/perguntas`.
+
+Durante/depois do jogo:
+
+- `sala_2x2/{codigo}/respostas/{chaveJogador}/{indice}`.
+- `sala_2x2/{codigo}/pontuacoes_A/{chaveJogador}` para os 2 jogadores da equipa A.
+- `sala_2x2/{codigo}/pontuacoes_B/{chaveJogador}` para os 2 jogadores da equipa B.
+- `sala_2x2/{codigo}/totalPerguntasCertas_A/{chaveJogador}` para os 2 jogadores da equipa A.
+- `sala_2x2/{codigo}/totalPerguntasCertas_B/{chaveJogador}` para os 2 jogadores da equipa B.
+- `sala_2x2/{codigo}/estatisticasAtualizadas/{identificador}` depois da pontuacao atualizar estatisticas.
+
+### Como testar manualmente 2x2 com 4 contas
+
+1. Entrar em quatro dispositivos/emuladores com quatro contas diferentes.
+2. Na conta 1, escolher modo 2x2, categoria e convidar 3 amigos.
+3. Confirmar no Firebase que a sala criada tem `adminUid` igual ao UID Auth da conta 1 quando a conta e autenticada.
+4. Nas contas 2, 3 e 4, aceitar o convite e abrir a sala 2x2.
+5. Confirmar que a UI mostra duas pessoas na equipa A e duas na equipa B.
+6. Confirmar que o botao iniciar esta ativo apenas na conta 1/admin.
+7. Clicar iniciar na conta 1.
+8. Confirmar que `equipaA` e `equipaB` aparecem antes de `estado = em_jogo`.
+9. Confirmar que todos os clientes abrem `Jogo2x2Activity`.
+10. Responder ou deixar terminar todas as perguntas nas 4 contas.
+11. Confirmar que cada conta escreve em `respostas/{chaveJogador}/{indice}`.
+12. Confirmar que cada conta escreve a pontuacao e total de certas no ramo da sua equipa.
+13. Confirmar que a mensagem "Aguarde que todos terminem!" so persiste ate ao quarto jogador real terminar.
+14. Confirmar que todas as contas abrem `Pontuacao2x2Activity` e o podio mostra os quatro jogadores.
+
+## Correcao 2x2 - build e espera pelo podio
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `TEST_REPORT.md`
+
+### Causa exata
+
+- `Jogo2x2ViewModel.kt` tinha sido substituido por codigo de sala de espera, criando uma segunda `Sala2x2ViewModel` e removendo `Jogo2x2ViewModel`, `Jogo2x2Event`, `JogoCompetitivoPerguntaUiState` e `JogoCompetitivoPontuacaoDados`.
+- Por isso `Jogo2x2Activity`, `Jogo1x1Activity` e `Jogo1x1ViewModel` deixaram de resolver os tipos competitivos partilhados e o projeto nao compilava.
+- No fluxo 2x2, o estado podia mudar para `em_jogo` sem garantir primeiro a escrita de `equipaA` e `equipaB`; quando isso acontecia, cada jogador podia entrar no jogo sem conseguir identificar a equipa e acabava por nao gravar em `pontuacoes_A`/`pontuacoes_B` nem em `totalPerguntasCertas_A`/`totalPerguntasCertas_B`.
+- A espera pelo podio tambem dependia de contagens fixas em `pontuacoes_A` e `pontuacoes_B`; agora verifica as chaves reais em `equipaA`/`equipaB` e so avanca quando cada jogador real tem pontuacao e total de certas gravados.
+
+### O que foi corrigido
+
+- `Jogo2x2ViewModel.kt` voltou a conter apenas o ViewModel/tipos do jogo 2x2 e os estados competitivos partilhados.
+- `Sala2x2ViewModel.kt` ficou como unico dono de `Sala2x2ViewModel`, `Sala2x2UiState` e `Sala2x2Event`.
+- `SalaDeEspera2x2Activity.kt` voltou a importar `Sala2x2UiState` e `Sala2x2Event`.
+- O botao iniciar 2x2 grava `equipaA` e `equipaB` e so depois muda `estado` para `em_jogo`.
+- `Jogo2x2ViewModel` deixa de continuar jogo/finalizacao se nao identificar `A` ou `B`.
+- `guardarResultado2x2` escreve explicitamente em `pontuacoes_A`/`pontuacoes_B` e `totalPerguntasCertas_A`/`totalPerguntasCertas_B`.
+- `escutarPodio2x2` escuta a sala completa e confirma resultados por chave real de equipa.
+
+### Verificacoes executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Como testar manualmente 2x2 com 4 contas
+
+1. Entrar em quatro dispositivos/emuladores com quatro contas Firebase Auth diferentes.
+2. Na conta 1, criar sala 2x2 e confirmar no Firebase `sala_2x2/{codigo}/jogadores/{uidConta1}`.
+3. Nas contas 2, 3 e 4, entrar na mesma sala e confirmar que existem quatro filhos reais em `jogadores`.
+4. Confirmar antes de iniciar que a UI mostra dois jogadores na equipa A e dois na equipa B.
+5. Carregar em iniciar apenas na conta admin.
+6. Confirmar no Firebase, antes ou no momento da transicao para jogo, que existem `equipaA` com 2 UIDs e `equipaB` com 2 UIDs.
+7. Jogar ate ao fim nas quatro contas, respondendo normalmente ou deixando o tempo acabar.
+8. Confirmar que cada jogador grava respostas em `respostas/{uid}/{indice}`.
+9. Confirmar que os dois jogadores da equipa A gravam em `pontuacoes_A/{uid}` e `totalPerguntasCertas_A/{uid}`.
+10. Confirmar que os dois jogadores da equipa B gravam em `pontuacoes_B/{uid}` e `totalPerguntasCertas_B/{uid}`.
+11. Confirmar que os jogadores ficam em "Aguarde que todos terminem!" ate ao quarto resultado real.
+12. Confirmar que, apos o quarto resultado, todas as contas abrem `Pontuacao2x2Activity` e o podio mostra os quatro jogadores.
+
 ## Fase final - UID como chave principal
 
 ### Ficheiros principais alterados nesta ronda

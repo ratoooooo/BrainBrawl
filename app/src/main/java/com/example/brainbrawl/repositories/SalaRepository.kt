@@ -81,19 +81,39 @@ class SalaRepository(
     fun garantirJogadorNaSala(
         codigoSala: String,
         jogador: JogadorSalaIdentidade,
-        admin: Boolean
+        adminHint: Boolean
     ): Task<Void> {
         val result = TaskCompletionSource<Void>()
-        jogadoresRef(codigoSala).get()
-            .addOnSuccessListener { jogadoresSnapshot ->
+
+        salaRef(codigoSala).get()
+            .addOnSuccessListener { salaSnapshot ->
+                val adminUid = salaSnapshot.child(FirebasePaths.ADMIN_UID).getValue(String::class.java).orEmpty()
+                val adminId = salaSnapshot.child(FirebasePaths.ADMIN_ID).getValue(String::class.java).orEmpty()
+                val adminNome = salaSnapshot.child(FirebasePaths.ADMIN).getValue(String::class.java).orEmpty()
+
+                val isRealAdmin = jogador.chavesCompatibilidade.any { chave ->
+                    chave.isNotBlank() && (
+                            chave == adminUid ||
+                                    chave == adminId ||
+                                    chave == adminNome
+                            )
+                }
+
+                val jogadoresSnapshot = salaSnapshot.child(FirebasePaths.JOGADORES)
                 val chave = jogadoresSnapshot.encontrarChaveJogador(jogador) ?: jogador.chaveSala
                 val jogadorRef = jogadorRef(codigoSala, chave)
-                val dados = jogador.toFirebaseMap(isHostOnly = admin)
+
+                // O Firebase é a fonte da verdade.
+                // Não usamos adminHint diretamente para evitar marcar jogadores reais como host-only.
+                val isHostOnly = isRealAdmin
+
+                val dados = jogador.toFirebaseMap(isHostOnly = isHostOnly)
+
                 if (jogadoresSnapshot.hasChild(chave)) {
                     jogadorRef.updateChildren(
                         dados + mapOf(
                             FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
-                            FirebasePaths.IS_HOST_ONLY to admin
+                            FirebasePaths.IS_HOST_ONLY to isHostOnly
                         )
                     ).addOnSuccessListener {
                         result.setResult(null)
@@ -107,6 +127,7 @@ class SalaRepository(
                 }
             }
             .addOnFailureListener { result.setException(it) }
+
         return result.task
     }
 

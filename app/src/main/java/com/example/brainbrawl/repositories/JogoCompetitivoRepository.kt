@@ -95,6 +95,44 @@ class JogoCompetitivoRepository(
         }
     }
 
+    fun verificarAdmin(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        jogador: JogadorSalaIdentidade,
+        chaveJogador: String
+    ): Task<Boolean> {
+        return salaRef(modo, codigoSala).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao identificar admin.")
+            val salaSnapshot = task.result
+            val jogadoresSnapshot = salaSnapshot.child(FirebasePaths.JOGADORES)
+            val jogadorSnapshot = jogadoresSnapshot.encontrarJogador(jogador)
+                ?: jogadoresSnapshot.child(chaveJogador).takeIf { it.exists() }
+
+            val identidadesJogador = (
+                jogador.chavesCompatibilidade +
+                    chaveJogador +
+                    jogadorSnapshot.identificadoresJogador()
+                )
+                .filter { it.isNotBlank() }
+                .distinct()
+
+            val chavesAdmin = listOf(
+                salaSnapshot.child(FirebasePaths.ADMIN_UID).texto(),
+                salaSnapshot.child(FirebasePaths.ADMIN_ID).texto(),
+                salaSnapshot.child(FirebasePaths.ADMIN).texto()
+            ).filter { it.isNotBlank() }.distinct()
+
+            if (chavesAdmin.isEmpty()) {
+                val primeiroJogadorReal = jogadoresSnapshot.toJogadoresCompetitivos()
+                    .firstOrNull { it.chave != GameConstants.JOGADOR_ADMIN }
+                return@continueWith primeiroJogadorReal?.identificadores()
+                    ?.any { it in identidadesJogador } == true
+            }
+
+            chavesAdmin.any { chaveAdmin -> chaveAdmin in identidadesJogador }
+        }
+    }
+
     fun escutarJogadores(
         modo: ModoCompetitivo,
         codigoSala: String,
@@ -236,14 +274,21 @@ class JogoCompetitivoRepository(
         equipaA: List<JogadorCompetitivo>,
         equipaB: List<JogadorCompetitivo>
     ): Task<Void> {
-        return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
-            mapOf(
-                FirebasePaths.EQUIPA_A to equipaA.associate { it.chave to it.toFirebaseMap() },
-                FirebasePaths.EQUIPA_B to equipaB.associate { it.chave to it.toFirebaseMap() },
-                FirebasePaths.PONTUACAO_A to 0,
-                FirebasePaths.PONTUACAO_B to 0
-            )
-        )
+        val jogadores = (equipaA + equipaB).distinctBy { it.chave }
+        val updates = linkedMapOf<String, Any?>()
+
+        jogadores.forEach { jogador ->
+            updates["${FirebasePaths.EQUIPA_A}/${jogador.chave}"] = null
+            updates["${FirebasePaths.EQUIPA_B}/${jogador.chave}"] = null
+        }
+        equipaA.forEach { jogador ->
+            updates["${FirebasePaths.EQUIPA_A}/${jogador.chave}"] = jogador.toFirebaseMap()
+        }
+        equipaB.forEach { jogador ->
+            updates["${FirebasePaths.EQUIPA_B}/${jogador.chave}"] = jogador.toFirebaseMap()
+        }
+
+        return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(updates)
     }
 
     fun carregarNomeCategoria(
@@ -431,10 +476,21 @@ class JogoCompetitivoRepository(
         totalPontos: Double,
         totalPerguntasCertas: Int
     ): Task<Void> {
+        val pontuacoesPath = if (equipa == GameConstants.EQUIPA_A) {
+            FirebasePaths.PONTUACOES_A
+        } else {
+            FirebasePaths.PONTUACOES_B
+        }
+        val totalCertasPath = if (equipa == GameConstants.EQUIPA_A) {
+            FirebasePaths.TOTAL_PERGUNTAS_CERTAS_A
+        } else {
+            FirebasePaths.TOTAL_PERGUNTAS_CERTAS_B
+        }
+
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
             mapOf(
-                "${FirebasePaths.PONTUACOES}_$equipa/$chaveJogador" to totalPontos,
-                "${FirebasePaths.TOTAL_PERGUNTAS_CERTAS}_$equipa/$chaveJogador" to totalPerguntasCertas
+                "$pontuacoesPath/$chaveJogador" to totalPontos,
+                "$totalCertasPath/$chaveJogador" to totalPerguntasCertas
             )
         )
     }
@@ -446,29 +502,34 @@ class JogoCompetitivoRepository(
         onAguardar: () -> Unit,
         onErro: () -> Unit = {}
     ): ListenerHandle {
-        val pontuacoesARef = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.PONTUACOES_A)
-        val pontuacoesBRef = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.PONTUACOES_B)
-
-        fun remover(listener: ValueEventListener) {
-            pontuacoesARef.removeEventListener(listener)
-            pontuacoesBRef.removeEventListener(listener)
-        }
-
+        val reference = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
         val listener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                pontuacoesARef.get().addOnSuccessListener { snapA ->
-                    pontuacoesBRef.get().addOnSuccessListener { snapB ->
-                        if (snapA.childrenCount >= jogadoresPorEquipa && snapB.childrenCount >= jogadoresPorEquipa) {
-                            remover(this)
-                            onPodioCompleto()
-                        } else {
-                            onAguardar()
-                        }
-                    }.addOnFailureListener {
-                        onErro()
-                    }
-                }.addOnFailureListener {
-                    onErro()
+                val equipaA = snapshot.child(FirebasePaths.EQUIPA_A).chavesJogadoresReais()
+                val equipaB = snapshot.child(FirebasePaths.EQUIPA_B).chavesJogadoresReais()
+
+                if (equipaA.size < jogadoresPorEquipa || equipaB.size < jogadoresPorEquipa) {
+                    onAguardar()
+                    return
+                }
+
+                val pontuacoesA = snapshot.child(FirebasePaths.PONTUACOES_A)
+                val pontuacoesB = snapshot.child(FirebasePaths.PONTUACOES_B)
+                val totaisA = snapshot.child(FirebasePaths.TOTAL_PERGUNTAS_CERTAS_A)
+                val totaisB = snapshot.child(FirebasePaths.TOTAL_PERGUNTAS_CERTAS_B)
+
+                val equipaAConcluida = equipaA.all { chave ->
+                    pontuacoesA.hasChild(chave) && totaisA.hasChild(chave)
+                }
+                val equipaBConcluida = equipaB.all { chave ->
+                    pontuacoesB.hasChild(chave) && totaisB.hasChild(chave)
+                }
+
+                if (equipaAConcluida && equipaBConcluida) {
+                    reference.removeEventListener(this)
+                    onPodioCompleto()
+                } else {
+                    onAguardar()
                 }
             }
 
@@ -477,9 +538,8 @@ class JogoCompetitivoRepository(
             }
         }
 
-        pontuacoesARef.addValueEventListener(listener)
-        pontuacoesBRef.addValueEventListener(listener)
-        return ListenerHandle { remover(listener) }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
     }
 
     fun removerListener(handle: ListenerHandle?) {
@@ -565,6 +625,35 @@ class JogoCompetitivoRepository(
                 nomeJogador = jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto()
             )
         }
+    }
+
+    private fun JogadorCompetitivo.identificadores(): List<String> {
+        return listOf(chave, uid, nomeUtilizador, nomeJogador, nomeDisplay)
+            .filter { it.isNotBlank() }
+            .distinct()
+    }
+
+    private fun DataSnapshot?.identificadoresJogador(): List<String> {
+        if (this == null || !exists()) return emptyList()
+        return listOf(
+            key.orEmpty(),
+            child(FirebasePaths.UID).texto(),
+            child(FirebasePaths.NOME_UTILIZADOR).texto(),
+            child(FirebasePaths.NOME_JOGADOR).texto(),
+            nomeDisplay()
+        ).filter { it.isNotBlank() }.distinct()
+    }
+
+    private fun DataSnapshot.chavesJogadoresReais(): Set<String> {
+        return children.mapNotNull { jogadorSnapshot ->
+            val chave = jogadorSnapshot.key ?: return@mapNotNull null
+            val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
+            if (chave == GameConstants.JOGADOR_ADMIN || isHostOnly) {
+                null
+            } else {
+                chave
+            }
+        }.toSet()
     }
 
     private fun JogadorCompetitivo.toFirebaseMap(): Map<String, Any> {

@@ -432,7 +432,13 @@ class AmigosRepository(
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val perfil = querySnapshot.children.firstOrNull { it.isPerfilJogador() }
-                result.setResult(perfil?.toUtilizadorSocial(nomeFallback.ifBlank { nomePesquisa }))
+                if (perfil != null) {
+                    result.setResult(perfil.toUtilizadorSocial(nomeFallback.ifBlank { nomePesquisa }))
+                } else if (nomeFallback.isNotBlank() && nomeFallback != nomePesquisa) {
+                    procurarUtilizadorPorNome(nomeFallback, nomePesquisa, result)
+                } else {
+                    result.setResult(null)
+                }
             }
             .addOnFailureListener { exception ->
                 result.setException(exception)

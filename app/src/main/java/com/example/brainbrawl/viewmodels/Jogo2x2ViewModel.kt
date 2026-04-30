@@ -110,16 +110,22 @@ class Jogo2x2ViewModel(
     }
 
     fun finalizarJogo() {
-        if (equipaDoJogador == GameConstants.EQUIPA_A || equipaDoJogador == GameConstants.EQUIPA_B) {
-            jogoCompetitivoRepository.guardarResultado2x2(
-                codigoSala,
-                equipaDoJogador,
-                chaveJogador,
-                totalPontos,
-                totalPerguntascertas
-            )
+        if (equipaDoJogador != GameConstants.EQUIPA_A && equipaDoJogador != GameConstants.EQUIPA_B) {
+            _evento.value = Jogo2x2Event.ErroCarregarEquipa
+            return
         }
-        aguardarPodioCompleto()
+
+        jogoCompetitivoRepository.guardarResultado2x2(
+            codigoSala,
+            equipaDoJogador,
+            chaveJogador,
+            totalPontos,
+            totalPerguntascertas
+        ).addOnSuccessListener {
+            aguardarPodioCompleto()
+        }.addOnFailureListener {
+            _evento.value = Jogo2x2Event.ErroPodio
+        }
     }
 
     fun tempoServidorAtual(): Long {
@@ -147,7 +153,11 @@ class Jogo2x2ViewModel(
             .addOnSuccessListener { equipaJogador ->
                 equipaDoJogador = equipaJogador.equipa
                 chaveJogador = equipaJogador.chaveJogador
-                carregarOuCriarPerguntas(categoriaTodas)
+                if (equipaDoJogador == GameConstants.EQUIPA_A || equipaDoJogador == GameConstants.EQUIPA_B) {
+                    carregarOuCriarPerguntas(categoriaTodas)
+                } else {
+                    _evento.value = Jogo2x2Event.ErroCarregarEquipa
+                }
             }
             .addOnFailureListener {
                 _evento.value = Jogo2x2Event.ErroCarregarEquipa

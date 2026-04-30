@@ -45,17 +45,18 @@ class JogoRepository(
             if (!task.isSuccessful) {
                 throw task.exception ?: IllegalStateException("Erro ao carregar sala.")
             }
+
             val sala = task.result
             val admin = sala.child(FirebasePaths.ADMIN).texto()
             val adminId = sala.child(FirebasePaths.ADMIN_ID).texto()
             val adminUid = sala.child(FirebasePaths.ADMIN_UID).texto()
             val jogadorNaSala = sala.child(FirebasePaths.JOGADORES).encontrarJogador(jogador)
             val isHostOnly = jogadorNaSala?.child(FirebasePaths.IS_HOST_ONLY)?.getValue(Boolean::class.java) == true
-            val isAdmin = admin in jogador.chavesCompatibilidade ||
-                adminId in jogador.chavesCompatibilidade ||
-                adminUid in jogador.chavesCompatibilidade ||
-                jogadorNaSala?.key.orEmpty() in jogador.chavesCompatibilidade ||
-                isHostOnly
+
+            val isAdmin = admin.isNotBlank() && admin in jogador.chavesCompatibilidade ||
+                    adminId.isNotBlank() && adminId in jogador.chavesCompatibilidade ||
+                    adminUid.isNotBlank() && adminUid in jogador.chavesCompatibilidade ||
+                    isHostOnly
 
             SalaInfo(
                 admin = isAdmin,

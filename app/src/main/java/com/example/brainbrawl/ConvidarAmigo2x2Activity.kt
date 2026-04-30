@@ -83,7 +83,12 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         amigos.clear()
         amigosRepository.resolverUtilizador(uid.ifBlank { nomeUtilizador }, nomeUtilizador)
             .addOnSuccessListener { utilizador ->
-                val atual = utilizador ?: return@addOnSuccessListener
+                val atualResolvido = utilizador ?: return@addOnSuccessListener
+                val atual = if (atualResolvido.uid.isBlank() && uid.isNotBlank()) {
+                    atualResolvido.copy(uid = uid)
+                } else {
+                    atualResolvido
+                }
                 utilizadorAtual = atual
                 if (nomeUtilizador.isBlank()) nomeUtilizador = atual.nomeDisplay
                 amigosRepository.carregarListaAmigos(atual)
