@@ -59,6 +59,10 @@ object FirebasePaths {
     const val UID = "uid"
     const val USOS = "usos"
     const val VALOR = "valor"
+    const val XP_TOTAL = "xpTotal"
+    const val NIVEL = "nivel"
+    const val XP_NO_NIVEL_ATUAL = "xpNoNivelAtual"
+    const val XP_NECESSARIO_PROXIMO_NIVEL = "xpNecessarioProximoNivel"
 
     const val CATEGORIA_PUBLICA_ID = "categoriaPublicaId"
     const val CRIADOR = "criador"
@@ -81,4 +85,13 @@ object FirebasePaths {
     const val TOTAL_PERGUNTAS_CERTAS_B = "totalPerguntasCertas_B"
 
     const val SERVER_TIME_OFFSET = ".info/serverTimeOffset"
+
+    const val RECORDE_PONTUACAO = "recordePontuacao"
+
+    const val REMETENTE_UID = "remetenteUid"
+    const val REMETENTE_CHAVE_PERFIL = "remetenteChavePerfil"
+    const val REMETENTE_NOME = "remetenteNome"
+    const val DESTINATARIO_UID = "destinatarioUid"
+    const val DESTINATARIO_CHAVE_PERFIL = "destinatarioChavePerfil"
+    const val DESTINATARIO_NOME = "destinatarioNome"
 }

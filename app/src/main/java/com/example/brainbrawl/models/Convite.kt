@@ -7,5 +7,11 @@ data class Convite(
     val nomeCategoria: String = "",
     val amigoId: String = "",
     val chaveRemetente: String = "",
-    val chaveDono: String = ""
+    val chaveDono: String = "",
+    val remetenteUid: String = "",
+    val remetenteChavePerfil: String = "",
+    val remetenteNome: String = "",
+    val destinatarioUid: String = "",
+    val destinatarioChavePerfil: String = "",
+    val destinatarioNome: String = ""
 )

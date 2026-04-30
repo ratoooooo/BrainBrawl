@@ -215,7 +215,8 @@ class AmigosActivity : AppCompatActivity() {
             GameConstants.MODO_2X2 -> Intent(this, SalaDeEspera2x2Activity::class.java)
             else -> Intent(this, SalaDeEspera1x1Activity::class.java)
         }
-        nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        val nomeAtual = nomeUtilizador.ifBlank { convite.destinatarioNome }
+        nomeAtual.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
         uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
         convite.codigoSala.let { intent.putExtra(IntentExtras.CODIGO_SALA, it) }
         intent.putExtra(IntentExtras.NOME_CATEGORIA, convite.nomeCategoria)

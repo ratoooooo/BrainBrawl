@@ -14,8 +14,9 @@ Estado atualizado em 2026-04-30:
 - `CategoriaRepository` deixou de expor overloads publicos que aceitavam apenas `nomeUtilizador`; os metodos publicos de categorias personalizadas/publicas recebem `uid` e mantem fallback interno por nome.
 - `AmigosRepository` passou a considerar `uid` tambem nas chaves de leitura social hibrida.
 - `RankingActivity` adiciona um ranking global simples acessivel pela `MainActivity`, com `RankingViewModel`, `RankingRepository`, `RankingJogador` e `RecyclerView`.
-- O ranking le `jogadores`, ordena por `pontuacao`, limita inicialmente a top 100 e mantém compatibilidade com perfis novos por UID e perfis legados por `nomeUtilizador`.
-- O ranking passou a suportar multiplos tipos com o mesmo fluxo (`GLOBAL`, `SOLO`, `1x1`, `2x2`), mudando apenas o campo de ordenacao Firebase e mantendo fallback para `0` em campos ausentes.
+- O ranking le `jogadores`, ordena por `pontuacao` no Global ou por `recordePontuacao` no Recorde, limita inicialmente a top 100 e mantém compatibilidade com perfis novos por UID e perfis legados por `nomeUtilizador`.
+- O ranking passou a suportar multiplos tipos com o mesmo fluxo (`GLOBAL`, `RECORDE`, `SOLO`, `1x1`, `2x2`), mudando apenas o campo de ordenacao Firebase e mantendo fallback para `0` em campos ausentes.
+- Foi adicionado sistema progressivo de XP/Niveis por jogador (`xpTotal`, `nivel`, `xpNoNivelAtual`, `xpNecessarioProximoNivel`) calculado no fecho de jogo junto com estatisticas, sem alterar a pontuacao.
 - `firebase-rules.json` foi preparado para `auth.uid` em `jogadores/{uid}`, `salas`, `sala_1x1`, `sala_2x2` e `categoriasPublicas`, com excecoes legadas explicitas para convidados/dados antigos.
 
 Decisao de compatibilidade:
@@ -46,7 +47,7 @@ Ficheiros principais e responsabilidades:
 - `LoginActivity.kt`: login com Firebase Auth por email/password, fallback temporario para login antigo por nome/password e entrada como convidado.
 - `RegistarActivity.kt`: cria conta Firebase Auth por email/password e perfil principal em `jogadores/{uid}`.
 - `MainActivity.kt`: menu principal, cria sala, entra em sala, abre ranking global, abre amigos e logout.
-- `RankingActivity.kt`: lista global de jogadores ordenada por pontuacao decrescente.
+- `RankingActivity.kt`: lista jogadores por pontuacao acumulada, melhor jogo ou vitorias por modo.
 - `EscolherModoActivity.kt`, `TipoModoClassico.kt`, `EscolherCategoriaActivity.kt`, `EscolhaCategoriaModosActivity.kt`: selecao de modo/categoria.
 - `SalaDeEsperaActivity.kt`: entrada por codigo em salas de grupo (`salas`).
 - `SalaDeEsperaGrupoActivity.kt`: sala de espera dos modos de grupo em `salas`.
@@ -64,13 +65,13 @@ Fluxo principal:
 
 1. `LoginActivity` autentica por Firebase Auth, reusa `currentUser`, aceita fallback legado por nome/password ou cria jogador temporario.
 2. `MainActivity` recebe `uid`/`email` quando ha Firebase Auth e continua a receber `nomeUtilizador` ou `nomeJogador` para compatibilidade.
-3. Ranking: `MainActivity` -> `RankingActivity` -> `RankingViewModel` -> `RankingRepository` consulta `jogadores` por `pontuacao` (global) ou por vitorias por modo (`totalVitoriasModoSolo`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2`).
+3. Ranking: `MainActivity` -> `RankingActivity` -> `RankingViewModel` -> `RankingRepository` consulta `jogadores` por `pontuacao` (global), `recordePontuacao` (melhor jogo) ou por vitorias por modo (`totalVitoriasModoSolo`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2`).
 4. Criar sala: `EscolherModoActivity` -> `TipoModoClassico`/categoria -> cria dados no Firebase.
 5. Entrar em sala: `SalaDeEsperaActivity` valida codigo e adiciona jogador a `salas/{codigo}/jogadores`.
 6. Sala de espera observa jogadores e `estado`.
 7. Quando `estado = em_jogo`, abre `JogoActivity`, `Jogo1x1Activity` ou `Jogo2x2Activity`.
 8. Jogo carrega perguntas, gere timer, respostas e pontuacao.
-9. Resultado abre a Activity de pontuacao e atualiza estatisticas.
+9. Resultado abre a Activity de pontuacao e atualiza estatisticas, incluindo progressao de XP/Niveis por perfil.
 10. Logout volta ao login e marca `estado = off` para utilizadores registados.
 
 ## Problemas da arquitetura atual
@@ -322,6 +323,16 @@ Fase 5 - Views/Controllers:
 - Manter compatibilidade temporaria com extras antigos, como `categoria` e `nomeCategoria`.
 - Em Firebase, migrar dados com leitura tolerante a campos antigos antes de escrever apenas campos novos.
 - Testar manualmente cada modo apos qualquer migracao de sala/jogo.
+
+## Contrato atual de convites competitivos 1x1/2x2
+
+- `UtilizadorSocial.chavePerfil` representa o node real do perfil em `jogadores/{...}`.
+- `UtilizadorSocial.chaveConvite` representa a subchave operacional de convites/salas: `uid` quando existe, depois `chavePerfil`, depois `nomeUtilizador`.
+- Convites recebidos vivem em `jogadores/{destinatario.chavePerfil}/convites_recebidos/{remetente.chaveConvite}`.
+- Convites enviados vivem em `jogadores/{remetente.chavePerfil}/convites_enviados/{destinatario.chaveConvite}`.
+- O conteudo do convite guarda uid/chavePerfil/nome dos dois lados para permitir leitura, aceitacao, remocao e rules em perfis Auth e legados.
+- Salas competitivas usam a mesma `chaveConvite` nos nodes `sala_1x1/{codigo}/jogadores` e `sala_2x2/{codigo}/jogadores`.
+- Cada jogador de sala deve manter `nome`, `nomeDisplay`, `uid` e `nomeUtilizador` quando disponiveis, para a sala de espera mostrar nomes e o jogo resolver identidade.
 
 ## Fase Utilitarios
 

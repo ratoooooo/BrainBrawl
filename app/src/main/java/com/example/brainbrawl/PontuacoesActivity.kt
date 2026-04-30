@@ -109,8 +109,11 @@ class PontuacoesActivity : AppCompatActivity() {
                         codigoSala = codigoSala,
                         resultados = jogadores,
                         modo = EstatisticasService.Modo.SOLO,
-                        totalPerguntas = totalPerguntas
-                    )
+                        totalPerguntas = totalPerguntas,
+                        jogadoresParaAtualizar = identificadoresJogadorAtual().toSet()
+                    ).addOnFailureListener {
+                        estatisticasAtualizadas = false
+                    }
                 }
             },
             onErro = {
@@ -126,5 +129,14 @@ class PontuacoesActivity : AppCompatActivity() {
         textView.textSize = 16f
         textView.setTextColor(Color.BLACK)
         binding.layoutPodio.addView(textView)
+    }
+
+    private fun identificadoresJogadorAtual(): List<String> {
+        return listOf(
+            uid,
+            nomeUtilizador,
+            nomeJogador,
+            nomeUtilizador.ifBlank { nomeJogador }
+        ).filter { it.isNotBlank() }.distinct()
     }
 }

@@ -2,6 +2,112 @@
 
 Data: 2026-04-30
 
+## Auditoria - pontuacao, estatisticas, ranking e XP
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `TEST_REPORT.md`
+
+### Causas exatas encontradas
+
+- A pontuacao global do perfil estava a ser atualizada por maximo (`maxOf`) em vez de acumulacao; isto impedia somar resultados de jogos sucessivos (ex.: jogo com 2100 nao era somado ao total ja existente).
+- No fluxo de pontuacao de grupo (`PontuacoesActivity`), a app tentava atualizar estatisticas/XP de todos os jogadores a partir de um unico cliente.
+- Com regras por `auth.uid` em `jogadores/{uid}`, esse padrao podia falhar para jogadores terceiros e interromper o fluxo, deixando pontuacao/XP por gravar.
+
+### Correcao aplicada
+
+- `EstatisticasService.calcularAtualizacao` passou a somar pontuacao: `pontuacaoAtual + pontosDoJogo`.
+- `PontuacoesActivity` passou a atualizar apenas o jogador atual (`jogadoresParaAtualizar`), alinhado com o padrao ja usado em `Pontuacao1x1Activity` e `Pontuacao2x2Activity`.
+- Manteve-se a anti-duplicacao existente por sala em `estatisticasAtualizadas/{identificador}`.
+- Regras de pontuacao do jogo e regras de XP mantidas sem alteracoes.
+
+### Verificacao de regras Firebase
+
+- Confirmado que `firebase-rules.json` ja permite e valida os campos:
+  - `pontuacao`
+  - `totalJogos`
+  - `totalVitorias`
+  - `totalVitoriasModoSolo`
+  - `totalVitoriasModo1x1`
+  - `totalVitoriasModo2x2`
+  - `totalRespostasCertas`
+  - `taxaAcertos`
+  - `xpTotal`
+  - `nivel`
+  - `xpNoNivelAtual`
+  - `xpNecessarioProximoNivel`
+
+## Sistema de XP + Niveis
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Jogador.kt`
+- `app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt`
+- `app/src/main/java/com/example/brainbrawl/services/ProgressaoService.kt`
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RankingAdapter.kt`
+- `app/src/main/res/layout/activity_meu_perfil.xml`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `firebase-rules.json`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### O que foi implementado
+
+- Sistema progressivo de XP separado da pontuacao:
+  - `+50 XP` por jogo terminado
+  - `+100 XP` extra por vitoria
+  - `+10 XP` por resposta certa
+- Regra de nivel progressiva aplicada:
+  - `xpNecessario = 300 + ((nivelAtual - 1) * 150)`
+- `ProgressaoService` novo para:
+  - calcular XP ganho
+  - calcular `nivel`, `xpNoNivelAtual` e `xpNecessarioProximoNivel` a partir de `xpTotal`
+  - suportar multiplos niveis ganhos de uma vez
+- Integracao no fluxo existente de estatisticas em `EstatisticasService.calcularAtualizacao` para atualizar:
+  - `xpTotal`
+  - `nivel`
+  - `xpNoNivelAtual`
+  - `xpNecessarioProximoNivel`
+- Anti-duplicacao preservada:
+  - continua a usar os marcadores transacionais `estatisticasAtualizadas/{identificador}` por sala
+- Convidados continuam sem criar perfil e sem ganhar XP, pois apenas perfis resolvidos em `jogadores/{uid|legado}` sao atualizados.
+- Compatibilidade com perfis antigos:
+  - fallback de leitura para `xpTotal=0`, `nivel=1`, `xpNoNivelAtual=0`, `xpNecessarioProximoNivel=300`
+- UI do perfil atualizada para mostrar:
+  - `Nível X`
+  - `XP atual / XP necessário`
+- Ranking mostra nivel de forma simples junto ao nome (`Nv X`).
+- Firebase Rules atualizadas para validar campos XP/nivel como numeros nao negativos (nivel >= 1).
+
+## Correcao 2x2 - vitorias por modo
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `TEST_REPORT.md`
+
+### Causa exata
+
+- Em `Pontuacao2x2Activity`, o fluxo 2x2 chamava `atualizarEstatisticasSalaUmaVez` sem `jogadoresParaAtualizar`, tentando atualizar estatisticas de todos os jogadores a partir de um unico cliente.
+- Com `uid` como chave principal e rules atuais, cada cliente so deve atualizar o proprio perfil em `jogadores/{uid}`; no 1x1 esse filtro ja existia.
+- Isso podia impedir o incremento correto de `totalVitoriasModo2x2` para os vencedores.
+
+### O que foi corrigido
+
+- `Pontuacao2x2Activity` passou a atualizar estatisticas apenas para o jogador atual (`jogadoresParaAtualizar = identificadoresJogadorAtual().toSet()`), alinhado com o padrao do 1x1.
+- A atualizacao ficou condicionada a podio completo (`podio.size >= 4`) para evitar calcular vencedores com resultados parciais.
+- Foi adicionado controlo local `estatisticasAtualizadas` para evitar chamadas repetidas durante o mesmo ciclo de vida da Activity; a protecao transacional em `estatisticasAtualizadas/{identificador}` continua ativa para reaberturas.
+- Regra de empate 2x2 foi mantida sem alteracoes.
+
 ## Ranking por Modo
 
 ### Ficheiros alterados nesta ronda
@@ -25,18 +131,64 @@ Data: 2026-04-30
 - Alternancia simples por botoes: `Global`, `Solo`, `1x1`, `2x2`.
 - Rankings disponiveis:
   - `Global` por `pontuacao`
+  - `Recorde` por `recordePontuacao`
   - `Solo` por `totalVitoriasModoSolo`
   - `1x1` por `totalVitoriasModo1x1`
   - `2x2` por `totalVitoriasModo2x2`
 - Compatibilidade mantida com dados antigos: campos ausentes passam a `0`, sem quebrar perfis legados.
 - Convidados/perfis invalidos continuam ignorados no ranking.
-- `firebase-rules.json` atualizado com `.indexOn` para `pontuacao`, `totalVitoriasModoSolo`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2`.
+- `firebase-rules.json` atualizado com `.indexOn` para `pontuacao`, `recordePontuacao`, `totalVitoriasModoSolo`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2`.
+
+## Recorde de Pontuacao
+
+### O que ja estava implementado
+
+- `FirebasePaths.RECORDE_PONTUACAO = "recordePontuacao"`.
+- `EstatisticasService.EstatisticasAtuais` ja carregava `recordePontuacao`.
+- `EstatisticasService.calcularAtualizacao` ja somava `pontuacao` acumulada e calculava `recordePontuacao = max(recordeAnterior, pontosDoJogo)`.
+- `PontuacaoRepository.toEstatisticasAtuais` ja lia `recordePontuacao` com fallback `0.0`.
+- `JogadorRepository` ja criava jogadores novos e perfis Auth com `recordePontuacao = 0.0` e lia perfis antigos com fallback `0.0`.
+- `MeuPerfilActivity` ja mostrava `Recorde de Pontuação` em vez de `pontuacao` acumulada.
+- `RankingTipo.RECORDE`, `RankingJogador.recordePontuacao`, `RankingActivity` e `activity_ranking.xml` ja tinham a aba `Recorde`.
+
+### O que faltava
+
+- `firebase-rules.json` ainda nao validava `recordePontuacao` e nao tinha `.indexOn` para a query do ranking de recordes.
+- `RankingRepository` deduplicava perfis hibridos sempre pela maior `pontuacao`; no ranking `Recorde`, agora deduplica pelo valor do tipo selecionado.
+- Testes unitarios agora cobrem os cenarios de manter recorde quando o jogo novo e menor e atualizar recorde quando o jogo novo e maior.
+
+### Checklist manual
+
+1. Criar jogador novo e confirmar `jogadores/{uid|nome}/recordePontuacao = 0`.
+2. Fazer 1800 pontos e confirmar `pontuacao = 1800` e `recordePontuacao = 1800`.
+3. Fazer 1500 pontos e confirmar `pontuacao = 3300` e `recordePontuacao = 1800`.
+4. Fazer 2100 pontos e confirmar `pontuacao = 5400` e `recordePontuacao = 2100`.
+5. Abrir `Meu Perfil` e confirmar `Recorde de Pontuação: 2100 pontos`.
+6. Abrir Ranking > `Recorde` e confirmar titulo `Ranking de Recordes`, label `Melhor Jogo` e ordenacao por `recordePontuacao`.
+7. Abrir Ranking > `Global` e confirmar que continua ordenado por `pontuacao` acumulada.
+
+### Verificacoes executadas nesta revisao
+
+- `jq empty firebase-rules.json`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
 
 ### Verificacoes executadas
 
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
   - OK.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK. Antes de passar, o teste `ExampleUnitTest.kt` estava desatualizado e nao passava `recordePontuacao` para `EstatisticasAtuais`; foi corrigida apenas a fixture do teste.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
   - OK.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
   - OK.
@@ -1992,3 +2144,69 @@ Não executei estes testes manuais nesta ronda porque o ambiente atual não tem 
 ### Proximo bloco sugerido
 
 - Salas, antes de Jogo. As salas sao o contrato que liga convites, espera, admin, equipas e arranque do jogo; migrar esse ponto primeiro reduz o risco quando o bloco Jogo passar a usar UID.
+
+---
+
+## Correcao definitiva - convites 1x1/2x2 em fase hibrida UID/nome
+
+### Causa exata
+
+- O envio de convites misturava `chavePerfil` como dono do node social com `chavePrimaria` como subchave. Como `chavePrimaria` prefere `uid`, aceitar/remover podia procurar a copia enviada numa subchave diferente da que foi escrita.
+- No 1x1, quando o perfil real ainda estava em `jogadores/{nomeUtilizador}` sem campo `uid`, o utilizador atual podia ser resolvido sem o `uid` do Firebase Auth. Assim `adminUid` ficava vazio e as rules podiam rejeitar todo o `updateChildren`, incluindo sala e convites.
+- As Activities de convite mostravam sucesso e navegavam para a sala sem esperar pelo `Task` do Firebase, mascarando falhas de rules/paths.
+- `firebase-rules.json` bloqueava campos novos em `convites_recebidos`/`convites_enviados` por causa de `$other: false`.
+
+### Caminhos Firebase finais
+
+- Convite recebido: `jogadores/{destinatario.chavePerfil}/convites_recebidos/{remetente.chaveConvite}`.
+- Convite enviado: `jogadores/{remetente.chavePerfil}/convites_enviados/{destinatario.chaveConvite}`.
+- `chaveConvite`: `uid` quando existe; fallback para `chavePerfil`; fallback final para `nomeUtilizador`/origem.
+- Conteudo do convite: `estado`, `codigoSala`, `modo`, `nomeCategoria`, `remetenteUid`, `remetenteChavePerfil`, `remetenteNome`, `destinatarioUid`, `destinatarioChavePerfil`, `destinatarioNome`.
+- Sala 1x1: `sala_1x1/{codigo}/jogadores/{chaveConvite}` com `uid`, `nome`, `nomeDisplay` e `nomeUtilizador` quando disponiveis.
+- Sala 2x2: `sala_2x2/{codigo}/jogadores/{chaveConvite}` com os mesmos campos dos quatro jogadores.
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/models/UtilizadorSocial.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Convite.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt`
+- `firebase-rules.json`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+- `FIREBASE_RULES_NOTES.md`
+
+### Verificacoes executadas
+
+- `jq empty firebase-rules.json`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+
+### Checklist manual obrigatorio
+
+1x1:
+1. Conta A convida Conta B.
+2. Confirmar no Firebase `jogadores/{chavePerfilB}/convites_recebidos/{chaveConviteA}` e `jogadores/{chavePerfilA}/convites_enviados/{chaveConviteB}`.
+3. Confirmar `sala_1x1/{codigo}/jogadores` com A e B, `uid` quando existir, `nomeDisplay` e `nomeUtilizador`.
+4. Conta B ve o convite.
+5. Conta B aceita.
+6. Ambos entram ou conseguem entrar na sala.
+7. Sala mostra os nomes dos dois jogadores.
+8. Admin inicia jogo.
+
+2x2:
+1. Conta A convida B, C e D.
+2. Confirmar cada `jogadores/{chavePerfilDestinatario}/convites_recebidos/{chaveConviteA}`.
+3. Confirmar `sala_2x2/{codigo}/jogadores` com 4 jogadores e `nomeDisplay`.
+4. B, C e D veem o convite.
+5. Todos aceitam.
+6. Sala mostra os 4 nomes.
+7. Admin inicia jogo.

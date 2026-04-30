@@ -31,7 +31,7 @@ class RankingRepository(
             .addOnSuccessListener { snapshot ->
                 val jogadores = snapshot.children
                     .mapNotNull { it.toRankingJogador() }
-                    .deduplicarPerfis()
+                    .deduplicarPerfis(tipo)
                     .sortedWith(
                         compareByDescending<RankingJogador> { tipo.valorOrdenacao(it) }
                             .thenBy { it.nomeDisplay.lowercase(Locale.ROOT) }
@@ -76,16 +76,18 @@ class RankingRepository(
             uid = uid,
             nomeDisplay = nomeDisplay,
             pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
+            recordePontuacao = child(FirebasePaths.RECORDE_PONTUACAO).doubleValue(),
             totalJogos = child(FirebasePaths.TOTAL_JOGOS).intValue(),
             totalVitorias = child(FirebasePaths.TOTAL_VITORIAS).intValue(),
             taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue(),
             totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
             totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
-            totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue()
+            totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
+            nivel = child(FirebasePaths.NIVEL).intValue().coerceAtLeast(1)
         )
     }
 
-    private fun List<RankingJogador>.deduplicarPerfis(): List<RankingJogador> {
+    private fun List<RankingJogador>.deduplicarPerfis(tipo: RankingTipo): List<RankingJogador> {
         val porIdentidade = linkedMapOf<String, RankingJogador>()
 
         forEach { jogador ->
@@ -93,7 +95,7 @@ class RankingRepository(
                 .ifBlank { jogador.uid.ifBlank { jogador.chavePerfil } }
             val existente = porIdentidade[identidade]
 
-            if (existente == null || jogador.deveSubstituir(existente)) {
+            if (existente == null || jogador.deveSubstituir(existente, tipo)) {
                 porIdentidade[identidade] = jogador
             }
         }
@@ -101,10 +103,10 @@ class RankingRepository(
         return porIdentidade.values.toList()
     }
 
-    private fun RankingJogador.deveSubstituir(outro: RankingJogador): Boolean {
+    private fun RankingJogador.deveSubstituir(outro: RankingJogador, tipo: RankingTipo): Boolean {
         if (uid.isNotBlank() && outro.uid.isBlank()) return true
         if (uid.isBlank() && outro.uid.isNotBlank()) return false
-        return pontuacao > outro.pontuacao
+        return tipo.valorOrdenacao(this) > tipo.valorOrdenacao(outro)
     }
 
     private fun DataSnapshot.texto(): String {

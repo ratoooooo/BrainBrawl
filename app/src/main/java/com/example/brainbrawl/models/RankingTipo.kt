@@ -10,7 +10,12 @@ enum class RankingTipo(
     GLOBAL(
         firebaseField = FirebasePaths.PONTUACAO,
         titulo = "Ranking Global",
-        valorLabel = "Pontos"
+        valorLabel = "Pontos Totais"
+    ),
+    RECORDE(
+        firebaseField = FirebasePaths.RECORDE_PONTUACAO,
+        titulo = "Ranking de Recordes",
+        valorLabel = "Melhor Jogo"
     ),
     SOLO(
         firebaseField = FirebasePaths.TOTAL_VITORIAS_MODO_SOLO,
@@ -31,6 +36,7 @@ enum class RankingTipo(
     fun valorOrdenacao(jogador: RankingJogador): Double {
         return when (this) {
             GLOBAL -> jogador.pontuacao
+            RECORDE -> jogador.recordePontuacao
             SOLO -> jogador.totalVitoriasModoSolo.toDouble()
             MODO_1X1 -> jogador.totalVitoriasModo1x1.toDouble()
             MODO_2X2 -> jogador.totalVitoriasModo2x2.toDouble()

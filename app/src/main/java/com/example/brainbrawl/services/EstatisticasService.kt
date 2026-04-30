@@ -4,6 +4,8 @@ import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 
 class EstatisticasService {
+    private val progressaoService = ProgressaoService()
+
     enum class Modo {
         SOLO,
         UM_CONTRA_UM,
@@ -35,13 +37,15 @@ class EstatisticasService {
 
     data class EstatisticasAtuais(
         val pontuacao: Double,
+        val recordePontuacao: Double,
         val taxaAcertos: Double,
         val totalJogos: Int,
         val totalVitorias: Int,
         val totalRespostasCertas: Int,
         val totalVitoriasModo1x1: Int,
         val totalVitoriasModo2x2: Int,
-        val totalVitoriasModoSolo: Int
+        val totalVitoriasModoSolo: Int,
+        val xpTotal: Int
     )
 
     data class Podio2x2(
@@ -93,11 +97,14 @@ class EstatisticasService {
         return when (modo) {
             Modo.SOLO,
             Modo.UM_CONTRA_UM -> setOfNotNull(ordenarPodio(resultados).firstOrNull()?.identificadorEstatisticas)
+
             Modo.DOIS_CONTRA_DOIS -> {
                 val totalA = resultados.filter { it.equipa == GameConstants.EQUIPA_A }.sumOf { it.pontos }
                 val totalB = resultados.filter { it.equipa == GameConstants.EQUIPA_B }.sumOf { it.pontos }
                 val equipaVencedora = if (totalA >= totalB) GameConstants.EQUIPA_A else GameConstants.EQUIPA_B
-                resultados.filter { it.equipa == equipaVencedora }.map { it.identificadorEstatisticas }.toSet()
+                resultados.filter { it.equipa == equipaVencedora }
+                    .map { it.identificadorEstatisticas }
+                    .toSet()
             }
         }
     }
@@ -142,23 +149,40 @@ class EstatisticasService {
             totalPerguntas = totalPerguntas
         )
 
+        val novoRecorde = maxOf(estatisticasAtuais.recordePontuacao, resultado.pontos)
+
         val updates = mutableMapOf<String, Any>(
-            FirebasePaths.PONTUACAO to maxOf(resultado.pontos, estatisticasAtuais.pontuacao),
+            FirebasePaths.PONTUACAO to (estatisticasAtuais.pontuacao + resultado.pontos),
+            FirebasePaths.RECORDE_PONTUACAO to novoRecorde,
             FirebasePaths.TOTAL_JOGOS to novoTotalJogos,
             FirebasePaths.TOTAL_VITORIAS to novoTotalVitorias,
             FirebasePaths.TOTAL_RESPOSTAS_CERTAS to (estatisticasAtuais.totalRespostasCertas + resultado.respostasCertas),
             FirebasePaths.TAXA_ACERTOS to novaTaxa
         )
 
+        val xpGanho = progressaoService.calcularXpGanho(
+            respostasCertas = resultado.respostasCertas,
+            venceu = venceu
+        )
+        val novoXpTotal = estatisticasAtuais.xpTotal + xpGanho
+        val estadoProgressao = progressaoService.calcularEstadoProgressao(novoXpTotal)
+
+        updates[FirebasePaths.XP_TOTAL] = estadoProgressao.xpTotal
+        updates[FirebasePaths.NIVEL] = estadoProgressao.nivel
+        updates[FirebasePaths.XP_NO_NIVEL_ATUAL] = estadoProgressao.xpNoNivelAtual
+        updates[FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL] = estadoProgressao.xpNecessarioProximoNivel
+
         when (modo) {
             Modo.SOLO -> {
                 updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO] =
                     estatisticasAtuais.totalVitoriasModoSolo + if (venceu) 1 else 0
             }
+
             Modo.UM_CONTRA_UM -> {
                 updates[FirebasePaths.TOTAL_VITORIAS_MODO_1X1] =
                     estatisticasAtuais.totalVitoriasModo1x1 + if (venceu) 1 else 0
             }
+
             Modo.DOIS_CONTRA_DOIS -> {
                 updates[FirebasePaths.TOTAL_VITORIAS_MODO_2X2] =
                     estatisticasAtuais.totalVitoriasModo2x2 + if (venceu) 1 else 0

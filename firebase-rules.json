@@ -97,7 +97,7 @@
 
     "jogadores": {
       ".read": true,
-      ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"],
+      ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao", "recordePontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"],
       "$jogadorId": {
         ".write": "(auth != null && auth.uid == $jogadorId) || (auth == null && (!data.exists() || (data.exists() && newData.exists() && data.child('password').exists() && newData.child('password').val() == data.child('password').val())))",
         ".validate": "newData.hasChildren(['avatar']) && ((newData.hasChildren(['uid', 'nomeUtilizador', 'email', 'estado', 'pontuacao', 'taxaAcertos', 'totalJogos', 'totalRespostasCertas', 'totalVitorias', 'totalVitoriasModo1x1', 'totalVitoriasModo2x2', 'totalVitoriasModoSolo']) && newData.child('uid').val() == $jogadorId) || newData.hasChildren(['password']))",
@@ -122,6 +122,9 @@
         "pontuacao": {
           ".validate": "newData.isNumber() && newData.val() >= 0"
         },
+        "recordePontuacao": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
         "taxaAcertos": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
         },
@@ -143,6 +146,18 @@
         "totalVitoriasModoSolo": {
           ".validate": "newData.isNumber() && newData.val() >= 0"
         },
+        "xpTotal": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "nivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 1"
+        },
+        "xpNoNivelAtual": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "xpNecessarioProximoNivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
         "amigos": {
           "$outroId": {
             ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId)",
@@ -162,7 +177,7 @@
         },
         "convites_recebidos": {
           "$outroId": {
-            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId)",
+            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId || auth.uid == data.child('remetenteUid').val() || auth.uid == data.child('destinatarioUid').val() || auth.uid == newData.child('remetenteUid').val() || auth.uid == newData.child('destinatarioUid').val() || auth.uid == root.child('jogadores').child(data.child('remetenteChavePerfil').val()).child('uid').val() || auth.uid == root.child('jogadores').child(data.child('destinatarioChavePerfil').val()).child('uid').val() || (newData.exists() && newData.child('remetenteUid').val() == auth.uid && newData.child('destinatarioChavePerfil').val() == $jogadorId && ($outroId == newData.child('remetenteUid').val() || $outroId == newData.child('remetenteChavePerfil').val())))",
             "estado": {
               ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
             },
@@ -173,6 +188,24 @@
               ".validate": "newData.isString() && (newData.val() == '1x1' || newData.val() == '2x2')"
             },
             "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteUid": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteNome": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioUid": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioNome": {
               ".validate": "newData.isString()"
             },
             "$other": {
@@ -182,7 +215,7 @@
         },
         "convites_enviados": {
           "$outroId": {
-            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId)",
+            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId || auth.uid == data.child('remetenteUid').val() || auth.uid == data.child('destinatarioUid').val() || auth.uid == newData.child('remetenteUid').val() || auth.uid == newData.child('destinatarioUid').val() || auth.uid == root.child('jogadores').child(data.child('remetenteChavePerfil').val()).child('uid').val() || auth.uid == root.child('jogadores').child(data.child('destinatarioChavePerfil').val()).child('uid').val() || (newData.exists() && newData.child('remetenteUid').val() == auth.uid && newData.child('remetenteChavePerfil').val() == $jogadorId && ($outroId == newData.child('destinatarioUid').val() || $outroId == newData.child('destinatarioChavePerfil').val())))",
             "estado": {
               ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
             },
@@ -193,6 +226,24 @@
               ".validate": "newData.isString() && (newData.val() == '1x1' || newData.val() == '2x2')"
             },
             "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteUid": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteNome": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioUid": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioNome": {
               ".validate": "newData.isString()"
             },
             "$other": {

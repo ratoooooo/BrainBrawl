@@ -9,11 +9,22 @@ data class UtilizadorSocial(
     val chavePrimaria: String
         get() = uid.ifBlank { chavePerfil.ifBlank { nomeUtilizador.ifBlank { chaveOrigem } } }
 
+    val chaveConvite: String
+        get() = uid.ifBlank { chavePerfil.ifBlank { nomeUtilizador.ifBlank { chaveOrigem } } }
+
+    val chaveDonoSocial: String
+        get() = chavePerfil.ifBlank { uid.ifBlank { nomeUtilizador.ifBlank { chaveOrigem } } }
+
     val nomeDisplay: String
         get() = nomeUtilizador.ifBlank { chaveOrigem.ifBlank { chavePerfil.ifBlank { uid } } }
 
     val chavesCompatibilidade: List<String>
         get() = listOf(chavePrimaria, chavePerfil, nomeUtilizador, chaveOrigem)
+            .filter { it.isNotBlank() }
+            .distinct()
+
+    val chavesDonoSocial: List<String>
+        get() = listOf(chaveDonoSocial, uid, chavePerfil, nomeUtilizador, chaveOrigem)
             .filter { it.isNotBlank() }
             .distinct()
 

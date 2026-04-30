@@ -13,13 +13,18 @@ class JogadorRepository(
 ) {
     data class EstatisticasJogador(
         val pontuacao: Double,
+        val recordePontuacao: Double,
         val taxaAcertos: Double,
         val totalJogos: Int,
         val totalVitorias: Int,
         val totalRespostasCertas: Int,
         val totalVitoriasModo1x1: Int,
         val totalVitoriasModo2x2: Int,
-        val totalVitoriasModoSolo: Int
+        val totalVitoriasModoSolo: Int,
+        val xpTotal: Int,
+        val nivel: Int,
+        val xpNoNivelAtual: Int,
+        val xpNecessarioProximoNivel: Int
     )
 
     data class PerfilJogador(
@@ -68,13 +73,18 @@ class JogadorRepository(
             FirebasePaths.AVATAR to avatar,
             FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
             FirebasePaths.PONTUACAO to 0.0,
+            FirebasePaths.RECORDE_PONTUACAO to 0.0,
             FirebasePaths.TAXA_ACERTOS to 0.0,
             FirebasePaths.TOTAL_JOGOS to 0,
             FirebasePaths.TOTAL_VITORIAS to 0,
             FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_2X2 to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_1X1 to 0,
-            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0
+            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0,
+            FirebasePaths.XP_TOTAL to 0,
+            FirebasePaths.NIVEL to 1,
+            FirebasePaths.XP_NO_NIVEL_ATUAL to 0,
+            FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL to 300
         )
         return jogadorRef(nomeJogador).setValue(jogadorData)
     }
@@ -92,13 +102,18 @@ class JogadorRepository(
             FirebasePaths.AVATAR to avatar,
             FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
             FirebasePaths.PONTUACAO to 0.0,
+            FirebasePaths.RECORDE_PONTUACAO to 0.0,
             FirebasePaths.TAXA_ACERTOS to 0.0,
             FirebasePaths.TOTAL_JOGOS to 0,
             FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
             FirebasePaths.TOTAL_VITORIAS to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_1X1 to 0,
             FirebasePaths.TOTAL_VITORIAS_MODO_2X2 to 0,
-            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0
+            FirebasePaths.TOTAL_VITORIAS_MODO_SOLO to 0,
+            FirebasePaths.XP_TOTAL to 0,
+            FirebasePaths.NIVEL to 1,
+            FirebasePaths.XP_NO_NIVEL_ATUAL to 0,
+            FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL to 300
         )
         return jogadorRef(uid).setValue(jogadorData)
     }
@@ -211,13 +226,18 @@ class JogadorRepository(
             estado = child(FirebasePaths.ESTADO).getValue(String::class.java) ?: GameConstants.ESTADO_OFF,
             estatisticas = EstatisticasJogador(
                 pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
+                recordePontuacao = child(FirebasePaths.RECORDE_PONTUACAO).doubleValue(),
                 taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue(),
                 totalJogos = child(FirebasePaths.TOTAL_JOGOS).intValue(),
                 totalVitorias = child(FirebasePaths.TOTAL_VITORIAS).intValue(),
                 totalRespostasCertas = child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue(),
                 totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
                 totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
-                totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue()
+                totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
+                xpTotal = child(FirebasePaths.XP_TOTAL).intValue(),
+                nivel = child(FirebasePaths.NIVEL).intValue().coerceAtLeast(1),
+                xpNoNivelAtual = child(FirebasePaths.XP_NO_NIVEL_ATUAL).intValue(),
+                xpNecessarioProximoNivel = child(FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL).intValue().takeIf { it > 0 } ?: 300
             )
         )
     }

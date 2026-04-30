@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
-import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
-import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
+import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
+import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.viewmodels.MeuPerfilUiState
 import com.example.brainbrawl.viewmodels.MeuPerfilViewModel
 
@@ -61,7 +61,9 @@ class MeuPerfilActivity : AppCompatActivity() {
 
         // Mostra os dados do perfil
         binding.txtNomeAmigo.text = perfil.nome
-        binding.txtPontuacao.text = "Pontuação: ${perfil.pontuacao}"
+        binding.txtPontuacao.text = "Recorde de Pontuação: ${perfil.recordePontuacao.toInt()} pontos"
+        binding.txtNivel.text = "Nível ${perfil.nivel}"
+        binding.txtXpProgress.text = "${perfil.xpNoNivelAtual} / ${perfil.xpNecessarioProximoNivel} XP"
         binding.txtTotalJogos.text = "Total de Jogos: ${perfil.totalJogos}"
         binding.txtTotalVitorias.text = "Total de Vitórias: ${perfil.totalVitorias}"
         binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(perfil.taxaAcertos)}%"

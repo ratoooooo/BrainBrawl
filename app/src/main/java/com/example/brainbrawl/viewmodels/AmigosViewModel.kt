@@ -206,12 +206,17 @@ class AmigosViewModel(
         val identificador = uid.ifBlank { nomeUtilizador }
         amigosRepository.resolverUtilizador(identificador, nomeUtilizador)
             .addOnSuccessListener { utilizador ->
-                val resolvido = utilizador ?: UtilizadorSocial(
+                val resolvidoBase = utilizador ?: UtilizadorSocial(
                     uid = uid,
                     nomeUtilizador = nomeUtilizador,
                     chavePerfil = identificador,
                     chaveOrigem = nomeUtilizador
                 )
+                val resolvido = if (resolvidoBase.uid.isBlank() && uid.isNotBlank()) {
+                    resolvidoBase.copy(uid = uid)
+                } else {
+                    resolvidoBase
+                }
                 utilizadorAtual = resolvido
                 onSuccess(resolvido)
             }

@@ -66,16 +66,19 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             amigosSelecionados,
             codigoSala,
             categoriaSelecionada
-        )
-        Toast.makeText(this, "Convite 2x2 enviado!", Toast.LENGTH_SHORT).show()
-        // Vai para sala de espera 2x2
-        val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
-        intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
-        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
-        uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
-        intent.putExtra(IntentExtras.NOME_CATEGORIA, categoriaSelecionada)
-        startActivity(intent)
-        finish()
+        ).addOnSuccessListener {
+            Toast.makeText(this, "Convite 2x2 enviado!", Toast.LENGTH_SHORT).show()
+            // Vai para sala de espera 2x2
+            val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
+            intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador.ifBlank { utilizador.nomeDisplay })
+            uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
+            intent.putExtra(IntentExtras.NOME_CATEGORIA, categoriaSelecionada)
+            startActivity(intent)
+            finish()
+        }.addOnFailureListener {
+            Toast.makeText(this, "Erro ao enviar convite 2x2.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     //Função para carregar a lista de amigos do utilizador

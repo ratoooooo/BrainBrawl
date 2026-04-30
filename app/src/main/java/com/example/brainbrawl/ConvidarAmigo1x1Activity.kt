@@ -46,16 +46,19 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                 amigoSelecionado,
                 codigoSala,
                 categoriaSelecionada
-            )
-            Toast.makeText(this, "Convite enviado para ${amigoSelecionado.nomeDisplay}!", Toast.LENGTH_SHORT).show()
-            // Envia o utilizador para a sala de espera 1x1
-            val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
-            intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
-            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
-            uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
-            intent.putExtra(IntentExtras.NOME_CATEGORIA, categoriaSelecionada)
-            startActivity(intent)
-            finish()
+            ).addOnSuccessListener {
+                Toast.makeText(this, "Convite enviado para ${amigoSelecionado.nomeDisplay}!", Toast.LENGTH_SHORT).show()
+                // Envia o utilizador para a sala de espera 1x1
+                val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
+                intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
+                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador.ifBlank { utilizador.nomeDisplay })
+                uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
+                intent.putExtra(IntentExtras.NOME_CATEGORIA, categoriaSelecionada)
+                startActivity(intent)
+                finish()
+            }.addOnFailureListener {
+                Toast.makeText(this, "Erro ao enviar convite.", Toast.LENGTH_SHORT).show()
+            }
         }
         binding.recyclerConvidarAmigos.layoutManager = LinearLayoutManager(this)
         binding.recyclerConvidarAmigos.adapter = convidarAmigoAdapter
@@ -70,7 +73,12 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
         // Só mostra amigos aceites!
         amigosRepository.resolverUtilizador(uid.ifBlank { nomeUtilizador }, nomeUtilizador)
             .addOnSuccessListener { utilizador ->
-                val atual = utilizador ?: return@addOnSuccessListener
+                val resolvido = utilizador ?: return@addOnSuccessListener
+                val atual = if (resolvido.uid.isBlank() && uid.isNotBlank()) {
+                    resolvido.copy(uid = uid)
+                } else {
+                    resolvido
+                }
                 utilizadorAtual = atual
                 if (nomeUtilizador.isBlank()) nomeUtilizador = atual.nomeDisplay
                 amigosRepository.carregarListaAmigos(atual)

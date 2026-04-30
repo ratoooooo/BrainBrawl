@@ -34,7 +34,13 @@ class AmigosRepository(
         val chaveRemetente: String,
         val codigoSala: String,
         val modo: String,
-        val nomeCategoria: String
+        val nomeCategoria: String,
+        val remetenteUid: String,
+        val remetenteChavePerfil: String,
+        val remetenteNome: String,
+        val destinatarioUid: String,
+        val destinatarioChavePerfil: String,
+        val destinatarioNome: String
     )
 
     fun resolverUtilizador(identificador: String, nomeFallback: String = ""): Task<UtilizadorSocial?> {
@@ -304,26 +310,22 @@ class AmigosRepository(
         codigoSala: String,
         nomeCategoria: String
     ): Task<Void> {
-        val conviteData = mapOf(
-            FirebasePaths.ESTADO to GameConstants.ESTADO_PENDENTE,
-            FirebasePaths.CODIGO_SALA to codigoSala,
-            FirebasePaths.NOME_CATEGORIA to nomeCategoria
-        )
+        val conviteData = conviteData(utilizador, amigo, codigoSala, GameConstants.MODO_1X1, nomeCategoria)
         return database.updateChildren(
             mapOf(
                 "${FirebasePaths.SALA_1X1}/$codigoSala" to mapOf(
                     FirebasePaths.JOGADORES to mapOf(
-                        utilizador.chavePrimaria to utilizador.toJogadorCompetitivoData(),
-                        amigo.chavePrimaria to amigo.toJogadorCompetitivoData()
+                        utilizador.chaveConvite to utilizador.toJogadorCompetitivoData(),
+                        amigo.chaveConvite to amigo.toJogadorCompetitivoData()
                     ),
                     FirebasePaths.ADMIN to utilizador.nomeDisplay,
-                    FirebasePaths.ADMIN_ID to utilizador.uid.ifBlank { utilizador.chavePrimaria },
+                    FirebasePaths.ADMIN_ID to utilizador.chaveConvite,
                     FirebasePaths.ADMIN_UID to utilizador.uid,
                     FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
                     FirebasePaths.NOME_CATEGORIA to nomeCategoria
                 ),
-                "${FirebasePaths.JOGADORES}/${amigo.chavePerfil}/${FirebasePaths.CONVITES_RECEBIDOS}/${utilizador.chavePrimaria}" to conviteData,
-                "${FirebasePaths.JOGADORES}/${utilizador.chavePerfil}/${FirebasePaths.CONVITES_ENVIADOS}/${amigo.chavePrimaria}" to conviteData
+                "${FirebasePaths.JOGADORES}/${amigo.chaveDonoSocial}/${FirebasePaths.CONVITES_RECEBIDOS}/${utilizador.chaveConvite}" to conviteData,
+                "${FirebasePaths.JOGADORES}/${utilizador.chaveDonoSocial}/${FirebasePaths.CONVITES_ENVIADOS}/${amigo.chaveConvite}" to conviteData
             )
         )
     }
@@ -335,39 +337,40 @@ class AmigosRepository(
         nomeCategoria: String
     ): Task<Void> {
         val jogadores = hashMapOf<String, Any>(
-            utilizador.chavePrimaria to utilizador.toJogadorCompetitivoData()
+            utilizador.chaveConvite to utilizador.toJogadorCompetitivoData()
         )
         amigosSelecionados.forEach { amigo ->
-            jogadores[amigo.chavePrimaria] = amigo.toJogadorCompetitivoData()
+            jogadores[amigo.chaveConvite] = amigo.toJogadorCompetitivoData()
         }
 
-        val conviteData = mapOf(
-            FirebasePaths.ESTADO to GameConstants.ESTADO_PENDENTE,
-            FirebasePaths.CODIGO_SALA to codigoSala,
-            FirebasePaths.MODO to GameConstants.MODO_2X2,
-            FirebasePaths.NOME_CATEGORIA to nomeCategoria
-        )
         val updates = hashMapOf<String, Any>(
             "${FirebasePaths.SALA_2X2}/$codigoSala" to mapOf(
                 FirebasePaths.JOGADORES to jogadores,
                 FirebasePaths.ADMIN to utilizador.nomeDisplay,
-                FirebasePaths.ADMIN_ID to utilizador.uid.ifBlank { utilizador.chavePrimaria },
+                FirebasePaths.ADMIN_ID to utilizador.chaveConvite,
                 FirebasePaths.ADMIN_UID to utilizador.uid,
                 FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
                 FirebasePaths.NOME_CATEGORIA to nomeCategoria
             )
         )
         amigosSelecionados.forEach { amigo ->
-            updates["${FirebasePaths.JOGADORES}/${amigo.chavePerfil}/${FirebasePaths.CONVITES_RECEBIDOS}/${utilizador.chavePrimaria}"] = conviteData
-            updates["${FirebasePaths.JOGADORES}/${utilizador.chavePerfil}/${FirebasePaths.CONVITES_ENVIADOS}/${amigo.chavePrimaria}"] = conviteData
+            val conviteData = conviteData(utilizador, amigo, codigoSala, GameConstants.MODO_2X2, nomeCategoria)
+            updates["${FirebasePaths.JOGADORES}/${amigo.chaveDonoSocial}/${FirebasePaths.CONVITES_RECEBIDOS}/${utilizador.chaveConvite}"] = conviteData
+            updates["${FirebasePaths.JOGADORES}/${utilizador.chaveDonoSocial}/${FirebasePaths.CONVITES_ENVIADOS}/${amigo.chaveConvite}"] = conviteData
         }
         return database.updateChildren(updates)
     }
 
     fun aceitarConvite(utilizador: UtilizadorSocial, convite: Convite): Task<Void> {
-        val chaveRemetente = convite.amigoId.ifBlank { convite.nomeAmigo }
+        val chaveRemetente = convite.remetenteUid
+            .ifBlank { convite.remetenteChavePerfil }
+            .ifBlank { convite.amigoId }
+            .ifBlank { convite.nomeAmigo }
         val chaveConviteRecebido = convite.chaveRemetente.ifBlank { chaveRemetente }
-        val chaveDono = convite.chaveDono.ifBlank { utilizador.chavePrimaria }
+        val chaveDono = convite.destinatarioChavePerfil
+            .ifBlank { convite.chaveDono }
+            .ifBlank { utilizador.chaveDonoSocial }
+        val chaveConviteEnviado = convite.chaveDestinatarioEnviado(utilizador)
         val result = TaskCompletionSource<Void>()
         resolverUtilizador(chaveRemetente, convite.nomeAmigo)
             .addOnSuccessListener { remetente ->
@@ -375,16 +378,13 @@ class AmigosRepository(
                     result.setException(IllegalStateException("Remetente do convite nao encontrado."))
                     return@addOnSuccessListener
                 }
-                database.updateChildren(
-                    mapOf(
-                        "${FirebasePaths.JOGADORES}/$chaveDono/${FirebasePaths.CONVITES_RECEBIDOS}/$chaveConviteRecebido/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_ACEITE,
-                        "${FirebasePaths.JOGADORES}/${remetente.chavePerfil}/${FirebasePaths.CONVITES_ENVIADOS}/$chaveDono/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_ACEITE
-                    )
-                ).addOnSuccessListener {
-                    result.setResult(null)
-                }.addOnFailureListener {
-                    result.setException(it)
-                }
+                val atualizacaoRecebido = mapOf<String, Any?>(
+                    "${FirebasePaths.JOGADORES}/$chaveDono/${FirebasePaths.CONVITES_RECEBIDOS}/$chaveConviteRecebido/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_ACEITE
+                )
+                val atualizacaoEnviado = mapOf<String, Any?>(
+                    "${FirebasePaths.JOGADORES}/${remetente.chaveDonoSocial}/${FirebasePaths.CONVITES_ENVIADOS}/$chaveConviteEnviado/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_ACEITE
+                )
+                atualizarConviteEssencial(atualizacaoRecebido, atualizacaoEnviado, result)
             }
             .addOnFailureListener { result.setException(it) }
         return result.task
@@ -395,9 +395,15 @@ class AmigosRepository(
     }
 
     fun removerConvite(utilizador: UtilizadorSocial, convite: Convite): Task<Void> {
-        val chaveRemetente = convite.amigoId.ifBlank { convite.nomeAmigo }
+        val chaveRemetente = convite.remetenteUid
+            .ifBlank { convite.remetenteChavePerfil }
+            .ifBlank { convite.amigoId }
+            .ifBlank { convite.nomeAmigo }
         val chaveConviteRecebido = convite.chaveRemetente.ifBlank { chaveRemetente }
-        val chaveDono = convite.chaveDono.ifBlank { utilizador.chavePrimaria }
+        val chaveDono = convite.destinatarioChavePerfil
+            .ifBlank { convite.chaveDono }
+            .ifBlank { utilizador.chaveDonoSocial }
+        val chaveConviteEnviado = convite.chaveDestinatarioEnviado(utilizador)
         val result = TaskCompletionSource<Void>()
         resolverUtilizador(chaveRemetente, convite.nomeAmigo)
             .addOnSuccessListener { remetente ->
@@ -405,16 +411,13 @@ class AmigosRepository(
                     result.setException(IllegalStateException("Remetente do convite nao encontrado."))
                     return@addOnSuccessListener
                 }
-                database.updateChildren(
-                    hashMapOf<String, Any?>(
-                        "${FirebasePaths.JOGADORES}/$chaveDono/${FirebasePaths.CONVITES_RECEBIDOS}/$chaveConviteRecebido" to null,
-                        "${FirebasePaths.JOGADORES}/${remetente.chavePerfil}/${FirebasePaths.CONVITES_ENVIADOS}/$chaveDono" to null
-                    )
-                ).addOnSuccessListener {
-                    result.setResult(null)
-                }.addOnFailureListener {
-                    result.setException(it)
-                }
+                val remocaoRecebido = mapOf<String, Any?>(
+                    "${FirebasePaths.JOGADORES}/$chaveDono/${FirebasePaths.CONVITES_RECEBIDOS}/$chaveConviteRecebido" to null
+                )
+                val remocaoEnviado = mapOf<String, Any?>(
+                    "${FirebasePaths.JOGADORES}/${remetente.chaveDonoSocial}/${FirebasePaths.CONVITES_ENVIADOS}/$chaveConviteEnviado" to null
+                )
+                atualizarConviteEssencial(remocaoRecebido, remocaoEnviado, result)
             }
             .addOnFailureListener { result.setException(it) }
         return result.task
@@ -549,7 +552,12 @@ class AmigosRepository(
         var pending = pendentes.size
 
         pendentes.forEach { pendente ->
-            resolverUtilizador(pendente.chaveRemetente, pendente.chaveRemetente)
+            val chaveResolverRemetente = pendente.remetenteUid
+                .ifBlank { pendente.remetenteChavePerfil }
+                .ifBlank { pendente.chaveRemetente }
+            val nomeFallbackRemetente = pendente.remetenteNome
+                .ifBlank { pendente.chaveRemetente }
+            resolverUtilizador(chaveResolverRemetente, nomeFallbackRemetente)
                 .addOnCompleteListener { task ->
                     val remetente = if (task.isSuccessful) task.result else null
                     if (task.isSuccessful && remetente != null) {
@@ -563,7 +571,13 @@ class AmigosRepository(
                                     nomeCategoria = pendente.nomeCategoria,
                                     amigoId = remetente.chavePrimaria,
                                     chaveRemetente = pendente.chaveRemetente,
-                                    chaveDono = pendente.chaveDono
+                                    chaveDono = pendente.chaveDono,
+                                    remetenteUid = pendente.remetenteUid.ifBlank { remetente.uid },
+                                    remetenteChavePerfil = pendente.remetenteChavePerfil.ifBlank { remetente.chaveDonoSocial },
+                                    remetenteNome = pendente.remetenteNome.ifBlank { remetente.nomeDisplay },
+                                    destinatarioUid = pendente.destinatarioUid,
+                                    destinatarioChavePerfil = pendente.destinatarioChavePerfil.ifBlank { pendente.chaveDono },
+                                    destinatarioNome = pendente.destinatarioNome
                                 )
                             )
                         }
@@ -614,9 +628,7 @@ class AmigosRepository(
     }
 
     private fun UtilizadorSocial.chavesDonoSocial(): List<String> {
-        return listOf(uid, chavePerfil, nomeUtilizador)
-            .filter { it.isNotBlank() }
-            .distinct()
+        return chavesDonoSocial
     }
 
     private fun UtilizadorSocial.toJogadorCompetitivoData(): Map<String, Any> {
@@ -627,6 +639,48 @@ class AmigosRepository(
         if (uid.isNotBlank()) dados[FirebasePaths.UID] = uid
         if (nomeUtilizador.isNotBlank()) dados[FirebasePaths.NOME_UTILIZADOR] = nomeUtilizador
         return dados
+    }
+
+    private fun conviteData(
+        remetente: UtilizadorSocial,
+        destinatario: UtilizadorSocial,
+        codigoSala: String,
+        modo: String,
+        nomeCategoria: String
+    ): Map<String, Any> {
+        val dados = linkedMapOf<String, Any>(
+            FirebasePaths.ESTADO to GameConstants.ESTADO_PENDENTE,
+            FirebasePaths.CODIGO_SALA to codigoSala,
+            FirebasePaths.MODO to modo,
+            FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+            FirebasePaths.REMETENTE_CHAVE_PERFIL to remetente.chaveDonoSocial,
+            FirebasePaths.REMETENTE_NOME to remetente.nomeDisplay,
+            FirebasePaths.DESTINATARIO_CHAVE_PERFIL to destinatario.chaveDonoSocial,
+            FirebasePaths.DESTINATARIO_NOME to destinatario.nomeDisplay
+        )
+        if (remetente.uid.isNotBlank()) dados[FirebasePaths.REMETENTE_UID] = remetente.uid
+        if (destinatario.uid.isNotBlank()) dados[FirebasePaths.DESTINATARIO_UID] = destinatario.uid
+        return dados
+    }
+
+    private fun Convite.chaveDestinatarioEnviado(utilizador: UtilizadorSocial): String {
+        return destinatarioUid
+            .ifBlank { destinatarioChavePerfil }
+            .ifBlank { utilizador.chaveConvite }
+            .ifBlank { chaveDono }
+    }
+
+    private fun atualizarConviteEssencial(
+        atualizacaoEssencial: Map<String, Any?>,
+        atualizacaoSecundaria: Map<String, Any?>,
+        result: TaskCompletionSource<Void>
+    ) {
+        database.updateChildren(atualizacaoEssencial)
+            .addOnSuccessListener {
+                database.updateChildren(atualizacaoSecundaria)
+                    .addOnCompleteListener { result.setResult(null) }
+            }
+            .addOnFailureListener { result.setException(it) }
     }
 
     private fun DataSnapshot.toPedidosPendentes(): List<String> {
@@ -645,7 +699,19 @@ class AmigosRepository(
         val codigoSala = child(FirebasePaths.CODIGO_SALA).getValue(String::class.java).orEmpty()
         val modo = child(FirebasePaths.MODO).getValue(String::class.java) ?: GameConstants.MODO_1X1
         val nomeCategoria = child(FirebasePaths.NOME_CATEGORIA).getValue(String::class.java) ?: nomeCategoriaPadrao
-        return ConvitePendente(chaveDono, chaveRemetente, codigoSala, modo, nomeCategoria)
+        return ConvitePendente(
+            chaveDono = chaveDono,
+            chaveRemetente = chaveRemetente,
+            codigoSala = codigoSala,
+            modo = modo,
+            nomeCategoria = nomeCategoria,
+            remetenteUid = child(FirebasePaths.REMETENTE_UID).getValue(String::class.java).orEmpty(),
+            remetenteChavePerfil = child(FirebasePaths.REMETENTE_CHAVE_PERFIL).getValue(String::class.java).orEmpty(),
+            remetenteNome = child(FirebasePaths.REMETENTE_NOME).getValue(String::class.java).orEmpty(),
+            destinatarioUid = child(FirebasePaths.DESTINATARIO_UID).getValue(String::class.java).orEmpty(),
+            destinatarioChavePerfil = child(FirebasePaths.DESTINATARIO_CHAVE_PERFIL).getValue(String::class.java).orEmpty(),
+            destinatarioNome = child(FirebasePaths.DESTINATARIO_NOME).getValue(String::class.java).orEmpty()
+        )
     }
 
     private fun DataSnapshot.isPerfilJogador(): Boolean {

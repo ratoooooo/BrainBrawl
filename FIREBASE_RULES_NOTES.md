@@ -21,7 +21,7 @@ Campos novos/preparados:
 - `adminUid` em salas novas autenticadas.
 - `criadorUid` em categorias publicas.
 - `donoUid` em categorias personalizadas e salas que usam categorias personalizadas.
-- `.indexOn` em `jogadores`: `uid`, `nomeUtilizador`, `email` e `pontuacao`.
+- `.indexOn` em `jogadores`: `uid`, `nomeUtilizador`, `email`, `pontuacao`, `recordePontuacao` e vitorias por modo.
 
 Limites conhecidos desta fase:
 
@@ -59,9 +59,9 @@ Os paths usados no projeto estao concentrados principalmente em `FirebasePaths.k
 
 O node `jogadores` declara:
 
-- `.indexOn: ["uid", "nomeUtilizador", "email", "pontuacao"]`
+- `.indexOn: ["uid", "nomeUtilizador", "email", "pontuacao", "recordePontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"]`
 
-Isto suporta as queries da fase hibrida Auth, especialmente a resolucao direta por UID, a resolucao de perfis antigos por `nomeUtilizador` e o ranking global ordenado por `pontuacao`. O indice por `email` fica preparado para consultas por email sem alterar a estrutura Firebase.
+Isto suporta as queries da fase hibrida Auth, especialmente a resolucao direta por UID, a resolucao de perfis antigos por `nomeUtilizador`, o ranking global ordenado por `pontuacao`, o ranking de recordes por `recordePontuacao` e os rankings por modo. O indice por `email` fica preparado para consultas por email sem alterar a estrutura Firebase.
 
 Tambem existem ainda alguns acessos diretos em `RegistarActivity`, `Pontuacao1x1Activity` e `Pontuacao2x2Activity`, mas esta fase nao altera codigo da app.
 
@@ -70,7 +70,7 @@ Tambem existem ainda alguns acessos diretos em `RegistarActivity`, `Pontuacao1x1
 - O acesso a paths desconhecidos fica bloqueado por defeito.
 - `categorias` fica apenas de leitura pela app cliente.
 - Criacao/atualizacao de perfil Auth em `jogadores/{uid}` exige utilizador autenticado e `auth.uid == uid`.
-- Perfis Auth validam os campos atuais: `uid`, `nomeUtilizador`, `email`, `avatar`, `estado`, `pontuacao`, `taxaAcertos`, `totalJogos`, `totalRespostasCertas`, `totalVitorias`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2` e `totalVitoriasModoSolo`.
+- Perfis Auth validam os campos atuais: `uid`, `nomeUtilizador`, `email`, `avatar`, `estado`, `pontuacao`, `recordePontuacao`, `taxaAcertos`, `totalJogos`, `totalRespostasCertas`, `totalVitorias`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2` e `totalVitoriasModoSolo`.
 - Criacao de jogadores legados continua a passar por validacao basica de formato: password como hash SHA-256 hexadecimal, avatar como string e estatisticas numericas.
 - A password de um jogador existente nao pode ser alterada por uma escrita normal no mesmo node.
 - Estruturas conhecidas de salas, categorias publicas, categorias personalizadas, convites, pedidos, amigos, pontuacoes e estatisticas passam a validar tipos basicos.
@@ -148,3 +148,11 @@ Antes de usar em producao, validar num projeto de testes com:
 - categorias personalizadas;
 - publicar, copiar e avaliar categorias publicas;
 - fim de jogo e atualizacao de estatisticas.
+
+## Atualizacao convites 1x1/2x2
+
+- `convites_recebidos` e `convites_enviados` agora aceitam campos explicitos de identidade do remetente e destinatario: `remetenteUid`, `remetenteChavePerfil`, `remetenteNome`, `destinatarioUid`, `destinatarioChavePerfil` e `destinatarioNome`.
+- Estes campos sao necessarios porque a fase hibrida pode ter perfil real em `jogadores/{nomeUtilizador}` enquanto o Firebase Auth fornece `uid`.
+- As rules de convites permitem que o remetente autenticado escreva a copia recebida no perfil real do destinatario e a copia enviada no seu proprio perfil real, sem criar `jogadores/{uid}` quando esse perfil nao existe.
+- A validacao `$other: false` foi mantida; apenas os novos campos conhecidos foram adicionados.
+- O ficheiro continua a exigir publicacao manual no Firebase Console ou via Firebase CLI antes dos testes reais.
