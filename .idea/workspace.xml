@@ -356,14 +356,18 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="fix: corrigir fluxo completo do modo 2x2&#10;&#10;- corrigido reconhecimento do admin/criador na sala 2x2&#10;- botão Iniciar passa a ativar corretamente com 4 jogadores&#10;- garantida gravação de equipaA/equipaB antes de iniciar o jogo&#10;- corrigida identificação da equipa de cada jogador no jogo 2x2&#10;- corrigida gravação de pontuações e respostas certas por equipa&#10;- corrigida espera pelo pódio 2x2 até todos terminarem&#10;- mantidos os restantes modos sem alterações&#10;- atualizado TEST_REPORT.md">
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" beforeDir="false" afterPath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TEST_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/TEST_REPORT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RankingActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RankingActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RankingAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RankingAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/RankingViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/RankingViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_ranking_jogador.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_ranking_jogador.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/build/reports/problems/problems-report.html" beforeDir="false" afterPath="$PROJECT_DIR$/build/reports/problems/problems-report.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/firebase-rules.json" beforeDir="false" afterPath="$PROJECT_DIR$/firebase-rules.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -1073,7 +1077,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777545192523</updated>
     </task>
-    <option name="localTasksCounter" value="28" />
+    <task id="LOCAL-00028" summary="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md">
+      <option name="closed" value="true" />
+      <created>1777546740457</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1777546740457</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -1100,7 +1112,8 @@
     <MESSAGE value="chore: adicionar Firebase Realtime Database rules baseline&#10;&#10;- criado firebase-rules.json com validações básicas&#10;- documentadas limitações da autenticação manual&#10;- bloqueados paths desconhecidos por defeito&#10;- adicionadas validações para jogadores, salas, categorias, convites e pontuações&#10;- mantida estrutura Firebase existente&#10;- atualizado TEST_REPORT.md e FIREBASE_RULES_NOTES.md" />
     <MESSAGE value="refactor: adicionar ViewModels ao fluxo de jogo&#10;&#10;- criado ViewModel para jogo de grupo&#10;- criado ViewModel para jogo 1x1&#10;- criado ViewModel para jogo 2x2&#10;- migrada lógica de jogo das Activities para ViewModels&#10;- mantida sincronização em tempo real&#10;- preservadas regras de pontuação, eliminação e navegação&#10;- mantida estrutura Firebase existente&#10;- atualizado ARCHITECTURE_PLAN.md e TEST_REPORT.md" />
     <MESSAGE value="fix: corrigir fluxo completo do modo 2x2&#10;&#10;- corrigido reconhecimento do admin/criador na sala 2x2&#10;- botão Iniciar passa a ativar corretamente com 4 jogadores&#10;- garantida gravação de equipaA/equipaB antes de iniciar o jogo&#10;- corrigida identificação da equipa de cada jogador no jogo 2x2&#10;- corrigida gravação de pontuações e respostas certas por equipa&#10;- corrigida espera pelo pódio 2x2 até todos terminarem&#10;- mantidos os restantes modos sem alterações&#10;- atualizado TEST_REPORT.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: corrigir fluxo completo do modo 2x2&#10;&#10;- corrigido reconhecimento do admin/criador na sala 2x2&#10;- botão Iniciar passa a ativar corretamente com 4 jogadores&#10;- garantida gravação de equipaA/equipaB antes de iniciar o jogo&#10;- corrigida identificação da equipa de cada jogador no jogo 2x2&#10;- corrigida gravação de pontuações e respostas certas por equipa&#10;- corrigida espera pelo pódio 2x2 até todos terminarem&#10;- mantidos os restantes modos sem alterações&#10;- atualizado TEST_REPORT.md" />
+    <MESSAGE value="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">

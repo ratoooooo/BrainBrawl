@@ -6,15 +6,18 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.brainbrawl.models.RankingJogador
+import com.example.brainbrawl.models.RankingTipo
 
 class RankingAdapter(
     private val jogadores: MutableList<RankingJogador> = mutableListOf()
 ) : RecyclerView.Adapter<RankingAdapter.RankingViewHolder>() {
+    private var rankingTipo: RankingTipo = RankingTipo.GLOBAL
 
     inner class RankingViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val txtPosicao: TextView = view.findViewById(R.id.txtPosicaoRanking)
         val txtNome: TextView = view.findViewById(R.id.txtNomeRanking)
         val txtPontuacao: TextView = view.findViewById(R.id.txtPontuacaoRanking)
+        val txtValorLabel: TextView = view.findViewById(R.id.txtValorLabelRanking)
         val txtTotalJogos: TextView = view.findViewById(R.id.txtTotalJogosRanking)
         val txtTotalVitorias: TextView = view.findViewById(R.id.txtTotalVitoriasRanking)
         val txtTaxaAcertos: TextView = view.findViewById(R.id.txtTaxaAcertosRanking)
@@ -30,7 +33,8 @@ class RankingAdapter(
         val jogador = jogadores[position]
         holder.txtPosicao.text = "#${jogador.posicao}"
         holder.txtNome.text = jogador.nomeDisplay
-        holder.txtPontuacao.text = jogador.pontuacao.formatarNumero()
+        holder.txtValorLabel.text = rankingTipo.valorLabel
+        holder.txtPontuacao.text = rankingTipo.valorOrdenacao(jogador).formatarNumero()
         holder.txtTotalJogos.text = "Jogos: ${jogador.totalJogos}"
         holder.txtTotalVitorias.text = "Vitórias: ${jogador.totalVitorias}"
         holder.txtTaxaAcertos.text = "Acertos: ${jogador.taxaAcertos.formatarPercentagem()}%"
@@ -38,7 +42,8 @@ class RankingAdapter(
 
     override fun getItemCount(): Int = jogadores.size
 
-    fun atualizar(novosJogadores: List<RankingJogador>) {
+    fun atualizar(tipo: RankingTipo, novosJogadores: List<RankingJogador>) {
+        rankingTipo = tipo
         jogadores.clear()
         jogadores.addAll(novosJogadores)
         notifyDataSetChanged()

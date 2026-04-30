@@ -2,6 +2,49 @@
 
 Data: 2026-04-30
 
+## Ranking por Modo
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/RankingActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RankingAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt`
+- `app/src/main/java/com/example/brainbrawl/models/RankingTipo.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RankingViewModel.kt`
+- `app/src/main/res/layout/activity_ranking.xml`
+- `app/src/main/res/layout/item_ranking_jogador.xml`
+- `firebase-rules.json`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi implementado
+
+- Reutilizacao do fluxo existente `RankingActivity` -> `RankingViewModel` -> `RankingRepository` -> `RankingAdapter`.
+- Novo `RankingTipo` para centralizar tipo de ranking, campo Firebase (`orderByChild`), titulo e label do valor principal.
+- Alternancia simples por botoes: `Global`, `Solo`, `1x1`, `2x2`.
+- Rankings disponiveis:
+  - `Global` por `pontuacao`
+  - `Solo` por `totalVitoriasModoSolo`
+  - `1x1` por `totalVitoriasModo1x1`
+  - `2x2` por `totalVitoriasModo2x2`
+- Compatibilidade mantida com dados antigos: campos ausentes passam a `0`, sem quebrar perfis legados.
+- Convidados/perfis invalidos continuam ignorados no ranking.
+- `firebase-rules.json` atualizado com `.indexOn` para `pontuacao`, `totalVitoriasModoSolo`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2`.
+
+### Verificacoes executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Nota: permanece apenas o warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+
 ## Ranking Global
 
 ### Ficheiros alterados nesta ronda

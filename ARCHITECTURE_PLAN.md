@@ -15,6 +15,7 @@ Estado atualizado em 2026-04-30:
 - `AmigosRepository` passou a considerar `uid` tambem nas chaves de leitura social hibrida.
 - `RankingActivity` adiciona um ranking global simples acessivel pela `MainActivity`, com `RankingViewModel`, `RankingRepository`, `RankingJogador` e `RecyclerView`.
 - O ranking le `jogadores`, ordena por `pontuacao`, limita inicialmente a top 100 e mantém compatibilidade com perfis novos por UID e perfis legados por `nomeUtilizador`.
+- O ranking passou a suportar multiplos tipos com o mesmo fluxo (`GLOBAL`, `SOLO`, `1x1`, `2x2`), mudando apenas o campo de ordenacao Firebase e mantendo fallback para `0` em campos ausentes.
 - `firebase-rules.json` foi preparado para `auth.uid` em `jogadores/{uid}`, `salas`, `sala_1x1`, `sala_2x2` e `categoriasPublicas`, com excecoes legadas explicitas para convidados/dados antigos.
 
 Decisao de compatibilidade:
@@ -63,7 +64,7 @@ Fluxo principal:
 
 1. `LoginActivity` autentica por Firebase Auth, reusa `currentUser`, aceita fallback legado por nome/password ou cria jogador temporario.
 2. `MainActivity` recebe `uid`/`email` quando ha Firebase Auth e continua a receber `nomeUtilizador` ou `nomeJogador` para compatibilidade.
-3. Ranking global: `MainActivity` -> `RankingActivity` -> `RankingViewModel` -> `RankingRepository` consulta `jogadores` por `pontuacao`.
+3. Ranking: `MainActivity` -> `RankingActivity` -> `RankingViewModel` -> `RankingRepository` consulta `jogadores` por `pontuacao` (global) ou por vitorias por modo (`totalVitoriasModoSolo`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2`).
 4. Criar sala: `EscolherModoActivity` -> `TipoModoClassico`/categoria -> cria dados no Firebase.
 5. Entrar em sala: `SalaDeEsperaActivity` valida codigo e adiciona jogador a `salas/{codigo}/jogadores`.
 6. Sala de espera observa jogadores e `estado`.

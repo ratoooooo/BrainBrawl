@@ -2,6 +2,7 @@ package com.example.brainbrawl.repositories
 
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.models.RankingJogador
+import com.example.brainbrawl.models.RankingTipo
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
 import com.google.firebase.database.DataSnapshot
@@ -14,17 +15,27 @@ class RankingRepository(
 ) {
 
     fun carregarRankingGlobal(limite: Int = LIMITE_PADRAO): Task<List<RankingJogador>> {
+        return carregarRankingPorTipo(RankingTipo.GLOBAL, limite)
+    }
+
+    fun carregarRankingPorTipo(
+        tipo: RankingTipo,
+        limite: Int = LIMITE_PADRAO
+    ): Task<List<RankingJogador>> {
         val result = TaskCompletionSource<List<RankingJogador>>()
 
         jogadoresRef()
-            .orderByChild(FirebasePaths.PONTUACAO)
+            .orderByChild(tipo.firebaseField)
             .limitToLast(limite.coerceAtLeast(1))
             .get()
             .addOnSuccessListener { snapshot ->
                 val jogadores = snapshot.children
                     .mapNotNull { it.toRankingJogador() }
                     .deduplicarPerfis()
-                    .sortedWith(compareByDescending<RankingJogador> { it.pontuacao }.thenBy { it.nomeDisplay.lowercase(Locale.ROOT) })
+                    .sortedWith(
+                        compareByDescending<RankingJogador> { tipo.valorOrdenacao(it) }
+                            .thenBy { it.nomeDisplay.lowercase(Locale.ROOT) }
+                    )
                     .take(limite)
                     .mapIndexed { index, jogador -> jogador.copy(posicao = index + 1) }
 
@@ -60,8 +71,6 @@ class RankingRepository(
             .ifBlank { chavePerfil.takeUnless { uid.isNotBlank() && it == uid }.orEmpty() }
 
         if (nomeDisplay.isBlank()) return null
-        if (!child(FirebasePaths.PONTUACAO).isNumber()) return null
-
         return RankingJogador(
             chavePerfil = chavePerfil,
             uid = uid,
@@ -69,7 +78,10 @@ class RankingRepository(
             pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
             totalJogos = child(FirebasePaths.TOTAL_JOGOS).intValue(),
             totalVitorias = child(FirebasePaths.TOTAL_VITORIAS).intValue(),
-            taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue()
+            taxaAcertos = child(FirebasePaths.TAXA_ACERTOS).doubleValue(),
+            totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
+            totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
+            totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue()
         )
     }
 
@@ -97,10 +109,6 @@ class RankingRepository(
 
     private fun DataSnapshot.texto(): String {
         return getValue(String::class.java).orEmpty()
-    }
-
-    private fun DataSnapshot.isNumber(): Boolean {
-        return value is Number
     }
 
     private fun DataSnapshot.intValue(): Int {

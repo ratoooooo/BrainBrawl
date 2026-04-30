@@ -74,14 +74,30 @@
         </LinearLayout>
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/txtPontuacaoRanking"
-        android:layout_width="72dp"
+    <LinearLayout
+        android:layout_width="96dp"
         android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-black"
-        android:gravity="end"
-        android:text="0"
-        android:textColor="#000000"
-        android:textSize="22sp"
-        android:textStyle="bold" />
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtValorLabelRanking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:gravity="end"
+            android:text="Pontos"
+            android:textColor="#444444"
+            android:textSize="12sp" />
+
+        <TextView
+            android:id="@+id/txtPontuacaoRanking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="sans-serif-black"
+            android:gravity="end"
+            android:text="0"
+            android:textColor="#000000"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+    </LinearLayout>
 </LinearLayout>

@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.databinding.ActivityRankingBinding
+import com.example.brainbrawl.models.RankingTipo
 import com.example.brainbrawl.viewmodels.RankingUiState
 import com.example.brainbrawl.viewmodels.RankingViewModel
 
@@ -29,11 +30,15 @@ class RankingActivity : AppCompatActivity() {
         binding.btnVoltar.setOnClickListener {
             finish()
         }
+        binding.btnRankingGlobal.setOnClickListener { viewModel.carregarRanking(RankingTipo.GLOBAL) }
+        binding.btnRankingSolo.setOnClickListener { viewModel.carregarRanking(RankingTipo.SOLO) }
+        binding.btnRanking1x1.setOnClickListener { viewModel.carregarRanking(RankingTipo.MODO_1X1) }
+        binding.btnRanking2x2.setOnClickListener { viewModel.carregarRanking(RankingTipo.MODO_2X2) }
 
         viewModel.estado.observe(this) { estado ->
             atualizarEstado(estado)
         }
-        viewModel.carregarRanking()
+        viewModel.carregarRanking(RankingTipo.GLOBAL)
     }
 
     private fun atualizarEstado(estado: RankingUiState) {
@@ -46,16 +51,32 @@ class RankingActivity : AppCompatActivity() {
         }
 
         when (estado) {
-            RankingUiState.Loading -> Unit
-            RankingUiState.Empty -> {
+            is RankingUiState.Loading -> {
+                atualizarTipoSelecionado(estado.tipo)
+                binding.txtTituloRanking.text = estado.tipo.titulo
+            }
+            is RankingUiState.Empty -> {
+                atualizarTipoSelecionado(estado.tipo)
+                binding.txtTituloRanking.text = estado.tipo.titulo
                 binding.txtEstadoRanking.text = "Ainda não há jogadores no ranking."
             }
-            RankingUiState.Error -> {
+            is RankingUiState.Error -> {
+                atualizarTipoSelecionado(estado.tipo)
+                binding.txtTituloRanking.text = estado.tipo.titulo
                 binding.txtEstadoRanking.text = "Não foi possível carregar o ranking."
             }
             is RankingUiState.Content -> {
-                rankingAdapter.atualizar(estado.jogadores)
+                atualizarTipoSelecionado(estado.tipo)
+                binding.txtTituloRanking.text = estado.tipo.titulo
+                rankingAdapter.atualizar(estado.tipo, estado.jogadores)
             }
         }
+    }
+
+    private fun atualizarTipoSelecionado(tipo: RankingTipo) {
+        binding.btnRankingGlobal.alpha = if (tipo == RankingTipo.GLOBAL) 1.0f else 0.6f
+        binding.btnRankingSolo.alpha = if (tipo == RankingTipo.SOLO) 1.0f else 0.6f
+        binding.btnRanking1x1.alpha = if (tipo == RankingTipo.MODO_1X1) 1.0f else 0.6f
+        binding.btnRanking2x2.alpha = if (tipo == RankingTipo.MODO_2X2) 1.0f else 0.6f
     }
 }
