@@ -91,6 +91,14 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.btnRanking.setOnClickListener {
+            val intent = Intent(this, RankingActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            adicionarAuthExtras(intent)
+            startActivity(intent)
+        }
+
         // Botão para voltar ao ecrã de login
         binding.btnVoltar.setOnClickListener {
             // Mudar estado do jogador para 'off' no Firebase, só se for utilizador autenticado

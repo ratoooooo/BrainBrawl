@@ -97,7 +97,7 @@
 
     "jogadores": {
       ".read": true,
-      ".indexOn": ["uid", "nomeUtilizador", "email"],
+      ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao"],
       "$jogadorId": {
         ".write": "(auth != null && auth.uid == $jogadorId) || (auth == null && (!data.exists() || (data.exists() && newData.exists() && data.child('password').exists() && newData.child('password').val() == data.child('password').val())))",
         ".validate": "newData.hasChildren(['avatar']) && ((newData.hasChildren(['uid', 'nomeUtilizador', 'email', 'estado', 'pontuacao', 'taxaAcertos', 'totalJogos', 'totalRespostasCertas', 'totalVitorias', 'totalVitoriasModo1x1', 'totalVitoriasModo2x2', 'totalVitoriasModoSolo']) && newData.child('uid').val() == $jogadorId) || newData.hasChildren(['password']))",

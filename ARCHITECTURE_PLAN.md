@@ -13,6 +13,8 @@ Estado atualizado em 2026-04-30:
 - `UteisNavegacao` e ecras de modo/categoria/pontuacao/categorias publicas recuperam o UID tambem de `FirebaseAuth.currentUser` quando o extra nao veio na Intent.
 - `CategoriaRepository` deixou de expor overloads publicos que aceitavam apenas `nomeUtilizador`; os metodos publicos de categorias personalizadas/publicas recebem `uid` e mantem fallback interno por nome.
 - `AmigosRepository` passou a considerar `uid` tambem nas chaves de leitura social hibrida.
+- `RankingActivity` adiciona um ranking global simples acessivel pela `MainActivity`, com `RankingViewModel`, `RankingRepository`, `RankingJogador` e `RecyclerView`.
+- O ranking le `jogadores`, ordena por `pontuacao`, limita inicialmente a top 100 e mantém compatibilidade com perfis novos por UID e perfis legados por `nomeUtilizador`.
 - `firebase-rules.json` foi preparado para `auth.uid` em `jogadores/{uid}`, `salas`, `sala_1x1`, `sala_2x2` e `categoriasPublicas`, com excecoes legadas explicitas para convidados/dados antigos.
 
 Decisao de compatibilidade:
@@ -42,7 +44,8 @@ Ficheiros principais e responsabilidades:
 
 - `LoginActivity.kt`: login com Firebase Auth por email/password, fallback temporario para login antigo por nome/password e entrada como convidado.
 - `RegistarActivity.kt`: cria conta Firebase Auth por email/password e perfil principal em `jogadores/{uid}`.
-- `MainActivity.kt`: menu principal, cria sala, entra em sala, abre amigos e logout.
+- `MainActivity.kt`: menu principal, cria sala, entra em sala, abre ranking global, abre amigos e logout.
+- `RankingActivity.kt`: lista global de jogadores ordenada por pontuacao decrescente.
 - `EscolherModoActivity.kt`, `TipoModoClassico.kt`, `EscolherCategoriaActivity.kt`, `EscolhaCategoriaModosActivity.kt`: selecao de modo/categoria.
 - `SalaDeEsperaActivity.kt`: entrada por codigo em salas de grupo (`salas`).
 - `SalaDeEsperaGrupoActivity.kt`: sala de espera dos modos de grupo em `salas`.
@@ -60,13 +63,14 @@ Fluxo principal:
 
 1. `LoginActivity` autentica por Firebase Auth, reusa `currentUser`, aceita fallback legado por nome/password ou cria jogador temporario.
 2. `MainActivity` recebe `uid`/`email` quando ha Firebase Auth e continua a receber `nomeUtilizador` ou `nomeJogador` para compatibilidade.
-3. Criar sala: `EscolherModoActivity` -> `TipoModoClassico`/categoria -> cria dados no Firebase.
-4. Entrar em sala: `SalaDeEsperaActivity` valida codigo e adiciona jogador a `salas/{codigo}/jogadores`.
-5. Sala de espera observa jogadores e `estado`.
-6. Quando `estado = em_jogo`, abre `JogoActivity`, `Jogo1x1Activity` ou `Jogo2x2Activity`.
-7. Jogo carrega perguntas, gere timer, respostas e pontuacao.
-8. Resultado abre a Activity de pontuacao e atualiza estatisticas.
-9. Logout volta ao login e marca `estado = off` para utilizadores registados.
+3. Ranking global: `MainActivity` -> `RankingActivity` -> `RankingViewModel` -> `RankingRepository` consulta `jogadores` por `pontuacao`.
+4. Criar sala: `EscolherModoActivity` -> `TipoModoClassico`/categoria -> cria dados no Firebase.
+5. Entrar em sala: `SalaDeEsperaActivity` valida codigo e adiciona jogador a `salas/{codigo}/jogadores`.
+6. Sala de espera observa jogadores e `estado`.
+7. Quando `estado = em_jogo`, abre `JogoActivity`, `Jogo1x1Activity` ou `Jogo2x2Activity`.
+8. Jogo carrega perguntas, gere timer, respostas e pontuacao.
+9. Resultado abre a Activity de pontuacao e atualiza estatisticas.
+10. Logout volta ao login e marca `estado = off` para utilizadores registados.
 
 ## Problemas da arquitetura atual
 

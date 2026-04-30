@@ -2,6 +2,61 @@
 
 Data: 2026-04-30
 
+## Ranking Global
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RankingActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RankingAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RankingViewModel.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/layout/activity_ranking.xml`
+- `app/src/main/res/layout/item_ranking_jogador.xml`
+- `app/src/main/AndroidManifest.xml`
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### O que foi implementado
+
+- Botao de ranking no canto superior direito da `MainActivity`, usando o icone de trofeu existente.
+- `RankingActivity` com loading, estado vazio, erro, botao voltar e lista em `RecyclerView`.
+- `RankingRepository` consulta `jogadores` com `orderByChild("pontuacao").limitToLast(100)`.
+- O ranking e ordenado novamente no cliente por seguranca, em ordem decrescente de pontuacao.
+- Perfis sem nome ou sem `pontuacao` numerica sao ignorados.
+- Perfis marcados com `isHostOnly` sao ignorados.
+- Entradas sem identidade de perfil persistente sao ignoradas para nao incluir convidados.
+- Perfis novos por UID e perfis antigos por `nomeUtilizador` continuam aceites; duplicados por nome preferem o perfil com UID.
+- `firebase-rules.json` recebeu `.indexOn` de `pontuacao` em `jogadores`.
+
+### Verificacoes executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Nota: permanece apenas o warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+
+### Como testar manualmente
+
+1. Fazer login com uma conta registada e abrir a `MainActivity`.
+2. Tocar no icone de trofeu no canto superior direito.
+3. Confirmar que aparece "Ranking Global" e, durante a leitura, o loading.
+4. Confirmar que a lista mostra posicao, nome, pontuacao, jogos, vitorias e taxa de acertos.
+5. Confirmar no Firebase que jogadores sem `pontuacao` numerica ou sem nome nao aparecem.
+6. Confirmar que perfis antigos em `jogadores/{nomeUtilizador}` com `pontuacao` continuam a aparecer.
+7. Desligar rede ou bloquear leitura das rules num projeto de teste e confirmar a mensagem de erro.
+8. Voltar pelo botao superior esquerdo e confirmar retorno a `MainActivity`.
+
 ## Correcao 2x2 - inicio da sala, equipas e podio
 
 ### Ficheiros alterados nesta ronda

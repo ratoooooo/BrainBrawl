@@ -21,7 +21,7 @@ Campos novos/preparados:
 - `adminUid` em salas novas autenticadas.
 - `criadorUid` em categorias publicas.
 - `donoUid` em categorias personalizadas e salas que usam categorias personalizadas.
-- `.indexOn` em `jogadores`: `uid`, `nomeUtilizador` e `email`.
+- `.indexOn` em `jogadores`: `uid`, `nomeUtilizador`, `email` e `pontuacao`.
 
 Limites conhecidos desta fase:
 
@@ -59,9 +59,9 @@ Os paths usados no projeto estao concentrados principalmente em `FirebasePaths.k
 
 O node `jogadores` declara:
 
-- `.indexOn: ["uid", "nomeUtilizador", "email"]`
+- `.indexOn: ["uid", "nomeUtilizador", "email", "pontuacao"]`
 
-Isto suporta as queries da fase hibrida Auth, especialmente a resolucao direta por UID e a resolucao de perfis antigos por `nomeUtilizador`. O indice por `email` fica preparado para consultas por email sem alterar a estrutura Firebase.
+Isto suporta as queries da fase hibrida Auth, especialmente a resolucao direta por UID, a resolucao de perfis antigos por `nomeUtilizador` e o ranking global ordenado por `pontuacao`. O indice por `email` fica preparado para consultas por email sem alterar a estrutura Firebase.
 
 Tambem existem ainda alguns acessos diretos em `RegistarActivity`, `Pontuacao1x1Activity` e `Pontuacao2x2Activity`, mas esta fase nao altera codigo da app.
 
