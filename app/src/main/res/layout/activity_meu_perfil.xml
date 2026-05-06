@@ -4,18 +4,18 @@
     android:id="@+id/clPerfilAmigo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFC400">
+    android:background="@drawable/bg_app_gradient">
 
     <!-- Card Centralizado -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardPerfil"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="12dp"
-        app:cardBackgroundColor="#FFFFFF"
+        android:layout_marginStart="@dimen/bb_space_lg"
+        android:layout_marginEnd="@dimen/bb_space_lg"
+        app:cardCornerRadius="@dimen/bb_radius_lg"
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="@color/bb_surface"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnVoltarPerfil"
         app:layout_constraintStart_toStartOf="parent"
@@ -32,7 +32,7 @@
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:padding="32dp">
+            android:padding="@dimen/bb_space_lg">
 
             <!-- AVATAR GRANDE -->
             <ImageView
@@ -51,7 +51,7 @@
                 android:layout_marginBottom="12dp"
                 android:fontFamily="sans-serif-black"
                 android:text="Nome Utilizador"
-                android:textColor="#222222"
+                android:textColor="@color/bb_text_primary"
                 android:textSize="26sp"
                 android:textStyle="bold" />
 
@@ -82,7 +82,7 @@
                         android:layout_height="wrap_content"
                         android:text="Jogos"
                         android:textSize="12sp"
-                        android:textColor="#222"
+                    android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
                 </LinearLayout>
 
@@ -109,7 +109,7 @@
                         android:layout_height="wrap_content"
                         android:text="Vitórias"
                         android:textSize="12sp"
-                        android:textColor="#222"
+                        android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
                 </LinearLayout>
 
@@ -135,7 +135,7 @@
                         android:layout_height="wrap_content"
                         android:text="Resp. Certas"
                         android:textSize="12sp"
-                        android:textColor="#222"
+                        android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
                 </LinearLayout>
             </LinearLayout>
@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
                     android:text="@string/pontuacao"
-                    android:textColor="#111111"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="20sp" />
             </LinearLayout>
 
@@ -173,7 +173,7 @@
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-black"
                 android:text="Nível 1"
-                android:textColor="#111111"
+                android:textColor="@color/bb_text_primary"
                 android:textSize="20sp" />
 
             <TextView
@@ -183,7 +183,7 @@
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif"
                 android:text="0 / 300 XP"
-                android:textColor="#111111"
+                android:textColor="@color/bb_text_secondary"
                 android:textSize="16sp" />
 
             <!-- Total de Jogos -->
@@ -208,7 +208,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
                     android:text="@string/total_de_jogos"
-                    android:textColor="#111111"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="20sp" />
             </LinearLayout>
 
@@ -234,7 +234,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
                     android:text="@string/total_de_vit_rias_0"
-                    android:textColor="#111111"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="20sp" />
             </LinearLayout>
 
@@ -260,7 +260,7 @@
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif"
                     android:text="@string/taxa_de_vit_ria"
-                    android:textColor="#111111"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="20sp" />
             </LinearLayout>
 
@@ -273,7 +273,7 @@
         style="@android:style/Widget.Button"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:background="@drawable/botao_voltar"
+        android:background="@drawable/bg_button_primary"
         android:paddingVertical="14dp"
         android:text="@string/voltar"
         android:textColor="#FFFFFF"

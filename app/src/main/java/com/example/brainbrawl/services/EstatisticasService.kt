@@ -101,7 +101,8 @@ class EstatisticasService {
             Modo.DOIS_CONTRA_DOIS -> {
                 val totalA = resultados.filter { it.equipa == GameConstants.EQUIPA_A }.sumOf { it.pontos }
                 val totalB = resultados.filter { it.equipa == GameConstants.EQUIPA_B }.sumOf { it.pontos }
-                val equipaVencedora = if (totalA >= totalB) GameConstants.EQUIPA_A else GameConstants.EQUIPA_B
+                if (totalA == totalB) return emptySet()
+                val equipaVencedora = if (totalA > totalB) GameConstants.EQUIPA_A else GameConstants.EQUIPA_B
                 resultados.filter { it.equipa == equipaVencedora }
                     .map { it.identificadorEstatisticas }
                     .toSet()

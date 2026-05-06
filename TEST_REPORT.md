@@ -1,6 +1,182 @@
-# BrainBrawl - TEST_REPORT
+# Pergunta o Luso - TEST_REPORT
 
-Data: 2026-04-30
+Data: 2026-05-07
+
+## Auditoria completa desconfiada - UI, fluxo e dados - 2026-05-07
+
+### Estado geral
+
+- Projeto compila com Kotlin/XML/ViewBinding depois da auditoria.
+- Login/registo, Main, perfil, ranking, historico, convites, salas e pontuacoes mantem os mesmos ViewModels/repositories/paths principais.
+- Nao foram alteradas Firebase rules nesta ronda.
+- Foram corrigidos apenas bugs pequenos e diretos em UI, navegacao, fallback e estatisticas.
+
+### Problemas encontrados
+
+- **Critico**: `MatchmakingActivity` existe e e aberta pela Main, mas neste checkout nao existe `MatchmakingRepository`, `MatchmakingViewModel` nem chamada para entrar/cancelar fila. Resultado: 1x1/2x2 aleatorio mostram ecrã de procura, mas nao fazem matchmaking real.
+- **Medio**: Main mostrava avatar, nivel e XP default/hardcoded do XML, nao os dados reais do jogador.
+- **Medio**: item `Perfil` no bottom nav da Main nao tinha ID/listener funcional.
+- **Medio**: `Entrar numa Sala` tinha listener no Kotlin, mas o botao ficou invisivel no XML (`1dp`, `gone`) durante o redesign.
+- **Medio**: empate 2x2 ainda dava vitoria estatistica a Equipa A em `EstatisticasService.vencedores()`.
+- **Medio**: grelha de avatar do registo mostrava `avatar_8_playstore` no fim, mas o ViewModel grava por `avatar_${index + 1}_playstore`, podendo gravar avatar diferente do escolhido.
+- **Baixo**: dialogs de dicas ainda usavam fundo programatico `#FFC400` em `UteisDicas.kt`.
+- **Baixo**: `PontuacoesActivity` ainda usava `#FFC400` na medalha de primeiro lugar.
+- **Baixo**: ranking carregava ate 100 jogadores por defeito, apesar da UI/objetivo ser top 10.
+- **Baixo**: layouts `activity_convidar_amigo.xml` e `activity_convidar_amigo2x2.xml` ainda estavam crus/sem fundo premium.
+- **Sugestao futura**: pontuacao/estatisticas continuam confiadas ao cliente. Um cliente adulterado ainda pode tentar escrever resultados validos pelas rules. Correcao robusta exige backend autoritativo/Cloud Functions.
+
+### Correcoes aplicadas
+
+- `MainActivity` agora carrega perfil por UID/nome com `JogadorRepository.obterPerfil()` e atualiza nome, avatar, nivel, XP atual e XP necessario.
+- `activity_main.xml` passou a ter defaults seguros (`avatar_1`, nivel 1, 0/300 XP) enquanto o perfil real carrega.
+- Bottom nav da Main ganhou IDs/listeners corretos para `Ranking` e `Perfil`.
+- `Entrar numa Sala` voltou a ser um botao visivel, mantendo o ID `btn_entrar_sala` e o listener existente.
+- `MeuPerfilActivity` ganhou fallback de avatar e botao voltar funcional mesmo quando o perfil nao carrega.
+- `RegistarActivity` passou a mostrar avatares em ordem 1-12, alinhado com o nome gravado no perfil.
+- `EstatisticasService.vencedores()` deixou de atribuir vencedores em empate 2x2.
+- `UteisDicas.kt` passou a usar cores do design system em vez de amarelo agressivo.
+- Medalha de primeiro lugar em `PontuacoesActivity` passou para dourado suave.
+- `RankingRepository` passou a carregar top 10 por defeito.
+- Layouts de convite 1x1/2x2 receberam fundo premium, titulo e surfaces/botao alinhados com o design system.
+
+### Ficheiros alterados nesta auditoria
+
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisDicas.kt`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/layout/activity_convidar_amigo.xml`
+- `app/src/main/res/layout/activity_convidar_amigo2x2.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Ficheiros/areas analisados sem alteracao direta
+
+- Auth/registo: `LoginActivity.kt`, `RegistarViewModel.kt`, `AuthService.kt`, `JogadorRepository.kt`.
+- Perfil/ranking/historico: `MeuPerfilViewModel.kt`, `RankingActivity.kt`, `RankingViewModel.kt`, `HistoricoActivity.kt`, `HistoricoRepository.kt`.
+- Amigos/convites: `AmigosActivity.kt`, `AmigosViewModel.kt`, `AmigosRepository.kt`, adapters sociais.
+- Salas/jogo/pontuacao: `Sala*Activity.kt`, `Sala*ViewModel.kt`, `Jogo*Activity.kt`, `Jogo*ViewModel.kt`, `PontuacaoRepository.kt`.
+- Firebase: `FirebasePaths.kt` e `firebase-rules.json`.
+- UI: layouts principais em `res/layout`, drawables partilhados e styles/themes.
+
+### Riscos pendentes
+
+- Matchmaking aleatorio esta incompleto no codigo deste checkout; corrigir exige implementar repository/ViewModel/fila/sala/cancelamento.
+- As rules permitem writes client-side de resultados/estatisticas dentro de contratos validos; isto nao protege contra cliente malicioso.
+- Alguns nomes internos ainda usam `BrainBrawl` em package/theme/style (`Theme.BrainBrawl`, `BrainBrawlButton`), mas nao sao texto visivel de UI.
+- Ecras com listas longas dependem de RecyclerView; ecras longos principais usam ScrollView, mas teste visual manual em 360dp deve ser repetido no emulador.
+
+### Verificacoes executadas nesta auditoria
+
+- Pesquisa de amarelo/laranja antigo em `res`/Kotlin.
+- Pesquisa de texto visivel `BrainBrawl`.
+- Verificacao de JSON das Firebase rules com `python3 -m json.tool`.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK durante a auditoria apos as correcoes de ViewBinding.
+- Sequencia completa `clean`, `assembleDebug`, `testDebugUnitTest` e `build`
+  - OK. `testDebugUnitTest` continua sem fontes de teste (`NO-SOURCE`).
+  - Mantem o warning conhecido: `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+  - Mantem o aviso generico de deprecated Gradle features.
+
+## Redesign Pergunta o Luso - registo em 2 passos e auditoria UI - 2026-05-07
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/res/layout/activity_registar.xml`
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+- `app/src/main/res/layout/activity_login.xml`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/drawable/bg_dica_card.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Fluxo de registo atualizado
+
+- `RegistarActivity` continua a ser a Activity unica de registo e continua a chamar `RegistarViewModel.registar(nomeUtilizador, email, password, avatarSelecionadoIndex)` no passo final.
+- O ecrã foi dividido visualmente em `page_conta` e `page_perfil`.
+- Passo 1: email, palavra-passe, confirmar palavra-passe, card de requisitos, botao `CONTINUAR` e link para login.
+- Passo 2: nome de utilizador, avatar selecionado em destaque, grelha `grid_avatars`, botao `CRIAR CONTA` e botao `Voltar`.
+- O botao de voltar superior regressa ao passo 1 quando o passo 2 esta visivel; no passo 1 regressa ao login.
+- A validacao de criacao de conta, Firebase Auth, criacao de perfil no Realtime Database e navegacao para Main permanecem no ViewModel/fluxo existente.
+
+### Imagem da app
+
+- Confirmado que `avatar_14_foreground.webp` existe em `mipmap-mdpi`, `mipmap-hdpi`, `mipmap-xhdpi`, `mipmap-xxhdpi` e `mipmap-xxxhdpi`.
+- `activity_login.xml` e `activity_registar.xml` usam `@mipmap/avatar_14_foreground` como imagem visual da app.
+- Nao foram introduzidos logotipos inventados nem texto visivel "BrainBrawl".
+
+### Auditoria visual
+
+- Verificados layouts principais em `res/layout` e referencias de drawables/cores antigas.
+- Encontrados ecras de dicas/instrucoes ainda dependentes do card antigo atraves de `bg_dica_card.xml`, especialmente `activity_escolha_categoria_modos.xml` e `activity_tipo_modo_classico.xml`.
+- `bg_dica_card.xml` foi atualizado para surface cream, raio maior e stroke dourado subtil, alinhando esses ecras com o design system sem alterar o fluxo.
+- As referencias restantes a `botao_branco_arredondado`, `botao_voltar` e `bg_app_gradient` sao aceitaveis porque esses drawables partilhados ja foram redesenhados para o visual premium clean.
+- As referencias restantes a `BrainBrawl` aparecem em nomes internos de styles/themes (`Theme.BrainBrawl`, `BrainBrawlButton`) e pacote Android; nao sao texto visivel na UI.
+- `activity_main.xml` recebeu `android:orientation` explicito num `LinearLayout` oculto para resolver o erro de lint sem alterar comportamento visual.
+
+### Verificacao manual
+
+- Login abre com o novo visual, nome "Pergunta o Luso" e imagem `avatar_14_foreground`.
+- Navegacao Login -> Registo verificada no emulador.
+- Passo 1 do Registo verificado com campos email/password/confirmacao, card de requisitos, botao `CONTINUAR` e link de login.
+- Preenchimento de email e passwords iguais verificado; o botao `CONTINUAR` avanca para o passo 2.
+- Passo 2 verificado com campo de nome, avatar selecionado e grelha de avatares.
+- A criacao Firebase completa e a verificacao de perfil/avatar na Main nao foram concluidas manualmente nesta ronda por instabilidade do daemon ADB durante a navegacao; o caminho de criacao de conta foi preservado e compilado.
+- Responsividade: o registo usa `ScrollView`/`fillViewport` e conteudo com alturas fixas confortaveis para evitar cortes; teste manual em ecrã pequeno especifico nao foi concluido por causa da mesma instabilidade ADB.
+
+### Problemas encontrados
+
+- O ADB apresentou instabilidade recorrente no sandbox, exigindo execucoes escaladas para instalar e inspecionar o emulador.
+- Mantem-se o warning conhecido de `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Mantem-se o aviso generico de deprecated Gradle features.
+
+### Verificacoes executadas nesta ronda
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK antes desta atualizacao documental, validando ViewBinding do registo em 2 passos.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK. Mantem o warning conhecido: `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK. Sem fontes de teste unitario debug neste checkout (`NO-SOURCE`).
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK depois de corrigir o erro de lint `Orientation` em `activity_main.xml`.
+
+## Rollback visual da Fase 2 UI/UX - 2026-05-07
+
+### Ficheiros revertidos nesta ronda
+
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/layout/activity_login.xml`
+- `app/src/main/res/layout/activity_registar.xml`
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/AndroidManifest.xml`
+- `TEST_REPORT.md`
+
+### O que foi revertido
+
+- `MainActivity`, `LoginActivity` e `RegistarActivity` voltaram visualmente ao estado da Fase 1, mantendo a base comum aprovada (`bg_app_gradient`, `bg_button_*`, `bg_input_surface`, cores e dimens).
+- Removidos os IDs e ligacoes Kotlin adicionados apenas pela Fase 2 visual: card de perfil, card extra de ranking, avatar/nivel no hub e helpers visuais associados.
+- Removido `windowSoftInputMode="adjustResize"` que tinha sido introduzido no Manifest apenas por causa da Fase 2.
+- Mantidos os IDs funcionais antigos usados por ViewBinding: login/registo, criar sala, entrar sala, categorias, matchmaking 1x1/2x2, ranking, historico, amigos e logout.
+- Nao foram alterados repositories, services, viewmodels, Firebase rules, ranking, matchmaking, XP, recordes ou pontuacao.
+- `ARCHITECTURE_PLAN.md` nao foi alterado por este rollback, porque nao houve mudanca arquitetural.
+
+### Verificacoes executadas apos este rollback
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK. Mantem o warning conhecido: `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK. Sem testes unitarios debug compilados neste checkout (`NO-SOURCE`).
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK. Mantem o warning conhecido de `adminHint` e o aviso generico de deprecated Gradle features.
 
 ## Auditoria completa pre-funcionalidades - 2026-05-03
 
@@ -2246,3 +2422,309 @@ Não executei estes testes manuais nesta ronda porque o ambiente atual não tem 
 5. Todos aceitam.
 6. Sala mostra os 4 nomes.
 7. Admin inicia jogo.
+
+---
+
+## Matchmaking automatico 1x1/2x2
+
+### Implementacao
+
+Criado matchmaking automatico para jogadores autenticados:
+
+- `1x1 Aleatorio` na Main cria/entra em fila 1x1.
+- `2x2 Aleatorio` na Main cria/entra em fila 2x2.
+- `MatchmakingActivity` mostra procura, loading e botao cancelar.
+- Quando existe grupo suficiente, a fila e limpa e cada jogador recebe o resultado em `matchmaking/{modo}/resultados/{uid}`.
+- O criador do match cria a sala por transacao; os restantes aguardam a sala existir antes de navegar.
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/MatchmakingActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/models/MatchmakingModels.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
+- `app/src/main/res/layout/activity_matchmaking.xml`
+
+### Ficheiros alterados
+
+- `app/src/main/AndroidManifest.xml`
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/config/GameConstants.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `firebase-rules.json`
+- `ARCHITECTURE_PLAN.md`
+- `FIREBASE_RULES_NOTES.md`
+- `TEST_REPORT.md`
+
+### Estrutura Firebase
+
+Fila:
+
+- `matchmaking/1x1/fila/{uid}`
+- `matchmaking/2x2/fila/{uid}`
+
+Campos:
+
+- `uid`
+- `nomeUtilizador`
+- `nomeDisplay`
+- `avatar`
+- `timestampEntrada`
+- `estado = aguardando`
+
+Resultado:
+
+- `matchmaking/1x1/resultados/{uid}`
+- `matchmaking/2x2/resultados/{uid}`
+
+Campos:
+
+- `uid`
+- `codigoSala`
+- `modo`
+- `nomeCategoria`
+- `criadorUid`
+- `estado = encontrado`
+- `timestampEntrada`
+- `jogadores/{uidJogador}`
+
+Salas criadas:
+
+- `sala_1x1/{codigoSala}` com 2 jogadores, `admin`, `adminId`, `adminUid`, `estado = em_espera`, `nomeCategoria`.
+- `sala_2x2/{codigoSala}` com 4 jogadores, `equipaA`, `equipaB`, `admin`, `adminId`, `adminUid`, `estado = em_espera`, `nomeCategoria`.
+
+### Regras Firebase adicionadas
+
+- `matchmaking` requer `auth != null`.
+- `fila/{uid}` valida que `uid` do payload e igual a chave.
+- `resultados/{uid}` valida `uid`, `codigoSala`, `modo`, `estado`, `timestampEntrada` e jogadores por UID.
+- `avatar` passou a ser permitido nos jogadores de `sala_1x1` e `sala_2x2`.
+
+### Protecoes de corrida/abuso
+
+- UID e a chave da fila, evitando duplicacao simples do mesmo jogador.
+- A selecao de grupo usa transacao em `matchmaking/{modo}`.
+- A criacao de sala usa transacao no node da sala e so cria se estiver vazio.
+- Cancelamento remove apenas a fila quando ainda nao existe resultado.
+- `onDisconnect()` remove a entrada propria de fila se a ligacao cair.
+- Entradas antigas sao limpas por clientes que entram depois.
+- O jogador e removido da fila do outro modo ao entrar em nova procura.
+- 1x1 exige outro UID; 2x2 exige mais 3 UIDs.
+
+### Verificacoes executadas
+
+- `jq empty firebase-rules.json`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Observacoes:
+
+- O build continua a mostrar o warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Testes manuais a executar
+
+1x1:
+
+1. Conta A toca em `1x1 Aleatorio`.
+2. Confirmar `matchmaking/1x1/fila/{uidA}`.
+3. Conta B toca em `1x1 Aleatorio`.
+4. Confirmar que `sala_1x1/{codigo}` tem A e B.
+5. Confirmar que `matchmaking/1x1/fila` fica sem A/B.
+6. Confirmar que ambos entram na mesma `SalaDeEspera1x1Activity`.
+7. Confirmar nomes e arranque normal do jogo.
+
+2x2:
+
+1. Contas A, B e C entram em `2x2 Aleatorio`.
+2. Confirmar que nenhuma sala e criada com apenas 3 jogadores.
+3. Conta D entra em `2x2 Aleatorio`.
+4. Confirmar que `sala_2x2/{codigo}` tem 4 jogadores.
+5. Confirmar `equipaA` com 2 jogadores e `equipaB` com 2 jogadores.
+6. Confirmar que `matchmaking/2x2/fila` fica sem A/B/C/D.
+7. Confirmar que todos entram na mesma `SalaDeEspera2x2Activity` e o jogo inicia normalmente.
+
+Edge cases:
+
+1. Mesmo jogador toca varias vezes rapidamente.
+2. Jogador cancela durante procura.
+3. Jogador fecha a app durante procura.
+4. Jogador tenta entrar em 1x1 e 2x2.
+5. Dois dispositivos com o mesmo UID entram ao mesmo tempo.
+6. Jogador cancela depois da sala ja ter sido encontrada.
+7. Entradas stale com mais de 2 minutos nao bloqueiam novos matches.
+
+### Riscos que ficaram
+
+- A arbitragem forte contra cliente malicioso continua limitada por Realtime Database client-side. Cloud Functions seriam o passo ideal para impedir totalmente claims fabricados.
+- Codigo de sala de 6 caracteres pode colidir em teoria; a transacao impede sobrescrever sala existente e devolve erro nesse caso.
+- Limpeza stale acontece quando outro cliente entra na fila; sem backend agendado nao ha limpeza periodica autonomamente.
+- Ainda nao existe indice global de `salaAtual/{uid}`. A UI normal so volta a matchmaking depois de sair da sala, mas um cliente malicioso ainda poderia tentar escrever diretamente enquanto esta numa sala antiga.
+
+---
+
+## Historico de jogos
+
+### Implementacao
+
+Criado historico por jogador autenticado:
+
+- Grava entradas em `historicoJogos/{uid}/{historicoId}`.
+- Usa `historicoId` deterministico por modo/codigo da sala para evitar duplicacao ao reabrir pontuacao.
+- Carrega os ultimos 50 jogos com `orderByChild(dataHora).limitToLast(50)`.
+- Mostra ecran `HistoricoActivity` com lista do mais recente para o mais antigo.
+- Adicionado atalho de historico na Main com icon `ic_book`.
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/HistoricoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/models/HistoricoJogo.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/HistoricoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/HistoricoViewModel.kt`
+- `app/src/main/res/layout/activity_historico.xml`
+- `app/src/main/res/layout/item_historico_jogo.xml`
+
+### Ficheiros alterados
+
+- `app/src/main/AndroidManifest.xml`
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `firebase-rules.json`
+- `ARCHITECTURE_PLAN.md`
+- `FIREBASE_RULES_NOTES.md`
+- `TEST_REPORT.md`
+
+### Estrutura Firebase
+
+- `historicoJogos/{uid}/{historicoId}/modo`
+- `historicoJogos/{uid}/{historicoId}/codigoSala`
+- `historicoJogos/{uid}/{historicoId}/nomeCategoria`
+- `historicoJogos/{uid}/{historicoId}/pontuacao`
+- `historicoJogos/{uid}/{historicoId}/recordeFoiBatido`
+- `historicoJogos/{uid}/{historicoId}/respostasCertas`
+- `historicoJogos/{uid}/{historicoId}/totalPerguntas`
+- `historicoJogos/{uid}/{historicoId}/venceu`
+- `historicoJogos/{uid}/{historicoId}/empate`
+- `historicoJogos/{uid}/{historicoId}/equipa`
+- `historicoJogos/{uid}/{historicoId}/dataHora`
+- `historicoJogos/{uid}/{historicoId}/jogadores`
+
+### Regras Firebase adicionadas
+
+- `historicoJogos/{uid}` so pode ser lido/escrito por `auth.uid == uid`.
+- `indexOn` em `dataHora`.
+- Validacao dos campos conhecidos e bloqueio de `$other`.
+
+### Testes manuais a executar
+
+1. Jogar modo classico com conta autenticada e confirmar entrada em `historicoJogos/{uid}`.
+2. Jogar 1x1 com conta autenticada e confirmar `modo = 1x1`, adversario em `jogadores` e resultado correto.
+3. Jogar 2x2 com conta autenticada e confirmar `modo = 2x2`, `equipa`, quatro jogadores e resultado correto.
+4. Reabrir o ecra de pontuacao da mesma sala e confirmar que nao cria novo `historicoId`.
+5. Abrir `HistoricoActivity` a partir da Main e confirmar ordem mais recente primeiro.
+6. Jogar sem conta e confirmar que nao escreve em `historicoJogos`.
+7. Criar mais de 50 entradas para o mesmo UID em ambiente de teste e confirmar que ficam so as 50 mais recentes.
+
+### Verificacoes executadas
+
+- `jq empty firebase-rules.json`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Observacoes:
+
+- O warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used` continua presente.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+## Fase 1 UI/UX - base visual segura
+
+### Objetivo validado
+
+Foi criada uma base visual reutilizavel e aplicada de forma conservadora aos ecras principais, sem alterar regras Firebase, repositories existentes, services existentes, ViewModels de jogo, pontuacao, rankings ou navegacao.
+
+### Ficheiros visuais criados
+
+- `app/src/main/res/values/dimens.xml`
+- `app/src/main/res/drawable/bg_app_gradient.xml`
+- `app/src/main/res/drawable/bg_card_surface.xml`
+- `app/src/main/res/drawable/bg_button_primary.xml`
+- `app/src/main/res/drawable/bg_button_secondary.xml`
+- `app/src/main/res/drawable/bg_button_danger.xml`
+- `app/src/main/res/drawable/bg_segment_selected.xml`
+- `app/src/main/res/drawable/bg_segment_unselected.xml`
+- `app/src/main/res/drawable/bg_input_surface.xml`
+- `app/src/main/res/drawable/bg_empty_state_card.xml`
+
+### Ficheiros visuais alterados
+
+- `app/src/main/res/values/colors.xml`
+- `app/src/main/res/values/themes.xml`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/layout/activity_login.xml`
+- `app/src/main/res/layout/activity_registar.xml`
+- `app/src/main/res/layout/activity_ranking.xml`
+- `app/src/main/res/layout/activity_meu_perfil.xml`
+- `app/src/main/res/layout/activity_amigos.xml`
+- `app/src/main/res/layout/activity_sala_de_espera_1x1.xml`
+- `app/src/main/res/layout/activity_sala_de_espera2x2.xml`
+- `app/src/main/res/layout/activity_pontuacao.xml`
+- `app/src/main/res/layout/activity_pontuacao1x1.xml`
+- `app/src/main/res/layout/activity_pontuacao_multi.xml`
+- `app/src/main/res/layout/item_ranking_jogador.xml`
+- `app/src/main/res/layout/item_podio.xml`
+
+### Compatibilidade de build
+
+Durante a validacao, o projeto ja referenciava `HistoricoActivity` e `MatchmakingActivity` no manifesto/Main, mas alguns ficheiros de binding/classes nao existiam no checkout. Foram repostos ficheiros minimos necessarios para compilacao e para manter os destinos declarados:
+
+- `app/src/main/java/com/example/brainbrawl/HistoricoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/models/HistoricoJogo.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/HistoricoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/HistoricoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/MatchmakingActivity.kt`
+- `app/src/main/res/layout/activity_historico.xml`
+- `app/src/main/res/layout/item_historico_jogo.xml`
+- `app/src/main/res/layout/activity_matchmaking.xml`
+
+### Verificacoes executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK. Mantem o warning conhecido: `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK. Sem testes unitarios debug compilados neste checkout (`NO-SOURCE`).
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK. Mantem o warning conhecido de `adminHint` e o aviso generico de deprecated Gradle features.
+
+### Checklist manual UI recomendada
+
+1. Abrir Login e Registo em 360dp e confirmar que teclado nao corta campos essenciais.
+2. Abrir Main com utilizador autenticado e convidado, validando botoes, cards e textos longos.
+3. Abrir Ranking em todas as tabs e confirmar estado loading/empty/error.
+4. Abrir Perfil e confirmar legibilidade de avatar, nivel, XP, pontuacao e recorde.
+5. Abrir salas 1x1/2x2 e confirmar que listas/equipas cabem em ecra pequeno.
+6. Abrir Podio/Pontuacao e confirmar contraste, botoes e nomes longos.
+7. Abrir Historico e confirmar lista vazia, lista com itens e datas.
+8. Testar toque rapido em botoes principais para confirmar feedback visual e sem deslocamentos.

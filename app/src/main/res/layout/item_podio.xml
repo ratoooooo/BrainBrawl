@@ -4,7 +4,7 @@
     android:layout_height="64dp"
     android:orientation="horizontal"
     android:gravity="center_vertical"
-    android:background="#FFFFFF"
+    android:background="@drawable/bg_card_surface"
     android:elevation="4dp"
     android:layout_marginBottom="10dp"
     android:paddingStart="18dp"
@@ -21,7 +21,7 @@
         android:textSize="28sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
-        android:textColor="#FFC400"
+        android:textColor="@color/bb_accent"
         android:background="@android:color/transparent" />
 
     <TextView
@@ -33,7 +33,7 @@
         android:layout_marginEnd="16dp"
         android:text="@string/nome_jogador"
         android:textSize="20sp"
-        android:textColor="#222"
+        android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
         android:maxLines="1"
         android:ellipsize="end"/>
@@ -44,7 +44,7 @@
         android:layout_height="wrap_content"
         android:text="999"
         android:textStyle="bold"
-        android:textColor="#222"
+        android:textColor="@color/bb_text_primary"
         android:textSize="20sp"
         android:fontFamily="sans-serif-black"/>
 </LinearLayout>

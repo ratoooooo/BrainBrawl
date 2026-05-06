@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFC400"
+    android:background="@drawable/bg_app_gradient"
     tools:context=".TipoModoClassico">
 
     <LinearLayout
@@ -29,7 +29,7 @@
             android:letterSpacing="0.05"
             android:text="@string/escolher_tipo_modo_classico"
             android:textAllCaps="true"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/bb_text_primary"
             android:textSize="36sp"
             android:fontFamily="sans-serif-black"
             android:textStyle="bold"
@@ -60,7 +60,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/modo_1x1"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -90,7 +90,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/modo_2x2"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -120,7 +120,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/modo_todos"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -149,7 +149,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/voltar"
                 android:textSize="18sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/bb_primary_text"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>

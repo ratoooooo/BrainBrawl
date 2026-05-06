@@ -4,7 +4,7 @@
     android:orientation="horizontal"
     android:padding="10dp"
     android:gravity="center_vertical"
-    android:background="#FFFFFF">
+    android:background="@drawable/bg_card_surface">
 
     <!-- Avatar -->
     <ImageView

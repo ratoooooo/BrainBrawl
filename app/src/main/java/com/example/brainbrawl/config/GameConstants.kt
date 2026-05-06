@@ -9,6 +9,8 @@ object GameConstants {
     const val ESTADO_OFF = "off"
     const val ESTADO_PENDENTE = "pendente"
     const val ESTADO_ACEITE = "aceite"
+    const val ESTADO_AGUARDANDO = "aguardando"
+    const val ESTADO_ENCONTRADO = "encontrado"
     const val ESTADO_PUBLICA = "publica"
     const val ESTADO_PRIVADA = "privada"
 

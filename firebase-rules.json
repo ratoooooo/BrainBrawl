@@ -506,6 +506,9 @@
             "nomeJogador": {
               ".validate": "newData.isString()"
             },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
             "pontuacao": {
               ".validate": "newData.isNumber() && newData.val() >= 0"
             },
@@ -618,6 +621,9 @@
             "nomeJogador": {
               ".validate": "newData.isString()"
             },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
             "pontuacao": {
               ".validate": "newData.isNumber() && newData.val() >= 0"
             },
@@ -727,6 +733,149 @@
           "$jogadorId": {
             ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
             ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "historicoJogos": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        ".indexOn": ["dataHora"],
+        "$historicoId": {
+          ".validate": "!newData.exists() || newData.hasChildren(['modo', 'codigoSala', 'nomeCategoria', 'pontuacao', 'recordeFoiBatido', 'respostasCertas', 'totalPerguntas', 'venceu', 'empate', 'dataHora', 'jogadores'])",
+          "modo": {
+            ".validate": "newData.isString()"
+          },
+          "codigoSala": {
+            ".validate": "newData.isString()"
+          },
+          "nomeCategoria": {
+            ".validate": "newData.isString()"
+          },
+          "pontuacao": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "recordeFoiBatido": {
+            ".validate": "newData.isBoolean()"
+          },
+          "respostasCertas": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "totalPerguntas": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "venceu": {
+            ".validate": "newData.isBoolean()"
+          },
+          "empate": {
+            ".validate": "newData.isBoolean()"
+          },
+          "equipa": {
+            ".validate": "newData.isString()"
+          },
+          "dataHora": {
+            ".validate": "newData.isNumber()"
+          },
+          "jogadores": {
+            "$index": {
+              ".validate": "newData.isString()"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+
+    "matchmaking": {
+      ".read": "auth != null",
+      "$modo": {
+        ".write": "auth != null && ($modo == '1x1' || $modo == '2x2')",
+        "fila": {
+          "$uid": {
+            ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'nomeUtilizador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('uid').val() == $uid)",
+            "uid": {
+              ".validate": "newData.isString() && newData.val() == $uid"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "timestampEntrada": {
+              ".validate": "newData.isNumber()"
+            },
+            "estado": {
+              ".validate": "newData.isString() && newData.val() == 'aguardando'"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "resultados": {
+          "$uid": {
+            ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'codigoSala', 'modo', 'nomeCategoria', 'criadorUid', 'estado', 'timestampEntrada', 'jogadores']) && newData.child('uid').val() == $uid && newData.child('modo').val() == $modo)",
+            "uid": {
+              ".validate": "newData.isString() && newData.val() == $uid"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
+            },
+            "modo": {
+              ".validate": "newData.isString() && newData.val() == $modo && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "criadorUid": {
+              ".validate": "newData.isString()"
+            },
+            "estado": {
+              ".validate": "newData.isString() && newData.val() == 'encontrado'"
+            },
+            "timestampEntrada": {
+              ".validate": "newData.isNumber()"
+            },
+            "jogadores": {
+              "$jogadorId": {
+                ".validate": "newData.hasChildren(['uid', 'nomeUtilizador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('uid').val() == $jogadorId",
+                "uid": {
+                  ".validate": "newData.isString() && newData.val() == $jogadorId"
+                },
+                "nomeUtilizador": {
+                  ".validate": "newData.isString()"
+                },
+                "nomeDisplay": {
+                  ".validate": "newData.isString()"
+                },
+                "avatar": {
+                  ".validate": "newData.isString()"
+                },
+                "timestampEntrada": {
+                  ".validate": "newData.isNumber()"
+                },
+                "estado": {
+                  ".validate": "newData.isString() && (newData.val() == 'aguardando' || newData.val() == 'encontrado')"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
           }
         },
         "$other": {

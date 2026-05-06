@@ -2,6 +2,7 @@ package com.example.brainbrawl
 
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
@@ -26,9 +27,17 @@ class MeuPerfilActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        binding.btnVoltarPerfil.setOnClickListener {
+            finish()
+        }
+
         val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
-        if (uid.isBlank() && nomeUtilizador.isBlank()) return
+        if (uid.isBlank() && nomeUtilizador.isBlank()) {
+            Toast.makeText(this, "Não foi possível abrir o perfil.", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         viewModel.perfil.observe(this) { perfil ->
             mostrarPerfil(perfil)
@@ -57,6 +66,8 @@ class MeuPerfilActivity : AppCompatActivity() {
         }
 
         val resId = resources.getIdentifier(perfil.avatar, "drawable", packageName)
+            .takeIf { it != 0 }
+            ?: R.drawable.avatar_1_playstore
         binding.imgAvatarAmigo.setImageResource(resId)
 
         // Mostra os dados do perfil
@@ -67,10 +78,6 @@ class MeuPerfilActivity : AppCompatActivity() {
         binding.txtTotalJogos.text = "Total de Jogos: ${perfil.totalJogos}"
         binding.txtTotalVitorias.text = "Total de Vitórias: ${perfil.totalVitorias}"
         binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(perfil.taxaAcertos)}%"
-
-        binding.btnVoltarPerfil.setOnClickListener {
-            finish()
-        }
     }
 
     // Função utilitária para determinar que badge mostrar

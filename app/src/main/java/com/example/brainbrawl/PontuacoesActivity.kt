@@ -7,9 +7,12 @@ import android.view.LayoutInflater
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
+import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
+import com.example.brainbrawl.models.HistoricoJogo
+import com.example.brainbrawl.repositories.HistoricoRepository
 import com.example.brainbrawl.repositories.PontuacaoRepository
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.services.EstatisticasService
@@ -20,10 +23,12 @@ class PontuacoesActivity : AppCompatActivity() {
         ActivityPontuacaoBinding.inflate(layoutInflater)
     }
     private val pontuacaoRepository = PontuacaoRepository()
+    private val historicoRepository = HistoricoRepository()
     private val estatisticasService = EstatisticasService()
     private val authService = AuthService()
     private var pontuacoesListener: PontuacaoRepository.ListenerHandle? = null
     private var estatisticasAtualizadas = false
+    private var historicoGuardado = false
     // Variáveis para armazenar informações da sala e do jogador
     private lateinit var codigoSala: String
     private lateinit var nomeUtilizador: String
@@ -32,6 +37,7 @@ class PontuacoesActivity : AppCompatActivity() {
     private var uid: String = ""
     private var totalPontos: Double = 0.0
     private var totalPerguntas: Int = 1
+    private var modoJogo: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,6 +51,7 @@ class PontuacoesActivity : AppCompatActivity() {
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
+        modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: ""
 
         // Chamar a função para carregar pontuação da sala
         carregarPontuacaoSala()
@@ -87,7 +94,7 @@ class PontuacoesActivity : AppCompatActivity() {
                     val txtNome = view.findViewById<TextView>(R.id.txt_nome_jogador)
                     val txtPontos = view.findViewById<TextView>(R.id.txt_pontos)
                     when (index) {
-                        0 -> { txtMedalha.text = "🥇"; txtMedalha.setTextColor("#FFC400".toColorInt()) }
+                        0 -> { txtMedalha.text = "🥇"; txtMedalha.setTextColor("#D8A42F".toColorInt()) }
                         1 -> { txtMedalha.text = "🥈"; txtMedalha.setTextColor("#b0b0b0".toColorInt()) }
                         2 -> { txtMedalha.text = "🥉"; txtMedalha.setTextColor("#ad7e54".toColorInt()) }
                         else -> { txtMedalha.text = "${index+1}"; txtMedalha.setTextColor("#222".toColorInt()) }
@@ -103,6 +110,7 @@ class PontuacoesActivity : AppCompatActivity() {
                 }
 
                 if (resumo.completos && !estatisticasAtualizadas) {
+                    guardarHistoricoSeNecessario(jogadores)
                     estatisticasAtualizadas = true
                     pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
                         tipoSala = PontuacaoRepository.TipoSala.GRUPO,
@@ -138,5 +146,41 @@ class PontuacoesActivity : AppCompatActivity() {
             nomeJogador,
             nomeUtilizador.ifBlank { nomeJogador }
         ).filter { it.isNotBlank() }.distinct()
+    }
+
+    private fun guardarHistoricoSeNecessario(jogadores: List<EstatisticasService.ResultadoJogador>) {
+        if (historicoGuardado || uid.isBlank() || jogadores.isEmpty()) return
+        val resultadoAtual = jogadores.firstOrNull { jogador ->
+            identificadoresJogadorAtual().any { jogador.corresponde(it) }
+        } ?: return
+
+        historicoGuardado = true
+        val maxPontos = jogadores.maxOfOrNull { it.pontos } ?: resultadoAtual.pontos
+        val empatadosNoTopo = jogadores.count { it.pontos == maxPontos }
+        val empate = resultadoAtual.pontos == maxPontos && empatadosNoTopo > 1
+        val venceu = resultadoAtual.pontos == maxPontos && !empate
+
+        historicoRepository.guardarHistoricoUmaVez(
+            uid = uid,
+            historico = HistoricoJogo(
+                historicoId = historicoId(),
+                modo = modoJogo.ifBlank { "grupo" },
+                codigoSala = codigoSala,
+                nomeCategoria = nomeCategoria,
+                pontuacao = resultadoAtual.pontos,
+                respostasCertas = resultadoAtual.respostasCertas,
+                totalPerguntas = totalPerguntas,
+                venceu = venceu,
+                empate = empate,
+                dataHora = System.currentTimeMillis(),
+                jogadoresDaPartida = jogadores.map { it.nome }
+            )
+        ).addOnFailureListener {
+            historicoGuardado = false
+        }
+    }
+
+    private fun historicoId(): String {
+        return "${modoJogo.ifBlank { FirebasePaths.SALAS }}_$codigoSala"
     }
 }

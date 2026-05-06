@@ -5,7 +5,7 @@
     android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFC400"
+    android:background="@drawable/bg_app_gradient"
     tools:context=".EscolherCategoriaActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -28,7 +28,7 @@
             android:layout_marginBottom="48dp"
             android:text="@string/escolha_categoria"
             android:textAllCaps="true"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/bb_text_primary"
             android:textSize="36sp"
             android:fontFamily="sans-serif-black"
             android:textStyle="bold"
@@ -63,7 +63,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/categoria1"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -94,7 +94,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/categoria2"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -126,7 +126,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/categoria3"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -158,7 +158,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/categoria4"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -190,7 +190,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/escolher_todas_categorias"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -221,7 +221,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/categoria6"
                 android:textSize="18sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>
@@ -254,7 +254,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/voltar"
                 android:textSize="18sp"
-                android:textColor="#FFFFFF"
+                android:textColor="@color/bb_primary_text"
                 android:fontFamily="sans-serif-black"
                 android:textStyle="bold"/>
         </LinearLayout>

@@ -174,3 +174,73 @@ Antes de usar em producao, validar num projeto de testes com:
 - As rules de convites permitem que o remetente autenticado escreva a copia recebida no perfil real do destinatario e a copia enviada no seu proprio perfil real, sem criar `jogadores/{uid}` quando esse perfil nao existe.
 - A validacao `$other: false` foi mantida; apenas os novos campos conhecidos foram adicionados.
 - O ficheiro continua a exigir publicacao manual no Firebase Console ou via Firebase CLI antes dos testes reais.
+
+## Atualizacao matchmaking automatico
+
+Novos paths permitidos:
+
+- `matchmaking/1x1/fila/{uid}`
+- `matchmaking/1x1/resultados/{uid}`
+- `matchmaking/2x2/fila/{uid}`
+- `matchmaking/2x2/resultados/{uid}`
+
+Campos validados em `fila/{uid}`:
+
+- `uid` igual a chave do node.
+- `nomeUtilizador`
+- `nomeDisplay`
+- `avatar` opcional.
+- `timestampEntrada`
+- `estado = aguardando`
+
+Campos validados em `resultados/{uid}`:
+
+- `uid` igual a chave do node.
+- `codigoSala` com 6 caracteres `[A-Z0-9]`.
+- `modo` igual ao modo do path (`1x1` ou `2x2`).
+- `nomeCategoria`
+- `criadorUid`
+- `estado = encontrado`
+- `timestampEntrada`
+- `jogadores/{uidJogador}` com identidade coerente por UID.
+
+Tambem foi aceite `avatar` em `sala_1x1/{codigo}/jogadores/{uid}` e `sala_2x2/{codigo}/jogadores/{uid}`, porque o matchmaking reaproveita o avatar quando o perfil o fornece.
+
+Nota de seguranca:
+
+- As rules exigem Auth para ler/escrever matchmaking e validam que cada entrada declara o mesmo UID da chave.
+- A transacao cliente precisa escrever resultados para varios jogadores e remover entradas da fila. Por isso, em Realtime Database puro, as rules nao conseguem restringir perfeitamente cada claim sem um backend confiavel.
+- Para producao anti-abuso forte, mover a escolha de jogadores e criacao de sala para Cloud Functions e deixar o cliente escrever apenas `fila/{auth.uid}`.
+
+## Atualizacao historico de jogos
+
+Novo path:
+
+- `historicoJogos/{uid}/{historicoId}`
+
+Permissoes:
+
+- Leitura apenas com `auth.uid == uid`.
+- Escrita/remocao apenas com `auth.uid == uid`.
+- `indexOn` em `dataHora`, usado para carregar os ultimos 50 jogos.
+
+Campos validados:
+
+- `modo`
+- `codigoSala`
+- `nomeCategoria`
+- `pontuacao`
+- `recordeFoiBatido`
+- `respostasCertas`
+- `totalPerguntas`
+- `venceu`
+- `empate`
+- `equipa` opcional
+- `dataHora`
+- `jogadores/{index}` como string
+
+Notas:
+
+- A anti-duplicacao principal esta no cliente por transacao em `historicoJogos/{uid}/{historicoId}`.
+- O `historicoId` e deterministico por modo e codigo da sala, impedindo duplicacao em reabertura normal do ecra de pontuacao.
+- As rules protegem ownership por UID, mas nao substituem validacao server-side do resultado real da partida.

@@ -6,8 +6,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoMultiBinding
+import com.example.brainbrawl.models.HistoricoJogo
+import com.example.brainbrawl.repositories.HistoricoRepository
 import com.example.brainbrawl.repositories.PontuacaoRepository
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.services.EstatisticasService
@@ -19,6 +22,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     }
     private val database = FirebaseDatabase.getInstance().reference
     private val pontuacaoRepository = PontuacaoRepository()
+    private val historicoRepository = HistoricoRepository()
     private val estatisticasService = EstatisticasService()
     private val authService = AuthService()
 
@@ -30,9 +34,11 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private var equipa: String? = null
     private var totalPontos: Double = 0.0
     private var totalRespostasCertas: Int = 0
+    private var totalPerguntas: Int = 8
 
     private var pontuacaoListener: PontuacaoRepository.ListenerHandle? = null
     private var estatisticasAtualizadas = false
+    private var historicoGuardado = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,6 +53,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         equipa = intent.getStringExtra(IntentExtras.EQUIPA)
         totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
         totalRespostasCertas = intent.getIntExtra(IntentExtras.TOTAL_RESPOSTAS_CERTAS, 0)
+        totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 8)
 
         // Carregar pontuação dos jogadores
         carregarPontuacao2x2Realtime()
@@ -100,13 +107,14 @@ class Pontuacao2x2Activity : AppCompatActivity() {
                 mostrarNovoRecordSeAplicavel(resultados)
 
                 if (podio.size >= 4 && !estatisticasAtualizadas) {
+                    guardarHistoricoSeNecessario(resultados, podio2x2.totalA, podio2x2.totalB)
                     estatisticasAtualizadas = true
                     pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
                         tipoSala = PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS,
                         codigoSala = codigoSala,
                         resultados = resultados,
                         modo = EstatisticasService.Modo.DOIS_CONTRA_DOIS,
-                        totalPerguntas = 8,
+                        totalPerguntas = totalPerguntas,
                         jogadoresParaAtualizar = identificadoresJogadorAtual().toSet()
                     ).addOnFailureListener {
                         estatisticasAtualizadas = false
@@ -139,5 +147,51 @@ class Pontuacao2x2Activity : AppCompatActivity() {
 
     private fun identificadorPontuacaoGlobal(): String {
         return uid.ifBlank { nomeUtilizador.ifBlank { nomeJogador } }
+    }
+
+    private fun guardarHistoricoSeNecessario(
+        resultados: List<EstatisticasService.ResultadoJogador>,
+        totalA: Double,
+        totalB: Double
+    ) {
+        if (historicoGuardado || uid.isBlank() || resultados.size < 4) return
+        val resultadoAtual = resultados.firstOrNull { resultado ->
+            identificadoresJogadorAtual().any { resultado.corresponde(it) }
+        } ?: return
+
+        val equipaAtual = resultadoAtual.equipa ?: equipa.orEmpty()
+        val empate = totalA == totalB
+        val venceu = when (equipaAtual) {
+            GameConstants.EQUIPA_A -> totalA > totalB
+            GameConstants.EQUIPA_B -> totalB > totalA
+            else -> false
+        }
+
+        historicoGuardado = true
+        historicoRepository.guardarHistoricoUmaVez(
+            uid = uid,
+            historico = HistoricoJogo(
+                historicoId = "${GameConstants.MODO_2X2}_$codigoSala",
+                modo = GameConstants.MODO_2X2,
+                codigoSala = codigoSala,
+                nomeCategoria = nomeCategoria,
+                pontuacao = resultadoAtual.pontos,
+                respostasCertas = resultadoAtual.respostasCertas.ifZero(totalRespostasCertas),
+                totalPerguntas = totalPerguntas,
+                venceu = venceu,
+                empate = empate,
+                equipa = equipaAtual,
+                dataHora = System.currentTimeMillis(),
+                jogadoresDaPartida = resultados.map { jogador ->
+                    jogador.equipa?.let { "${jogador.nome} ($it)" } ?: jogador.nome
+                }
+            )
+        ).addOnFailureListener {
+            historicoGuardado = false
+        }
+    }
+
+    private fun Int.ifZero(fallback: Int): Int {
+        return if (this == 0) fallback else this
     }
 }

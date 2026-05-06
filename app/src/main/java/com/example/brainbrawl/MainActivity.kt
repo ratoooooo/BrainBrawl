@@ -3,7 +3,9 @@ package com.example.brainbrawl
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMainBinding
 import com.example.brainbrawl.repositories.JogadorRepository
@@ -47,17 +49,8 @@ class MainActivity : AppCompatActivity() {
         modoJogo = savedInstanceState?.getString(IntentExtras.MODO_JOGO)
             ?: intent.getStringExtra(IntentExtras.MODO_JOGO)
 
-        if (nomeUtilizador.isNullOrBlank() && !uid.isNullOrBlank()) {
-            jogadorRepository.obterPerfil(uid.orEmpty())
-                .addOnSuccessListener { perfil ->
-                    perfil ?: return@addOnSuccessListener
-                    nomeUtilizador = perfil.nomeUtilizador
-                    email = email ?: perfil.email
-                    atualizarBoasVindas()
-                }
-        }
-
         atualizarBoasVindas()
+        carregarPerfilPrincipal()
 
 
         // BConfigurar Botões
@@ -91,12 +84,36 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+        binding.btnMatchmaking1x1.setOnClickListener {
+            abrirMatchmaking(GameConstants.MODO_1X1)
+        }
+
+        binding.btnMatchmaking2x2.setOnClickListener {
+            abrirMatchmaking(GameConstants.MODO_2X2)
+        }
+
         binding.btnRanking.setOnClickListener {
-            val intent = Intent(this, RankingActivity::class.java)
+            abrirRanking()
+        }
+
+        binding.btnRankingNav.setOnClickListener {
+            abrirRanking()
+        }
+
+        binding.btnHistorico.setOnClickListener {
+            val intent = Intent(this, HistoricoActivity::class.java)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             adicionarAuthExtras(intent)
             startActivity(intent)
+        }
+
+        binding.avatarFrame.setOnClickListener {
+            abrirPerfil()
+        }
+
+        binding.btnPerfil.setOnClickListener {
+            abrirPerfil()
         }
 
         // Botão para voltar ao ecrã de login
@@ -113,7 +130,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun atualizarBoasVindas() {
         if (nomeUtilizador != null) {
-            binding.txtBoasVindas.text = "Bem-vindo, $nomeUtilizador!"
+            binding.txtBoasVindas.text = nomeUtilizador
             binding.btnAddAmigo.visibility = View.VISIBLE
             binding.btnAddAmigo.setOnClickListener {
                 val intent = Intent(this, AmigosActivity::class.java)
@@ -122,17 +139,77 @@ class MainActivity : AppCompatActivity() {
                 startActivity(intent)
             }
         } else if (nomeJogador != null) {
-            binding.txtBoasVindas.text = "Bem-vindo, $nomeJogador!"
+            binding.txtBoasVindas.text = nomeJogador
             binding.btnAddAmigo.visibility = View.GONE
         } else {
-            binding.txtBoasVindas.text = "Bem-vindo!"
+            binding.txtBoasVindas.text = "Jogador"
             binding.btnAddAmigo.visibility = View.GONE
         }
+    }
+
+    private fun carregarPerfilPrincipal() {
+        val identificador = uid?.takeIf { it.isNotBlank() }
+            ?: nomeUtilizador?.takeIf { it.isNotBlank() }
+            ?: return
+
+        jogadorRepository.obterPerfil(identificador)
+            .addOnSuccessListener { perfil ->
+                perfil ?: return@addOnSuccessListener
+
+                if (uid.isNullOrBlank()) {
+                    uid = perfil.uid.takeIf { it.isNotBlank() }
+                }
+                nomeUtilizador = perfil.nomeUtilizador.takeIf { it.isNotBlank() } ?: nomeUtilizador
+                email = email ?: perfil.email.takeIf { it.isNotBlank() }
+
+                binding.txtBoasVindas.text = perfil.nomeUtilizador.ifBlank { nomeUtilizador ?: "Jogador" }
+                binding.txtNivel.text = "Nível ${perfil.estatisticas.nivel}"
+                binding.txtLevelBadge.text = perfil.estatisticas.nivel.toString()
+                binding.txtXp.text = "${perfil.estatisticas.xpNoNivelAtual} / ${perfil.estatisticas.xpNecessarioProximoNivel} XP"
+                binding.progressXp.max = perfil.estatisticas.xpNecessarioProximoNivel.coerceAtLeast(1)
+                binding.progressXp.progress = perfil.estatisticas.xpNoNivelAtual.coerceAtLeast(0)
+
+                val avatarRes = resources.getIdentifier(perfil.avatar, "drawable", packageName)
+                    .takeIf { it != 0 }
+                    ?: R.drawable.avatar_1_playstore
+                binding.imgAvatar.setImageResource(avatarRes)
+                atualizarBoasVindas()
+            }
+    }
+
+    private fun abrirRanking() {
+        val intent = Intent(this, RankingActivity::class.java)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        adicionarAuthExtras(intent)
+        startActivity(intent)
+    }
+
+    private fun abrirPerfil() {
+        if (uid.isNullOrBlank() && nomeUtilizador.isNullOrBlank()) {
+            Toast.makeText(this, "Perfil disponível apenas para contas com sessão iniciada.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = Intent(this, MeuPerfilActivity::class.java)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        adicionarAuthExtras(intent)
+        startActivity(intent)
     }
 
     private fun adicionarAuthExtras(intent: Intent) {
         uid?.let { intent.putExtra(IntentExtras.UID, it) }
         email?.let { intent.putExtra(IntentExtras.EMAIL, it) }
+    }
+
+    private fun abrirMatchmaking(modo: String) {
+        val intent = Intent(this, MatchmakingActivity::class.java)
+        intent.putExtra(IntentExtras.MODO_JOGO, modo)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, getString(R.string.categoria5))
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        adicionarAuthExtras(intent)
+        startActivity(intent)
     }
 
     // Guardar estado da activity para rotações/dispositivo

@@ -2,12 +2,11 @@ package com.example.brainbrawl
 
 import android.app.AlertDialog
 import android.content.Context
-import android.graphics.Color
 import android.graphics.Typeface
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
-import androidx.core.graphics.toColorInt
+import androidx.core.content.ContextCompat
 
 object UteisDicas {
     fun mostrarDicas(context: Context, titulo: String, itens: List<Pair<String, String>>) {
@@ -15,14 +14,14 @@ object UteisDicas {
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(padding, padding, padding, padding / 2)
-            setBackgroundColor("#FFC400".toColorInt())
+            setBackgroundColor(ContextCompat.getColor(context, R.color.bb_bg_start))
         }
 
         content.addView(TextView(context).apply {
             text = titulo
             textSize = 22f
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(Color.WHITE)
+            setTextColor(ContextCompat.getColor(context, R.color.bb_text_primary))
             setPadding(0, 0, 0, padding / 2)
         })
 
@@ -42,12 +41,12 @@ object UteisDicas {
                     text = nome
                     textSize = 16f
                     typeface = Typeface.DEFAULT_BOLD
-                    setTextColor("#111111".toColorInt())
+                    setTextColor(ContextCompat.getColor(context, R.color.bb_text_primary))
                 })
                 addView(TextView(context).apply {
                     text = descricao
                     textSize = 14f
-                    setTextColor("#333333".toColorInt())
+                    setTextColor(ContextCompat.getColor(context, R.color.bb_text_secondary))
                     setPadding(0, 4, 0, 0)
                 })
             })

@@ -4,8 +4,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="32dp"
-    android:background="#FFC400">
+    android:padding="@dimen/bb_space_lg"
+    android:background="@drawable/bg_app_gradient">
 
     <TextView
         android:id="@+id/txtTituloSala"
@@ -15,7 +15,7 @@
         android:textSize="28sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/bb_text_primary"
         android:layout_marginBottom="16dp" />
 
     <TextView
@@ -24,7 +24,9 @@
         android:layout_height="wrap_content"
         android:text="@string/c_digo_da_sala"
         android:textSize="18sp"
-        android:textColor="#000000"
+        android:background="@drawable/bg_empty_state_card"
+        android:padding="@dimen/bb_space_md"
+        android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
         android:layout_marginBottom="16dp" />
 
@@ -34,7 +36,7 @@
         android:layout_height="wrap_content"
         android:text="@string/jogadores_na_sala"
         android:textSize="18sp"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
         android:layout_marginBottom="8dp" />
 
@@ -44,18 +46,20 @@
         android:layout_height="wrap_content"
         android:text="@string/aguardando_jogadores"
         android:textSize="18sp"
-        android:textColor="#000000"
+        android:background="@drawable/bg_card_surface"
+        android:padding="@dimen/bb_space_md"
+        android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
         android:layout_marginBottom="24dp" />
 
     <Button
         android:id="@+id/btnIniciarJogo"
-        android:layout_width="220dp"
-        android:layout_height="56dp"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bb_button_height"
         android:text="@string/iniciar_jogo"
         android:enabled="false"
-        android:textColor="#000000"
-        android:background="@drawable/botao_branco_arredondado"
+        android:textColor="@color/bb_secondary_text"
+        android:background="@drawable/bg_button_secondary"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"
@@ -63,11 +67,11 @@
 
     <Button
         android:id="@+id/btnSairSala"
-        android:layout_width="220dp"
-        android:layout_height="56dp"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bb_button_height"
         android:text="@string/sair_da_sala"
         android:textColor="#FFFFFF"
-        android:background="@drawable/botao_voltar"
+        android:background="@drawable/bg_button_danger"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"

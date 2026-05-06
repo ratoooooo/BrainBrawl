@@ -12,6 +12,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.BrainBrawl">
         <activity
+            android:name=".HistoricoActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
+            android:name=".MatchmakingActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".MeuPerfilActivity"
             android:exported="false" />
         <activity

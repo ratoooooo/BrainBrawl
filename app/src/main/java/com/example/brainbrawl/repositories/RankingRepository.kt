@@ -122,6 +122,6 @@ class RankingRepository(
     }
 
     private companion object {
-        const val LIMITE_PADRAO = 100
+        const val LIMITE_PADRAO = 10
     }
 }

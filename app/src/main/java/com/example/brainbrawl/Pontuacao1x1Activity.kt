@@ -10,6 +10,8 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacao1x1Binding
+import com.example.brainbrawl.models.HistoricoJogo
+import com.example.brainbrawl.repositories.HistoricoRepository
 import com.example.brainbrawl.repositories.PontuacaoRepository
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.services.EstatisticasService
@@ -25,6 +27,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     }
     private val database = FirebaseDatabase.getInstance().reference
     private val pontuacaoRepository = PontuacaoRepository()
+    private val historicoRepository = HistoricoRepository()
     private val authService = AuthService()
     private lateinit var codigoSala: String
     private var uid: String = ""
@@ -32,7 +35,9 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     private var nomeJogador: String = ""
     private var totalPontos: Double = 0.0
     private var totalRespostasCertas: Int = 0
+    private var totalPerguntas: Int = 8
     private var nomeCategoria: String = ""
+    private var historicoGuardado = false
 
     private var desforraListener: ValueEventListener? = null
     private var pontuacaoListener: PontuacaoRepository.ListenerHandle? = null
@@ -52,6 +57,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
         totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
         totalRespostasCertas = intent.getIntExtra(IntentExtras.TOTAL_RESPOSTAS_CERTAS, 0)
+        totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 8)
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
 
         // Chama a função para atualizar a pontuação do jogador
@@ -204,6 +210,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     }
 
     private fun atualizarEstatisticasJogadorAtual(jogadores: List<ResultadoJogador>) {
+        guardarHistoricoSeNecessario(jogadores)
         val resultadosComRespostas = jogadores.map { jogador ->
             if (jogadorAtualCorresponde(jogador)) {
                 jogador.copy(respostasCertas = totalRespostasCertas)
@@ -217,9 +224,35 @@ class Pontuacao1x1Activity : AppCompatActivity() {
             codigoSala = codigoSala,
             resultados = resultadosComRespostas,
             modo = EstatisticasService.Modo.UM_CONTRA_UM,
-            totalPerguntas = 8,
+            totalPerguntas = totalPerguntas,
             jogadoresParaAtualizar = identificadoresJogadorAtual().toSet()
         )
+    }
+
+    private fun guardarHistoricoSeNecessario(jogadores: List<ResultadoJogador>) {
+        if (historicoGuardado || uid.isBlank() || jogadores.size < 2) return
+        val atual = jogadores.firstOrNull { jogadorAtualCorresponde(it) } ?: return
+        val outro = jogadores.firstOrNull { !jogadorAtualCorresponde(it) } ?: return
+
+        historicoGuardado = true
+        historicoRepository.guardarHistoricoUmaVez(
+            uid = uid,
+            historico = HistoricoJogo(
+                historicoId = "${GameConstants.MODO_1X1}_$codigoSala",
+                modo = GameConstants.MODO_1X1,
+                codigoSala = codigoSala,
+                nomeCategoria = nomeCategoria,
+                pontuacao = atual.pontos,
+                respostasCertas = totalRespostasCertas,
+                totalPerguntas = totalPerguntas,
+                venceu = atual.pontos > outro.pontos,
+                empate = atual.pontos == outro.pontos,
+                dataHora = System.currentTimeMillis(),
+                jogadoresDaPartida = jogadores.map { it.nome }
+            )
+        ).addOnFailureListener {
+            historicoGuardado = false
+        }
     }
 
     private fun removerListener(listener: ValueEventListener?, campo: String) {

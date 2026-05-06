@@ -1,4 +1,20 @@
-# BrainBrawl - Architecture Plan
+# Pergunta o Luso - Architecture Plan
+
+## Nota de auditoria - Matchmaking aleatorio - 2026-05-07
+
+- `MatchmakingActivity` esta declarada e acessivel a partir da Main para os modos 1x1/2x2 aleatorios.
+- Nesta versao do checkout nao existem `MatchmakingRepository` nem `MatchmakingViewModel`, e a Activity ainda nao escreve em `matchmaking/{modo}/fila`, nao observa `resultados` e nao cria/recebe sala.
+- As Firebase rules ja contem estrutura para `matchmaking`, mas a camada Android correspondente ainda precisa de ser implementada.
+- Recomendacao: implementar este fluxo como uma unidade pequena e testavel (`MatchmakingRepository` + `MatchmakingViewModel` + Activity fina), com entrada idempotente na fila por UID, cancelamento no back/finish, limpeza em `onCleared`, transacao para formar sala e resultado por UID.
+- Esta auditoria nao implementou o fluxo para evitar uma mudanca profunda em multiplayer dentro de uma ronda de correcoes seguras.
+
+## Nota UI - Registo em 2 passos - 2026-05-07
+
+- `RegistarActivity` continua a ser o unico ecrã de registo e mantem o mesmo `RegistarViewModel`, repository/Firebase Auth e criacao de perfil em `jogadores/{uid}`.
+- A mudanca e apenas visual/UX: o XML separa a conta (`page_conta`) do perfil (`page_perfil`) no mesmo layout com ViewBinding.
+- `btnContinuarRegisto` faz apenas validacoes locais de preenchimento e confirmacao da palavra-passe antes de mostrar o passo de perfil.
+- `btnRegistar` continua a executar o fluxo existente: recolhe nome, email, password e avatar selecionado e chama `viewModel.registar(...)`.
+- A grelha `grid_avatars` e o destaque `img_avatar_selecionado` foram preservados para manter o fluxo de selecao de avatar.
 
 ## Auditoria pre-funcionalidades - 2026-05-03
 
@@ -13,7 +29,7 @@ Pontos a manter sob observacao:
 
 - `CategoriaRepository.kt`, `AmigosRepository.kt`, `JogoCompetitivoRepository.kt` e `PontuacaoRepository.kt` estao grandes. A recomendacao e dividir por subdominio apenas quando uma proxima funcionalidade tocar naturalmente nesses limites.
 - Algumas Activities ainda fazem efeitos Firebase pequenos, por exemplo desforra/remocao de sala nas Activities de pontuacao. Isto nao exige refactor agora, mas deve ser reduzido gradualmente.
-- A regra de empate 2x2 esta inconsistente entre texto e estatisticas: UI mostra empate, mas estatisticas atribuem vitoria a Equipa A. Corrigir isto deve ser uma decisao de produto por afetar XP/vitorias/ranking.
+- A regra de empate 2x2 foi alinhada nesta auditoria: UI mostra empate e `EstatisticasService.vencedores()` nao atribui vitoria a nenhuma equipa quando os totais empatam.
 - Estatisticas e ranking continuam calculados no cliente. Para anti-cheat forte, mover fecho de jogo e atualizacao de perfil para Cloud Functions.
 
 ## Fase final UID/Auth hardening
@@ -367,3 +383,83 @@ Mantido sem alteracoes nesta fase:
 - Logica de jogo, pontuacao e salas.
 - Estrutura Firebase e nomes de paths/campos.
 - Repositories, services, models e rules.
+
+## Matchmaking automatico 1x1/2x2
+
+Nova camada adicionada sem alterar convites de amigos:
+
+- `MatchmakingRepository` concentra entrada/cancelamento de fila, transacoes, listeners e criacao segura de sala.
+- `MatchmakingViewModel` expoe estado simples para a UI e eventos de navegacao.
+- `MatchmakingActivity` mostra procura, loading e cancelamento.
+- `MainActivity` passa a oferecer `1x1 Aleatorio` e `2x2 Aleatorio`.
+
+Contrato Firebase:
+
+- `matchmaking/1x1/fila/{uid}` e `matchmaking/2x2/fila/{uid}` guardam o jogador autenticado em espera.
+- `matchmaking/1x1/resultados/{uid}` e `matchmaking/2x2/resultados/{uid}` entregam `codigoSala`, `criadorUid`, `nomeCategoria` e lista de jogadores encontrados.
+- Salas continuam nos paths existentes: `sala_1x1/{codigo}` e `sala_2x2/{codigo}`.
+
+Decisoes de concorrencia:
+
+- A selecao de jogadores corre por transacao em `matchmaking/{modo}`.
+- A criacao da sala corre por transacao no codigo gerado e so escreve se a sala ainda nao existir.
+- A fila usa UID como chave, removendo duplicacao do mesmo jogador.
+- Ao entrar num modo, a fila do outro modo e limpa para reduzir presenca simultanea.
+- Entradas antigas da fila sao removidas por clientes que entram depois; `onDisconnect()` remove a propria entrada quando a ligacao cai.
+
+Limites assumidos:
+
+- Sem Cloud Functions, as rules nao conseguem provar toda a intencao de negocio de um cliente malicioso. As validacoes bloqueiam formas erradas e exigem UID coerente, mas a arbitragem forte de matchmaking continuaria melhor num backend confiavel.
+
+## Historico de jogos
+
+Nova camada adicionada para historico por jogador autenticado:
+
+- `HistoricoRepository` grava uma entrada por jogo e carrega os ultimos 50 jogos por UID.
+- `HistoricoViewModel` expoe estado de loading/lista/mensagem para a UI.
+- `HistoricoActivity` mostra a lista ordenada do mais recente para o mais antigo.
+- `HistoricoAdapter` renderiza resumo de modo, resultado, pontuacao, categoria, data e jogadores.
+
+Contrato Firebase:
+
+- `historicoJogos/{uid}/{historicoId}`
+- `historicoId` e deterministico por modo/codigo da sala, por exemplo `1x1_ABC123`, evitando duplicacao ao reabrir a pontuacao.
+- Campos gravados: `modo`, `codigoSala`, `nomeCategoria`, `pontuacao`, `recordeFoiBatido`, `respostasCertas`, `totalPerguntas`, `venceu`, `empate`, `equipa`, `dataHora` e `jogadores`.
+
+Pontos de integracao:
+
+- `PontuacoesActivity` grava historico de modos de grupo/classico/caotico/eliminatorias quando todos os resultados da sala estao completos.
+- `Pontuacao1x1Activity` grava historico quando existem dois resultados.
+- `Pontuacao2x2Activity` grava historico quando existem quatro resultados.
+- Convidados ficam sem historico porque a escrita exige UID autenticado.
+- Pontuacao, XP, rankings, matchmaking e convites nao foram alterados.
+
+## Fase 1 UI/UX - base visual segura
+
+Objetivo arquitetural:
+
+- Criar uma camada de tokens visuais reutilizaveis em XML, sem introduzir novas dependencias e sem mudar fluxos Firebase, regras de jogo, repositories existentes, services existentes ou navegacao.
+
+Tokens e recursos criados:
+
+- `colors.xml` passou a expor cores `bb_*` para fundo, superficies, texto, acoes, perigo, equipas e outlines.
+- `dimens.xml` centraliza espacos, raios, alturas de botoes/inputs e tamanhos de texto.
+- `themes.xml` define pequenos defaults globais de fonte/cor/status bar e o estilo reutilizavel `BrainBrawlButton`.
+- Drawables `bg_*` centralizam gradiente da app, cards, inputs, botoes primario/secundario/perigo, segmentos selecionados/nao selecionados e empty states.
+
+Aplicacao conservadora:
+
+- Layouts principais receberam fundos, superficies, paddings e botoes consistentes mantendo IDs existentes.
+- Foram priorizados Main, Login, Registo, Ranking, Perfil, Amigos, salas de espera 1x1/2x2 e pontuacao/podio.
+- A mudanca evita redesign grande: os ecras continuam com a mesma estrutura funcional, mas com contraste, espacamento e hierarquia visual mais consistentes.
+
+Limites da fase:
+
+- Nao foram alteradas regras Firebase.
+- Nao foram alteradas formulas de jogo, pontuacao, XP, rankings, convites ou salas.
+- Nao foram adicionadas bibliotecas Material novas.
+- Responsividade foi melhorada por dimens e larguras `0dp`/`match_parent`, mas ainda deve ser validada visualmente em emulador 360dp.
+
+Nota de compatibilidade:
+
+- O checkout ja tinha referencias a Historico/Matchmaking no manifesto e na Main. Foram repostos os ficheiros necessarios para os bindings dessas Activities existirem e o build passar, mantendo esses destinos dentro da base visual.

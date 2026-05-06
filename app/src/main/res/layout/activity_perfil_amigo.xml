@@ -4,7 +4,7 @@
     android:id="@+id/clPerfilAmigo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFC400">
+    android:background="@drawable/bg_app_gradient">
 
     <!-- Card Centralizado -->
     <androidx.cardview.widget.CardView

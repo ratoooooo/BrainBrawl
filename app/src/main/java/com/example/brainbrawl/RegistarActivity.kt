@@ -2,6 +2,7 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -35,11 +36,11 @@ class RegistarActivity : AppCompatActivity() {
             R.drawable.avatar_5_playstore,
             R.drawable.avatar_6_playstore,
             R.drawable.avatar_7_playstore,
+            R.drawable.avatar_8_playstore,
             R.drawable.avatar_9_playstore,
             R.drawable.avatar_10_playstore,
             R.drawable.avatar_11_playstore,
-            R.drawable.avatar_12_playstore,
-            R.drawable.avatar_8_playstore
+            R.drawable.avatar_12_playstore
         )
 
         // Adapter para o GridView
@@ -56,6 +57,19 @@ class RegistarActivity : AppCompatActivity() {
         }
 
         // Configurar botão de registo
+        binding.btnContinuarRegisto.setOnClickListener {
+            val email = binding.edtEmail.text.toString().trim()
+            val password = binding.edtPasswordJogador.text.toString().trim()
+            val confirmarPassword = binding.edtConfirmarPassword.text.toString().trim()
+
+            when {
+                email.isBlank() -> Toast.makeText(this, "Insere o e-mail", Toast.LENGTH_SHORT).show()
+                password.isBlank() -> Toast.makeText(this, "Insere a palavra-passe", Toast.LENGTH_SHORT).show()
+                password != confirmarPassword -> Toast.makeText(this, "As palavras-passe não coincidem", Toast.LENGTH_SHORT).show()
+                else -> mostrarEtapaPerfil()
+            }
+        }
+
         binding.btnRegistar.setOnClickListener {
             // GGuardar os dados inseridos nos campos de texto
             val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
@@ -64,11 +78,47 @@ class RegistarActivity : AppCompatActivity() {
             viewModel.registar(nomeUtilizador, email, password, avatarSelecionadoIndex)
         }
 
-        // Configurar botão de voltar
-        binding.btnVoltar.setOnClickListener {
-            // Abrir LoginActivity
+        binding.btnVoltarEtapa.setOnClickListener {
+            mostrarEtapaConta()
+        }
+
+        binding.txtLoginLink.setOnClickListener {
             startActivity(Intent(this, LoginActivity::class.java))
         }
+
+        // Configurar botão de voltar
+        binding.btnVoltar.setOnClickListener {
+            if (binding.pagePerfil.visibility == View.VISIBLE) {
+                mostrarEtapaConta()
+            } else {
+                // Abrir LoginActivity
+                startActivity(Intent(this, LoginActivity::class.java))
+            }
+        }
+    }
+
+    private fun mostrarEtapaConta() {
+        binding.pageConta.visibility = View.VISIBLE
+        binding.pagePerfil.visibility = View.GONE
+        binding.txtStepConta.setBackgroundResource(R.drawable.bg_register_step_active)
+        binding.txtStepConta.setTextColor(getColor(R.color.bb_text_primary))
+        binding.txtStepPerfil.setBackgroundResource(R.drawable.bg_register_step_idle)
+        binding.txtStepPerfil.setTextColor(getColor(R.color.bb_text_secondary))
+        binding.txtRegisto.text = "Cria a tua conta"
+        binding.txtRegistoSubtitulo.text = "Junta-te à batalha do conhecimento!"
+        binding.registerScroll.post { binding.registerScroll.smoothScrollTo(0, 0) }
+    }
+
+    private fun mostrarEtapaPerfil() {
+        binding.pageConta.visibility = View.GONE
+        binding.pagePerfil.visibility = View.VISIBLE
+        binding.txtStepConta.setBackgroundResource(R.drawable.bg_register_step_idle)
+        binding.txtStepConta.setTextColor(getColor(R.color.bb_text_secondary))
+        binding.txtStepPerfil.setBackgroundResource(R.drawable.bg_register_step_active)
+        binding.txtStepPerfil.setTextColor(getColor(R.color.bb_text_primary))
+        binding.txtRegisto.text = "Personaliza o teu perfil"
+        binding.txtRegistoSubtitulo.text = "Escolhe o teu nome e avatar."
+        binding.registerScroll.post { binding.registerScroll.smoothScrollTo(0, 0) }
     }
 
     private fun configurarObservers() {

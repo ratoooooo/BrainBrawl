@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="16dp"
-    android:background="#FFC400">
+    android:background="@drawable/bg_app_gradient">
 
     <!-- Título -->
     <TextView
@@ -17,7 +17,7 @@
         android:textSize="28sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/bb_text_primary"
         android:gravity="center"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -46,7 +46,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/insira_nome_categoria"
                 android:textSize="16sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:layout_marginTop="16dp" />
 
             <!-- Campo para o nome da nova categoria -->
@@ -66,7 +66,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/pergunta_label"
                 android:textSize="16sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:layout_marginTop="16dp" />
 
             <EditText
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/opcoes_label"
                 android:textSize="16sp"
-                android:textColor="#000000"
+                android:textColor="@color/bb_text_primary"
                 android:layout_marginTop="16dp" />
 
             <RadioGroup
@@ -102,7 +102,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/opcao_a"
                     android:textStyle="bold"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:fontFamily="sans-serif-black"/>
 
                 <EditText
@@ -122,7 +122,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/opcao_b"
                     android:textStyle="bold"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:fontFamily="sans-serif-black"/>
 
                 <EditText
@@ -142,7 +142,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/opcao_c"
                     android:textStyle="bold"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:fontFamily="sans-serif-black"/>
 
                 <EditText
@@ -162,7 +162,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/opcao_d"
                     android:textStyle="bold"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:fontFamily="sans-serif-black"/>
 
                 <EditText
@@ -194,7 +194,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/enviar_pergunta"
                     android:textSize="18sp"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:fontFamily="sans-serif-black"
                     android:textStyle="bold"/>
             </LinearLayout>
@@ -217,7 +217,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/comecar_jogo"
                     android:textSize="18sp"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:fontFamily="sans-serif-black"
                     android:textStyle="bold"/>
             </LinearLayout>
@@ -239,7 +239,7 @@
                     android:layout_height="wrap_content"
                     android:text="@string/voltar"
                     android:textSize="18sp"
-                    android:textColor="#FFFFFF"
+                    android:textColor="@color/bb_primary_text"
                     android:fontFamily="sans-serif-black"
                     android:textStyle="bold"/>
             </LinearLayout>

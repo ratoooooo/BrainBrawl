@@ -5,8 +5,8 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="32dp"
-    android:background="#FFC400">
+    android:padding="@dimen/bb_space_lg"
+    android:background="@drawable/bg_app_gradient">
 
     <TextView
         android:id="@+id/txtTituloSala"
@@ -16,7 +16,7 @@
         android:textSize="28sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/bb_text_primary"
         android:layout_marginBottom="12dp" />
 
     <TextView
@@ -25,7 +25,9 @@
         android:layout_height="wrap_content"
         android:text="@string/c_digo_da_sala"
         android:textSize="18sp"
-        android:textColor="#000000"
+        android:background="@drawable/bg_empty_state_card"
+        android:padding="@dimen/bb_space_md"
+        android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
         android:layout_marginBottom="18dp" />
 
@@ -35,7 +37,9 @@
         android:layout_height="wrap_content"
         android:weightSum="2"
         android:gravity="center"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="24dp"
+        android:background="@drawable/bg_card_surface"
+        android:padding="@dimen/bb_space_md">
 
         <!-- Equipa A -->
         <LinearLayout
@@ -51,7 +55,7 @@
                 android:layout_height="wrap_content"
                 android:text="@string/equipa_a"
                 android:textStyle="bold"
-                android:textColor="#1976D2"
+                android:textColor="@color/bb_team_a"
                 android:textSize="20sp"
                 android:layout_marginBottom="8dp" />
 
@@ -67,13 +71,13 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:src="@android:drawable/ic_menu_myplaces"
-                    app:tint="#1976D2" />
+                    app:tint="@color/bb_team_a" />
                 <TextView
                     android:id="@+id/txtJogadorA1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/aguardando"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:layout_marginLeft="8dp"/>
             </LinearLayout>
@@ -88,13 +92,13 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:src="@android:drawable/ic_menu_myplaces"
-                    app:tint="#1976D2" />
+                    app:tint="@color/bb_team_a" />
                 <TextView
                     android:id="@+id/txtJogadorA2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/aguardando"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:layout_marginLeft="8dp"/>
             </LinearLayout>
@@ -106,7 +110,7 @@
             android:layout_height="match_parent"
             android:layout_marginLeft="16dp"
             android:layout_marginRight="16dp"
-            android:background="#000000" />
+            android:background="@color/bb_outline" />
 
         <!-- Equipa B -->
         <LinearLayout
@@ -122,7 +126,7 @@
                 android:layout_height="wrap_content"
                 android:text="Equipa B"
                 android:textStyle="bold"
-                android:textColor="#D32F2F"
+                android:textColor="@color/bb_team_b"
                 android:textSize="20sp"
                 android:layout_marginBottom="8dp"/>
 
@@ -137,13 +141,13 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:src="@android:drawable/ic_menu_myplaces"
-                    app:tint="#D32F2F" />
+                    app:tint="@color/bb_team_b" />
                 <TextView
                     android:id="@+id/txtJogadorB1"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/aguardando"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:layout_marginLeft="8dp"/>
             </LinearLayout>
@@ -158,13 +162,13 @@
                     android:layout_width="32dp"
                     android:layout_height="32dp"
                     android:src="@android:drawable/ic_menu_myplaces"
-                    app:tint="#D32F2F" />
+                    app:tint="@color/bb_team_b" />
                 <TextView
                     android:id="@+id/txtJogadorB2"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/aguardando"
-                    android:textColor="#000000"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:layout_marginLeft="8dp"/>
             </LinearLayout>
@@ -173,12 +177,12 @@
 
     <Button
         android:id="@+id/btnIniciarJogo"
-        android:layout_width="220dp"
-        android:layout_height="56dp"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bb_button_height"
         android:text="@string/iniciar_jogo"
         android:enabled="false"
-        android:textColor="#000000"
-        android:background="@drawable/botao_branco_arredondado"
+        android:textColor="@color/bb_secondary_text"
+        android:background="@drawable/bg_button_secondary"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"
@@ -186,12 +190,12 @@
 
     <Button
         android:id="@+id/btnSairSala"
-        android:layout_width="220dp"
-        android:layout_height="56dp"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/bb_button_height"
         android:text="@string/sair_da_sala"
         android:enabled="true"
         android:textColor="#FFFFFF"
-        android:background="@drawable/botao_voltar"
+        android:background="@drawable/bg_button_danger"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"

@@ -1,5 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <color name="bb_bg_start">#F7F2E9</color>
+    <color name="bb_bg_mid">#F7F2E9</color>
+    <color name="bb_bg_end">#F7F2E9</color>
+    <color name="bb_surface">#FFFDF7</color>
+    <color name="bb_surface_strong">#FFFDF7</color>
+    <color name="bb_surface_muted">#F3E8D4</color>
+    <color name="bb_text_primary">#16120D</color>
+    <color name="bb_text_secondary">#6B5B46</color>
+    <color name="bb_primary">#16120D</color>
+    <color name="bb_primary_text">#FFFFFF</color>
+    <color name="bb_secondary_text">#16120D</color>
+    <color name="bb_accent">#F4B400</color>
+    <color name="bb_danger">#B3261E</color>
+    <color name="bb_danger_dark">#7F1711</color>
+    <color name="bb_success">#2E7D32</color>
+    <color name="bb_team_a">#1976D2</color>
+    <color name="bb_team_b">#D32F2F</color>
+    <color name="bb_outline">#E7D7BC</color>
+    <color name="bb_shadow">#22000000</color>
+
     <color name="red">#FF0000</color>
     <color name="vermelho">#F44336</color>
     <color name="verde">#4CAF50</color>

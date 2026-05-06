@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFC400"
+    android:background="@drawable/bg_app_gradient"
     android:gravity="center_horizontal"
     android:orientation="vertical"
     android:padding="16dp">
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
             android:text="@string/progresso_pergunta"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/bb_text_primary"
             android:textSize="20sp"
             android:textStyle="bold"
             android:layout_marginEnd="16dp" />
@@ -39,7 +39,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Admin"
-            android:textColor="#000000"
+            android:textColor="@color/bb_text_primary"
             android:textSize="18sp"
             android:fontFamily="sans-serif-black"
             android:textStyle="bold" />
@@ -55,8 +55,8 @@
         android:minWidth="250dp"
         android:minHeight="28dp"
         android:progress="1"
-        android:progressBackgroundTint="#FFD54F"
-        android:progressTint="#FFFFFF" />
+        android:progressBackgroundTint="@color/bb_outline"
+        android:progressTint="@color/bb_accent" />
 
     <ImageView
         android:id="@+id/img_pergunta"
@@ -80,7 +80,7 @@
         android:gravity="center"
         android:padding="24dp"
         android:text="@string/carregar_perguntas"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:textSize="22sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold" />
@@ -91,7 +91,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="24dp"
         android:text="@string/cronometro_inicial"
-        android:textColor="#FFFFFF"
+        android:textColor="@color/bb_text_primary"
         android:textSize="24sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold" />
@@ -106,7 +106,7 @@
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_a"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold" />
@@ -121,7 +121,7 @@
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_b"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold" />
@@ -136,7 +136,7 @@
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_c"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold" />
@@ -151,7 +151,7 @@
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_d"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold" />
