@@ -2,6 +2,24 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Auditoria de rules - 2026-05-03
+
+Resumo:
+
+- Os paths usados pelo codigo continuam alinhados com `FirebasePaths.kt`: `jogadores`, `salas`, `sala_1x1`, `sala_2x2`, `categorias`, `categoriasPersonalizadas`, `categoriasPublicas`, amigos, pedidos e convites.
+- `jogadores` tem `.indexOn` para as queries atuais por `uid`, `nomeUtilizador`, `email`, `pontuacao`, `recordePontuacao` e vitorias por modo.
+- Os campos novos de perfil (`xpTotal`, `nivel`, `xpNoNivelAtual`, `xpNecessarioProximoNivel`, `recordePontuacao`) estao validados e perfis antigos continuam com fallback de leitura no cliente.
+- `estatisticasAtualizadas` existe e e validado nas tres familias de sala, permitindo a protecao transacional usada pelo cliente.
+
+Riscos mantidos:
+
+- `categoriasPublicas` ainda permite writes amplos quando `usos` aumenta ou quando `newData/avaliacoes/{auth.uid}` existe. A validacao bloqueia tipos inesperados, mas nao prova que apenas `usos` ou apenas a avaliacao mudaram.
+- As rules ainda aceitam alguns fallbacks `auth == null` para convidados e dados legados. Isto e necessario para compatibilidade atual, mas nao e seguranca final.
+- Convites e pedidos usam writes multipath. Quando as rules bloqueiam parte de um `updateChildren`, a operacao atomica falha; quando o codigo opta por atualizacao essencial + secundaria, pode haver divergencia temporaria entre copias.
+- Resultados, vitorias, XP e ranking continuam confiados ao cliente. Rules validam formato, nao verdade de jogo.
+
+Nao foram feitas alteracoes em `firebase-rules.json` nesta auditoria para evitar quebrar fluxos ja testados de categorias publicas, convidados, convites e compatibilidade antiga.
+
 ## Fase final UID/Auth hardening
 
 Atualizado em 2026-04-30.

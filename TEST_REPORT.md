@@ -2,6 +2,42 @@
 
 Data: 2026-04-30
 
+## Auditoria completa pre-funcionalidades - 2026-05-03
+
+### Estado geral
+
+- Projeto em estado funcional para os fluxos principais reportados: Auth, sessao persistente, registo, salas, jogos, pontuacoes, XP/niveis, rankings e perfil.
+- A migracao hibrida UID/Auth esta consistente no essencial: dados novos autenticados privilegiam `uid`; `nomeUtilizador` permanece como display/fallback para dados antigos e convidados.
+- Repositories/ViewModels ja absorvem grande parte da logica que antes estaria nas Activities, embora ainda existam ficheiros grandes e Activities com responsabilidades de UI + navegacao + pequenos efeitos Firebase.
+
+### Problemas encontrados
+
+- **Medio**: em `Pontuacao2x2Activity.kt`, o toast `NOVO RECORD!` comparava a pontuacao do jogo com `pontuacao` acumulada, nao com `recordePontuacao`. Isto podia impedir feedback correto de novo recorde.
+- **Medio**: em empate 2x2, `EstatisticasService.textoVencedor2x2()` mostra `Empate!`, mas `vencedores()` considera Equipa A vencedora para estatisticas (`totalA >= totalB`). Nao foi alterado porque mudaria regras de vitoria, XP e ranking.
+- **Medio**: em `firebase-rules.json`, `categoriasPublicas` ainda tem write amplo quando `usos` aumenta ou quando uma avaliacao aparece em `newData`; as validacoes de tipo existem, mas a rule nao limita estritamente a mudanca ao campo pretendido.
+- **Baixo**: `AmigosRepository.atualizarConviteEssencial()` deixa a atualizacao secundaria de convite como melhor esforco; se falhar, pode existir divergencia temporaria entre copia recebida e enviada.
+- **Baixo**: `Pontuacao2x2Activity.kt` usava string hardcoded `"sala_2x2"` no botao voltar.
+- **Baixo**: `SalaRepository.garantirJogadorNaSala()` mantem `adminHint` sem uso real. O comportamento e intencional para confiar nos dados da sala, mas o warning permanece.
+- **Sugestao futura**: `CategoriaRepository.kt`, `AmigosRepository.kt`, `JogoCompetitivoRepository.kt` e `PontuacaoRepository.kt` continuam grandes; dividir apenas quando houver uma razao funcional clara.
+- **Sugestao futura**: writes sensiveis de resultados/estatisticas continuam client-side; seguranca forte exigiria Cloud Functions/backend autoritativo.
+
+### Correcoes aplicadas
+
+- `PontuacaoRepository.kt`: adicionado metodo `obterRecordePontuacaoJogador()` para ler `recordePontuacao`.
+- `Pontuacao2x2Activity.kt`: o toast de novo recorde passou a comparar contra `recordePontuacao`.
+- `Pontuacao2x2Activity.kt`: substituido path hardcoded por `FirebasePaths.SALA_2X2`.
+
+### Verificacoes executadas nesta auditoria
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK. Mantem o warning conhecido: `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK. Mantem o warning conhecido de `adminHint` e o aviso generico de deprecated Gradle features.
+
 ## Auditoria - pontuacao, estatisticas, ranking e XP
 
 ### Ficheiros alterados nesta ronda

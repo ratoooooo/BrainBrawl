@@ -363,19 +363,12 @@
   <component name="ChangeListManager">
     <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md">
       <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RankingActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RankingActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/RankingJogador.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/RankingTipo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/RankingTipo.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" beforeDir="false" afterPath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TEST_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/TEST_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1108,7 +1101,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777560719701</updated>
     </task>
-    <option name="localTasksCounter" value="31" />
+    <task id="LOCAL-00031" summary="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md">
+      <option name="closed" value="true" />
+      <created>1777824341041</created>
+      <option name="number" value="00031" />
+      <option name="presentableId" value="LOCAL-00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1777824341041</updated>
+    </task>
+    <option name="localTasksCounter" value="32" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">

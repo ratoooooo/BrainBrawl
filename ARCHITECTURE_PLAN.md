@@ -1,5 +1,21 @@
 # BrainBrawl - Architecture Plan
 
+## Auditoria pre-funcionalidades - 2026-05-03
+
+Estado arquitetural geral:
+
+- As camadas principais estao no caminho certo para Kotlin + XML/ViewBinding + Firebase: Activities tratam UI/navegacao, ViewModels guardam estado de ecras migrados, Repositories concentram Firebase e Services concentram regras reutilizaveis.
+- Os fluxos mais sensiveis de jogo e pontuacao ja usam repositories (`SalaRepository`, `JogoRepository`, `JogoCompetitivoRepository`, `PontuacaoRepository`) e services (`EstatisticasService`, `ProgressaoService`, `ScoreService`, `ScoreCompetitivoService`).
+- Listeners principais de salas, jogos, amigos, categorias publicas e pontuacoes usam handles e sao removidos em `onDestroy`, `onStop` ou `onCleared`, conforme o fluxo.
+- `uid` esta a funcionar como chave principal para dados novos autenticados; `nomeUtilizador` deve continuar como display/fallback legado enquanto houver perfis antigos e convidados.
+
+Pontos a manter sob observacao:
+
+- `CategoriaRepository.kt`, `AmigosRepository.kt`, `JogoCompetitivoRepository.kt` e `PontuacaoRepository.kt` estao grandes. A recomendacao e dividir por subdominio apenas quando uma proxima funcionalidade tocar naturalmente nesses limites.
+- Algumas Activities ainda fazem efeitos Firebase pequenos, por exemplo desforra/remocao de sala nas Activities de pontuacao. Isto nao exige refactor agora, mas deve ser reduzido gradualmente.
+- A regra de empate 2x2 esta inconsistente entre texto e estatisticas: UI mostra empate, mas estatisticas atribuem vitoria a Equipa A. Corrigir isto deve ser uma decisao de produto por afetar XP/vitorias/ranking.
+- Estatisticas e ranking continuam calculados no cliente. Para anti-cheat forte, mover fecho de jogo e atualizacao de perfil para Cloud Functions.
+
 ## Fase final UID/Auth hardening
 
 Estado atualizado em 2026-04-30:

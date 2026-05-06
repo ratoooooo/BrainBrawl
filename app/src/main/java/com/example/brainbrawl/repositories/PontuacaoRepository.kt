@@ -96,6 +96,21 @@ class PontuacaoRepository(
         return result.task
     }
 
+    fun obterRecordePontuacaoJogador(identificador: String): Task<Double> {
+        val result = TaskCompletionSource<Double>()
+        val resultado = ResultadoJogador(nome = identificador, pontos = 0.0, uid = identificador)
+
+        resolverPerfilJogador(resultado)
+            .addOnSuccessListener { perfil ->
+                result.setResult(perfil?.snapshot?.child(FirebasePaths.RECORDE_PONTUACAO)?.doubleValue() ?: 0.0)
+            }
+            .addOnFailureListener { error ->
+                result.setException(error)
+            }
+
+        return result.task
+    }
+
     fun escutarPontuacoes1x1(
         codigoSala: String,
         onPontuacoes: (List<ResultadoJogador>) -> Unit,

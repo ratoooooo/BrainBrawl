@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
+import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoMultiBinding
 import com.example.brainbrawl.repositories.PontuacaoRepository
@@ -51,7 +52,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         carregarPontuacao2x2Realtime()
 
         binding.btnVoltar.setOnClickListener {
-            database.child("sala_2x2").child(codigoSala).removeValue()
+            database.child(FirebasePaths.SALA_2X2).child(codigoSala).removeValue()
             abrirMainActivity(this, nomeUtilizador.ifBlank { null }, nomeJogador.ifBlank { null }, uid.ifBlank { null })
             finish()
         }
@@ -119,9 +120,9 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         val resultadoAtual = resultados.firstOrNull { resultado ->
             identificadoresJogadorAtual().any { resultado.corresponde(it) }
         } ?: return
-        pontuacaoRepository.obterPontuacaoGlobalJogador(identificadorPontuacaoGlobal())
-            .addOnSuccessListener { pontuacaoGuardada ->
-                if (resultadoAtual.pontos > pontuacaoGuardada) {
+        pontuacaoRepository.obterRecordePontuacaoJogador(identificadorPontuacaoGlobal())
+            .addOnSuccessListener { recordeGuardado ->
+                if (resultadoAtual.pontos > recordeGuardado) {
                     Toast.makeText(this@Pontuacao2x2Activity, "NOVO RECORD!", Toast.LENGTH_SHORT).show()
                 }
             }
