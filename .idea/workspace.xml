@@ -361,56 +361,7 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/TEST_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/TEST_REPORT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MainActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisDicas.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisDicas.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/bg_dica_card.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/bg_dica_card.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/botao_branco_arredondado.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/botao_branco_arredondado.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/botao_voltar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/botao_voltar.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_adicionar_pergunta.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_adicionar_pergunta.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_amigos.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_amigos.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo2x2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo2x2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolha_categoria_modos.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolha_categoria_modos.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_categoria.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_categoria.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_modo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_modo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_espera_eliminado.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_espera_eliminado.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_explorar_categorias.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_explorar_categorias.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo1x1.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo2x2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo2x2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_meu_perfil.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_meu_perfil.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao1x1.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao_multi.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao_multi.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera2x2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera2x2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera_1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera_1x1.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_tipo_modo_classico.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_tipo_modo_classico.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_convidar_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_convidar_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_convite.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_convite.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_jogador_sala.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_jogador_sala.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_podio.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_podio.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_ranking_jogador.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_ranking_jogador.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/lista_multi_jogadores.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/lista_multi_jogadores.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/values/themes.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/themes.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt" beforeDir="false" />
-    </list>
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="a" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -1150,7 +1101,15 @@
       <option name="project" value="LOCAL" />
       <updated>1777824341041</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="a">
+      <option name="closed" value="true" />
+      <created>1778179219106</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1778179219106</updated>
+    </task>
+    <option name="localTasksCounter" value="33" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -1178,7 +1137,8 @@
     <MESSAGE value="refactor: adicionar ViewModels ao fluxo de jogo&#10;&#10;- criado ViewModel para jogo de grupo&#10;- criado ViewModel para jogo 1x1&#10;- criado ViewModel para jogo 2x2&#10;- migrada lógica de jogo das Activities para ViewModels&#10;- mantida sincronização em tempo real&#10;- preservadas regras de pontuação, eliminação e navegação&#10;- mantida estrutura Firebase existente&#10;- atualizado ARCHITECTURE_PLAN.md e TEST_REPORT.md" />
     <MESSAGE value="fix: corrigir fluxo completo do modo 2x2&#10;&#10;- corrigido reconhecimento do admin/criador na sala 2x2&#10;- botão Iniciar passa a ativar corretamente com 4 jogadores&#10;- garantida gravação de equipaA/equipaB antes de iniciar o jogo&#10;- corrigida identificação da equipa de cada jogador no jogo 2x2&#10;- corrigida gravação de pontuações e respostas certas por equipa&#10;- corrigida espera pelo pódio 2x2 até todos terminarem&#10;- mantidos os restantes modos sem alterações&#10;- atualizado TEST_REPORT.md" />
     <MESSAGE value="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: adicionar ranking global&#10;&#10;- criado ecrã de Ranking Global&#10;- adicionado botão de ranking na Main&#10;- listagem de jogadores por pontuação&#10;- suporte a uid com fallback para dados antigos&#10;- adicionados estados de loading/erro/vazio&#10;- atualizado index pontuacao nas Firebase Rules&#10;- atualizado TEST_REPORT.md" />
+    <MESSAGE value="a" />
+    <option name="LAST_COMMIT_MESSAGE" value="a" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
