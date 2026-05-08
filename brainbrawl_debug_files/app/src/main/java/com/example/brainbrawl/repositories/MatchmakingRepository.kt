@@ -1,6 +1,5 @@
 package com.example.brainbrawl.repositories
 
-import android.util.Log
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.MatchmakingPlayer
@@ -33,11 +32,6 @@ class MatchmakingRepository(
     )
 
     fun entrarNaFila(player: MatchmakingPlayer, modo: String): Task<Void> {
-        Log.d(
-            TAG,
-            "A escrever fila: path=${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/${player.playerKey} " +
-                "tipo=${player.tipoJogador} uidPresente=${player.uid.isNotBlank()} estado=${player.estado}"
-        )
         val updates = hashMapOf<String, Any?>(
             "${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/${player.playerKey}" to player.toFirebaseMap(),
             "${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.RESULTADOS}/${player.playerKey}" to null,
@@ -58,39 +52,39 @@ class MatchmakingRepository(
 
     fun cancelar(playerKey: String, modo: String): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
-        resultadoRef(modo, playerKey).get()
-            .addOnSuccessListener { resultado ->
-                val resultadoMatch = MatchmakingResult.fromSnapshot(resultado)
-                if (resultadoMatch != null) {
-                    verificarSalaExiste(resultadoMatch.modo, resultadoMatch.codigoSala)
-                        .addOnSuccessListener { salaExiste ->
-                            if (salaExiste) {
-                                cancelarOnDisconnect(playerKey, modo)
-                                result.setResult(false)
-                            } else {
-                                limparFilaEResultado(modo, playerKey)
-                                    .addOnSuccessListener { result.setResult(true) }
-                                    .addOnFailureListener { result.setException(it) }
-                            }
-                        }
-                        .addOnFailureListener { result.setException(it) }
-                    return@addOnSuccessListener
+        var removeuFila = false
+        matchmakingModoRef(modo).runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                removeuFila = false
+                if (currentData.child(FirebasePaths.RESULTADOS).child(playerKey).value != null) {
+                    return Transaction.success(currentData)
                 }
 
-                avaliarCancelamentoSemResultado(modo, playerKey)
-                    .addOnSuccessListener { podeLimpar ->
-                        if (podeLimpar) {
-                            limparFilaEResultado(modo, playerKey)
-                                .addOnSuccessListener { result.setResult(true) }
-                                .addOnFailureListener { result.setException(it) }
-                        } else {
-                            cancelarOnDisconnect(playerKey, modo)
-                            result.setResult(false)
-                        }
-                    }
-                    .addOnFailureListener { result.setException(it) }
+                val filaJogador = currentData.child(FirebasePaths.FILA).child(playerKey)
+                if (filaJogador.value == null) {
+                    return Transaction.success(currentData)
+                }
+
+                val estado = filaJogador.child(FirebasePaths.ESTADO).getValue(String::class.java)
+                    ?: GameConstants.ESTADO_AGUARDANDO
+                if (estado != GameConstants.ESTADO_AGUARDANDO) {
+                    return Transaction.success(currentData)
+                }
+
+                filaJogador.value = null
+                removeuFila = true
+                return Transaction.success(currentData)
             }
-            .addOnFailureListener { result.setException(it) }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                cancelarOnDisconnect(playerKey, modo)
+                if (error != null) {
+                    result.setException(error.toException())
+                    return
+                }
+                result.setResult(committed && removeuFila)
+            }
+        })
         return result.task
     }
 
@@ -109,81 +103,6 @@ class MatchmakingRepository(
         }
     }
 
-    private fun avaliarCancelamentoSemResultado(modo: String, playerKey: String): Task<Boolean> {
-        val result = TaskCompletionSource<Boolean>()
-        filaRef(modo).child(playerKey).get()
-            .addOnSuccessListener { filaJogador ->
-                if (!filaJogador.exists()) {
-                    result.setResult(true)
-                    return@addOnSuccessListener
-                }
-
-                val estado = filaJogador.child(FirebasePaths.ESTADO).texto()
-                    .ifBlank { GameConstants.ESTADO_AGUARDANDO }
-                if (estado == GameConstants.ESTADO_AGUARDANDO) {
-                    result.setResult(true)
-                    return@addOnSuccessListener
-                }
-
-                val codigoSala = filaJogador.child(FirebasePaths.CODIGO_SALA).texto()
-                if (estado != GameConstants.ESTADO_ENCONTRADO || codigoSala.isBlank()) {
-                    result.setResult(true)
-                    return@addOnSuccessListener
-                }
-
-                verificarSalaExiste(modo, codigoSala)
-                    .addOnSuccessListener { salaExiste ->
-                        val timestamp = filaJogador.child(FirebasePaths.TIMESTAMP_ENTRADA).longValue()
-                        val timeoutCriacao = timestamp > 0 &&
-                            System.currentTimeMillis() - timestamp > MATCH_CREATION_TIMEOUT_MS
-                        result.setResult(!salaExiste || timeoutCriacao)
-                    }
-                    .addOnFailureListener { result.setException(it) }
-            }
-            .addOnFailureListener { result.setException(it) }
-        return result.task
-    }
-
-    private fun limparFilaEResultado(modo: String, playerKey: String): Task<Void> {
-        cancelarOnDisconnect(playerKey, modo)
-        return database.updateChildren(
-            mapOf<String, Any?>(
-                "${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/$playerKey" to null,
-                "${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.RESULTADOS}/$playerKey" to null
-            )
-        )
-    }
-
-    private fun rollbackMatch(
-        modo: String,
-        codigoSala: String,
-        matchId: String,
-        jogadores: List<MatchmakingPlayer>,
-        removerSala: Boolean
-    ): Task<Void> {
-        val result = TaskCompletionSource<Void>()
-        matchmakingModoRef(modo).child(FirebasePaths.RESULTADOS).get()
-            .addOnSuccessListener { resultados ->
-                val updates = hashMapOf<String, Any?>(
-                    "${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.MATCHES}/$matchId" to null
-                )
-                if (removerSala) {
-                    updates["${salaNode(modo)}/$codigoSala"] = null
-                }
-                jogadores.forEach { jogador ->
-                    if (!resultados.child(jogador.playerKey).exists()) {
-                        updates["${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/${jogador.playerKey}"] = null
-                        updates["${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.RESULTADOS}/${jogador.playerKey}"] = null
-                    }
-                }
-                database.updateChildren(updates)
-                    .addOnSuccessListener { result.setResult(null) }
-                    .addOnFailureListener { result.setException(it) }
-            }
-            .addOnFailureListener { result.setException(it) }
-        return result.task
-    }
-
     fun observarFila(
         modo: String,
         onFila: (List<MatchmakingPlayer>) -> Unit,
@@ -194,11 +113,10 @@ class MatchmakingRepository(
             override fun onDataChange(snapshot: DataSnapshot) {
                 val agora = System.currentTimeMillis()
                 onFila(snapshot.children.mapNotNull { MatchmakingPlayer.fromSnapshot(it) }
-                    .filter { it.estado == GameConstants.ESTADO_AGUARDANDO || it.estado == GameConstants.ESTADO_ENCONTRADO }
+                    .filter { it.estado == GameConstants.ESTADO_AGUARDANDO }
                     .filter { it.timestampEntrada == 0L || agora - it.timestampEntrada <= STALE_MS }
                     .distinctBy { it.playerKey }
-                    .sortedBy { it.timestampEntrada }
-                    .also { Log.d(TAG, "Fila Firebase observada: modo=$modo jogadores=${it.size}") })
+                    .sortedBy { it.timestampEntrada })
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -235,16 +153,11 @@ class MatchmakingRepository(
         val limite = limiteJogadores(modo)
         val agora = System.currentTimeMillis()
         var jogadoresSelecionados: List<MatchmakingPlayer> = emptyList()
-        var criadorSelecionado: MatchmakingPlayer? = null
         var codigoSala = ""
         var matchId = ""
 
         modoRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
-                jogadoresSelecionados = emptyList()
-                criadorSelecionado = null
-                codigoSala = ""
-                matchId = ""
                 removerStaleTransaction(currentData, agora)
 
                 val fila = currentData.child(FirebasePaths.FILA).children.mapNotNull { child ->
@@ -259,25 +172,16 @@ class MatchmakingRepository(
                 }
 
                 jogadoresSelecionados = fila.take(limite)
-                if (!jogadoresSelecionados.temLimiteExato(limite)) {
-                    Log.w(
-                        TAG,
-                        "Selecao invalida para match: modo=$modo limite=$limite " +
-                            "quantidade=${jogadoresSelecionados.size} jogadores=${jogadoresSelecionados.map { it.playerKey }}"
-                    )
-                    jogadoresSelecionados = emptyList()
+                if (jogadoresSelecionados.none { it.playerKey == criadorKey }) {
                     return Transaction.abort()
                 }
-                val criador = jogadoresSelecionados.firstOrNull { it.playerKey == criadorKey }
-                    ?: return Transaction.abort()
-                criadorSelecionado = criador
                 matchId = "match_${jogadoresSelecionados.matchIdentity().hashCode().absoluteKey()}"
                 if (currentData.child(FirebasePaths.MATCHES).child(matchId).value != null) {
                     return Transaction.abort()
                 }
 
                 codigoSala = gerarCodigoSala()
-                Log.d(TAG, "Match claim: modo=$modo sala=$codigoSala criador=${criador.playerKey} jogadores=${jogadoresSelecionados.map { it.playerKey }}")
+                val criador = jogadoresSelecionados.first()
 
                 currentData.child(FirebasePaths.MATCHES).child(matchId).value = mapOf(
                     FirebasePaths.ESTADO to GameConstants.ESTADO_CRIANDO,
@@ -288,22 +192,29 @@ class MatchmakingRepository(
                     FirebasePaths.TIMESTAMP_ENTRADA to agora
                 )
 
+                jogadoresSelecionados.forEach { jogador ->
+                    currentData.child(FirebasePaths.FILA).child(jogador.playerKey).child(FirebasePaths.ESTADO).value =
+                        GameConstants.ESTADO_ENCONTRADO
+                    currentData.child(FirebasePaths.FILA).child(jogador.playerKey).child(FirebasePaths.CODIGO_SALA).value =
+                        codigoSala
+                    currentData.child(FirebasePaths.FILA).child(jogador.playerKey).child(FirebasePaths.CRIADOR_ID).value =
+                        criador.playerKey
+                }
+
                 return Transaction.success(currentData)
             }
 
             override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
                 if (error != null) {
-                    logErroFirebase("Transacao matchmaking falhou: modo=$modo criador=$criadorKey", error.toException())
                     result.setException(error.toException())
                     return
                 }
-                val criador = criadorSelecionado
-                if (!committed || jogadoresSelecionados.isEmpty() || codigoSala.isBlank() || criador == null) {
+                if (!committed || jogadoresSelecionados.isEmpty() || codigoSala.isBlank()) {
                     result.setResult(null)
                     return
                 }
 
-                criarSalaEPublicarResultados(modo, nomeCategoria, codigoSala, matchId, criador, jogadoresSelecionados)
+                criarSalaEPublicarResultados(modo, nomeCategoria, codigoSala, matchId, jogadoresSelecionados)
                     .addOnSuccessListener {
                         result.setResult(MatchCriado(codigoSala, jogadoresSelecionados))
                     }
@@ -323,69 +234,27 @@ class MatchmakingRepository(
         nomeCategoria: String,
         codigoSala: String,
         matchId: String,
-        criador: MatchmakingPlayer,
         jogadores: List<MatchmakingPlayer>
     ): Task<Void> {
         val result = TaskCompletionSource<Void>()
         val salaNode = salaNode(modo)
         val salaRef = database.child(salaNode).child(codigoSala)
-        val limite = limiteJogadores(modo)
-
-        fun falharComRollback(exception: Exception, removerSala: Boolean) {
-            logErroFirebase(
-                "Falha ao criar/publicar match. Rollback: modo=$modo sala=$codigoSala removerSala=$removerSala",
-                exception
-            )
-            rollbackMatch(modo, codigoSala, matchId, jogadores, removerSala)
-                .addOnCompleteListener {
-                    result.setException(exception)
-                }
-        }
-
-        if (!jogadores.temLimiteExato(limite)) {
-            falharComRollback(
-                IllegalStateException(
-                    "Selecao invalida para sala $modo: esperado=$limite recebido=${jogadores.size} " +
-                        "jogadores=${jogadores.map { it.playerKey }}"
-                ),
-                removerSala = false
-            )
-            return result.task
-        }
+        val criador = jogadores.first()
 
         salaRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
                 if (currentData.value != null) return Transaction.abort()
-                val payload = salaMap(nomeCategoria, criador, jogadores)
-                Log.d(
-                    TAG,
-                    "A criar sala: node=$salaNode codigo=$codigoSala modo=$modo " +
-                        "adminId=${criador.playerKey} adminUid=${criador.uid} " +
-                        "jogadores=${jogadores.map { it.playerKey }} quantidade=${jogadores.size} " +
-                        "campos=${payload.keys}"
-                )
-                currentData.value = payload
+                currentData.value = salaMap(modo, nomeCategoria, criador, jogadores)
                 return Transaction.success(currentData)
             }
 
             override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
                 if (error != null) {
-                    falharComRollback(error.toException(), removerSala = false)
+                    result.setException(error.toException())
                     return
                 }
                 if (!committed) {
-                    falharComRollback(IllegalStateException("Código de sala já existe."), removerSala = false)
-                    return
-                }
-                val jogadoresNaSala = snapshot?.child(FirebasePaths.JOGADORES)?.childrenCount?.toInt() ?: 0
-                if (jogadoresNaSala != limite) {
-                    falharComRollback(
-                        IllegalStateException(
-                            "Sala criada com numero invalido de jogadores: modo=$modo " +
-                                "esperado=$limite recebido=$jogadoresNaSala"
-                        ),
-                        removerSala = true
-                    )
+                    result.setException(IllegalStateException("Código de sala já existe."))
                     return
                 }
 
@@ -404,18 +273,9 @@ class MatchmakingRepository(
                         jogadoresMap
                     )
                 }
-                Log.d(
-                    TAG,
-                    "A publicar resultados: modo=$modo sala=$codigoSala match=$matchId " +
-                        "jogadores=${jogadores.map { it.playerKey }} quantidade=${jogadores.size} " +
-                        "paths=${updates.keys}"
-                )
                 database.updateChildren(updates)
-                    .addOnSuccessListener {
-                        Log.d(TAG, "Resultados publicados: modo=$modo sala=$codigoSala jogadores=${jogadores.map { it.playerKey }}")
-                        result.setResult(null)
-                    }
-                    .addOnFailureListener { falharComRollback(it, removerSala = true) }
+                    .addOnSuccessListener { result.setResult(null) }
+                    .addOnFailureListener { result.setException(it) }
             }
         })
 
@@ -423,6 +283,7 @@ class MatchmakingRepository(
     }
 
     private fun salaMap(
+        modo: String,
         nomeCategoria: String,
         criador: MatchmakingPlayer,
         jogadores: List<MatchmakingPlayer>
@@ -435,6 +296,11 @@ class MatchmakingRepository(
             FirebasePaths.NOME_CATEGORIA to nomeCategoria
         )
         if (criador.uid.isNotBlank()) dados[FirebasePaths.ADMIN_UID] = criador.uid
+        if (modo == GameConstants.MODO_1X1) {
+            dados[FirebasePaths.PRONTOS] = jogadores.associate { jogador ->
+                jogador.playerKey to (jogador.playerKey == criador.playerKey)
+            }
+        }
         return dados
     }
 
@@ -455,6 +321,7 @@ class MatchmakingRepository(
             FirebasePaths.NOME_CATEGORIA to nomeCategoria,
             FirebasePaths.CRIADOR_ID to criador.playerKey,
             FirebasePaths.CRIADOR_UID to criador.uid,
+            FirebasePaths.SESSION_ID to jogador.sessionId,
             FirebasePaths.ESTADO to GameConstants.ESTADO_ENCONTRADO,
             FirebasePaths.TIMESTAMP_ENTRADA to System.currentTimeMillis(),
             FirebasePaths.JOGADORES to jogadores
@@ -530,6 +397,7 @@ class MatchmakingRepository(
             nomeJogador = nomeJogador,
             nomeDisplay = nomeDisplay,
             avatar = child(FirebasePaths.AVATAR).getValue(String::class.java).orEmpty(),
+            sessionId = child(FirebasePaths.SESSION_ID).getValue(String::class.java).orEmpty(),
             timestampEntrada = timestamp,
             estado = child(FirebasePaths.ESTADO).getValue(String::class.java) ?: GameConstants.ESTADO_AGUARDANDO
         )
@@ -565,42 +433,11 @@ class MatchmakingRepository(
 
     private fun List<MatchmakingPlayer>.matchIdentity(): String {
         return map { jogador ->
-            "${jogador.playerKey}:${jogador.timestampEntrada}"
+            "${jogador.playerKey}:${jogador.sessionId.ifBlank { jogador.timestampEntrada.toString() }}"
         }.sorted().joinToString("_")
     }
 
-    private fun List<MatchmakingPlayer>.temLimiteExato(limite: Int): Boolean {
-        val chaves = map { it.playerKey }
-        return size == limite &&
-            chaves.all { it.isNotBlank() } &&
-            chaves.distinct().size == limite
-    }
-
-    private fun logErroFirebase(mensagem: String, exception: Exception) {
-        val detalhe = exception.message.orEmpty()
-        val permissao = detalhe.contains("permission_denied", ignoreCase = true) ||
-            detalhe.contains("Permission denied", ignoreCase = true)
-        if (permissao) {
-            Log.e(TAG, "$mensagem Firebase permission_denied: $detalhe", exception)
-        } else {
-            Log.e(TAG, "$mensagem Firebase erro: $detalhe", exception)
-        }
-    }
-
-    private fun DataSnapshot.texto(): String {
-        return getValue(String::class.java).orEmpty()
-    }
-
-    private fun DataSnapshot.longValue(): Long {
-        return getValue(Long::class.java)
-            ?: getValue(Int::class.java)?.toLong()
-            ?: getValue(Double::class.java)?.toLong()
-            ?: 0L
-    }
-
     private companion object {
-        const val TAG = "MatchmakingRepo"
         const val STALE_MS = 2 * 60 * 1000L
-        const val MATCH_CREATION_TIMEOUT_MS = 15 * 1000L
     }
 }

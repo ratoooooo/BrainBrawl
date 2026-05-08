@@ -8,30 +8,32 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.IntentExtras
-import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
+import com.example.brainbrawl.databinding.ActivitySalaDeEspera2x2Binding
+import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.CodigoSalaUtils
-import com.example.brainbrawl.viewmodels.Sala1x1Event
-import com.example.brainbrawl.viewmodels.Sala1x1ViewModel
-import com.example.brainbrawl.viewmodels.SalaCompetitivaUiState
+import com.example.brainbrawl.viewmodels.Sala2x2Event
+import com.example.brainbrawl.viewmodels.Sala2x2UiState
+import com.example.brainbrawl.viewmodels.Sala2x2ViewModel
 
-class SalaDeEspera1x1Activity : AppCompatActivity() {
+class SalaDeEspera2x2Activity : AppCompatActivity() {
+
     private val binding by lazy {
-        ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
+        ActivitySalaDeEspera2x2Binding.inflate(layoutInflater)
     }
+
     private val viewModel by lazy {
-        ViewModelProvider(this)[Sala1x1ViewModel::class.java]
+        ViewModelProvider(this)[Sala2x2ViewModel::class.java]
     }
+
     private val authService = AuthService()
 
-    // Variáveis para a lógica da sala
     private lateinit var codigoSala: String
     private var uid: String = ""
-    private lateinit var nomeUtilizador: String
+    private var nomeUtilizador: String = ""
     private var nomeJogador: String = ""
-    private lateinit var nomeCategoria: String
+    private var categoria: String? = null
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
@@ -40,33 +42,36 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Guardar dados passados pelo intent
         codigoSala = CodigoSalaUtils.normalizarCodigo(intent.getStringExtra(IntentExtras.CODIGO_SALA).orEmpty())
         uid = intent.getStringExtra(IntentExtras.UID)
             ?: authService.utilizadorAtual()?.uid
-            ?: ""
+                    ?: ""
+
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
-        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
-        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: getString(R.string.categoria5)
+        nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
+            ?: nomeUtilizador
+
+        categoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
+            ?: intent.getStringExtra(IntentExtras.CATEGORIA_LEGACY)
+                    ?: getString(R.string.categoria5)
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
 
-        // Define o texto do código da sala usando o binding
-        binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+        binding.txtCodigoSala.text = "Código da sala: $codigoSala"
         binding.btnCopiarCodigoSala.setOnClickListener {
             copiarCodigoSala()
         }
 
         configurarObservers()
+
         viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         viewModel.observarJogadores(codigoSala)
         viewModel.observarEstadoSala(codigoSala)
         viewModel.observarSalaApagada(codigoSala)
 
-        // Listener para o clique no botão de iniciar jogo
         binding.btnIniciarJogo.setOnClickListener {
-            viewModel.verificarProntosEAvancar(codigoSala)
+            viewModel.iniciarJogo(codigoSala)
         }
 
         binding.btnSairSala.setOnClickListener {
@@ -83,47 +88,57 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         viewModel.estado.observe(this) { estado ->
             atualizarEstadoSala(estado)
         }
+
         viewModel.evento.observe(this) { evento ->
             tratarEvento(evento ?: return@observe)
             viewModel.consumirEvento()
         }
     }
 
-    private fun atualizarEstadoSala(estado: SalaCompetitivaUiState) {
-        binding.txtListaJogadores.text = if (estado.jogadores.isEmpty()) {
-            "Aguardando jogadores..."
-        } else {
-            estado.jogadores.joinToString(separator = "\n")
-        }
+    private fun atualizarEstadoSala(estado: Sala2x2UiState) {
+        binding.txtJogadorA1.text = estado.equipaA.getOrNull(0) ?: "Aguardando..."
+        binding.txtJogadorA2.text = estado.equipaA.getOrNull(1) ?: "Aguardando..."
+        binding.txtJogadorB1.text = estado.equipaB.getOrNull(0) ?: "Aguardando..."
+        binding.txtJogadorB2.text = estado.equipaB.getOrNull(1) ?: "Aguardando..."
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
     }
 
-    private fun tratarEvento(evento: Sala1x1Event) {
+    private fun tratarEvento(evento: Sala2x2Event) {
         when (evento) {
-            Sala1x1Event.JogoIniciado -> {
-                val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
+            Sala2x2Event.JogoIniciado -> {
+                val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
+
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
-                uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
+
+                uid.takeIf { it.isNotBlank() }?.let {
+                    intent.putExtra(IntentExtras.UID, it)
+                }
+
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
-                intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
                 adicionarExtrasMatchmaking(intent)
+
+                categoria?.let {
+                    intent.putExtra(IntentExtras.NOME_CATEGORIA, it)
+                    intent.putExtra(IntentExtras.CATEGORIA_LEGACY, it)
+                }
+
                 startActivity(intent)
                 finish()
             }
-            Sala1x1Event.SalaEncerrada -> {
-                Toast.makeText(this@SalaDeEspera1x1Activity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
-                abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
+
+            Sala2x2Event.SalaEncerrada -> {
+                abrirMainActivity(
+                    this@SalaDeEspera2x2Activity,
+                    nomeUtilizador,
+                    nomeJogador,
+                    uid.ifBlank { null }
+                )
                 finish()
             }
-            Sala1x1Event.AguardarAdversario ->
-                Toast.makeText(this, "Ainda a aguardar o adversário!", Toast.LENGTH_SHORT).show()
-            Sala1x1Event.JogadoresNaoProntos ->
-                Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
-            Sala1x1Event.EntradaBloqueada -> {
-                Toast.makeText(this@SalaDeEspera1x1Activity, "Sala 1x1 já está cheia.", Toast.LENGTH_SHORT).show()
-                abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
-                finish()
+
+            Sala2x2Event.ErroIniciarJogo -> {
+                Toast.makeText(this, "Erro ao iniciar jogo 2x2.", Toast.LENGTH_SHORT).show()
             }
         }
     }

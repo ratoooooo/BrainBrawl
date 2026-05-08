@@ -48,9 +48,6 @@ class Sala1x1ViewModel(
                 atualizarAdmin(codigoSala)
                 publicarEstado()
             }
-            .addOnFailureListener {
-                _evento.value = Sala1x1Event.EntradaBloqueada
-            }
     }
 
     fun observarJogadores(codigoSala: String) {
@@ -187,5 +184,4 @@ sealed class Sala1x1Event {
     data object SalaEncerrada : Sala1x1Event()
     data object AguardarAdversario : Sala1x1Event()
     data object JogadoresNaoProntos : Sala1x1Event()
-    data object EntradaBloqueada : Sala1x1Event()
 }

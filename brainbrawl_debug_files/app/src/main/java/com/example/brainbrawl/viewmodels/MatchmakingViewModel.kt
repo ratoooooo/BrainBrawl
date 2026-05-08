@@ -1,6 +1,5 @@
 package com.example.brainbrawl.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -9,6 +8,7 @@ import com.example.brainbrawl.models.MatchmakingPlayer
 import com.example.brainbrawl.models.MatchmakingResult
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.MatchmakingRepository
+import java.util.UUID
 
 class MatchmakingViewModel(
     private val matchmakingRepository: MatchmakingRepository = MatchmakingRepository(),
@@ -29,6 +29,7 @@ class MatchmakingViewModel(
     private var navegacaoIniciada = false
     private var aCancelar = false
     private var aCriarMatch = false
+    private val sessionId = UUID.randomUUID().toString()
 
     fun iniciar(
         uid: String,
@@ -106,6 +107,7 @@ class MatchmakingViewModel(
                             nomeJogador = nomeJogador,
                             nomeDisplay = nomeDisplay,
                             avatar = avatar,
+                            sessionId = sessionId,
                             timestampEntrada = System.currentTimeMillis()
                         )
                     )
@@ -120,6 +122,7 @@ class MatchmakingViewModel(
                             nomeJogador = nomeJogador,
                             nomeDisplay = nomeDisplay,
                             avatar = AVATAR_PADRAO,
+                            sessionId = sessionId,
                             timestampEntrada = System.currentTimeMillis()
                         )
                     )
@@ -127,12 +130,7 @@ class MatchmakingViewModel(
             return
         }
 
-        val nomeGuest = nomeJogador.ifBlank { nomeUtilizador.ifBlank { "Convidado" } }
-        if (nomeGuest.isBlank()) {
-            _estado.value = _estado.value?.copy(estadoTexto = "Nome de convidado inválido.")
-            _evento.value = MatchmakingEvent.MostrarMensagem("Nome de convidado inválido.")
-            return
-        }
+        val nomeGuest = nomeJogador.ifBlank { "Convidado" }
         val guestKey = gerarGuestKey(nomeGuest)
         entrarComJogador(
             MatchmakingPlayer(
@@ -143,18 +141,13 @@ class MatchmakingViewModel(
                 nomeJogador = nomeGuest,
                 nomeDisplay = nomeGuest,
                 avatar = AVATAR_PADRAO,
+                sessionId = sessionId,
                 timestampEntrada = System.currentTimeMillis()
             )
         )
     }
 
     private fun entrarComJogador(jogador: MatchmakingPlayer) {
-        if (jogador.playerKey.isBlank()) {
-            Log.e(TAG, "PlayerKey vazio ao entrar em matchmaking: modo=$modo tipo=${jogador.tipoJogador}")
-            _estado.value = _estado.value?.copy(estadoTexto = "Não foi possível identificar o jogador.")
-            _evento.value = MatchmakingEvent.MostrarMensagem("Não foi possível identificar o jogador.")
-            return
-        }
         jogadorAtual = jogador
         _estado.value = MatchmakingUiState(
             modo = modo,
@@ -165,15 +158,11 @@ class MatchmakingViewModel(
 
         matchmakingRepository.entrarNaFila(jogador, modo)
             .addOnSuccessListener {
-                Log.d(TAG, "Entrou na fila: modo=$modo playerKey=${jogador.playerKey} tipo=${jogador.tipoJogador}")
                 observarFila()
                 observarResultado()
             }
-            .addOnFailureListener { erro ->
-                Log.e(TAG, "Erro ao entrar na fila: modo=$modo playerKey=${jogador.playerKey} tipo=${jogador.tipoJogador}", erro)
-                val mensagem = mensagemErroEntradaFila(erro)
-                _estado.value = _estado.value?.copy(estadoTexto = mensagem)
-                _evento.value = MatchmakingEvent.MostrarMensagem(mensagem)
+            .addOnFailureListener {
+                _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao entrar na fila.")
             }
     }
 
@@ -182,20 +171,13 @@ class MatchmakingViewModel(
         filaListener = matchmakingRepository.observarFila(
             modo = modo,
             onFila = { jogadores ->
-                val jogador = jogadorAtual
-                val jogadorEmCriacao = jogador != null &&
-                    jogadores.any {
-                        it.playerKey == jogador.playerKey && it.estado == GameConstants.ESTADO_ENCONTRADO
-                    }
-                val jogadoresAguardando = jogadores.filter { it.estado == GameConstants.ESTADO_AGUARDANDO }
-                Log.d(TAG, "Fila observada: modo=$modo total=${jogadores.size} aguardando=${jogadoresAguardando.size}")
                 _estado.value = MatchmakingUiState(
                     modo = modo,
                     limite = limiteJogadores(),
                     jogadores = jogadores,
-                    estadoTexto = if (jogadorEmCriacao || aCriarMatch) "A criar sala..." else "À procura de jogadores..."
+                    estadoTexto = "À procura de jogadores..."
                 )
-                tentarCriarMatchSePossivel(jogadoresAguardando)
+                tentarCriarMatchSePossivel(jogadores)
             },
             onErro = {
                 _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao observar fila.")
@@ -223,34 +205,28 @@ class MatchmakingViewModel(
         if (navegacaoIniciada || aCancelar || aCriarMatch || jogadores.size < limiteJogadores()) return
 
         aCriarMatch = true
-        _estado.value = _estado.value?.copy(estadoTexto = "A criar sala...")
-        Log.d(TAG, "A tentar criar match: modo=$modo criador=${jogador.playerKey} jogadores=${jogadores.size}")
         matchmakingRepository.tentarCriarMatch(modo, nomeCategoria, jogador.playerKey)
             .addOnCompleteListener {
                 aCriarMatch = false
             }
-            .addOnSuccessListener { match ->
-                if (match == null && !navegacaoIniciada) {
-                    _estado.value = _estado.value?.copy(estadoTexto = "À procura de jogadores...")
-                }
-            }
-            .addOnFailureListener { erro ->
-                Log.e(TAG, "Erro ao criar sala/match: modo=$modo criador=${jogador.playerKey}", erro)
-                _estado.value = _estado.value?.copy(estadoTexto = "Erro ao criar sala. Pode cancelar e tentar novamente.")
-                _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao criar sala.")
+            .addOnFailureListener {
+                _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao criar partida.")
             }
     }
 
     private fun abrirSala(resultado: MatchmakingResult) {
         if (navegacaoIniciada) return
         val jogador = jogadorAtual ?: return
+        if (resultado.sessionId != jogador.sessionId) {
+            removerListeners()
+            _evento.value = MatchmakingEvent.VoltarMain(dadosNavegacao())
+            return
+        }
 
         navegacaoIniciada = true
-        Log.d(TAG, "Resultado recebido: modo=${resultado.modo} sala=${resultado.codigoSala} playerKey=${jogador.playerKey}")
         matchmakingRepository.verificarSalaExiste(resultado.modo, resultado.codigoSala)
             .addOnSuccessListener { salaExiste ->
                 if (!salaExiste) {
-                    Log.w(TAG, "Resultado sem sala válida ignorado: modo=${resultado.modo} sala=${resultado.codigoSala}")
                     matchmakingRepository.consumirResultado(modo, jogador.playerKey)
                     matchmakingRepository.cancelarOnDisconnect(jogador.playerKey, modo)
                     navegacaoIniciada = false
@@ -261,7 +237,6 @@ class MatchmakingViewModel(
                 removerListeners()
                 matchmakingRepository.cancelarOnDisconnect(jogador.playerKey, modo)
                 matchmakingRepository.consumirResultado(modo, jogador.playerKey)
-                Log.d(TAG, "A navegar para sala: modo=${resultado.modo} sala=${resultado.codigoSala} playerKey=${jogador.playerKey}")
                 val dados = MatchmakingNavegacaoDados(
                     codigoSala = resultado.codigoSala,
                     modo = resultado.modo,
@@ -279,8 +254,7 @@ class MatchmakingViewModel(
                     MatchmakingEvent.AbrirSala1x1(dados)
                 }
             }
-            .addOnFailureListener { erro ->
-                Log.e(TAG, "Erro ao confirmar sala antes de navegar: modo=${resultado.modo} sala=${resultado.codigoSala}", erro)
+            .addOnFailureListener {
                 navegacaoIniciada = false
                 _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao confirmar sala.")
             }
@@ -314,19 +288,8 @@ class MatchmakingViewModel(
         return "guest_${sanitizado}_${System.currentTimeMillis()}"
     }
 
-    private fun mensagemErroEntradaFila(erro: Exception): String {
-        val texto = erro.message.orEmpty()
-        return when {
-            jogadorAtual?.playerKey.isNullOrBlank() -> "Não foi possível identificar o jogador."
-            "permission" in texto.lowercase() || "denied" in texto.lowercase() ->
-                "Sem permissão para entrar na fila. Verifica as regras Firebase."
-            else -> "Erro ao entrar na fila."
-        }
-    }
-
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
-        const val TAG = "MatchmakingVM"
     }
 }
 

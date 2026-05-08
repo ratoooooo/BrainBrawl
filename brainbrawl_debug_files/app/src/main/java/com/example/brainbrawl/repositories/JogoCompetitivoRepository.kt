@@ -1,6 +1,5 @@
 package com.example.brainbrawl.repositories
 
-import android.util.Log
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.JogadorSalaIdentidade
@@ -58,20 +57,7 @@ class JogoCompetitivoRepository(
         val jogadoresRef = salaRef(modo, codigoSala).child(FirebasePaths.JOGADORES)
         jogadoresRef.get()
             .addOnSuccessListener { snapshot ->
-                val chaveExistente = snapshot.encontrarChaveJogador(jogador)
-                val limite = modo.limiteJogadores()
-                if (chaveExistente == null && snapshot.contarJogadoresReais() >= limite) {
-                    val erro = IllegalStateException("Sala ${modo.node}/$codigoSala cheia: limite=$limite")
-                    Log.w(TAG, "Entrada bloqueada em sala cheia: modo=${modo.node} codigo=$codigoSala limite=$limite")
-                    result.setException(erro)
-                    return@addOnSuccessListener
-                }
-
-                val chave = chaveExistente ?: jogador.chaveSala
-                if (chave.isBlank()) {
-                    result.setException(IllegalStateException("Jogador sem chave valida para entrar na sala."))
-                    return@addOnSuccessListener
-                }
+                val chave = snapshot.encontrarChaveJogador(jogador) ?: jogador.chaveSala
                 jogadoresRef.child(chave).setValue(jogador.toFirebaseMap(isHostOnly = false))
                     .addOnSuccessListener {
                         result.setResult(
@@ -625,13 +611,6 @@ class JogoCompetitivoRepository(
         return database.child(modo.node).child(codigoSala)
     }
 
-    private fun ModoCompetitivo.limiteJogadores(): Int {
-        return when (this) {
-            ModoCompetitivo.UM_CONTRA_UM -> 2
-            ModoCompetitivo.DOIS_CONTRA_DOIS -> 4
-        }
-    }
-
     private fun DataSnapshot.encontrarChaveJogador(jogador: JogadorSalaIdentidade): String? {
         return encontrarJogador(jogador)?.key
     }
@@ -645,14 +624,6 @@ class JogoCompetitivoRepository(
                 jogadorSnapshot.child(FirebasePaths.NOME_UTILIZADOR).texto() in jogador.chavesCompatibilidade ||
                 jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto() in jogador.chavesCompatibilidade ||
                 jogadorSnapshot.nomeDisplay() in jogador.chavesCompatibilidade
-        }
-    }
-
-    private fun DataSnapshot.contarJogadoresReais(): Int {
-        return children.count { jogadorSnapshot ->
-            val chave = jogadorSnapshot.key.orEmpty()
-            val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
-            chave != GameConstants.JOGADOR_ADMIN && !isHostOnly
         }
     }
 
@@ -744,9 +715,5 @@ class JogoCompetitivoRepository(
                 null
             }
         }
-    }
-
-    private companion object {
-        const val TAG = "JogoCompetitivoRepo"
     }
 }

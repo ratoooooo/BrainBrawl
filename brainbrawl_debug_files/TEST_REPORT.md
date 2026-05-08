@@ -6,15 +6,14 @@ Data: 2026-05-08
 
 ### Analise do fluxo
 
-- Export real analisado (`project-34e54-default-rtdb-export (1).json`): nao existe node `matchmaking`; existem `salas`, `sala_2x2` e `jogadores` UID-first. Logo, a estrutura de matchmaking ainda precisa de ser criada pela app e bater exatamente com as rules.
 - Entrada na fila: `MatchmakingViewModel.entrarComJogador()` chama `MatchmakingRepository.entrarNaFila()` e escreve em `matchmaking/{modo}/fila/{playerKey}`.
 - Observacao da fila: `MatchmakingViewModel.observarFila()` escuta a fila para UI/contador e tenta formar match quando existem jogadores suficientes.
 - Criacao de sala: `MatchmakingRepository.tentarCriarMatch()` reclama os jogadores em transacao; depois `criarSalaEPublicarResultados()` cria `sala_1x1/{codigo}` ou `sala_2x2/{codigo}` e so entao publica `resultados/{playerKey}`.
-- Admin/criador: e o jogador cujo `playerKey` corresponde ao `criadorKey` que ganhou/chamou a transacao, alinhando writer Firebase, claim e sala.
+- Admin/criador: passou a ser o jogador mais antigo entre os selecionados, alinhando claim e sala.
 - Remocao da fila: os jogadores selecionados sao removidos no mesmo update que publica resultados; cancelar remove apenas fila ainda `aguardando`.
 - `onDisconnect`: continua registado ao entrar na fila e agora e cancelado explicitamente ao cancelar ou ao navegar para uma sala.
 - Listeners: fila/resultado sao removidos em navegacao, `onDestroy`/`onCleared`; salas competitivas/grupo mantem os handles existentes.
-- Resultado antigo: entrada nova apaga resultado anterior; alem disso, resultado precisa apontar para sala existente antes de navegar.
+- Resultado antigo: entrada nova apaga resultado anterior; alem disso, resultado precisa de `sessionId` da Activity atual e de sala existente antes de navegar.
 - Navegacao unica: `MatchmakingActivity` e `MatchmakingViewModel` mantem flags explicitas; `MainActivity` tambem bloqueia taps repetidos nos botoes de matchmaking.
 
 ### Causa encontrada
@@ -23,64 +22,43 @@ Data: 2026-05-08
 - `matches/{matchId}` era calculado apenas com `playerKey`; um match antigo entre os mesmos jogadores podia bloquear futuras tentativas do mesmo par/grupo.
 - Resultados nao tinham identidade de sessao, por isso duas instancias com o mesmo UID podiam observar o mesmo resultado.
 - A navegacao consumia resultado sem confirmar primeiro que a sala ja existia.
-- Causa especifica confirmada nesta ronda: quando o segundo cliente ganhava a transacao, o codigo podia criar a sala com `admin/adminId/adminUid` do primeiro jogador da fila. As rules exigem que o writer seja o admin gravado, por isso a criacao da sala podia falhar com `permission_denied` depois de a fila ja estar em `encontrado`.
-- Causa do erro ao entrar na fila: o payload local tinha sido expandido com `sessionId`, enquanto a estrutura recomendada e rules com `$other=false` exigem campos conhecidos. Isto e compatível com `permission_denied` logo no write inicial da fila; o campo foi removido do Firebase.
-- Causa da fase atual "Erro ao criar sala": o fluxo ainda marcava jogadores selecionados como `estado=encontrado` dentro do claim antes de confirmar sala+resultados. Quando a criacao/publicacao falhava, o cliente recuperava com mensagem generica e podia deixar estado intermedio dificil de cancelar.
-- Causa do caso de 3 jogadores no 1x1: `JogoCompetitivoRepository.adicionarJogador()` apenas reutilizava uma chave existente quando reconhecia a identidade; se um terceiro chegasse por resultado/codigo antigo ou identidade diferente, nao havia guarda de lotacao antes do `setValue()`.
-- O payload inicial da sala 1x1 tambem escrevia `prontos` para os jogadores durante a criacao. Esse estado foi retirado da criacao da sala: cada cliente marca o seu proprio pronto ao entrar, usando o fluxo ja existente e compativel com as rules.
 
 ### Solucao implementada
 
-- `tentarCriarMatch()` guarda `criadorSelecionado = jogadoresSelecionados.first { it.playerKey == criadorKey }` e usa esse mesmo jogador em `matches`, `salaMap()` e `resultadoMap()`.
-- `criarSalaEPublicarResultados()` recebe o `criador` explicitamente e deixou de calcular `jogadores.first()` internamente.
-- O rollback pós-claim remove `matches/{matchId}` e as entradas `fila/{playerKey}` dos jogadores sem resultado publicado. Se a sala tinha sido criada e falhou a publicacao dos resultados, remove tambem a sala criada pelo mesmo admin.
-- O claim transacional agora cria apenas `matches/{matchId}`; a fila so e removida quando a sala foi criada com o numero exato de jogadores e os resultados foram publicados.
-- `tentarCriarMatch()` valida `size == 2` no 1x1 e `size == 4` no 2x2, com `playerKey` nao vazio e sem duplicados. A mesma validacao repete antes da escrita da sala.
-- Depois da transacao da sala, o repository confirma que `jogadores` tem exatamente o limite esperado antes de publicar resultados.
-- `salaMap()` deixou de escrever `prontos` inicialmente no 1x1; a sala nasce apenas com `jogadores`, `admin/adminId/adminUid`, `estado` e `nomeCategoria`.
-- `JogoCompetitivoRepository.adicionarJogador()` passou a bloquear entrada nova se a sala 1x1 ja tiver 2 jogadores reais ou a 2x2 ja tiver 4. Reabrir a Activity pelo mesmo jogador apenas reutiliza a chave existente.
-- `Sala1x1ViewModel` e `Sala2x2ViewModel` emitem `EntradaBloqueada`; as Activities mostram mensagem de sala cheia e voltam ao menu sem adicionar jogador extra.
-- Logs adicionados/fortalecidos: path da fila, path da sala, modo, codigo, adminId/adminUid, lista/quantidade de selecionados, campos do payload, paths dos resultados, colisao de codigo e erro Firebase exato, com destaque para `permission_denied`.
-- Cancelar agora limpa resultado/fila quando encontra resultado sem sala valida ou fila `encontrado` sem resultado/sala valida, evitando ficar preso em "Partida já encontrada".
-- A UI mostra "A criar sala..." quando o jogador atual ja esta em `estado=encontrado` ou quando o cliente esta a criar o match; se a criacao falhar, mostra erro amigavel.
-- Cancelamento validado contra resultado e sala: se existe resultado com sala valida, nao apaga; se nao ha resultado/sala valida, limpa fila/resultado do jogador para permitir voltar.
-- O payload de fila/resultados foi simplificado e deixa de enviar `sessionId`, evitando rejeicao por campos inesperados nas rules.
-- `matchId` inclui `playerKey` e `timestampEntrada`, permitindo rematches dos mesmos jogadores sem reaproveitar claim antigo.
+- Cancelamento transacional em `matchmaking/{modo}`: remove apenas `fila/{playerKey}` com `estado=aguardando`; se ja existir resultado ou `estado=encontrado`, nao apaga sala nem fila de match.
+- `sessionId` em fila/resultados, validado em `firebase-rules.json`, para ignorar resultado de outra instancia do mesmo jogador.
+- `matchId` inclui `sessionId`/timestamp, permitindo rematches dos mesmos jogadores sem reaproveitar claim antigo.
 - Antes de navegar, `MatchmakingViewModel` verifica a existencia da sala; se nao existir, remove/ignora o resultado antigo e continua sem loop.
 - Ao navegar, remove listeners, cancela `onDisconnect`, consome resultado e emite um unico evento de abertura.
 - Botao Voltar de entrada em sala ficou com texto branco.
 - Codigo de sala em 1x1/2x2/grupo usa icone pequeno de copiar ao lado do codigo, com `contentDescription="Copiar código"` e Toast `Código copiado`.
 - Codigo de sala recebido por Intent em salas de espera e entrada manual continua normalizado para maiusculas com `CodigoSalaUtils`.
-- Firebase Rules nao foram abertas nesta correcao; a solucao alinha o admin gravado com o cliente que escreve a sala.
 
 ### Ficheiros alterados nesta ronda
 
 - `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
 - `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
 - `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
-- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
 - `app/src/main/java/com/example/brainbrawl/models/MatchmakingModels.kt`
 - `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
 - `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
 - `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
-- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
-- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
 - `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
 - `app/src/main/res/layout/activity_sala_de_espera.xml`
 - `app/src/main/res/layout/activity_sala_de_espera_1x1.xml`
 - `app/src/main/res/layout/activity_sala_de_espera2x2.xml`
 - `app/src/main/res/drawable/ic_copy.xml`
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
 - `ARCHITECTURE_PLAN.md`
 - `TEST_REPORT.md`
 
 ### Estrutura Firebase final do matchmaking
 
-- `matchmaking/{modo}/fila/{playerKey}`: `playerKey`, `uid`, `tipoJogador`, `nomeDisplay`, `nomeUtilizador`, `nomeJogador`, `avatar`, `timestampEntrada`, `estado`, `isGuest`.
-- `matchmaking/{modo}/resultados/{playerKey}`: `playerKey`, `uid`, `tipoJogador`, `codigoSala`, `modo`, `nomeCategoria`, `criadorId`, `criadorUid`, `estado=encontrado`, `timestampEntrada`, `jogadores`.
+- `matchmaking/{modo}/fila/{playerKey}`: `playerKey`, `uid`, `tipoJogador`, `nomeDisplay`, `nomeUtilizador`, `nomeJogador`, `avatar`, `sessionId`, `timestampEntrada`, `estado`, `isGuest`.
+- `matchmaking/{modo}/resultados/{playerKey}`: `playerKey`, `uid`, `tipoJogador`, `codigoSala`, `modo`, `nomeCategoria`, `criadorId`, `criadorUid`, `sessionId`, `estado=encontrado`, `timestampEntrada`, `jogadores`.
 - `matchmaking/{modo}/matches/{matchId}`: claim transacional com `estado`, `codigoSala`, `modo`, `criadorId`, `criadorUid`, `timestampEntrada`.
 - Salas reais continuam em `sala_1x1/{codigo}` e `sala_2x2/{codigo}`.
-- `sala_1x1/{codigo}` e `sala_2x2/{codigo}` recebem `admin`, `adminId` e, quando existir, `adminUid` do mesmo `criadorSelecionado` que escreveu o claim.
-- Matchmaking 1x1 publica exatamente 2 jogadores em `sala_1x1/{codigo}/jogadores`; 2x2 publica exatamente 4 em `sala_2x2/{codigo}/jogadores`. Jogadores extra permanecem na fila para um match seguinte.
 
 ### Verificacoes executadas
 
@@ -102,10 +80,8 @@ Avisos mantidos: `SalaRepository.kt:84 Parameter 'adminHint' is never used` e de
 ### Testes manuais recomendados
 
 - 1x1 Auth A+B: confirmar uma unica sala, ambos na mesma sala, sem entrada/saida em loop e sem navegacao duplicada apos rotacao/refresh.
-- 1x1 Auth A+B+C quase simultaneo: confirmar que a primeira sala tem exatamente 2 jogadores e o terceiro fica fora dessa sala.
 - 1x1 convidado + Auth: confirmar sala unica, convidado com nome correto e sem writes persistentes de estatisticas/XP/historico.
 - 2x2 A/B/C/D: com tres jogadores nao cria sala; ao quarto cria uma unica `sala_2x2`.
-- 2x2 A/B/C/D/E quase simultaneo: confirmar que a primeira sala tem exatamente 4 jogadores e o quinto fica fora dessa sala.
 - Cancelamento: antes do match remove a propria fila; durante/depois do match nao apaga sala e nao volta a entrar em fila.
 - Resultado antigo: fechar/voltar e entrar outra vez nao deve navegar com resultado anterior.
 - UI grupo: botao Voltar legivel a branco, codigo em maiusculas, icone copia ao lado e entrada por codigo aceita minusculas.

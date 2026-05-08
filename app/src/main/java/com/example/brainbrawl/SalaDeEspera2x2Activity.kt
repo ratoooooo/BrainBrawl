@@ -12,6 +12,7 @@ import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEspera2x2Binding
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.CodigoSalaUtils
 import com.example.brainbrawl.viewmodels.Sala2x2Event
 import com.example.brainbrawl.viewmodels.Sala2x2UiState
 import com.example.brainbrawl.viewmodels.Sala2x2ViewModel
@@ -41,7 +42,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
+        codigoSala = CodigoSalaUtils.normalizarCodigo(intent.getStringExtra(IntentExtras.CODIGO_SALA).orEmpty())
         uid = intent.getStringExtra(IntentExtras.UID)
             ?: authService.utilizadorAtual()?.uid
                     ?: ""
@@ -138,6 +139,17 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
 
             Sala2x2Event.ErroIniciarJogo -> {
                 Toast.makeText(this, "Erro ao iniciar jogo 2x2.", Toast.LENGTH_SHORT).show()
+            }
+
+            Sala2x2Event.EntradaBloqueada -> {
+                Toast.makeText(this, "Sala 2x2 já está cheia.", Toast.LENGTH_SHORT).show()
+                abrirMainActivity(
+                    this@SalaDeEspera2x2Activity,
+                    nomeUtilizador,
+                    nomeJogador,
+                    uid.ifBlank { null }
+                )
+                finish()
             }
         }
     }

@@ -120,11 +120,6 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
                 Toast.makeText(this, "Ainda a aguardar o adversário!", Toast.LENGTH_SHORT).show()
             Sala1x1Event.JogadoresNaoProntos ->
                 Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
-            Sala1x1Event.EntradaBloqueada -> {
-                Toast.makeText(this@SalaDeEspera1x1Activity, "Sala 1x1 já está cheia.", Toast.LENGTH_SHORT).show()
-                abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
-                finish()
-            }
         }
     }
 

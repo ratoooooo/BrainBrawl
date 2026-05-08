@@ -2,16 +2,10 @@
 
 ## Matchmaking robusto e UI de sala - 2026-05-08
 
-- `MatchmakingRepository` continua a ser o dono do contrato Firebase do matchmaking. O cliente que ganha a transacao e chama `tentarCriarMatch(criadorKey=...)` passa a ser tambem o `admin/adminId/adminUid` da sala criada, evitando `permission_denied` quando o segundo jogador ganha o claim.
-- O claim transacional de matchmaking agora reserva apenas `matches/{matchId}`. A fila deixa de ser marcada como `encontrado` antes de a sala existir; `fila/{playerKey}` so e removida no mesmo update que publica `resultados/{playerKey}`.
-- A selecao de jogadores e um invariante do repository: 1x1 exige exatamente 2 `playerKey` distintos e 2x2 exige exatamente 4. A validacao ocorre antes da sala e e confirmada depois da transacao da sala antes de publicar resultados.
-- Se a criacao da sala ou a publicacao de resultados falhar depois do claim, o repository remove `matches/{matchId}` e as entradas de fila dos jogadores selecionados que ainda nao tinham resultado publicado. Isto evita deixar jogadores presos em `estado=encontrado`; optou-se por limpar a fila em vez de reescrever entradas de outros UIDs, para nao abrir Firebase Rules.
-- O cancelamento passou a validar resultado+sala: se ambos existem, nao apaga a sala; se existe resultado antigo sem sala, ou fila `encontrado` sem resultado/sala valida, limpa a propria fila/resultado para permitir voltar.
-- O payload Firebase do matchmaking voltou a estrutura simples compativel com as rules reais: `playerKey`, `uid`, `tipoJogador`, nomes, avatar, `timestampEntrada` e `estado`. O campo `sessionId` foi removido do Firebase porque pode ser rejeitado por rules com `$other=false` e estava alinhado com o erro ao entrar na fila.
-- O `matchId` transacional passou a incluir o timestamp de entrada alem dos `playerKey`, para nao bloquear futuras partidas entre o mesmo par/grupo depois de um match antigo ficar em `matches`.
+- `MatchmakingRepository` continua a ser o dono do contrato Firebase do matchmaking, mas o cancelamento passou a ser uma transacao em `matchmaking/{modo}`: remove apenas entradas `fila/{playerKey}` ainda em `aguardando`; se ja houver resultado ou a fila estiver `encontrado`, nao apaga fila/sala e devolve que a partida ja foi encontrada.
+- Cada entrada/resultados de matchmaking agora inclui `sessionId`, gerado no `MatchmakingViewModel`, para separar o mesmo `playerKey` em Activitys/dispositivos diferentes. Resultado com `sessionId` diferente e ignorado pela sessao antiga, evitando navegacao cruzada do mesmo UID.
+- O `matchId` transacional passou a incluir a identidade da sessao, nao apenas os `playerKey`, para nao bloquear futuras partidas entre o mesmo par/grupo depois de um match antigo ficar em `matches`.
 - A sala continua a ser criada antes dos resultados; a navegacao agora verifica explicitamente se `sala_1x1/{codigo}` ou `sala_2x2/{codigo}` existe antes de abrir a sala de espera.
-- `sala_1x1` ja nao recebe `prontos` no payload inicial do matchmaking. Cada cliente marca o proprio pronto ao entrar na sala, mantendo a responsabilidade no fluxo da sala de espera.
-- `JogoCompetitivoRepository.adicionarJogador()` passou a ser a barreira de lotacao da sala: reentrada do mesmo jogador reutiliza a chave existente, mas novo jogador e bloqueado quando 1x1 ja tem 2 ou 2x2 ja tem 4 jogadores reais.
 - `MatchmakingViewModel` mantem flags para uma unica criacao de match pendente, uma unica navegacao e cancelamento sem reentrada na fila. Ao navegar, remove listeners, cancela o `onDisconnect` da fila e remove o resultado consumido.
 - `MainActivity` bloqueia taps repetidos nos botoes 1x1/2x2 enquanto abre a Activity de matchmaking, reduzindo Activitys duplicadas do mesmo jogador.
 - Salas de espera continuam a receber `playerKey`, `uid`, `tipoJogador` e avatar como antes; convidados preservam `uid` vazio e continuam temporarios, sem tocar em estatisticas/XP/historico/ranking.
