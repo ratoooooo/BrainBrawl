@@ -27,6 +27,8 @@ class Sala1x1ViewModel(
     private var chaveJogador = ""
     private var saidaManual = false
     private var salaConfirmada = false
+    private var codigoSalaVisivel = false
+    private var textoCodigoSalaPrivado = "A carregar sala..."
 
     fun iniciar(
         codigoSala: String,
@@ -50,6 +52,20 @@ class Sala1x1ViewModel(
             }
             .addOnFailureListener {
                 _evento.value = Sala1x1Event.EntradaBloqueada
+            }
+    }
+
+    fun carregarExposicaoCodigo(codigoSala: String) {
+        jogoCompetitivoRepository.obterCodigoSalaInfo(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+            .addOnSuccessListener { info ->
+                codigoSalaVisivel = info.codigoVisivel
+                textoCodigoSalaPrivado = info.textoPrivado
+                publicarEstado()
+            }
+            .addOnFailureListener {
+                codigoSalaVisivel = true
+                textoCodigoSalaPrivado = ""
+                publicarEstado()
             }
     }
 
@@ -142,7 +158,9 @@ class Sala1x1ViewModel(
         _estado.value = SalaCompetitivaUiState(
             jogadores = jogadoresNaSala.map { it.nomeDisplay },
             admin = admin,
-            podeIniciar = admin && jogadoresNaSala.size == 2
+            podeIniciar = admin && jogadoresNaSala.size == 2,
+            codigoSalaVisivel = codigoSalaVisivel,
+            textoCodigoSalaPrivado = textoCodigoSalaPrivado
         )
     }
 
@@ -179,7 +197,9 @@ class Sala1x1ViewModel(
 data class SalaCompetitivaUiState(
     val jogadores: List<String>,
     val admin: Boolean,
-    val podeIniciar: Boolean
+    val podeIniciar: Boolean,
+    val codigoSalaVisivel: Boolean = true,
+    val textoCodigoSalaPrivado: String = ""
 )
 
 sealed class Sala1x1Event {

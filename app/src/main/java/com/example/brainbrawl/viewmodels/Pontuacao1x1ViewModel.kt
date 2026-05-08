@@ -3,11 +3,20 @@ package com.example.brainbrawl.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.models.HistoricoJogo
+import com.example.brainbrawl.repositories.HistoricoRepository
 import com.example.brainbrawl.repositories.PontuacaoRepository
+import com.example.brainbrawl.services.EstatisticasService
+import com.example.brainbrawl.services.EstatisticasService.ResultadoJogador
 
 class Pontuacao1x1ViewModel(
-    private val pontuacaoRepository: PontuacaoRepository = PontuacaoRepository()
+    private val pontuacaoRepository: PontuacaoRepository = PontuacaoRepository(),
+    private val historicoRepository: HistoricoRepository = HistoricoRepository()
 ) : ViewModel() {
+
+    private val _pontuacaoUiState = MutableLiveData(Pontuacao1x1UiState())
+    val pontuacaoUiState: LiveData<Pontuacao1x1UiState> = _pontuacaoUiState
 
     private val _estadoDesforra = MutableLiveData<Pontuacao1x1DesforraUiState>()
     val estadoDesforra: LiveData<Pontuacao1x1DesforraUiState> = _estadoDesforra
@@ -17,9 +26,14 @@ class Pontuacao1x1ViewModel(
 
     private var codigoSala: String = ""
     private var nomeCategoria: String = ""
+    private var inputPontuacao: Pontuacao1x1Input? = null
     private var jogadorAtual: PontuacaoRepository.JogadorDesforra? = null
+    private var pontuacaoListener: PontuacaoRepository.ListenerHandle? = null
     private var novaSalaListener: PontuacaoRepository.ListenerHandle? = null
     private var desforraListener: PontuacaoRepository.ListenerHandle? = null
+    private var jogadorAtualResultado: ResultadoJogador? = null
+    private var historicoGuardado = false
+    private var estatisticasAtualizadas = false
     private var aCriarDesforra = false
     private var navegacaoEmitida = false
 
@@ -29,6 +43,26 @@ class Pontuacao1x1ViewModel(
         this.nomeCategoria = nomeCategoria
         _estadoDesforra.value = Pontuacao1x1DesforraUiState()
         observarNovaSala()
+    }
+
+    fun iniciarPontuacao(input: Pontuacao1x1Input) {
+        inputPontuacao = input
+        historicoGuardado = false
+        estatisticasAtualizadas = false
+        jogadorAtualResultado = null
+        iniciar(input.codigoSala, input.nomeCategoria)
+
+        pontuacaoRepository.removerListener(pontuacaoListener)
+        pontuacaoListener = pontuacaoRepository.escutarPontuacoes1x1(
+            codigoSala = input.codigoSala,
+            onPontuacoes = { jogadores ->
+                atualizarPontuacoes(input, jogadores)
+                atualizarPersistencia(input, jogadores)
+            },
+            onErro = {
+                _evento.value = Pontuacao1x1Event.MostrarMensagem("Erro ao carregar pontuação")
+            }
+        )
     }
 
     fun atualizarJogadorAtual(jogador: PontuacaoRepository.JogadorDesforra) {
@@ -57,6 +91,8 @@ class Pontuacao1x1ViewModel(
     }
 
     fun removerListeners() {
+        pontuacaoRepository.removerListener(pontuacaoListener)
+        pontuacaoListener = null
         pontuacaoRepository.removerListener(novaSalaListener)
         novaSalaListener = null
         pontuacaoRepository.removerListener(desforraListener)
@@ -122,7 +158,147 @@ class Pontuacao1x1ViewModel(
         navegacaoEmitida = true
         _evento.value = Pontuacao1x1Event.AbrirNovaSalaDesforra(codigoNovaSala)
     }
+
+    private fun atualizarPontuacoes(input: Pontuacao1x1Input, jogadores: List<ResultadoJogador>) {
+        jogadorAtualResultado = jogadores.firstOrNull { input.correspondeAoJogadorAtual(it, jogadorAtualResultado) }
+            ?: jogadorAtualResultado
+        atualizarJogadorAtual(input.toJogadorDesforra(jogadorAtualResultado))
+
+        val podio = listOf(
+            PontuacaoJogadorUi(
+                nome = jogadores.getOrNull(0)?.nome.orEmpty(),
+                pontos = jogadores.getOrNull(0)?.pontos?.toInt()?.toString().orEmpty()
+            ),
+            PontuacaoJogadorUi(
+                nome = jogadores.getOrNull(1)?.nome ?: "Aguardando adversário...",
+                pontos = jogadores.getOrNull(1)?.pontos?.toInt()?.toString().orEmpty()
+            )
+        )
+
+        _pontuacaoUiState.value = Pontuacao1x1UiState(
+            podio = podio,
+            aguardandoAdversario = jogadores.size <= 1
+        )
+    }
+
+    private fun atualizarPersistencia(input: Pontuacao1x1Input, jogadores: List<ResultadoJogador>) {
+        if (!input.podeGravarPersistente() || jogadores.size < 2 || estatisticasAtualizadas) return
+
+        val resultadosComRespostas = jogadores.map { jogador ->
+            if (input.correspondeAoJogadorAtual(jogador, jogadorAtualResultado)) {
+                jogador.copy(respostasCertas = input.totalRespostasCertas)
+            } else {
+                jogador
+            }
+        }
+
+        guardarHistoricoSeNecessario(input, jogadores)
+        estatisticasAtualizadas = true
+        pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+            tipoSala = PontuacaoRepository.TipoSala.UM_CONTRA_UM,
+            codigoSala = input.codigoSala,
+            resultados = resultadosComRespostas,
+            modo = EstatisticasService.Modo.UM_CONTRA_UM,
+            totalPerguntas = input.totalPerguntas,
+            jogadoresParaAtualizar = input.identificadoresJogadorAtual(jogadorAtualResultado).toSet()
+        ).addOnFailureListener {
+            estatisticasAtualizadas = false
+        }
+    }
+
+    private fun guardarHistoricoSeNecessario(input: Pontuacao1x1Input, jogadores: List<ResultadoJogador>) {
+        if (historicoGuardado || !input.podeGravarPersistente() || jogadores.size < 2) return
+        val atual = jogadores.firstOrNull { input.correspondeAoJogadorAtual(it, jogadorAtualResultado) } ?: return
+        val outro = jogadores.firstOrNull { !input.correspondeAoJogadorAtual(it, jogadorAtualResultado) } ?: return
+
+        historicoGuardado = true
+        historicoRepository.guardarHistoricoUmaVez(
+            uid = input.uid,
+            historico = HistoricoJogo(
+                historicoId = "${GameConstants.MODO_1X1}_${input.codigoSala}",
+                modo = GameConstants.MODO_1X1,
+                codigoSala = input.codigoSala,
+                nomeCategoria = input.nomeCategoria,
+                pontuacao = atual.pontos,
+                respostasCertas = input.totalRespostasCertas,
+                totalPerguntas = input.totalPerguntas,
+                venceu = atual.pontos > outro.pontos,
+                empate = atual.pontos == outro.pontos,
+                dataHora = System.currentTimeMillis(),
+                jogadoresDaPartida = jogadores.map { it.nome }
+            )
+        ).addOnFailureListener {
+            historicoGuardado = false
+        }
+    }
 }
+
+data class Pontuacao1x1Input(
+    val codigoSala: String,
+    val uid: String,
+    val nomeUtilizador: String,
+    val nomeJogador: String,
+    val totalRespostasCertas: Int,
+    val totalPerguntas: Int,
+    val nomeCategoria: String,
+    val playerKey: String,
+    val tipoJogador: String,
+    val avatar: String,
+    val isGuest: Boolean
+) {
+    fun podeGravarPersistente(): Boolean {
+        return uid.isNotBlank() && !isGuest && tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
+    }
+
+    fun correspondeAoJogadorAtual(jogador: ResultadoJogador, resultadoAtual: ResultadoJogador?): Boolean {
+        return identificadoresJogadorAtual(resultadoAtual).any { jogador.corresponde(it) }
+    }
+
+    fun identificadoresJogadorAtual(resultadoAtual: ResultadoJogador?): List<String> {
+        return listOf(
+            uid,
+            playerKey,
+            resultadoAtual?.chave.orEmpty(),
+            nomeUtilizador,
+            nomeJogador,
+            nomeDisplayAtual()
+        ).filter { it.isNotBlank() }.distinct()
+    }
+
+    fun toJogadorDesforra(resultadoAtual: ResultadoJogador?): PontuacaoRepository.JogadorDesforra {
+        val chave = resultadoAtual?.chave?.takeIf { it.isNotBlank() } ?: chavePrimariaAtual()
+        return PontuacaoRepository.JogadorDesforra(
+            chave = chave,
+            nomeDisplay = nomeDisplayAtual(),
+            uid = uid,
+            nomeUtilizador = nomeUtilizador,
+            nomeJogador = nomeJogador,
+            playerKey = playerKey.ifBlank { chave },
+            tipoJogador = tipoJogador.ifBlank {
+                if (isGuest) GameConstants.TIPO_JOGADOR_GUEST else GameConstants.TIPO_JOGADOR_AUTH
+            },
+            avatar = avatar
+        )
+    }
+
+    private fun chavePrimariaAtual(): String {
+        return uid.ifBlank { playerKey.ifBlank { nomeJogador.ifBlank { nomeUtilizador } } }
+    }
+
+    private fun nomeDisplayAtual(): String {
+        return nomeUtilizador.ifBlank { nomeJogador.ifBlank { uid.ifBlank { playerKey } } }
+    }
+}
+
+data class PontuacaoJogadorUi(
+    val nome: String = "",
+    val pontos: String = ""
+)
+
+data class Pontuacao1x1UiState(
+    val podio: List<PontuacaoJogadorUi> = listOf(PontuacaoJogadorUi(), PontuacaoJogadorUi()),
+    val aguardandoAdversario: Boolean = true
+)
 
 data class Pontuacao1x1DesforraUiState(
     val mensagem: String = "",

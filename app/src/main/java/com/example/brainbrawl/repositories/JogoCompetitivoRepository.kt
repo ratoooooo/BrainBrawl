@@ -41,6 +41,20 @@ class JogoCompetitivoRepository(
         val nomeDisplay: String
     )
 
+    data class CodigoSalaInfo(
+        val origem: String,
+        val entradaFechada: Boolean
+    ) {
+        val codigoVisivel: Boolean
+            get() = !entradaFechada && (origem.isBlank() || origem == GameConstants.ORIGEM_MANUAL)
+
+        val textoPrivado: String
+            get() = when (origem) {
+                GameConstants.ORIGEM_MATCHMAKING -> "Partida automática"
+                else -> "Partida por convite"
+            }
+    }
+
     data class ListenerHandle internal constructor(
         private val removerListener: () -> Unit
     ) {
@@ -55,41 +69,145 @@ class JogoCompetitivoRepository(
         jogador: JogadorSalaIdentidade
     ): Task<JogadorCompetitivo> {
         val result = TaskCompletionSource<JogadorCompetitivo>()
-        val jogadoresRef = salaRef(modo, codigoSala).child(FirebasePaths.JOGADORES)
-        jogadoresRef.get()
-            .addOnSuccessListener { snapshot ->
-                val chaveExistente = snapshot.encontrarChaveJogador(jogador)
-                val limite = modo.limiteJogadores()
-                if (chaveExistente == null && snapshot.contarJogadoresReais() >= limite) {
-                    val erro = IllegalStateException("Sala ${modo.node}/$codigoSala cheia: limite=$limite")
-                    Log.w(TAG, "Entrada bloqueada em sala cheia: modo=${modo.node} codigo=$codigoSala limite=$limite")
-                    result.setException(erro)
+        val salaRef = salaRef(modo, codigoSala)
+        salaRef.get()
+            .addOnSuccessListener { salaSnapshot ->
+                if (!salaSnapshot.exists()) {
+                    result.setException(IllegalStateException("Sala ${modo.node}/$codigoSala nao existe."))
                     return@addOnSuccessListener
                 }
 
+                val limite = salaSnapshot.lotacaoMaxima(modo)
+                val jogadoresSnapshot = salaSnapshot.child(FirebasePaths.JOGADORES)
+                val entradaFechada = salaSnapshot.entradaFechada()
+
+                if (entradaFechada) {
+                    val chaveExistente = jogadoresSnapshot.encontrarChaveJogadorFechado(jogador)
+                    if (chaveExistente == null) {
+                        Log.w(
+                            TAG,
+                            "Entrada bloqueada em sala fechada: modo=${modo.node} codigo=$codigoSala " +
+                                "playerKey=${jogador.playerKey.ifBlank { jogador.uid }}"
+                        )
+                        result.setException(IllegalStateException("Sala fechada para jogadores selecionados."))
+                        return@addOnSuccessListener
+                    }
+                    result.setResult(jogadoresSnapshot.child(chaveExistente).toJogadorCompetitivo(chaveExistente, jogador))
+                    return@addOnSuccessListener
+                }
+
+                val chaveExistente = jogadoresSnapshot.encontrarChaveJogador(jogador)
                 val chave = chaveExistente ?: jogador.chaveSala
                 if (chave.isBlank()) {
                     result.setException(IllegalStateException("Jogador sem chave valida para entrar na sala."))
                     return@addOnSuccessListener
                 }
-                jogadoresRef.child(chave).setValue(jogador.toFirebaseMap(isHostOnly = false))
+
+                fun escrever() {
+                    escreverJogadorNaSala(modo, codigoSala, chave, jogador)
+                        .addOnSuccessListener { result.setResult(it) }
+                        .addOnFailureListener { result.setException(it) }
+                }
+
+                if (chaveExistente != null) {
+                    escrever()
+                    return@addOnSuccessListener
+                }
+
+                reservarEntradaNaSala(
+                    modo = modo,
+                    codigoSala = codigoSala,
+                    chave = chave,
+                    limite = limite,
+                    chavesAtuais = jogadoresSnapshot.chavesJogadoresReais()
+                )
                     .addOnSuccessListener {
-                        result.setResult(
-                            JogadorCompetitivo(
-                                chave = chave,
-                                nomeDisplay = jogador.nomeDisplay,
-                                uid = jogador.uid,
-                                nomeUtilizador = jogador.nomeUtilizador,
-                                nomeJogador = jogador.nomeJogador,
-                                playerKey = jogador.playerKey.ifBlank { chave },
-                                tipoJogador = jogador.tipoJogador,
-                                avatar = jogador.avatar
-                            )
-                        )
+                        escrever()
                     }
                     .addOnFailureListener { result.setException(it) }
             }
             .addOnFailureListener { result.setException(it) }
+        return result.task
+    }
+
+    private fun escreverJogadorNaSala(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        chave: String,
+        jogador: JogadorSalaIdentidade
+    ): Task<JogadorCompetitivo> {
+        val result = TaskCompletionSource<JogadorCompetitivo>()
+        salaRef(modo, codigoSala)
+            .child(FirebasePaths.JOGADORES)
+            .child(chave)
+            .setValue(jogador.toFirebaseMap(isHostOnly = false))
+            .addOnSuccessListener {
+                result.setResult(
+                    JogadorCompetitivo(
+                        chave = chave,
+                        nomeDisplay = jogador.nomeDisplay,
+                        uid = jogador.uid,
+                        nomeUtilizador = jogador.nomeUtilizador,
+                        nomeJogador = jogador.nomeJogador,
+                        playerKey = jogador.playerKey.ifBlank { chave },
+                        tipoJogador = jogador.tipoJogador,
+                        avatar = jogador.avatar
+                    )
+                )
+            }
+            .addOnFailureListener { result.setException(it) }
+        return result.task
+    }
+
+    private fun reservarEntradaNaSala(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        chave: String,
+        limite: Int,
+        chavesAtuais: Set<String>
+    ): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        val reservasRef = salaRef(modo, codigoSala).child(FirebasePaths.JOGADORES_PERMITIDOS)
+
+        reservasRef.runTransaction(object : Transaction.Handler {
+            var salaCheia = false
+
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                salaCheia = false
+                val reservados = currentData.children.mapNotNull { reserva ->
+                    reserva.key?.takeIf { reserva.getValue(Boolean::class.java) == true }
+                }.toMutableSet()
+
+                reservados.addAll(chavesAtuais)
+
+                if (chave !in reservados && reservados.size >= limite) {
+                    salaCheia = true
+                    return Transaction.abort()
+                }
+
+                reservados.add(chave)
+                currentData.value = reservados.associateWith { true }
+                return Transaction.success(currentData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, currentData: DataSnapshot?) {
+                if (error != null) {
+                    result.setException(error.toException())
+                    return
+                }
+                if (!committed) {
+                    Log.w(TAG, "Reserva bloqueada em sala cheia: modo=${modo.node} codigo=$codigoSala limite=$limite")
+                    result.setException(
+                        IllegalStateException(
+                            if (salaCheia) "Sala ${modo.node}/$codigoSala cheia: limite=$limite" else "Entrada nao reservada."
+                        )
+                    )
+                    return
+                }
+                result.setResult(null)
+            }
+        })
+
         return result.task
     }
 
@@ -150,6 +268,18 @@ class JogoCompetitivoRepository(
             }
 
             chavesAdmin.any { chaveAdmin -> chaveAdmin in identidadesJogador }
+        }
+    }
+
+    fun obterCodigoSalaInfo(modo: ModoCompetitivo, codigoSala: String): Task<CodigoSalaInfo> {
+        return salaRef(modo, codigoSala).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar privacidade da sala.")
+            val snapshot = task.result
+            val origem = snapshot.child(FirebasePaths.ORIGEM).texto()
+            CodigoSalaInfo(
+                origem = origem,
+                entradaFechada = snapshot.entradaFechada()
+            )
         }
     }
 
@@ -632,8 +762,38 @@ class JogoCompetitivoRepository(
         }
     }
 
+    private fun DataSnapshot.lotacaoMaxima(modo: ModoCompetitivo): Int {
+        return child(FirebasePaths.LOTACAO_MAXIMA).intValue().takeIf { it > 0 }
+            ?: modo.limiteJogadores()
+    }
+
+    private fun DataSnapshot.entradaFechada(): Boolean {
+        return child(FirebasePaths.ENTRADA_FECHADA).getValue(Boolean::class.java) == true ||
+            child(FirebasePaths.ORIGEM).texto() == GameConstants.ORIGEM_MATCHMAKING ||
+            child(FirebasePaths.ORIGEM).texto() == GameConstants.ORIGEM_CONVITE
+    }
+
     private fun DataSnapshot.encontrarChaveJogador(jogador: JogadorSalaIdentidade): String? {
         return encontrarJogador(jogador)?.key
+    }
+
+    private fun DataSnapshot.encontrarChaveJogadorFechado(jogador: JogadorSalaIdentidade): String? {
+        val chavePrincipal = jogador.playerKey.ifBlank { jogador.uid.ifBlank { jogador.chaveSala } }
+        val chaves = jogador.chavesCompatibilidade
+        return children.firstOrNull { jogadorSnapshot ->
+            val chave = jogadorSnapshot.key.orEmpty()
+            chave == chavePrincipal ||
+                chave in chaves ||
+                jogadorSnapshot.child(FirebasePaths.PLAYER_KEY).texto() == chavePrincipal ||
+                jogadorSnapshot.child(FirebasePaths.PLAYER_KEY).texto() in chaves ||
+                jogadorSnapshot.child(FirebasePaths.NOME_UTILIZADOR).texto() in chaves ||
+                jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto() in chaves ||
+                jogadorSnapshot.nomeDisplay() in chaves ||
+                (
+                    jogador.uid.isNotBlank() &&
+                        jogadorSnapshot.child(FirebasePaths.UID).texto() == jogador.uid
+                    )
+        }?.key
     }
 
     private fun DataSnapshot.encontrarJogador(jogador: JogadorSalaIdentidade): DataSnapshot? {
@@ -648,12 +808,20 @@ class JogoCompetitivoRepository(
         }
     }
 
-    private fun DataSnapshot.contarJogadoresReais(): Int {
-        return children.count { jogadorSnapshot ->
-            val chave = jogadorSnapshot.key.orEmpty()
-            val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
-            chave != GameConstants.JOGADOR_ADMIN && !isHostOnly
-        }
+    private fun DataSnapshot.toJogadorCompetitivo(
+        chave: String,
+        fallback: JogadorSalaIdentidade
+    ): JogadorCompetitivo {
+        return JogadorCompetitivo(
+            chave = chave,
+            nomeDisplay = nomeDisplay().ifBlank { fallback.nomeDisplay },
+            uid = child(FirebasePaths.UID).texto().ifBlank { fallback.uid },
+            nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).texto().ifBlank { fallback.nomeUtilizador },
+            nomeJogador = child(FirebasePaths.NOME_JOGADOR).texto().ifBlank { fallback.nomeJogador },
+            playerKey = child(FirebasePaths.PLAYER_KEY).texto().ifBlank { fallback.playerKey.ifBlank { chave } },
+            tipoJogador = child(FirebasePaths.TIPO_JOGADOR).texto().ifBlank { fallback.tipoJogador },
+            avatar = child(FirebasePaths.AVATAR).texto().ifBlank { fallback.avatar }
+        )
     }
 
     private fun DataSnapshot.toJogadoresCompetitivos(): List<JogadorCompetitivo> {
@@ -726,6 +894,13 @@ class JogoCompetitivoRepository(
 
     private fun DataSnapshot.texto(): String {
         return getValue(String::class.java).orEmpty()
+    }
+
+    private fun DataSnapshot.intValue(): Int {
+        return getValue(Int::class.java)
+            ?: getValue(Long::class.java)?.toInt()
+            ?: getValue(Double::class.java)?.toInt()
+            ?: 0
     }
 
     private fun DataSnapshot.toPerguntas(): List<Pergunta> {

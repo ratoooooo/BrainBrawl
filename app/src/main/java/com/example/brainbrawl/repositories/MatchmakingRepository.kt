@@ -109,6 +109,20 @@ class MatchmakingRepository(
         }
     }
 
+    fun verificarJogadorNaSala(modo: String, codigoSala: String, playerKey: String): Task<Boolean> {
+        return database.child(salaNode(modo)).child(codigoSala).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar sala.")
+            val sala = task.result
+            if (!sala.exists() || playerKey.isBlank()) return@continueWith false
+            val jogadores = sala.child(FirebasePaths.JOGADORES)
+            jogadores.child(playerKey).exists() ||
+                jogadores.children.any { jogador ->
+                    jogador.child(FirebasePaths.PLAYER_KEY).texto() == playerKey ||
+                        jogador.child(FirebasePaths.UID).texto() == playerKey
+                }
+        }
+    }
+
     private fun avaliarCancelamentoSemResultado(modo: String, playerKey: String): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
         filaRef(modo).child(playerKey).get()
@@ -356,7 +370,7 @@ class MatchmakingRepository(
         salaRef.runTransaction(object : Transaction.Handler {
             override fun doTransaction(currentData: MutableData): Transaction.Result {
                 if (currentData.value != null) return Transaction.abort()
-                val payload = salaMap(nomeCategoria, criador, jogadores)
+                val payload = salaMap(modo, nomeCategoria, criador, jogadores)
                 Log.d(
                     TAG,
                     "A criar sala: node=$salaNode codigo=$codigoSala modo=$modo " +
@@ -378,11 +392,12 @@ class MatchmakingRepository(
                     return
                 }
                 val jogadoresNaSala = snapshot?.child(FirebasePaths.JOGADORES)?.childrenCount?.toInt() ?: 0
-                if (jogadoresNaSala != limite) {
+                val permitidosNaSala = snapshot?.child(FirebasePaths.JOGADORES_PERMITIDOS)?.childrenCount?.toInt() ?: 0
+                if (jogadoresNaSala != limite || permitidosNaSala != limite) {
                     falharComRollback(
                         IllegalStateException(
                             "Sala criada com numero invalido de jogadores: modo=$modo " +
-                                "esperado=$limite recebido=$jogadoresNaSala"
+                                "esperado=$limite jogadores=$jogadoresNaSala permitidos=$permitidosNaSala"
                         ),
                         removerSala = true
                     )
@@ -423,16 +438,22 @@ class MatchmakingRepository(
     }
 
     private fun salaMap(
+        modo: String,
         nomeCategoria: String,
         criador: MatchmakingPlayer,
         jogadores: List<MatchmakingPlayer>
     ): Map<String, Any> {
+        val limite = limiteJogadores(modo)
         val dados = linkedMapOf<String, Any>(
             FirebasePaths.JOGADORES to jogadores.associate { it.playerKey to it.toSalaJogadorMap() },
+            FirebasePaths.JOGADORES_PERMITIDOS to jogadores.associate { it.playerKey to true },
             FirebasePaths.ADMIN to criador.nomeDisplay,
             FirebasePaths.ADMIN_ID to criador.playerKey,
             FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
-            FirebasePaths.NOME_CATEGORIA to nomeCategoria
+            FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+            FirebasePaths.ORIGEM to GameConstants.ORIGEM_MATCHMAKING,
+            FirebasePaths.LOTACAO_MAXIMA to limite,
+            FirebasePaths.ENTRADA_FECHADA to true
         )
         if (criador.uid.isNotBlank()) dados[FirebasePaths.ADMIN_UID] = criador.uid
         return dados

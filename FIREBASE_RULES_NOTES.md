@@ -2,6 +2,15 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Atualizacao - matchmaking aleatorio desativado - 2026-05-08
+
+Alteracoes desta ronda:
+
+- O matchmaking aleatorio 1x1/2x2 foi retirado da experiencia do jogador; os paths `matchmaking` podem continuar nas rules por compatibilidade, mas ficam sem entrada de UI ativa.
+- `childrenCount()` foi removido de `firebase-rules.json`, porque Realtime Database Rules nao suporta essa validacao.
+- `jogadoresPermitidos` continua a aceitar apenas filhos booleanos, mas as rules ja nao tentam contar 2/4 entradas. A lotacao operacional fica no Kotlin, em `JogoCompetitivoRepository`, atraves da reserva transacional antes de escrever jogadores em salas abertas/convites.
+- Esta alteracao evita rules invalidas sem mexer em pontuacao, XP, ranking, historico, categorias, login/registo ou convites 1x1/2x2.
+
 ## Revisao de hardening - 2026-05-08
 
 Alteracoes aplicadas nesta ronda:
@@ -12,8 +21,11 @@ Alteracoes aplicadas nesta ronda:
 - `totalAvaliacoes` e `usos` passaram a aceitar manutencao do valor atual ou incremento de uma unidade; valores negativos continuam bloqueados.
 - `jogadores/{uid}/categoriasPersonalizadas` passou a exigir Auth no proprio UID ou fallback legado explicito por `nomeUtilizador`; sem Auth, so fica permitido se existir perfil legado com `password`.
 - `sala_2x2/{codigo}/equipaA` e `equipaB` deixaram de aceitar campos arbitrarios em jogadores de equipa. Agora aceitam apenas campos conhecidos de identidade temporaria: `nome`, `nomeDisplay`, `uid`, `playerKey`, `tipoJogador`, `isGuest`, `nomeUtilizador`, `nomeJogador` e `avatar`.
+- `sala_1x1/{codigo}` e `sala_2x2/{codigo}` passaram a aceitar metadados de sala competitiva fechada: `origem`, `lotacaoMaxima`, `entradaFechada` e `jogadoresPermitidos`.
+- `lotacaoMaxima` e validado como `2` em `sala_1x1` e `4` em `sala_2x2`.
+- `jogadoresPermitidos` aceita apenas booleanos. A lotacao 2/4 deixou de ser validada por contagem nas rules e fica a cargo das transacoes Kotlin/repository.
 - `matchmaking/{modo}/resultados/{playerKey}/jogadores` e `matchmaking/{modo}/matches/{matchId}` passaram a bloquear `$other` e a validar os campos esperados.
-- `matchmaking` continua com `.write` no nivel de `matchmaking/{modo}` porque o cliente atual faz transacao nesse node para reclamar jogadores, marcar fila como encontrada e criar `matches`.
+- `matchmaking` continua com `.write` no nivel de `matchmaking/{modo}` porque o cliente atual faz transacao nesse node para reclamar jogadores e criar `matches`.
 
 Paths endurecidos:
 
@@ -22,6 +34,8 @@ Paths endurecidos:
 - `jogadores/{uid}/categoriasPersonalizadas`
 - `sala_2x2/{codigo}/equipaA`
 - `sala_2x2/{codigo}/equipaB`
+- `sala_1x1/{codigo}/jogadoresPermitidos`
+- `sala_2x2/{codigo}/jogadoresPermitidos`
 - `matchmaking/{modo}/resultados`
 - `matchmaking/{modo}/matches`
 
@@ -47,6 +61,7 @@ Limites que continuam impossiveis de resolver so com rules:
 - As rules nao conseguem impedir um cliente modificado de escrever valores de sala aparentemente validos.
 - A media de avaliacoes ainda e calculada client-side; as rules validam faixa e incremento basico, mas Cloud Functions seriam ideais para calcular `ratingMedio` e `totalAvaliacoes`.
 - A escolha de jogadores no matchmaking e a criacao da sala continuam cliente-side; a transacao reduz duplicacao, mas nao substitui um backend autoritativo.
+- `jogadoresPermitidos` limita lotacao e reduz corrida de entrada, mas ainda pode ser reservado por clientes dentro das permissoes temporarias de sala. A garantia anti-abuso completa continua a pedir backend/Cloud Functions.
 - Estatisticas, XP e ranking continuam sendo writes client-side do proprio perfil autenticado; as rules validam ownership e limites basicos, nao a justica do resultado.
 
 Plano futuro recomendado:

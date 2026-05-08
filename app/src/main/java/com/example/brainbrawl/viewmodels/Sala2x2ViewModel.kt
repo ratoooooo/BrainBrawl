@@ -28,6 +28,8 @@ class Sala2x2ViewModel(
     private var saidaManual = false
     private var aIniciarJogo = false
     private var salaConfirmada = false
+    private var codigoSalaVisivel = false
+    private var textoCodigoSalaPrivado = "A carregar sala..."
 
     fun iniciar(
         codigoSala: String,
@@ -50,6 +52,20 @@ class Sala2x2ViewModel(
             }
             .addOnFailureListener {
                 _evento.value = Sala2x2Event.EntradaBloqueada
+            }
+    }
+
+    fun carregarExposicaoCodigo(codigoSala: String) {
+        jogoCompetitivoRepository.obterCodigoSalaInfo(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+            .addOnSuccessListener { info ->
+                codigoSalaVisivel = info.codigoVisivel
+                textoCodigoSalaPrivado = info.textoPrivado
+                publicarEstado()
+            }
+            .addOnFailureListener {
+                codigoSalaVisivel = true
+                textoCodigoSalaPrivado = ""
+                publicarEstado()
             }
     }
 
@@ -168,7 +184,9 @@ class Sala2x2ViewModel(
         _estado.value = Sala2x2UiState(
             equipaA = equipaA.map { it.nomeDisplay },
             equipaB = equipaB.map { it.nomeDisplay },
-            podeIniciar = admin && salaCompleta && !aIniciarJogo
+            podeIniciar = admin && salaCompleta && !aIniciarJogo,
+            codigoSalaVisivel = codigoSalaVisivel,
+            textoCodigoSalaPrivado = textoCodigoSalaPrivado
         )
     }
 
@@ -229,7 +247,9 @@ class Sala2x2ViewModel(
 data class Sala2x2UiState(
     val equipaA: List<String>,
     val equipaB: List<String>,
-    val podeIniciar: Boolean
+    val podeIniciar: Boolean,
+    val codigoSalaVisivel: Boolean = true,
+    val textoCodigoSalaPrivado: String = ""
 )
 
 sealed class Sala2x2Event {

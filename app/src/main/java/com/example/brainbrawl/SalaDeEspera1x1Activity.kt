@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -52,13 +53,14 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
 
-        // Define o texto do código da sala usando o binding
-        binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+        binding.txtCodigoSala.text = "A carregar sala..."
+        binding.btnCopiarCodigoSala.visibility = View.GONE
         binding.btnCopiarCodigoSala.setOnClickListener {
             copiarCodigoSala()
         }
 
         configurarObservers()
+        viewModel.carregarExposicaoCodigo(codigoSala)
         viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         viewModel.observarJogadores(codigoSala)
         viewModel.observarEstadoSala(codigoSala)
@@ -95,7 +97,18 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         } else {
             estado.jogadores.joinToString(separator = "\n")
         }
+        atualizarCodigoSala(estado)
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+    }
+
+    private fun atualizarCodigoSala(estado: SalaCompetitivaUiState) {
+        if (estado.codigoSalaVisivel) {
+            binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+            binding.btnCopiarCodigoSala.visibility = View.VISIBLE
+        } else {
+            binding.txtCodigoSala.text = estado.textoCodigoSalaPrivado.ifBlank { "Partida por convite" }
+            binding.btnCopiarCodigoSala.visibility = View.GONE
+        }
     }
 
     private fun tratarEvento(evento: Sala1x1Event) {

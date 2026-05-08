@@ -556,7 +556,7 @@
         },
         "jogadoresPermitidos": {
           ".write": "auth == null || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val() || newData.child(auth.uid).val() == true || data.child(auth.uid).val() == true",
-          ".validate": "!newData.exists() || newData.hasChildren()",
+          ".validate": "!newData.exists() || newData.childrenCount <= 2",
           "$jogadorId": {
             ".validate": "newData.isBoolean()"
           }
@@ -696,7 +696,7 @@
         },
         "jogadoresPermitidos": {
           ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val() || newData.child(auth.uid).val() == true || data.child(auth.uid).val() == true",
-          ".validate": "!newData.exists() || newData.hasChildren()",
+          ".validate": "!newData.exists() || newData.childrenCount <= 4",
           "$jogadorId": {
             ".validate": "newData.isBoolean()"
           }

@@ -27,4 +27,8 @@ object GameConstants {
 
     const val TIPO_JOGADOR_AUTH = "auth"
     const val TIPO_JOGADOR_GUEST = "guest"
+
+    const val ORIGEM_MATCHMAKING = "matchmaking"
+    const val ORIGEM_CONVITE = "convite"
+    const val ORIGEM_MANUAL = "manual"
 }

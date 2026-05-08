@@ -1,17 +1,77 @@
 # Pergunta o Luso - Architecture Plan
 
+## Estado MVVM atual - 2026-05-08
+
+- Padrao alvo mantido: `Activity -> ViewModel -> Repository -> Service -> Models`.
+- Activities devem ficar restritas a ViewBinding, clicks, observers, Toast/dialog, navegacao e capacidades de UI como clipboard.
+- ViewModels concentram `UiState`, eventos, validacoes leves, ciclo de vida de listeners e orquestracao de chamadas aos repositories.
+- Repositories continuam donos de Firebase Realtime Database/Auth quando aplicavel, listeners, transactions e mapeamento de snapshots.
+- Services mantem logica pura: pontuacao, XP/progressao, estatisticas, validacoes e helpers sem `Context`.
+- Models continuam `data class` com defaults compativeis com Firebase.
+- Arquitetura UID-first permanece: dados persistentes autenticados usam UID; `nomeUtilizador` fica como display/fallback legado; convidados continuam temporarios e sem estatisticas/XP/historico/ranking.
+- Matchmaking aleatorio continua removido/desativado por instabilidade; nao foi reativado nesta migracao.
+
+## Migracao MVVM pontuacoes e Main - 2026-05-08
+
+- Auditoria de `*Activity.kt`: nao foram encontrados usos diretos de `FirebaseDatabase`, `FirebaseAuth`, `DatabaseReference` ou `ValueEventListener` em Activities. A maior divida era logica de negocio em Activities, nao acesso Firebase cru.
+- `Pontuacao1x1Activity` ficou fina: le extras, configura observers/clicks, renderiza podio, mostra Toasts e navega para Main/desforra.
+- `Pontuacao1x1ViewModel` foi expandido para escutar pontuacoes 1x1, preparar `Pontuacao1x1UiState`, identificar o jogador atual, gravar historico uma vez, pedir atualizacao de estatisticas uma vez e manter o fluxo de desforra.
+- `Pontuacao2x2ViewModel` foi criado para escutar resultados 2x2, calcular podio/estado de espera/resultado final com `EstatisticasService`, emitir mensagem de recorde, gravar historico e atualizar estatisticas uma vez.
+- `Pontuacao2x2Activity` passou a renderizar apenas `Pontuacao2x2UiState` e eventos.
+- `PontuacoesViewModel` foi criado para resultados de grupo: escuta `PontuacaoRepository.escutarResultadosGrupo`, calcula podio/MVP/mensagens de espera e centraliza historico/estatisticas.
+- `PontuacoesActivity` passou a inflar os itens visuais do podio a partir de `PontuacoesUiState`.
+- `MainViewModel` foi criado para carregar perfil, avatar/nivel/XP, resolver UID-first com fallback por `nomeUtilizador`, gerir badge de pedidos/convites e remover listeners sociais no ciclo de vida.
+- `MainActivity` ficou com navegacao principal, clicks, renderizacao de perfil/badge e logout visual.
+- Repositories nao foram divididos nesta ronda: `PontuacaoRepository`, `JogoCompetitivoRepository`, `AmigosRepository` e `CategoriaRepository` permanecem grandes, mas a divisao ficou adiada para quando houver uma necessidade funcional clara.
+- Firebase Rules nao foram alteradas nesta migracao MVVM.
+
+Responsabilidades finais deste bloco:
+
+- `Activity`: UI, observers, clicks, Toasts e navegacao.
+- `Pontuacao*ViewModel`: estado de pontuacao, listeners, historico, estatisticas e anti-duplicacao local.
+- `MainViewModel`: perfil principal, notificacoes sociais e cleanup de listeners.
+- `PontuacaoRepository`: leitura realtime de resultados, atualizacao de estatisticas com anti-duplicacao Firebase e suporte a desforra.
+- `HistoricoRepository`: escrita de historico por UID com transacao anti-duplicacao.
+- `EstatisticasService`: ordenacao de podio, vencedor/empate, taxa de acertos, XP/progressao via `ProgressaoService`.
+
+Pendencias arquiteturais:
+
+- Criar ViewModels para `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity` numa fase propria, sem alterar o fluxo de convites.
+- Avaliar segunda limpeza em categorias, principalmente validacoes de formulario e mensagens.
+- Dividir `PontuacaoRepository` apenas quando houver testes dedicados para evitar regressao no fecho de jogo.
+- Manter plano futuro de backend autoritativo para estatisticas/ranking/anti-cheat.
+
+## Matchmaking aleatorio desativado temporariamente - 2026-05-08
+
+- Decisao atual: opcao B. O matchmaking aleatorio 1x1/2x2 fica fora da experiencia do jogador ate ser refeito numa fase propria.
+- `MainActivity` deixou de abrir `MatchmakingActivity`; os cards `1x1 Aleatorio` e `2x2 Aleatorio` ficam escondidos na Main.
+- `MatchmakingActivity` deixou de estar registada no `AndroidManifest.xml`. Os ficheiros de matchmaking permanecem no repositorio apenas como codigo sem uso, para evitar uma remocao ampla e arriscada nesta fase.
+- Convites 1x1/2x2 continuam a ser os fluxos competitivos ativos: `ConvidarAmigo1x1Activity`, `ConvidarAmigo2x2Activity`, `AmigosRepository`, `SalaDeEspera1x1Activity`, `SalaDeEspera2x2Activity` e `JogoCompetitivoRepository`.
+- Pontuacao, XP, ranking, historico, categorias, login/registo, amigos, perfil e modos grupo/solo nao mudam por causa desta decisao.
+- A futura reimplementacao do matchmaking deve comecar de contrato novo: apenas utilizadores autenticados no primeiro corte, selecao atomica de exatamente 2/4 jogadores, resultado por UID, sem loops de reentrada, sem dependencias de contagem em Firebase Rules e sem misturar convites com fila aleatoria.
+- As secoes antigas de "matchmaking robusto/implementado" abaixo ficam como historico das tentativas anteriores, nao como arquitetura ativa.
+
+## UX salas privadas e notificacoes sociais - 2026-05-08
+
+- Salas competitivas por convite passam a gravar `origem=convite`, `entradaFechada=true`, `lotacaoMaxima` e `jogadoresPermitidos`, mantendo-as privadas para os jogadores ja listados.
+- `SalaDeEspera1x1Activity` e `SalaDeEspera2x2Activity` consultam `JogoCompetitivoRepository.obterCodigoSalaInfo()` e escondem codigo/copiar quando a sala veio de convite, matchmaking ou esta fechada.
+- O convite 2x2 passa a exigir 3 amigos selecionados, para que a sala privada ja nasca com os 4 jogadores esperados.
+- Salas competitivas antigas sem `origem` e sem `entradaFechada` preservam o comportamento anterior; salas de grupo/manuais continuam a mostrar e copiar codigo.
+- `MainActivity` tem indicador visual no item `Amigos`, alimentado por listeners de pedidos de amizade e convites recebidos pendentes. O listener e apenas para contas/perfis, usa UID-first com fallback legado e e removido em `onStop`.
+
 ## Matchmaking robusto e UI de sala - 2026-05-08
 
 - `MatchmakingRepository` continua a ser o dono do contrato Firebase do matchmaking. O cliente que ganha a transacao e chama `tentarCriarMatch(criadorKey=...)` passa a ser tambem o `admin/adminId/adminUid` da sala criada, evitando `permission_denied` quando o segundo jogador ganha o claim.
 - O claim transacional de matchmaking agora reserva apenas `matches/{matchId}`. A fila deixa de ser marcada como `encontrado` antes de a sala existir; `fila/{playerKey}` so e removida no mesmo update que publica `resultados/{playerKey}`.
 - A selecao de jogadores e um invariante do repository: 1x1 exige exatamente 2 `playerKey` distintos e 2x2 exige exatamente 4. A validacao ocorre antes da sala e e confirmada depois da transacao da sala antes de publicar resultados.
+- Salas criadas por matchmaking sao salas competitivas fechadas: `origem=matchmaking`, `entradaFechada=true`, `lotacaoMaxima=2/4` e `jogadoresPermitidos/{playerKey}=true` para os selecionados.
 - Se a criacao da sala ou a publicacao de resultados falhar depois do claim, o repository remove `matches/{matchId}` e as entradas de fila dos jogadores selecionados que ainda nao tinham resultado publicado. Isto evita deixar jogadores presos em `estado=encontrado`; optou-se por limpar a fila em vez de reescrever entradas de outros UIDs, para nao abrir Firebase Rules.
 - O cancelamento passou a validar resultado+sala: se ambos existem, nao apaga a sala; se existe resultado antigo sem sala, ou fila `encontrado` sem resultado/sala valida, limpa a propria fila/resultado para permitir voltar.
 - O payload Firebase do matchmaking voltou a estrutura simples compativel com as rules reais: `playerKey`, `uid`, `tipoJogador`, nomes, avatar, `timestampEntrada` e `estado`. O campo `sessionId` foi removido do Firebase porque pode ser rejeitado por rules com `$other=false` e estava alinhado com o erro ao entrar na fila.
 - O `matchId` transacional passou a incluir o timestamp de entrada alem dos `playerKey`, para nao bloquear futuras partidas entre o mesmo par/grupo depois de um match antigo ficar em `matches`.
-- A sala continua a ser criada antes dos resultados; a navegacao agora verifica explicitamente se `sala_1x1/{codigo}` ou `sala_2x2/{codigo}` existe antes de abrir a sala de espera.
+- A sala continua a ser criada antes dos resultados; a navegacao agora verifica explicitamente se o `playerKey` atual existe em `sala_1x1/{codigo}/jogadores` ou `sala_2x2/{codigo}/jogadores` antes de abrir a sala de espera.
 - `sala_1x1` ja nao recebe `prontos` no payload inicial do matchmaking. Cada cliente marca o proprio pronto ao entrar na sala, mantendo a responsabilidade no fluxo da sala de espera.
-- `JogoCompetitivoRepository.adicionarJogador()` passou a ser a barreira de lotacao da sala: reentrada do mesmo jogador reutiliza a chave existente, mas novo jogador e bloqueado quando 1x1 ja tem 2 ou 2x2 ja tem 4 jogadores reais.
+- `JogoCompetitivoRepository.adicionarJogador()` passou a ser a barreira de lotacao da sala: em salas fechadas apenas confirma jogador ja listado; em salas abertas/convites usa reserva transacional em `jogadoresPermitidos` antes de escrever jogador novo. Reentrada do mesmo jogador reutiliza a chave existente.
 - `MatchmakingViewModel` mantem flags para uma unica criacao de match pendente, uma unica navegacao e cancelamento sem reentrada na fila. Ao navegar, remove listeners, cancela o `onDisconnect` da fila e remove o resultado consumido.
 - `MainActivity` bloqueia taps repetidos nos botoes 1x1/2x2 enquanto abre a Activity de matchmaking, reduzindo Activitys duplicadas do mesmo jogador.
 - Salas de espera continuam a receber `playerKey`, `uid`, `tipoJogador` e avatar como antes; convidados preservam `uid` vazio e continuam temporarios, sem tocar em estatisticas/XP/historico/ranking.

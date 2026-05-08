@@ -311,18 +311,23 @@ class AmigosRepository(
         nomeCategoria: String
     ): Task<Void> {
         val conviteData = conviteData(utilizador, amigo, codigoSala, GameConstants.MODO_1X1, nomeCategoria)
+        val jogadores = mapOf(
+            utilizador.chaveConvite to utilizador.toJogadorCompetitivoData(),
+            amigo.chaveConvite to amigo.toJogadorCompetitivoData()
+        )
         return database.updateChildren(
             mapOf(
                 "${FirebasePaths.SALA_1X1}/$codigoSala" to mapOf(
-                    FirebasePaths.JOGADORES to mapOf(
-                        utilizador.chaveConvite to utilizador.toJogadorCompetitivoData(),
-                        amigo.chaveConvite to amigo.toJogadorCompetitivoData()
-                    ),
+                    FirebasePaths.JOGADORES to jogadores,
+                    FirebasePaths.JOGADORES_PERMITIDOS to jogadores.keys.associateWith { true },
                     FirebasePaths.ADMIN to utilizador.nomeDisplay,
                     FirebasePaths.ADMIN_ID to utilizador.chaveConvite,
                     FirebasePaths.ADMIN_UID to utilizador.uid,
                     FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
-                    FirebasePaths.NOME_CATEGORIA to nomeCategoria
+                    FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+                    FirebasePaths.ORIGEM to GameConstants.ORIGEM_CONVITE,
+                    FirebasePaths.LOTACAO_MAXIMA to 2,
+                    FirebasePaths.ENTRADA_FECHADA to true
                 ),
                 "${FirebasePaths.JOGADORES}/${amigo.chaveDonoSocial}/${FirebasePaths.CONVITES_RECEBIDOS}/${utilizador.chaveConvite}" to conviteData,
                 "${FirebasePaths.JOGADORES}/${utilizador.chaveDonoSocial}/${FirebasePaths.CONVITES_ENVIADOS}/${amigo.chaveConvite}" to conviteData
@@ -346,11 +351,15 @@ class AmigosRepository(
         val updates = hashMapOf<String, Any>(
             "${FirebasePaths.SALA_2X2}/$codigoSala" to mapOf(
                 FirebasePaths.JOGADORES to jogadores,
+                FirebasePaths.JOGADORES_PERMITIDOS to jogadores.keys.associateWith { true },
                 FirebasePaths.ADMIN to utilizador.nomeDisplay,
                 FirebasePaths.ADMIN_ID to utilizador.chaveConvite,
                 FirebasePaths.ADMIN_UID to utilizador.uid,
                 FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
-                FirebasePaths.NOME_CATEGORIA to nomeCategoria
+                FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+                FirebasePaths.ORIGEM to GameConstants.ORIGEM_CONVITE,
+                FirebasePaths.LOTACAO_MAXIMA to 4,
+                FirebasePaths.ENTRADA_FECHADA to true
             )
         )
         amigosSelecionados.forEach { amigo ->

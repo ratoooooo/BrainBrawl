@@ -44,8 +44,8 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         // Botão para convidar amigos
         binding.btnConvidar.setOnClickListener {
             val selecionados = convidarAmigoAdapter.getSelecionados()
-            if (selecionados.size < 2 || selecionados.size > 3) {
-                Toast.makeText(this, "Seleciona entre 2 e 3 amigos!", Toast.LENGTH_SHORT).show()
+            if (selecionados.size != 3) {
+                Toast.makeText(this, "Seleciona 3 amigos para fechar o 2x2.", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             // Chama a função para enviar convite 2x2

@@ -5,20 +5,19 @@ import android.os.Bundle
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.config.GameConstants
+import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMainBinding
-import com.example.brainbrawl.repositories.JogadorRepository
-import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.AvatarUtils
+import com.example.brainbrawl.viewmodels.MainInput
+import com.example.brainbrawl.viewmodels.MainViewModel
 
 class MainActivity : AppCompatActivity() {
-    // Acessar os elementos do layout
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    // Acessar a base de dados
-    private val jogadorRepository = JogadorRepository()
-    private val authService = AuthService()
-    // Variáveis para armazenar informações do utilizador e da sala
+    private val viewModel by lazy {
+        ViewModelProvider(this)[MainViewModel::class.java]
+    }
+
     private var nomeCategoria: String? = null
     private var codigoSala: String? = null
     private var uid: String? = null
@@ -26,20 +25,15 @@ class MainActivity : AppCompatActivity() {
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
     private var modoJogo: String? = null
-    private var admin = false
-    private var matchmakingAbrindo = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
-        // Recuperar dados do savedInstanceState ou do intent se for a primeira vez
         uid = savedInstanceState?.getString(IntentExtras.UID)
             ?: intent.getStringExtra(IntentExtras.UID)
-            ?: authService.utilizadorAtual()?.uid
         email = savedInstanceState?.getString(IntentExtras.EMAIL)
             ?: intent.getStringExtra(IntentExtras.EMAIL)
-            ?: authService.utilizadorAtual()?.email
         nomeUtilizador = savedInstanceState?.getString(IntentExtras.NOME_UTILIZADOR)
             ?: intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         nomeJogador = savedInstanceState?.getString(IntentExtras.NOME_JOGADOR)
@@ -51,11 +45,56 @@ class MainActivity : AppCompatActivity() {
         modoJogo = savedInstanceState?.getString(IntentExtras.MODO_JOGO)
             ?: intent.getStringExtra(IntentExtras.MODO_JOGO)
 
-        atualizarBoasVindas()
-        carregarPerfilPrincipal()
+        configurarObservers()
+        configurarClicks()
+        viewModel.iniciar(
+            MainInput(
+                uid = uid.orEmpty(),
+                email = email.orEmpty(),
+                nomeUtilizador = nomeUtilizador.orEmpty(),
+                nomeJogador = nomeJogador.orEmpty(),
+                nomeCategoria = nomeCategoria.orEmpty(),
+                codigoSala = codigoSala.orEmpty(),
+                modoJogo = modoJogo.orEmpty()
+            )
+        )
+    }
 
+    override fun onStart() {
+        super.onStart()
+        viewModel.iniciarNotificacoes(getString(R.string.categoria5))
+    }
 
-        // BConfigurar Botões
+    override fun onStop() {
+        viewModel.pararNotificacoes()
+        super.onStop()
+    }
+
+    private fun configurarObservers() {
+        viewModel.uiState.observe(this) { state ->
+            uid = state.uid.ifBlank { null }
+            email = state.email.ifBlank { null }
+            nomeUtilizador = state.nomeUtilizador.ifBlank { null }
+            nomeJogador = state.nomeJogador.ifBlank { null }
+            nomeCategoria = state.nomeCategoria.ifBlank { null }
+            codigoSala = state.codigoSala.ifBlank { null }
+            modoJogo = state.modoJogo.ifBlank { null }
+
+            binding.txtBoasVindas.text = state.boasVindas
+            binding.btnAddAmigo.visibility = if (state.amigosVisivel) View.VISIBLE else View.GONE
+            binding.txtNivel.text = "Nível ${state.nivel}"
+            binding.txtLevelBadge.text = state.nivel.toString()
+            binding.txtXp.text = "${state.xpNoNivelAtual} / ${state.xpNecessarioProximoNivel} XP"
+            binding.progressXp.max = state.xpNecessarioProximoNivel.coerceAtLeast(1)
+            binding.progressXp.progress = state.xpNoNivelAtual.coerceAtLeast(0)
+            if (state.avatar.isNotBlank()) {
+                binding.imgAvatar.setImageResource(AvatarUtils.resolverAvatar(this, state.avatar))
+            }
+            atualizarBadgeNotificacoes(state.notificacoesPendentes, state.amigosVisivel)
+        }
+    }
+
+    private fun configurarClicks() {
         binding.btnCriarSala.setOnClickListener {
             val intent = Intent(this, EscolherModoActivity::class.java)
             if (nomeUtilizador != null) {
@@ -71,7 +110,6 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnEntrarSala.setOnClickListener {
             val intent = Intent(this, SalaDeEsperaActivity::class.java)
-            // Passa o nome do utilizador ou jogador (se já estiver preenchido)
             nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             adicionarAuthExtras(intent)
@@ -86,21 +124,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.btnMatchmaking1x1.setOnClickListener {
-            abrirMatchmaking(GameConstants.MODO_1X1)
-        }
-
-        binding.btnMatchmaking2x2.setOnClickListener {
-            abrirMatchmaking(GameConstants.MODO_2X2)
-        }
-
-        binding.btnRanking.setOnClickListener {
-            abrirRanking()
-        }
-
-        binding.btnRankingNav.setOnClickListener {
-            abrirRanking()
-        }
+        binding.btnRanking.setOnClickListener { abrirRanking() }
+        binding.btnRankingNav.setOnClickListener { abrirRanking() }
 
         binding.btnHistorico.setOnClickListener {
             val intent = Intent(this, HistoricoActivity::class.java)
@@ -110,82 +135,25 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        binding.avatarFrame.setOnClickListener {
-            abrirPerfil()
-        }
+        binding.avatarFrame.setOnClickListener { abrirPerfil() }
+        binding.btnPerfil.setOnClickListener { abrirPerfil() }
+        binding.btnAddAmigo.setOnClickListener { abrirAmigos() }
 
-        binding.btnPerfil.setOnClickListener {
-            abrirPerfil()
-        }
-
-        // Botão para voltar ao ecrã de login
         binding.btnVoltar.setOnClickListener {
-            // Mudar estado do jogador para 'off' no Firebase, só se for utilizador autenticado
-            (uid ?: nomeUtilizador)?.let {
-                jogadorRepository.marcarOffline(it)
-            }
-            authService.terminarSessao()
+            viewModel.terminarSessao()
             startActivity(Intent(this, LoginActivity::class.java))
             finish()
         }
     }
 
-    private fun atualizarBoasVindas() {
-        if (nomeUtilizador != null) {
-            binding.txtBoasVindas.text = nomeUtilizador
-            binding.btnAddAmigo.visibility = View.VISIBLE
-            binding.btnAddAmigo.setOnClickListener {
-                val intent = Intent(this, AmigosActivity::class.java)
-                intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
-                adicionarAuthExtras(intent)
-                startActivity(intent)
-            }
-        } else if (nomeJogador != null) {
-            binding.txtBoasVindas.text = nomeJogador
-            binding.btnAddAmigo.visibility = View.GONE
-        } else {
-            binding.txtBoasVindas.text = "Jogador"
-            binding.btnAddAmigo.visibility = View.GONE
+    private fun atualizarBadgeNotificacoes(total: Int, amigosVisivel: Boolean) {
+        val mostrar = total > 0 && amigosVisivel
+        binding.notificationBadgeAmigos.visibility = if (mostrar) View.VISIBLE else View.GONE
+        binding.notificationBadgeAmigos.text = when {
+            total > 9 -> "9+"
+            total > 0 -> total.toString()
+            else -> ""
         }
-    }
-
-    private fun carregarPerfilPrincipal() {
-        val identificador = uid?.takeIf { it.isNotBlank() }
-            ?: nomeUtilizador?.takeIf { it.isNotBlank() }
-            ?: return
-
-        jogadorRepository.obterPerfil(identificador)
-            .addOnSuccessListener { perfil ->
-                if (perfil != null) {
-                    aplicarPerfilPrincipal(perfil)
-                    return@addOnSuccessListener
-                }
-                val emailAtual = email.orEmpty()
-                if (emailAtual.isNotBlank()) {
-                    jogadorRepository.obterPerfilPorEmail(emailAtual)
-                        .addOnSuccessListener { perfilPorEmail ->
-                            perfilPorEmail?.let { aplicarPerfilPrincipal(it) }
-                        }
-                }
-            }
-    }
-
-    private fun aplicarPerfilPrincipal(perfil: JogadorRepository.PerfilJogador) {
-        if (uid.isNullOrBlank()) {
-            uid = perfil.uid.takeIf { it.isNotBlank() }
-        }
-        nomeUtilizador = perfil.nomeUtilizador.takeIf { it.isNotBlank() } ?: nomeUtilizador
-        email = email ?: perfil.email.takeIf { it.isNotBlank() }
-
-        binding.txtBoasVindas.text = perfil.nomeUtilizador.ifBlank { nomeUtilizador ?: "Jogador" }
-        binding.txtNivel.text = "Nível ${perfil.estatisticas.nivel}"
-        binding.txtLevelBadge.text = perfil.estatisticas.nivel.toString()
-        binding.txtXp.text = "${perfil.estatisticas.xpNoNivelAtual} / ${perfil.estatisticas.xpNecessarioProximoNivel} XP"
-        binding.progressXp.max = perfil.estatisticas.xpNecessarioProximoNivel.coerceAtLeast(1)
-        binding.progressXp.progress = perfil.estatisticas.xpNoNivelAtual.coerceAtLeast(0)
-
-        binding.imgAvatar.setImageResource(AvatarUtils.resolverAvatar(this, perfil.avatar))
-        atualizarBoasVindas()
     }
 
     private fun abrirRanking() {
@@ -208,29 +176,24 @@ class MainActivity : AppCompatActivity() {
         startActivity(intent)
     }
 
+    private fun abrirAmigos() {
+        val utilizador = nomeUtilizador
+        if (utilizador.isNullOrBlank()) {
+            Toast.makeText(this, "Amigos disponível apenas para contas com sessão iniciada.", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = Intent(this, AmigosActivity::class.java)
+        intent.putExtra(IntentExtras.NOME_UTILIZADOR, utilizador)
+        adicionarAuthExtras(intent)
+        startActivity(intent)
+    }
+
     private fun adicionarAuthExtras(intent: Intent) {
         uid?.let { intent.putExtra(IntentExtras.UID, it) }
         email?.let { intent.putExtra(IntentExtras.EMAIL, it) }
     }
 
-    private fun abrirMatchmaking(modo: String) {
-        if (matchmakingAbrindo) return
-        matchmakingAbrindo = true
-        val intent = Intent(this, MatchmakingActivity::class.java)
-        intent.putExtra(IntentExtras.MODO_JOGO, modo)
-        intent.putExtra(IntentExtras.NOME_CATEGORIA, getString(R.string.categoria5))
-        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
-        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
-        adicionarAuthExtras(intent)
-        startActivity(intent)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        matchmakingAbrindo = false
-    }
-
-    // Guardar estado da activity para rotações/dispositivo
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putString(IntentExtras.UID, uid)

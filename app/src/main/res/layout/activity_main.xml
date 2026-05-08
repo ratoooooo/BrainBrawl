@@ -319,12 +319,13 @@
                     android:layout_height="156dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_main_mode_card"
-                    android:clickable="true"
+                    android:clickable="false"
                     android:elevation="3dp"
-                    android:focusable="true"
+                    android:focusable="false"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:visibility="gone">
 
                     <ImageView
                         android:layout_width="44dp"
@@ -360,12 +361,13 @@
                     android:layout_marginStart="12dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_main_mode_card"
-                    android:clickable="true"
+                    android:clickable="false"
                     android:elevation="3dp"
-                    android:focusable="true"
+                    android:focusable="false"
                     android:gravity="center"
                     android:orientation="vertical"
-                    android:padding="12dp">
+                    android:padding="12dp"
+                    android:visibility="gone">
 
                     <ImageView
                         android:layout_width="48dp"
@@ -398,7 +400,7 @@
                     android:id="@+id/btn_explorar_categorias"
                     android:layout_width="0dp"
                     android:layout_height="156dp"
-                    android:layout_marginStart="12dp"
+                    android:layout_marginStart="0dp"
                     android:layout_weight="1"
                     android:background="@drawable/bg_main_mode_card"
                     android:clickable="true"
@@ -549,13 +551,35 @@
             android:orientation="vertical"
             android:visibility="gone">
 
-            <ImageView
-                android:id="@+id/img_add_amigo"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:src="@drawable/ic_group"
-                android:visibility="visible"
-                app:tint="#6B5B46" />
+            <FrameLayout
+                android:layout_width="42dp"
+                android:layout_height="34dp">
+
+                <ImageView
+                    android:id="@+id/img_add_amigo"
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_group"
+                    android:visibility="visible"
+                    app:tint="#6B5B46" />
+
+                <TextView
+                    android:id="@+id/notification_badge_amigos"
+                    android:layout_width="wrap_content"
+                    android:layout_height="18dp"
+                    android:layout_gravity="top|end"
+                    android:background="@drawable/bg_notification_badge"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:minWidth="18dp"
+                    android:paddingStart="5dp"
+                    android:paddingEnd="5dp"
+                    android:textColor="#FFFFFF"
+                    android:textSize="10sp"
+                    android:textStyle="bold"
+                    android:visibility="gone" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/txt_add_amigo"

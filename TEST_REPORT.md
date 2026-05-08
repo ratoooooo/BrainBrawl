@@ -2,6 +2,230 @@
 
 Data: 2026-05-08
 
+## Verificacao pos-MVVM - 2026-05-08
+
+### Escopo
+
+- Ronda apenas de verificacao apos a migracao MVVM.
+- Nao foram implementadas funcionalidades novas.
+- Nao foi feito refactor novo.
+- Nao foram alteradas Firebase Rules.
+- Nao foram encontrados bugs causados pela migracao MVVM que exigissem correcao de codigo.
+
+### Validacao por fluxo
+
+- Login/registo/logout: codigo revisto; `LoginActivity` e `RegistarActivity` continuam com os seus ViewModels existentes e nao foram alterados nesta ronda. Smoke test em emulador iniciou a app e confirmou sessao persistente abrindo a Main sem crash. Logout continua a chamar `MainViewModel.terminarSessao()`, que marca offline e termina Auth.
+- Main: validado por build, analise de `MainActivity`/`MainViewModel` e smoke test em emulador. Main abre sem crash; perfil/badge estao isolados no ViewModel; Activity mantem clicks/navegacao/renderizacao.
+- Amigos/pedidos/convites: validado por analise de listeners. `MainViewModel` usa `AmigosRepository.observarPedidosRecebidos()` e `observarConvitesRecebidos()`, remove listeners em `pararNotificacoes()`/`onCleared()` e nao cria listeners duplicados para o mesmo identificador.
+- Convite 1x1: fluxo de `ConvidarAmigo1x1Activity` -> `AmigosRepository` -> `SalaDeEspera1x1Activity` revisto; nao foi alterado pela ronda MVVM.
+- Convite 2x2: fluxo de `ConvidarAmigo2x2Activity` -> `AmigosRepository` -> `SalaDeEspera2x2Activity` revisto; nao foi alterado pela ronda MVVM.
+- Sala grupo: `SalaDeEsperaActivity`/`SalaDeEsperaGrupoActivity` continuam com `SalaGrupoViewModel`; paths/extras preservados.
+- Jogo classico/caotico/eliminatorias: `JogoActivity` continua a enviar extras esperados para `PontuacoesActivity`; eliminados continuam a passar por `EsperaEliminadoActivity`.
+- Pontuacao grupo: `PontuacoesActivity` recebe os mesmos extras e renderiza `PontuacoesUiState`; `PontuacoesViewModel` escuta `PontuacaoRepository.escutarResultadosGrupo()` e preserva historico/estatisticas uma vez.
+- Pontuacao 1x1: `Pontuacao1x1Activity` recebe os mesmos extras; `Pontuacao1x1ViewModel` preserva listener de pontuacoes, historico, estatisticas, convidado sem persistencia e desforra.
+- Pontuacao 2x2: `Pontuacao2x2Activity` recebe os mesmos extras; `Pontuacao2x2ViewModel` preserva podio, espera por 4 jogadores, recorde, historico e estatisticas.
+- Historico: `HistoricoRepository.guardarHistoricoUmaVez()` continua a ser chamado apenas com UID valido pelos ViewModels de pontuacao.
+- Ranking: nao foi alterado; as atualizacoes de estatisticas continuam a passar por `PontuacaoRepository.atualizarEstatisticasSalaUmaVez()`.
+- Perfil: `MainViewModel` carrega perfil por UID-first com fallback por `nomeUtilizador`/email; `MeuPerfilActivity` nao foi alterada.
+- Convidados sem estatisticas: validado nas guards `podeGravarPersistente()` em 1x1/2x2 e `uid.isNotBlank()` no grupo, mantendo convidado no podio sem historico/XP/ranking.
+- Matchmaking aleatorio: continua removido/desativado; `MainActivity` nao tem navegacao para `MatchmakingActivity`.
+
+### Verificacoes tecnicas executadas
+
+- Pesquisa em Activities migradas por imports/acesso direto a repositories/listeners Firebase:
+  - `MainActivity.kt`, `Pontuacao1x1Activity.kt`, `Pontuacao2x2Activity.kt` e `PontuacoesActivity.kt` nao contem `PontuacaoRepository`, `HistoricoRepository`, `EstatisticasService`, `AmigosRepository`, `JogadorRepository`, `FirebaseDatabase` ou `ValueEventListener`.
+- Pesquisa de matchmaking na Main/manifest:
+  - Sem `MatchmakingActivity`, `abrirMatchmaking` ou listeners ativos na Main/manifest. Os ids XML escondidos continuam sem click.
+- Smoke test em emulador:
+  - `adb -s emulator-5554 install -r app/build/outputs/apk/debug/app-debug.apk`: OK.
+  - `adb -s emulator-5554 shell am start -n com.example.brainbrawl/.LoginActivity`: OK.
+  - `dumpsys activity activities`: app resumida em `MainActivity`, confirmando sessao persistente e arranque sem crash.
+
+### Build e testes
+
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew clean`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew testDebugUnitTest`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew build`
+  - OK; `BUILD SUCCESSFUL`.
+
+Avisos mantidos: `SalaRepository.kt:84 Parameter 'adminHint' is never used` e deprecated Gradle features.
+
+### Limites da verificacao
+
+- Nao foi executado teste manual completo com criacao real de contas, pedidos de amizade e convites entre varios utilizadores nesta ronda.
+- Nao foram jogadas partidas completas 1x1/2x2/grupo no Firebase real durante esta verificacao.
+- A validacao funcional profunda desses fluxos deve ser feita manualmente com varios dispositivos/contas, mas a verificacao pos-MVVM nao encontrou regressao estatica, de build, de arranque ou de contrato de extras/listeners.
+
+## Auditoria e migracao MVVM - 2026-05-08
+
+### Resumo da auditoria
+
+- Activities com `FirebaseDatabase`, `FirebaseAuth`, `DatabaseReference` ou `ValueEventListener` diretos: nenhuma encontrada em `*Activity.kt` por pesquisa automatica. O acesso Firebase esta concentrado em repositories/services.
+- Activities com logica pesada antes desta ronda: `Pontuacao1x1Activity`, `Pontuacao2x2Activity`, `PontuacoesActivity` e `MainActivity`.
+- Logica pesada encontrada em pontuacoes: listeners de resultados, persistencia de historico, atualizacao de estatisticas/XP/ranking indireto, anti-duplicacao local e identificacao de convidado/auth estavam nas Activities.
+- Logica pesada encontrada na Main: leitura de perfil, resolucao de UID/nome, XP/avatar/nivel e listeners de pedidos/convites estavam na Activity.
+- Activities ja razoavelmente alinhadas com MVVM e nao migradas nesta ronda: login/registo, ranking, historico, amigos/perfil, jogos, salas de espera e categorias principais ja usam ViewModels/repositories.
+- Repositories grandes identificados: `PontuacaoRepository`, `JogoCompetitivoRepository`, `AmigosRepository` e `CategoriaRepository`. Nao foram divididos porque a divisao nao era necessaria para esta migracao segura.
+- Services reutilizados: `EstatisticasService`, `ProgressaoService`, `ScoreService`, `ScoreCompetitivoService` e `AuthService`.
+- ViewModels existentes preservados: `Pontuacao1x1ViewModel` foi expandido em vez de duplicado; `Sala1x1ViewModel`, `Sala2x2ViewModel`, `SalaGrupoViewModel`, `AmigosViewModel`, `CategoriasViewModel`, `ExplorarCategoriasViewModel`, `EditarCategoriaViewModel`, `LoginViewModel`, `RegistarViewModel`, `MeuPerfilViewModel`, `PerfilAmigoViewModel`, `RankingViewModel` e `HistoricoViewModel` nao foram duplicados.
+- Listeners movidos para ViewModel: resultados/pontuacoes 1x1, 2x2 e grupo; pedidos de amizade e convites recebidos da Main.
+- UiState/Event que faltavam: adicionados para pontuacoes competitivas/grupo e para Main.
+- Navegacao misturada com dados: reduzida em pontuacoes e Main; as Activities mantem apenas clique, renderizacao, Toast e navegacao.
+- Pontos de risco com convidados: a persistencia de pontuacoes continua bloqueada por `uid` valido e `tipoJogador != guest`; convidado aparece no podio, mas nao grava estatisticas, XP, historico nem ranking.
+
+### Ficheiros migrados/criados
+
+- Criado `app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao2x2ViewModel.kt`.
+- Criado `app/src/main/java/com/example/brainbrawl/viewmodels/PontuacoesViewModel.kt`.
+- Criado `app/src/main/java/com/example/brainbrawl/viewmodels/MainViewModel.kt`.
+- Expandido `app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao1x1ViewModel.kt`.
+- Migradas `Pontuacao1x1Activity.kt`, `Pontuacao2x2Activity.kt`, `PontuacoesActivity.kt` e `MainActivity.kt` para observar estado e eventos.
+
+### Responsabilidades apos migracao
+
+- `Pontuacao1x1Activity`: renderiza dois jogadores, observa estado de desforra, mostra mensagens e navega.
+- `Pontuacao2x2Activity`: renderiza podio 2x2, estado de espera/final e mensagens.
+- `PontuacoesActivity`: renderiza lista/podio de grupo com mensagem de espera/erro.
+- `MainActivity`: configura botoes, navega, renderiza perfil/XP/avatar/badge e executa logout visual.
+- `Pontuacao1x1ViewModel`: escuta pontuacoes, gere historico/estatisticas uma vez, calcula identidade do jogador atual e preserva fluxo de desforra.
+- `Pontuacao2x2ViewModel`: escuta resultados 2x2, calcula podio/estado/recorde, grava historico e estatisticas uma vez.
+- `PontuacoesViewModel`: escuta resultados de grupo, prepara podio/MVP/mensagens e grava historico/estatisticas uma vez.
+- `MainViewModel`: carrega perfil principal, resolve UID-first com fallback legado, gere badge social e remove listeners no ciclo de vida.
+
+### Ficheiros que ficaram pendentes
+
+- `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity` ainda usam repository diretamente; nao foram migradas para evitar mexer no fluxo de convites agora.
+- `EscolherModoActivity` e `EscolhaCategoriaModosActivity` ainda usam `AuthService`/extras diretamente; sao fluxo de navegacao leve.
+- `AdicionarPerguntaActivity`, `EscolherCategoriaActivity` e `ExplorarCategoriasActivity` ja usam ViewModels, mas podem receber uma segunda limpeza futura de validacoes/UI.
+- `PontuacaoRepository` continua grande; uma futura divisao por leitura de podio, historico/estatisticas e desforra pode fazer sentido quando houver testes dedicados.
+
+### Verificacoes executadas nesta ronda
+
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK em verificacao intermedia; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew clean`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew testDebugUnitTest`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew build`
+  - OK; `BUILD SUCCESSFUL`.
+
+Avisos mantidos: `SalaRepository.kt:84 Parameter 'adminHint' is never used` e deprecated Gradle features.
+
+### Testes manuais pendentes
+
+- Nao foram executados testes manuais multi-dispositivo nesta ronda dentro do ambiente atual.
+- Continuam recomendados os testes manuais de Auth, convidado, Main, amigos/convites, salas, 1x1, 2x2, pontuacoes e categorias descritos no pedido.
+
+### Riscos pendentes
+
+- O fecho de estatisticas/historico continua cliente-side, ainda que centralizado em ViewModels/repositories.
+- A Main agora remove e recria listeners sociais por ciclo de vida; deve ser validada manualmente com contas reais recebendo pedidos/convites.
+- A migracao manteve os paths Firebase e a formula de pontuacao; bugs preexistentes de dados antigos continuam possiveis por compatibilidade legado.
+- Matchmaking aleatorio continua removido/desativado.
+
+## Decisao final - Matchmaking aleatorio desativado - 2026-05-08
+
+### Opcao escolhida
+
+- Opcao B: remover/desativar temporariamente o matchmaking aleatorio 1x1/2x2 da experiencia do jogador.
+- Motivo: o fluxo atual ja acumulava varias correcoes concorrentes em fila, resultado, sala, `playerKey`, convidados e Firebase Rules. Mesmo com transacoes cliente-side, a arbitragem continua vulneravel a estados intermedios, clientes duplicados e regras que nao conseguem provar a lotacao real. Para esta fase, a decisao mais segura e entregar a app sem botoes que levam a uma funcionalidade instavel.
+- Esta decisao substitui as tentativas anteriores documentadas abaixo. As secoes antigas ficam como historico tecnico do que foi tentado, nao como estado recomendado atual.
+
+### Alteracoes aplicadas
+
+- `MainActivity.kt`: removida a navegacao para `MatchmakingActivity`; os listeners de `1x1 Aleatorio` e `2x2 Aleatorio`, a flag `matchmakingAbrindo` e `abrirMatchmaking()` foram retirados.
+- `activity_main.xml`: os cards `1x1 Aleatorio` e `2x2 Aleatorio` ficaram escondidos (`visibility="gone"`) e nao clicaveis; o card `Explorar Categorias` ocupa a linha sem margem inicial.
+- `AndroidManifest.xml`: `MatchmakingActivity` deixou de estar registada, impedindo navegacao interna acidental para o ecrã de matchmaking.
+- `firebase-rules.json`: removido o uso de `childrenCount()` em `jogadoresPermitidos`; as rules mantem apenas estrutura/booleanos e a lotacao fica a cargo do Kotlin/repository.
+- `FIREBASE_RULES_NOTES.md` e `ARCHITECTURE_PLAN.md`: atualizados para refletir que o matchmaking aleatorio esta temporariamente fora da experiencia.
+
+### Fluxos preservados
+
+- Convites 1x1 continuam no fluxo `ConvidarAmigo1x1Activity` -> `AmigosRepository.enviarConvite1x1()` -> `SalaDeEspera1x1Activity`.
+- Convites 2x2 continuam no fluxo `ConvidarAmigo2x2Activity` -> `AmigosRepository.enviarConvite2x2()` -> `SalaDeEspera2x2Activity`.
+- Pontuacao, XP, ranking, historico, categorias, login/registo, amigos, perfil e modos grupo/solo nao foram alterados nesta decisao.
+- Convidados nao perderam os modos que ja usavam fora do matchmaking aleatorio; o corte foi apenas dos botoes aleatorios da Main e da rota para `MatchmakingActivity`.
+
+### Verificacoes executadas
+
+- `python3 -m json.tool firebase-rules.json`
+  - OK; JSON valido.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew clean`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew testDebugUnitTest`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew build`
+  - OK; `BUILD SUCCESSFUL`.
+
+Avisos mantidos: `SalaRepository.kt:84 Parameter 'adminHint' is never used` e deprecated Gradle features.
+
+### Riscos pendentes
+
+- Os ficheiros de matchmaking continuam no codigo para futura reimplementacao, mas sem entrada de UI nem manifesto.
+- Nao foi feito teste manual multi-dispositivo de convites Firebase nesta ronda; a garantia atual vem da analise dos caminhos, de nao tocar nesses fluxos e de build/test.
+- Nodes antigos de `matchmaking` que existam no Firebase podem continuar na base de dados, mas a app ja nao oferece caminho de jogador para consumi-los.
+- A reativacao futura deve ser tratada como reimplementacao nova e simples, idealmente com backend autoritativo ou transacao Kotlin muito pequena, sem convidados ate o fluxo autenticado estar estavel.
+
+## UX - salas privadas por convite e indicador social - 2026-05-08
+
+### Alteracoes aplicadas
+
+- Salas competitivas criadas por convite passam a gravar `origem=convite`, `entradaFechada=true`, `lotacaoMaxima` e `jogadoresPermitidos` no momento de `enviarConvite1x1()`/`enviarConvite2x2()`.
+- `SalaDeEspera1x1Activity` e `SalaDeEspera2x2Activity` carregam a origem/privacidade da sala antes de expor o codigo. Se a sala for `convite`, `matchmaking` ou estiver fechada, mostram apenas `Partida por convite` ou `Partida automática` e escondem o botao de copiar.
+- Salas antigas sem `origem` e sem `entradaFechada` continuam com o comportamento atual, mostrando codigo. Salas de grupo/manual continuam a mostrar e copiar codigo pela `SalaDeEsperaGrupoActivity`.
+- `JogoCompetitivoRepository` reconhece `origem=convite` como sala fechada e valida a entrada pelos jogadores ja listados, mantendo compatibilidade por `uid`, `playerKey`, nome e display legado.
+- `ConvidarAmigo2x2Activity` passou a exigir 3 amigos selecionados, porque uma sala 2x2 privada precisa nascer com os 4 jogadores definidos e ja nao depende de partilha de codigo.
+- `MainActivity` passou a observar pedidos de amizade e convites recebidos pendentes para contas/perfis autenticados, usando `AmigosRepository` com UID-first e fallback por `nomeUtilizador`.
+- O botao `Amigos` na Main mostra um badge vermelho com contador (`9+` no limite visual) quando ha pedidos/convites pendentes; convidados nao veem indicador social.
+- Os listeners sociais da Main sao criados em `onStart`, evitam duplicacao por identificador e sao removidos em `onStop`.
+
+### Ficheiros alterados nesta ronda UX
+
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/drawable/bg_notification_badge.xml`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/res/layout/activity_sala_de_espera_1x1.xml`
+- `app/src/main/res/layout/activity_sala_de_espera2x2.xml`
+- `app/src/main/java/com/example/brainbrawl/config/GameConstants.kt`
+
+### Verificacoes executadas
+
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew clean`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew testDebugUnitTest`
+  - OK; `BUILD SUCCESSFUL`.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew build`
+  - OK; `BUILD SUCCESSFUL`.
+
+Avisos mantidos: `SalaRepository.kt:84 Parameter 'adminHint' is never used` e deprecated Gradle features.
+
+### Testes manuais recomendados
+
+- Criar convite 1x1 e confirmar que a sala mostra `Partida por convite` sem codigo nem copiar.
+- Criar convite 2x2 e confirmar que a sala mostra `Partida por convite` sem codigo nem copiar.
+- Criar/entrar numa sala de grupo por codigo e confirmar que codigo e copiar continuam visiveis.
+- Receber pedido de amizade e confirmar badge em `Amigos` na Main.
+- Receber convite 1x1/2x2 e confirmar badge em `Amigos` na Main.
+- Aceitar/remover pendencias e confirmar que o badge desaparece quando a lista fica vazia.
+
 ## Issue #1 - Matchmaking loop e UI da sala de espera - 2026-05-08
 
 ### Analise do fluxo
@@ -27,6 +251,7 @@ Data: 2026-05-08
 - Causa do erro ao entrar na fila: o payload local tinha sido expandido com `sessionId`, enquanto a estrutura recomendada e rules com `$other=false` exigem campos conhecidos. Isto e compatível com `permission_denied` logo no write inicial da fila; o campo foi removido do Firebase.
 - Causa da fase atual "Erro ao criar sala": o fluxo ainda marcava jogadores selecionados como `estado=encontrado` dentro do claim antes de confirmar sala+resultados. Quando a criacao/publicacao falhava, o cliente recuperava com mensagem generica e podia deixar estado intermedio dificil de cancelar.
 - Causa do caso de 3 jogadores no 1x1: `JogoCompetitivoRepository.adicionarJogador()` apenas reutilizava uma chave existente quando reconhecia a identidade; se um terceiro chegasse por resultado/codigo antigo ou identidade diferente, nao havia guarda de lotacao antes do `setValue()`.
+- Causa exata ainda observada apos a primeira correcao: a guarda de lotacao em `adicionarJogador()` fazia `get()` dos jogadores e so depois `setValue()`. Dois clientes podiam ler a mesma lotacao antes da escrita final, permitindo corrida. Alem disso, salas vindas de matchmaking nao estavam marcadas como fechadas a lista original de `playerKey`, entao uma Activity aberta por resultado/codigo antigo ainda podia tentar adicionar uma nova entrada.
 - O payload inicial da sala 1x1 tambem escrevia `prontos` para os jogadores durante a criacao. Esse estado foi retirado da criacao da sala: cada cliente marca o seu proprio pronto ao entrar, usando o fluxo ja existente e compativel com as rules.
 
 ### Solucao implementada
@@ -38,8 +263,11 @@ Data: 2026-05-08
 - `tentarCriarMatch()` valida `size == 2` no 1x1 e `size == 4` no 2x2, com `playerKey` nao vazio e sem duplicados. A mesma validacao repete antes da escrita da sala.
 - Depois da transacao da sala, o repository confirma que `jogadores` tem exatamente o limite esperado antes de publicar resultados.
 - `salaMap()` deixou de escrever `prontos` inicialmente no 1x1; a sala nasce apenas com `jogadores`, `admin/adminId/adminUid`, `estado` e `nomeCategoria`.
-- `JogoCompetitivoRepository.adicionarJogador()` passou a bloquear entrada nova se a sala 1x1 ja tiver 2 jogadores reais ou a 2x2 ja tiver 4. Reabrir a Activity pelo mesmo jogador apenas reutiliza a chave existente.
+- Salas criadas por matchmaking agora nascem fechadas: `origem=matchmaking`, `entradaFechada=true`, `lotacaoMaxima=2/4` e `jogadoresPermitidos/{playerKey}=true`.
+- `JogoCompetitivoRepository.adicionarJogador()` passou a tratar sala fechada antes de escrever: se o jogador atual nao corresponde a um `playerKey`/`uid` ja presente em `jogadores`, a entrada e bloqueada e nenhum `setValue()` e executado.
+- Para salas abertas/convites, `adicionarJogador()` usa reserva transacional em `jogadoresPermitidos` antes de escrever um jogador novo, evitando a corrida `get()` + `setValue()`. Reabrir a Activity pelo mesmo jogador reutiliza a chave existente.
 - `Sala1x1ViewModel` e `Sala2x2ViewModel` emitem `EntradaBloqueada`; as Activities mostram mensagem de sala cheia e voltam ao menu sem adicionar jogador extra.
+- `MatchmakingViewModel` deixou de navegar apenas por existencia da sala; agora confirma que `sala_1x1/{codigo}/jogadores/{playerKey}` existe ou que a sala contem esse `playerKey`/`uid`. Resultado antigo que aponte para sala cheia/errada e consumido e ignorado.
 - Logs adicionados/fortalecidos: path da fila, path da sala, modo, codigo, adminId/adminUid, lista/quantidade de selecionados, campos do payload, paths dos resultados, colisao de codigo e erro Firebase exato, com destaque para `permission_denied`.
 - Cancelar agora limpa resultado/fila quando encontra resultado sem sala valida ou fila `encontrado` sem resultado/sala valida, evitando ficar preso em "Partida já encontrada".
 - A UI mostra "A criar sala..." quando o jogador atual ja esta em `estado=encontrado` ou quando o cliente esta a criar o match; se a criacao falhar, mostra erro amigavel.
@@ -51,7 +279,7 @@ Data: 2026-05-08
 - Botao Voltar de entrada em sala ficou com texto branco.
 - Codigo de sala em 1x1/2x2/grupo usa icone pequeno de copiar ao lado do codigo, com `contentDescription="Copiar código"` e Toast `Código copiado`.
 - Codigo de sala recebido por Intent em salas de espera e entrada manual continua normalizado para maiusculas com `CodigoSalaUtils`.
-- Firebase Rules nao foram abertas nesta correcao; a solucao alinha o admin gravado com o cliente que escreve a sala.
+- Firebase Rules foram ajustadas de forma especifica para aceitar `origem`, `lotacaoMaxima`, `entradaFechada` e `jogadoresPermitidos`, mantendo os limites 2/4 nesses nodes.
 
 ### Ficheiros alterados nesta ronda
 
@@ -61,6 +289,7 @@ Data: 2026-05-08
 - `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
 - `app/src/main/java/com/example/brainbrawl/models/MatchmakingModels.kt`
 - `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/config/GameConstants.kt`
 - `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
 - `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
 - `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
@@ -70,6 +299,8 @@ Data: 2026-05-08
 - `app/src/main/res/layout/activity_sala_de_espera_1x1.xml`
 - `app/src/main/res/layout/activity_sala_de_espera2x2.xml`
 - `app/src/main/res/drawable/ic_copy.xml`
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
 - `ARCHITECTURE_PLAN.md`
 - `TEST_REPORT.md`
 
@@ -81,6 +312,8 @@ Data: 2026-05-08
 - Salas reais continuam em `sala_1x1/{codigo}` e `sala_2x2/{codigo}`.
 - `sala_1x1/{codigo}` e `sala_2x2/{codigo}` recebem `admin`, `adminId` e, quando existir, `adminUid` do mesmo `criadorSelecionado` que escreveu o claim.
 - Matchmaking 1x1 publica exatamente 2 jogadores em `sala_1x1/{codigo}/jogadores`; 2x2 publica exatamente 4 em `sala_2x2/{codigo}/jogadores`. Jogadores extra permanecem na fila para um match seguinte.
+- Salas de matchmaking adicionam `origem=matchmaking`, `entradaFechada=true`, `lotacaoMaxima` e `jogadoresPermitidos`. Em sala fechada, a sala de espera so confirma jogador que ja esta listado; nao adiciona terceiro.
+- `jogadoresPermitidos` tambem funciona como reserva transacional de lotacao para salas abertas/convites: limite 2 em `sala_1x1` e limite 4 em `sala_2x2`.
 
 ### Verificacoes executadas
 

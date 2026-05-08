@@ -21,20 +21,15 @@
       </SelectionState>
       <SelectionState runConfigName="perguntaOLuso">
         <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2026-05-08T07:36:50.324899Z">
+        <DropdownSelection timestamp="2026-05-08T16:17:35.541115Z">
           <Target type="DEFAULT_BOOT">
             <handle>
-              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Pixel_9a.avd" />
+              <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Pixel_9_Pro_XL.avd" />
             </handle>
           </Target>
         </DropdownSelection>
         <DialogSelection>
           <targets>
-            <Target type="DEFAULT_BOOT">
-              <handle>
-                <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Pixel_9_Pro_XL.avd" />
-              </handle>
-            </Target>
             <Target type="DEFAULT_BOOT">
               <handle>
                 <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Medium_Phone.avd" />
@@ -48,6 +43,11 @@
             <Target type="DEFAULT_BOOT">
               <handle>
                 <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Pixel_9_Pro_XL_2.avd" />
+              </handle>
+            </Target>
+            <Target type="DEFAULT_BOOT">
+              <handle>
+                <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Pixel_9_Pro_XL.avd" />
               </handle>
             </Target>
           </targets>

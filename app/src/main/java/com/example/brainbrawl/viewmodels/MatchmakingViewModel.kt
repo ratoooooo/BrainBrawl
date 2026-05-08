@@ -247,14 +247,18 @@ class MatchmakingViewModel(
 
         navegacaoIniciada = true
         Log.d(TAG, "Resultado recebido: modo=${resultado.modo} sala=${resultado.codigoSala} playerKey=${jogador.playerKey}")
-        matchmakingRepository.verificarSalaExiste(resultado.modo, resultado.codigoSala)
-            .addOnSuccessListener { salaExiste ->
-                if (!salaExiste) {
-                    Log.w(TAG, "Resultado sem sala válida ignorado: modo=${resultado.modo} sala=${resultado.codigoSala}")
+        matchmakingRepository.verificarJogadorNaSala(resultado.modo, resultado.codigoSala, jogador.playerKey)
+            .addOnSuccessListener { jogadorNaSala ->
+                if (!jogadorNaSala) {
+                    Log.w(
+                        TAG,
+                        "Resultado antigo/invalido ignorado: modo=${resultado.modo} " +
+                            "sala=${resultado.codigoSala} playerKey=${jogador.playerKey}"
+                    )
                     matchmakingRepository.consumirResultado(modo, jogador.playerKey)
                     matchmakingRepository.cancelarOnDisconnect(jogador.playerKey, modo)
                     navegacaoIniciada = false
-                    _evento.value = MatchmakingEvent.MostrarMensagem("Resultado antigo ignorado.")
+                    _evento.value = MatchmakingEvent.MostrarMensagem("Resultado antigo ou sala cheia ignorado.")
                     return@addOnSuccessListener
                 }
 

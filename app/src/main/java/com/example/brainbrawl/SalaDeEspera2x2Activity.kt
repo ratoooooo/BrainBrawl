@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -58,13 +59,15 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
 
-        binding.txtCodigoSala.text = "Código da sala: $codigoSala"
+        binding.txtCodigoSala.text = "A carregar sala..."
+        binding.btnCopiarCodigoSala.visibility = View.GONE
         binding.btnCopiarCodigoSala.setOnClickListener {
             copiarCodigoSala()
         }
 
         configurarObservers()
 
+        viewModel.carregarExposicaoCodigo(codigoSala)
         viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         viewModel.observarJogadores(codigoSala)
         viewModel.observarEstadoSala(codigoSala)
@@ -100,7 +103,18 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         binding.txtJogadorA2.text = estado.equipaA.getOrNull(1) ?: "Aguardando..."
         binding.txtJogadorB1.text = estado.equipaB.getOrNull(0) ?: "Aguardando..."
         binding.txtJogadorB2.text = estado.equipaB.getOrNull(1) ?: "Aguardando..."
+        atualizarCodigoSala(estado)
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+    }
+
+    private fun atualizarCodigoSala(estado: Sala2x2UiState) {
+        if (estado.codigoSalaVisivel) {
+            binding.txtCodigoSala.text = "Código da sala: $codigoSala"
+            binding.btnCopiarCodigoSala.visibility = View.VISIBLE
+        } else {
+            binding.txtCodigoSala.text = estado.textoCodigoSalaPrivado.ifBlank { "Partida por convite" }
+            binding.btnCopiarCodigoSala.visibility = View.GONE
+        }
     }
 
     private fun tratarEvento(evento: Sala2x2Event) {
