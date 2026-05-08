@@ -130,6 +130,17 @@
         </LinearLayout>
     </LinearLayout>
 
+    <TextView
+        android:id="@+id/txt_estado_desforra"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        android:gravity="center"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="15sp"
+        android:fontFamily="sans-serif-medium"
+        android:visibility="gone" />
+
     <!-- Botão Pedir Desforra (com ícone de espada à esquerda) -->
     <Button
         android:id="@+id/btn_desforra"

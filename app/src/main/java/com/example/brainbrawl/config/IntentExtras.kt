@@ -20,4 +20,8 @@ object IntentExtras {
     const val TOTAL_RESPOSTAS_CERTAS = "totalRespostasCertas"
     const val RESPOSTAS_CERTAS = "respostasCertas"
     const val EQUIPA = "equipa"
+    const val PLAYER_KEY = "playerKey"
+    const val TIPO_JOGADOR = "tipoJogador"
+    const val IS_GUEST = "isGuest"
+    const val AVATAR = "avatar"
 }

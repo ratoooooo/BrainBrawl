@@ -1,12 +1,34 @@
 # Pergunta o Luso - Architecture Plan
 
-## Nota de auditoria - Matchmaking aleatorio - 2026-05-07
+## Firebase Rules hardening - 2026-05-08
 
-- `MatchmakingActivity` esta declarada e acessivel a partir da Main para os modos 1x1/2x2 aleatorios.
-- Nesta versao do checkout nao existem `MatchmakingRepository` nem `MatchmakingViewModel`, e a Activity ainda nao escreve em `matchmaking/{modo}/fila`, nao observa `resultados` e nao cria/recebe sala.
-- As Firebase rules ja contem estrutura para `matchmaking`, mas a camada Android correspondente ainda precisa de ser implementada.
-- Recomendacao: implementar este fluxo como uma unidade pequena e testavel (`MatchmakingRepository` + `MatchmakingViewModel` + Activity fina), com entrada idempotente na fila por UID, cancelamento no back/finish, limpeza em `onCleared`, transacao para formar sala e resultado por UID.
-- Esta auditoria nao implementou o fluxo para evitar uma mudanca profunda em multiplayer dentro de uma ronda de correcoes seguras.
+- A arquitetura de dados continua UID-first para perfis autenticados: `jogadores/{uid}` e `historicoJogos/{uid}` sao os paths persistentes sensiveis.
+- Convidados permanecem restritos a dados temporarios de sala e matchmaking; as rules bloqueiam `jogadores/guest_*` e historico exige `auth.uid`.
+- `playerKey` continua separado de `uid`: Auth usa UID como chave principal; guest usa chave temporaria `guest_...` apenas em sala/matchmaking.
+- `categoriasPublicas` passa a ser um path publico de leitura, mas writes exigem Auth; nao-criadores nao podem alterar perguntas/metadados principais.
+- `salas`, `sala_1x1`, `sala_2x2` e `matchmaking` continuam com algumas permissoes tolerantes porque convidados e transacoes cliente-side ainda fazem parte da arquitetura atual.
+- A fronteira de seguranca real para resultados, XP e ranking continua pendente: o plano recomendado e mover esses writes para Cloud Functions e deixar o cliente apenas produzir eventos temporarios de jogo.
+
+## Fecho competitivo 1x1/2x2 - 2026-05-08
+
+- `Pontuacao1x1Activity` ficou mais leve: renderiza podio, observa estado/eventos de desforra, preserva extras de identidade e navega; deixou de criar sala de desforra diretamente e deixou de apagar a sala ao voltar.
+- `Pontuacao1x1ViewModel` concentra o estado da desforra, evita navegacao duplicada e coordena os listeners com `PontuacaoRepository`.
+- `PontuacaoRepository` passou a expor operacoes pequenas para 1x1: marcar desforra, escutar pedidos, escutar `novaSalaDesforra`, criar/reutilizar sala de desforra via transacao e limpar flags de desforra sem apagar a sala antiga.
+- A desforra separa `playerKey` de `uid`: autenticados preservam UID e convidados preservam a chave temporaria/`tipoJogador=guest`; nenhum convidado e convertido em perfil persistente.
+- `Pontuacao2x2Activity` deixou de apagar `sala_2x2/{codigoSala}` no Voltar e passou a renderizar resultado/espera em TextViews fixas, removendo Toasts repetidos do listener realtime.
+- As Activities de pontuacao competitiva mantem flags locais para evitar repeticao de estatisticas, historico, recorde e navegacao quando listeners Firebase disparam mais de uma vez.
+- A persistencia de estatisticas/historico continua condicionada a `uid` valido e jogador nao guest; o repository tambem ignora resultados sem UID antes de atualizar perfis.
+- A limpeza definitiva de salas antigas ficou documentada como responsabilidade futura fora do botao Voltar, preferencialmente por Cloud Functions/TTL administrativo.
+
+## Matchmaking aleatorio implementado - 2026-05-08
+
+- `MatchmakingActivity` ficou como UI fina: le extras, observa `MatchmakingViewModel`, mostra contador/lista da fila, cancela e navega.
+- `MatchmakingViewModel` prepara a identidade, entra na fila, observa fila/resultado, evita navegacao duplicada e emite eventos para abrir `SalaDeEspera1x1Activity` ou `SalaDeEspera2x2Activity`.
+- `MatchmakingRepository` concentra Firebase: escreve/remover fila, configura `onDisconnect`, observa resultados, limpa entradas stale, faz claim transacional em `matchmaking/{modo}` e cria a sala em `sala_1x1` ou `sala_2x2`.
+- A identidade separa `playerKey` de `uid`: autenticados usam `playerKey = uid`; convidados usam `playerKey = guest_{nome}_{timestamp}` e `uid` vazio.
+- `JogadorSalaIdentidade` passou a aceitar `playerKey`, `tipoJogador` e `avatar` como campos opcionais, preservando os fluxos antigos por UID/nome.
+- Convidados entram em matchmaking e salas, aparecem no podio, mas nao criam perfil em `jogadores` e nao gravam estatisticas/XP/historico/ranking porque os fechos de pontuacao exigem `uid` valido.
+- `AvatarUtils` centraliza resolucao de avatares, aceitando `avatar_1_playstore`, `avatar_1`, nomes com extensao e prefixos `@drawable/`/`@mipmap/`, com fallback para `avatar_1_playstore`.
 
 ## Nota UI - Registo em 2 passos - 2026-05-07
 
@@ -463,3 +485,21 @@ Limites da fase:
 Nota de compatibilidade:
 
 - O checkout ja tinha referencias a Historico/Matchmaking no manifesto e na Main. Foram repostos os ficheiros necessarios para os bindings dessas Activities existirem e o build passar, mantendo esses destinos dentro da base visual.
+
+## QA urgente pre-proxima fase - navegacao, matchmaking e auth
+
+Mudancas arquiteturais pequenas e intencionais:
+
+- `BottomNavHelper` centraliza a barra inferior programatica dos ecras principais secundarios: Perfil, Ranking, Historico e Amigos.
+- O helper preserva `uid`, `nomeUtilizador`, `nomeJogador` e `email`, mantendo Main com a barra XML ja existente.
+- `CodigoSalaUtils` passou a expor normalizacao/validacao de codigo de sala, mantendo a geracao no mesmo helper.
+- `MatchmakingRepository` passou a ter consumo explicito de resultado apos navegacao para evitar eventos antigos/repetidos.
+- `MatchmakingViewModel` passou a ignorar cancelamentos depois de match encontrado e a remover listeners antes da emissao final de navegacao.
+- ViewModels de sala competitiva/grupo passaram a distinguir leitura inicial ainda nao confirmada de sala realmente encerrada.
+- `JogadorRepository` passou a resolver perfis por chave direta, por campo `uid`, por `nomeUtilizador` legado e por email, mantendo UID-first para contas autenticadas.
+
+Limites preservados:
+
+- Sem alteracao de formula de pontuacao, XP, rankings, categorias ou Cloud Functions.
+- Sem alteracao de Firebase Rules nesta ronda.
+- Convidados continuam sem ser tratados como UID nem como perfil em `jogadores/{guestKey}`.

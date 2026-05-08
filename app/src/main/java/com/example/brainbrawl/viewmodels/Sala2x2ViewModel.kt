@@ -27,12 +27,22 @@ class Sala2x2ViewModel(
     private var chaveJogador = ""
     private var saidaManual = false
     private var aIniciarJogo = false
+    private var salaConfirmada = false
 
-    fun iniciar(codigoSala: String, uid: String, nomeUtilizador: String, nomeJogador: String) {
-        jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+    fun iniciar(
+        codigoSala: String,
+        uid: String,
+        nomeUtilizador: String,
+        nomeJogador: String,
+        playerKey: String = "",
+        tipoJogador: String = "",
+        avatar: String = ""
+    ) {
+        jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         chaveJogador = jogadorAtual.chaveSala
         saidaManual = false
         aIniciarJogo = false
+        salaConfirmada = false
         jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala, jogadorAtual)
             .addOnSuccessListener { jogadorNaSala ->
                 chaveJogador = jogadorNaSala.chave
@@ -71,7 +81,9 @@ class Sala2x2ViewModel(
             ModoCompetitivo.DOIS_CONTRA_DOIS,
             codigoSala,
             onSalaExisteAlterada = { existe ->
-                if (!saidaManual && !existe) {
+                if (existe) {
+                    salaConfirmada = true
+                } else if (salaConfirmada && !saidaManual) {
                     _evento.value = Sala2x2Event.SalaEncerrada
                 }
             }

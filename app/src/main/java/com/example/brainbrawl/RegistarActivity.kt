@@ -2,12 +2,15 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
 import android.view.View
+import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityRegistarBinding
+import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.viewmodels.RegistarEvent
 import com.example.brainbrawl.viewmodels.RegistarViewModel
 
@@ -26,21 +29,22 @@ class RegistarActivity : AppCompatActivity() {
         var avatarSelecionadoIndex = 0
 
         configurarObservers()
+        configurarPasswordToggles()
 
         // Varivel para armazenar os avatares
         val avatarResources = arrayOf(
-            R.drawable.avatar_1_playstore,
-            R.drawable.avatar_2_playstore,
-            R.drawable.avatar_3_playstore,
-            R.drawable.avatar_4_playstore,
-            R.drawable.avatar_5_playstore,
-            R.drawable.avatar_6_playstore,
-            R.drawable.avatar_7_playstore,
-            R.drawable.avatar_8_playstore,
-            R.drawable.avatar_9_playstore,
-            R.drawable.avatar_10_playstore,
-            R.drawable.avatar_11_playstore,
-            R.drawable.avatar_12_playstore
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(0)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(1)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(2)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(3)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(4)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(5)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(6)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(7)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(8)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(9)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(10)),
+            AvatarUtils.resolverAvatar(this, AvatarUtils.nomeAvatarPorIndex(11))
         )
 
         // Adapter para o GridView
@@ -59,14 +63,14 @@ class RegistarActivity : AppCompatActivity() {
         // Configurar botão de registo
         binding.btnContinuarRegisto.setOnClickListener {
             val email = binding.edtEmail.text.toString().trim()
-            val password = binding.edtPasswordJogador.text.toString().trim()
-            val confirmarPassword = binding.edtConfirmarPassword.text.toString().trim()
+            val password = binding.edtPasswordJogador.text.toString()
+            val confirmarPassword = binding.edtConfirmarPassword.text.toString()
 
-            when {
-                email.isBlank() -> Toast.makeText(this, "Insere o e-mail", Toast.LENGTH_SHORT).show()
-                password.isBlank() -> Toast.makeText(this, "Insere a palavra-passe", Toast.LENGTH_SHORT).show()
-                password != confirmarPassword -> Toast.makeText(this, "As palavras-passe não coincidem", Toast.LENGTH_SHORT).show()
-                else -> mostrarEtapaPerfil()
+            val erro = validarEtapaConta(email, password, confirmarPassword)
+            if (erro == null) {
+                mostrarEtapaPerfil()
+            } else {
+                Toast.makeText(this, erro, Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -74,8 +78,9 @@ class RegistarActivity : AppCompatActivity() {
             // GGuardar os dados inseridos nos campos de texto
             val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
             val email = binding.edtEmail.text.toString().trim()
-            val password = binding.edtPasswordJogador.text.toString().trim()
-            viewModel.registar(nomeUtilizador, email, password, avatarSelecionadoIndex)
+            val password = binding.edtPasswordJogador.text.toString()
+            val confirmarPassword = binding.edtConfirmarPassword.text.toString()
+            viewModel.registar(nomeUtilizador, email, password, confirmarPassword, avatarSelecionadoIndex)
         }
 
         binding.btnVoltarEtapa.setOnClickListener {
@@ -95,6 +100,43 @@ class RegistarActivity : AppCompatActivity() {
                 startActivity(Intent(this, LoginActivity::class.java))
             }
         }
+    }
+
+    private fun configurarPasswordToggles() {
+        var passwordVisivel = false
+        var confirmarPasswordVisivel = false
+        binding.btnTogglePassword.setOnClickListener {
+            passwordVisivel = !passwordVisivel
+            alternarPassword(binding.edtPasswordJogador, passwordVisivel)
+        }
+        binding.btnToggleConfirmarPassword.setOnClickListener {
+            confirmarPasswordVisivel = !confirmarPasswordVisivel
+            alternarPassword(binding.edtConfirmarPassword, confirmarPasswordVisivel)
+        }
+    }
+
+    private fun alternarPassword(editText: EditText, visivel: Boolean) {
+        editText.inputType = InputType.TYPE_CLASS_TEXT or if (visivel) {
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        } else {
+            InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        editText.setSelection(editText.text?.length ?: 0)
+    }
+
+    private fun validarEtapaConta(email: String, password: String, confirmarPassword: String): String? {
+        if (email.isBlank()) return "Insere o e-mail"
+        if (!email.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))) return "Insira um email válido"
+        if (password.isBlank()) return "Insere a palavra-passe"
+        if (confirmarPassword.isBlank()) return "Confirma a palavra-passe"
+        if (password != confirmarPassword) return "As palavras-passe não coincidem"
+        if (password.length < 8 || password.length > 20) return "A senha deve ter entre 8 e 20 caracteres"
+        if (!password.any { it.isUpperCase() }) return "A senha deve incluir uma letra maiúscula"
+        if (!password.any { it.isLowerCase() }) return "A senha deve incluir uma letra minúscula"
+        if (!password.any { it.isDigit() || !it.isLetterOrDigit() }) {
+            return "A senha deve incluir um número ou símbolo"
+        }
+        return null
     }
 
     private fun mostrarEtapaConta() {

@@ -13,6 +13,7 @@ import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.viewmodels.PerfilAmigoEvent
 import com.example.brainbrawl.viewmodels.PerfilAmigoUiState
 import com.example.brainbrawl.viewmodels.PerfilAmigoViewModel
@@ -63,7 +64,10 @@ class PerfilAmigoActivity : AppCompatActivity() {
 
     private fun mostrarPerfil(perfil: PerfilAmigoUiState, uidUtilizador: String, nomeUtilizador: String) {
         if (!perfil.perfilExiste) {
-            binding.imgAvatarAmigo.setImageResource(R.drawable.avatar_1_playstore)
+            binding.imgAvatarAmigo.setImageResource(AvatarUtils.resolverAvatar(this, null))
+            binding.imgTotalJogos.visibility = View.GONE
+            binding.imgTotalVitorias.visibility = View.GONE
+            binding.imgTotalRespostasCertas.visibility = View.GONE
             binding.txtNomeAmigo.text = perfil.nome
             binding.txtPontuacao.text = "Pontuação: 0"
             binding.txtTotalJogos.text = "Total de Jogos: 0"
@@ -74,25 +78,27 @@ class PerfilAmigoActivity : AppCompatActivity() {
 
         // Atualizar os badges de conquistas
         getBadgeDrawable(perfil.totalJogos, jogosBadges)?.let {
+            binding.imgTotalJogos.visibility = View.VISIBLE
             binding.imgTotalJogos.setImageResource(it)
         } ?: run {
             binding.imgTotalJogos.visibility = View.GONE
         }
 
         getBadgeDrawable(perfil.totalVitorias, vitoriaBadges)?.let {
+            binding.imgTotalVitorias.visibility = View.VISIBLE
             binding.imgTotalVitorias.setImageResource(it)
         } ?: run {
             binding.imgTotalVitorias.visibility = View.GONE
         }
 
         getBadgeDrawable(perfil.totalRespostasCertas, respostasBadges)?.let {
+            binding.imgTotalRespostasCertas.visibility = View.VISIBLE
             binding.imgTotalRespostasCertas.setImageResource(it)
         } ?: run {
             binding.imgTotalRespostasCertas.visibility = View.GONE
         }
 
-        val resId = resources.getIdentifier(perfil.avatar, "drawable", packageName)
-        binding.imgAvatarAmigo.setImageResource(resId)
+        binding.imgAvatarAmigo.setImageResource(AvatarUtils.resolverAvatar(this, perfil.avatar))
 
         // Mostrar os dados do amigo no layout
         binding.txtNomeAmigo.text = perfil.nome

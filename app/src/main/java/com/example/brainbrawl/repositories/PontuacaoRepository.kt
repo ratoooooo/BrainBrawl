@@ -4,6 +4,7 @@ import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.services.EstatisticasService
 import com.example.brainbrawl.services.EstatisticasService.ResultadoJogador
+import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.utils.UteisFirebase.doubleValue
 import com.example.brainbrawl.utils.UteisFirebase.intValue
 import com.google.android.gms.tasks.Task
@@ -45,6 +46,38 @@ class PontuacaoRepository(
     ) {
         internal fun remover() {
             removerListener()
+        }
+    }
+
+    data class JogadorDesforra(
+        val chave: String,
+        val nomeDisplay: String,
+        val uid: String,
+        val nomeUtilizador: String,
+        val nomeJogador: String,
+        val playerKey: String,
+        val tipoJogador: String,
+        val avatar: String
+    ) {
+        fun toFirebaseMap(): Map<String, Any> {
+            val dados = linkedMapOf<String, Any>(
+                FirebasePaths.NOME to nomeDisplay,
+                FirebasePaths.NOME_DISPLAY to nomeDisplay,
+                FirebasePaths.PLAYER_KEY to playerKey.ifBlank { chave },
+                FirebasePaths.TIPO_JOGADOR to tipoJogador.ifBlank {
+                    if (uid.isBlank()) GameConstants.TIPO_JOGADOR_GUEST else GameConstants.TIPO_JOGADOR_AUTH
+                },
+                FirebasePaths.IS_GUEST to (tipoJogador == GameConstants.TIPO_JOGADOR_GUEST || uid.isBlank()),
+                FirebasePaths.PONTUACAO to 0.0,
+                FirebasePaths.TOTAL_RESPOSTAS_CERTAS to 0,
+                FirebasePaths.ESTADO to GameConstants.ESTADO_ON,
+                FirebasePaths.IS_HOST_ONLY to false
+            )
+            if (uid.isNotBlank()) dados[FirebasePaths.UID] = uid
+            if (nomeUtilizador.isNotBlank()) dados[FirebasePaths.NOME_UTILIZADOR] = nomeUtilizador
+            if (nomeJogador.isNotBlank()) dados[FirebasePaths.NOME_JOGADOR] = nomeJogador
+            if (avatar.isNotBlank()) dados[FirebasePaths.AVATAR] = avatar
+            return dados
         }
     }
 
@@ -195,6 +228,196 @@ class PontuacaoRepository(
         handle?.remover()
     }
 
+    fun marcarDesforra1x1(codigoSala: String, chaveJogador: String): Task<Void> {
+        return salaRef(TipoSala.UM_CONTRA_UM, codigoSala)
+            .child(FirebasePaths.JOGADORES)
+            .child(chaveJogador)
+            .child(FirebasePaths.DESFORRA)
+            .setValue(true)
+    }
+
+    fun escutarDesforra1x1(
+        codigoSala: String,
+        chaveJogadorAtual: String,
+        onAdversarioAceitou: (JogadorDesforra) -> Unit,
+        onAguardar: () -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(TipoSala.UM_CONTRA_UM, codigoSala).child(FirebasePaths.JOGADORES)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val atual = snapshot.child(chaveJogadorAtual)
+                val atualAceitou = atual.child(FirebasePaths.DESFORRA).getValue(Boolean::class.java) == true
+                val adversario = snapshot.children.firstOrNull { child ->
+                    val chave = child.key.orEmpty()
+                    chave.isNotBlank() &&
+                        chave != chaveJogadorAtual &&
+                        chave != GameConstants.JOGADOR_ADMIN &&
+                        child.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) != true &&
+                        child.child(FirebasePaths.DESFORRA).getValue(Boolean::class.java) == true
+                }
+
+                if (atualAceitou && adversario != null) {
+                    onAdversarioAceitou(adversario.toJogadorDesforra())
+                } else if (atualAceitou) {
+                    onAguardar()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
+    }
+
+    fun escutarNovaSalaDesforra1x1(
+        codigoSala: String,
+        onNovaSala: (String) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(TipoSala.UM_CONTRA_UM, codigoSala).child(FirebasePaths.NOVA_SALA_DESFORRA)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val novaSala = snapshot.getValue(String::class.java)?.takeIf { it.isNotBlank() } ?: return
+                emitirQuandoSalaExistir(novaSala, onNovaSala)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
+    }
+
+    fun criarOuObterSalaDesforra1x1(
+        codigoSalaAtual: String,
+        jogadorAtual: JogadorDesforra,
+        adversario: JogadorDesforra,
+        nomeCategoria: String
+    ): Task<String> {
+        val result = TaskCompletionSource<String>()
+        val novaSalaRef = salaRef(TipoSala.UM_CONTRA_UM, codigoSalaAtual).child(FirebasePaths.NOVA_SALA_DESFORRA)
+        var codigoCriado = ""
+
+        novaSalaRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                val existente = currentData.getValue(String::class.java)
+                if (!existente.isNullOrBlank()) {
+                    return Transaction.abort()
+                }
+                codigoCriado = gerarCodigoSala()
+                currentData.value = codigoCriado
+                return Transaction.success(currentData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                if (error != null) {
+                    result.setException(error.toException())
+                    return
+                }
+
+                val codigoFinal = if (committed) {
+                    codigoCriado
+                } else {
+                    snapshot?.getValue(String::class.java).orEmpty()
+                }
+
+                if (codigoFinal.isBlank()) {
+                    result.setException(IllegalStateException("Não foi possível criar desforra."))
+                    return
+                }
+
+                criarSalaDesforraSeNecessario(codigoFinal, jogadorAtual, adversario, nomeCategoria)
+                    .addOnSuccessListener {
+                        limparFlagsDesforra1x1(codigoSalaAtual, jogadorAtual.chave, adversario.chave)
+                        result.setResult(codigoFinal)
+                    }
+                    .addOnFailureListener { result.setException(it) }
+            }
+        })
+
+        return result.task
+    }
+
+    private fun criarSalaDesforraSeNecessario(
+        codigoNovaSala: String,
+        jogadorAtual: JogadorDesforra,
+        adversario: JogadorDesforra,
+        nomeCategoria: String
+    ): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        val salaRef = salaRef(TipoSala.UM_CONTRA_UM, codigoNovaSala)
+
+        salaRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                if (currentData.value != null) return Transaction.success(currentData)
+
+                val sala = linkedMapOf<String, Any>(
+                    FirebasePaths.JOGADORES to mapOf(
+                        jogadorAtual.chave to jogadorAtual.toFirebaseMap(),
+                        adversario.chave to adversario.toFirebaseMap()
+                    ),
+                    FirebasePaths.ADMIN to jogadorAtual.nomeDisplay,
+                    FirebasePaths.ADMIN_ID to jogadorAtual.chave,
+                    FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
+                    FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+                    FirebasePaths.PRONTOS to mapOf(
+                        jogadorAtual.chave to true,
+                        adversario.chave to false
+                    )
+                )
+                if (jogadorAtual.uid.isNotBlank()) {
+                    sala[FirebasePaths.ADMIN_UID] = jogadorAtual.uid
+                }
+                currentData.value = sala
+                return Transaction.success(currentData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                if (error != null) {
+                    result.setException(error.toException())
+                } else {
+                    result.setResult(null)
+                }
+            }
+        })
+
+        return result.task
+    }
+
+    private fun limparFlagsDesforra1x1(codigoSala: String, chaveA: String, chaveB: String): Task<Void> {
+        return salaRef(TipoSala.UM_CONTRA_UM, codigoSala).updateChildren(
+            mapOf(
+                "${FirebasePaths.JOGADORES}/$chaveA/${FirebasePaths.DESFORRA}" to null,
+                "${FirebasePaths.JOGADORES}/$chaveB/${FirebasePaths.DESFORRA}" to null
+            )
+        )
+    }
+
+    private fun emitirQuandoSalaExistir(codigoSala: String, onNovaSala: (String) -> Unit) {
+        val reference = salaRef(TipoSala.UM_CONTRA_UM, codigoSala)
+        reference.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                onNovaSala(codigoSala)
+                return@addOnSuccessListener
+            }
+            val listener = object : ValueEventListener {
+                override fun onDataChange(salaSnapshot: DataSnapshot) {
+                    if (salaSnapshot.exists()) {
+                        reference.removeEventListener(this)
+                        onNovaSala(codigoSala)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) = Unit
+            }
+            reference.addValueEventListener(listener)
+        }
+    }
+
     private fun atualizarProximoJogador(
         tipoSala: TipoSala,
         codigoSala: String,
@@ -214,6 +437,7 @@ class PontuacaoRepository(
         val resultado = resultados[index]
 
         if (deveIgnorarJogador(resultado.nome) ||
+            resultado.uid.isBlank() ||
             !deveAtualizarResultado(resultado, jogadoresParaAtualizar)
         ) {
             atualizarProximoJogador(
@@ -448,6 +672,24 @@ class PontuacaoRepository(
             chave = chave,
             nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).texto(),
             nomeJogador = child(FirebasePaths.NOME_JOGADOR).texto()
+        )
+    }
+
+    private fun DataSnapshot.toJogadorDesforra(): JogadorDesforra {
+        val chave = key.orEmpty()
+        val uid = child(FirebasePaths.UID).texto()
+        val tipo = child(FirebasePaths.TIPO_JOGADOR).texto().ifBlank {
+            if (uid.isBlank()) GameConstants.TIPO_JOGADOR_GUEST else GameConstants.TIPO_JOGADOR_AUTH
+        }
+        return JogadorDesforra(
+            chave = chave,
+            nomeDisplay = nomeDisplay().ifBlank { chave },
+            uid = uid,
+            nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).texto(),
+            nomeJogador = child(FirebasePaths.NOME_JOGADOR).texto(),
+            playerKey = child(FirebasePaths.PLAYER_KEY).texto().ifBlank { chave },
+            tipoJogador = tipo,
+            avatar = child(FirebasePaths.AVATAR).texto()
         )
     }
 

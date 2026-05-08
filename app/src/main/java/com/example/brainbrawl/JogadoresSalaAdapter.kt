@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
+import com.example.brainbrawl.utils.AvatarUtils
 
 class JogadoresSalaAdapter(
     private val jogadores: List<String>,
@@ -38,13 +39,7 @@ class JogadoresSalaAdapter(
 
         // Avatar do jogador
         val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
-        val resId = context.resources.getIdentifier(avatarName, "drawable", context.packageName)
-        // Verrifica se o avatar existe, se não existir, usa o avatar padrão
-        if (resId != 0) {
-            holder.imgAvatarJogador.setImageResource(resId)
-        } else {
-            holder.imgAvatarJogador.setImageResource(R.drawable.avatar_1_playstore)
-        }
+        holder.imgAvatarJogador.setImageResource(AvatarUtils.resolverAvatar(context, avatarName))
 
         // Estado visual
         val estado = estados.getOrNull(position) ?: "off"

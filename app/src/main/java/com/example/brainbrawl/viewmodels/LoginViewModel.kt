@@ -22,7 +22,7 @@ class LoginViewModel(
         jogadorRepository.obterPerfil(uid)
             .addOnSuccessListener { perfil ->
                 if (perfil == null) {
-                    _evento.value = LoginEvent.ErroPerfilAuth
+                    carregarPerfilAuthPorEmail(utilizador.email.orEmpty(), uid)
                     return@addOnSuccessListener
                 }
 
@@ -81,7 +81,7 @@ class LoginViewModel(
                 jogadorRepository.obterPerfil(uid)
                     .addOnSuccessListener { perfil ->
                         if (perfil == null) {
-                            _evento.value = LoginEvent.ErroPerfilAuth
+                            carregarPerfilAuthPorEmail(email, uid)
                         } else {
                             jogadorRepository.marcarOnline(uid)
                             _evento.value = LoginEvent.LoginSucesso(
@@ -131,10 +131,29 @@ class LoginViewModel(
         if (!email.isEmail()) {
             return "Insira um email válido"
         }
-        if (password.length < 8 || password.length > 20) {
-            return "A senha deve ter entre 8 e 20 caracteres"
+        if (password.isBlank()) {
+            return "Insira a senha"
         }
         return null
+    }
+
+    private fun carregarPerfilAuthPorEmail(email: String, uid: String) {
+        jogadorRepository.obterPerfilPorEmail(email)
+            .addOnSuccessListener { perfilPorEmail ->
+                if (perfilPorEmail == null) {
+                    _evento.value = LoginEvent.ErroPerfilAuth
+                    return@addOnSuccessListener
+                }
+                jogadorRepository.marcarOnline(uid)
+                _evento.value = LoginEvent.LoginSucesso(
+                    nomeUtilizador = perfilPorEmail.nomeUtilizador,
+                    uid = uid,
+                    email = perfilPorEmail.email.ifBlank { email }
+                )
+            }
+            .addOnFailureListener {
+                _evento.value = LoginEvent.ErroBanco
+            }
     }
 
     private fun String.isEmail(): Boolean {

@@ -5,6 +5,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.utils.UteisValidacao
 
 class RegistarViewModel(
@@ -19,15 +20,16 @@ class RegistarViewModel(
         nomeUtilizador: String,
         email: String,
         password: String,
+        confirmarPassword: String,
         avatarSelecionadoIndex: Int
     ) {
-        val erroNome = UteisValidacao.validarCampos(nomeUtilizador, password)
+        val erroNome = UteisValidacao.validarNomeUtilizador(nomeUtilizador)
         if (erroNome != null) {
             _evento.value = RegistarEvent.ValidacaoFalhou(erroNome)
             return
         }
 
-        val erroAuth = validarEmailPassword(email, password)
+        val erroAuth = validarConta(email, password, confirmarPassword, avatarSelecionadoIndex)
         if (erroAuth != null) {
             _evento.value = RegistarEvent.ValidacaoFalhou(erroAuth)
             return
@@ -77,7 +79,7 @@ class RegistarViewModel(
         email: String,
         avatarSelecionadoIndex: Int
     ) {
-        val nomeAvatar = "avatar_${avatarSelecionadoIndex + 1}_playstore"
+        val nomeAvatar = AvatarUtils.nomeAvatarPorIndex(avatarSelecionadoIndex)
         jogadorRepository.criarPerfilAutenticado(uid, nomeUtilizador, email, nomeAvatar)
             .addOnSuccessListener {
                 _evento.value = RegistarEvent.RegistoSucesso(
@@ -88,18 +90,45 @@ class RegistarViewModel(
             }
             .addOnFailureListener { exception ->
                 _evento.value = RegistarEvent.ErroCriarJogador(exception.message.orEmpty())
+                authService.terminarSessao()
             }
     }
 
-    private fun validarEmailPassword(email: String, password: String): String? {
+    private fun validarConta(
+        email: String,
+        password: String,
+        confirmarPassword: String,
+        avatarSelecionadoIndex: Int
+    ): String? {
         if (email.isBlank()) {
-            return "Preencha todos os campos"
+            return "Insere o e-mail"
         }
         if (!email.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))) {
             return "Insira um email válido"
         }
+        if (password.isBlank()) {
+            return "Insere a palavra-passe"
+        }
+        if (confirmarPassword.isBlank()) {
+            return "Confirma a palavra-passe"
+        }
+        if (password != confirmarPassword) {
+            return "As palavras-passe não coincidem"
+        }
         if (password.length < 8 || password.length > 20) {
             return "A senha deve ter entre 8 e 20 caracteres"
+        }
+        if (!password.any { it.isUpperCase() }) {
+            return "A senha deve incluir uma letra maiúscula"
+        }
+        if (!password.any { it.isLowerCase() }) {
+            return "A senha deve incluir uma letra minúscula"
+        }
+        if (!password.any { it.isDigit() || !it.isLetterOrDigit() }) {
+            return "A senha deve incluir um número ou símbolo"
+        }
+        if (avatarSelecionadoIndex !in 0..11) {
+            return "Seleciona um avatar válido"
         }
         return null
     }

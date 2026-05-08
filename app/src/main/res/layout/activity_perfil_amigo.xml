@@ -46,13 +46,16 @@
             <!-- Nome do Amigo -->
             <TextView
                 android:id="@+id/txtNomeAmigo"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="12dp"
+                android:ellipsize="end"
                 android:fontFamily="sans-serif-black"
+                android:gravity="center"
+                android:maxLines="2"
                 android:text="@string/nome_amigo"
                 android:textColor="#222222"
-                android:textSize="26sp"
+                android:textSize="24sp"
                 android:textStyle="bold" />
 
 
@@ -142,7 +145,7 @@
 
             <!-- Pontuação -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="14dp"
                 android:gravity="center_vertical"
@@ -158,17 +161,20 @@
 
                 <TextView
                     android:id="@+id/txtPontuacao"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif"
+                    android:maxLines="2"
                     android:text="Pontuação: 0"
                     android:textColor="#111111"
-                    android:textSize="20sp" />
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <!-- Total de Jogos -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
@@ -184,17 +190,20 @@
 
                 <TextView
                     android:id="@+id/txtTotalJogos"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif"
+                    android:maxLines="2"
                     android:text="Total de Jogos: 0"
                     android:textColor="#111111"
-                    android:textSize="20sp" />
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <!-- Total de Vitórias -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
@@ -210,17 +219,20 @@
 
                 <TextView
                     android:id="@+id/txtTotalVitorias"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif"
+                    android:maxLines="2"
                     android:text="Total de Vitórias: 0"
                     android:textColor="#111111"
-                    android:textSize="20sp" />
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <!-- Taxa de Acertos -->
             <LinearLayout
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center_vertical"
@@ -236,12 +248,15 @@
 
                 <TextView
                     android:id="@+id/txtTaxaAcertos"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
                     android:fontFamily="sans-serif"
+                    android:maxLines="2"
                     android:text="Taxa de Vitória: 0%"
                     android:textColor="#111111"
-                    android:textSize="20sp" />
+                    android:textSize="18sp" />
             </LinearLayout>
 
             <!-- Botão Remover Amigo dentro do card -->

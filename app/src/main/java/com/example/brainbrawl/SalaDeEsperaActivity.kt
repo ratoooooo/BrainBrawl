@@ -2,12 +2,14 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputFilter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivitySalaDeEsperaBinding
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.CodigoSalaUtils
 import com.example.brainbrawl.viewmodels.SalaEntradaEvent
 import com.example.brainbrawl.viewmodels.SalaGrupoViewModel
 
@@ -31,6 +33,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
 
         configurarObservers()
+        configurarCampoCodigoSala()
 
         // Se for utilizador registado, bloqueia edição do nome
         if (!nomeUtilizador.isNullOrEmpty()) {
@@ -47,7 +50,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         binding.btnEntrarSala.setOnClickListener {
             binding.btnEntrarSala.isEnabled = false
 
-            val codSala = binding.edtCodigoSala.text.toString().trim()
+            val codSala = CodigoSalaUtils.normalizarCodigo(binding.edtCodigoSala.text.toString())
             val nomeJogadorAtual = binding.edtNomeJogador.text.toString().trim()
             viewModel.entrarEmSala(codSala, nomeJogadorAtual, uid, nomeUtilizador)
         }
@@ -55,6 +58,17 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         binding.btnVoltar.setOnClickListener {
             finish()
         }
+    }
+
+    private fun configurarCampoCodigoSala() {
+        binding.edtCodigoSala.filters = arrayOf(
+            InputFilter.AllCaps(),
+            InputFilter.LengthFilter(6),
+            InputFilter { source, _, _, _, _, _ ->
+                val filtrado = source.toString().filter { it.isLetterOrDigit() }.uppercase()
+                filtrado
+            }
+        )
     }
 
     private fun configurarObservers() {

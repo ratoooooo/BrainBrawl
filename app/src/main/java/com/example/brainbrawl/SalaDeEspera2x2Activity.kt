@@ -1,5 +1,8 @@
 package com.example.brainbrawl
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -30,6 +33,9 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     private var nomeUtilizador: String = ""
     private var nomeJogador: String = ""
     private var categoria: String? = null
+    private var playerKey: String = ""
+    private var tipoJogador: String = ""
+    private var avatar: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -47,12 +53,18 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         categoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
             ?: intent.getStringExtra(IntentExtras.CATEGORIA_LEGACY)
                     ?: getString(R.string.categoria5)
+        playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
+        tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
+        avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
 
         binding.txtCodigoSala.text = "Código da sala: $codigoSala"
+        binding.btnCopiarCodigoSala.setOnClickListener {
+            copiarCodigoSala()
+        }
 
         configurarObservers()
 
-        viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador)
+        viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         viewModel.observarJogadores(codigoSala)
         viewModel.observarEstadoSala(codigoSala)
         viewModel.observarSalaApagada(codigoSala)
@@ -103,6 +115,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
 
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
+                adicionarExtrasMatchmaking(intent)
 
                 categoria?.let {
                     intent.putExtra(IntentExtras.NOME_CATEGORIA, it)
@@ -133,5 +146,18 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         viewModel.sairDaSala(codigoSala)
         abrirMainActivity(this, nomeUtilizador, nomeJogador, uid.ifBlank { null })
         finish()
+    }
+
+    private fun adicionarExtrasMatchmaking(intent: Intent) {
+        playerKey.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.PLAYER_KEY, it) }
+        tipoJogador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.TIPO_JOGADOR, it) }
+        avatar.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.AVATAR, it) }
+        intent.putExtra(IntentExtras.IS_GUEST, tipoJogador == com.example.brainbrawl.config.GameConstants.TIPO_JOGADOR_GUEST)
+    }
+
+    private fun copiarCodigoSala() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Código da sala", codigoSala))
+        Toast.makeText(this, "Código copiado", Toast.LENGTH_SHORT).show()
     }
 }

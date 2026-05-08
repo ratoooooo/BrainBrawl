@@ -1,6 +1,279 @@
 # Pergunta o Luso - TEST_REPORT
 
-Data: 2026-05-07
+Data: 2026-05-08
+
+## Firebase Rules hardening - 2026-05-08
+
+### Resumo da revisao
+
+- `firebase-rules.json` foi revisto contra os paths usados por repositories de jogadores, amigos, categorias, salas, jogo competitivo, pontuacao, historico, ranking e matchmaking.
+- A ronda focou em reduzir abuso sem alterar Kotlin/UI nem quebrar convidados, legado, convites, salas ou matchmaking.
+- As rules continuam a validar formato/ownership/limites basicos; a justica de pontuacao, XP e ranking continua pendente de backend autoritativo.
+
+### Paths endurecidos
+
+- `jogadores/{jogadorId}`: bloqueia chaves `guest_*`, mantendo UID-first para Auth e fallback legado por password.
+- `categoriasPublicas/{categoriaId}`: exige Auth para writes, bloqueia convidados de publicar/avaliar/incrementar usos e impede nao-criadores de alterar perguntas/metadados estruturais.
+- `jogadores/{uid}/categoriasPersonalizadas`: exige Auth no proprio UID ou fallback legado explicito por `nomeUtilizador/password`.
+- `sala_2x2/{codigo}/equipaA` e `equipaB`: campos arbitrarios removidos; apenas identidade temporaria conhecida e aceite.
+- `matchmaking/{modo}/resultados` e `matchmaking/{modo}/matches`: `jogadores` e `matches` passaram a validar campos esperados e bloquear `$other`.
+
+### Paths ainda permissivos por compatibilidade
+
+- `jogadores` continua `.read=true` para ranking, pesquisa social, login legado e fallback por `nomeUtilizador`.
+- `salas`, `sala_1x1`, `sala_2x2` e `matchmaking` mantem leitura aberta porque convidados, sala por codigo, podios e ecrã de matchmaking dependem disso.
+- Salas ainda tem fallbacks `auth == null` para convidados e fluxos antigos de jogo.
+- `matchmaking/{modo}` mantem write no nivel do modo porque o cliente atual faz transacao no node inteiro para criar matches.
+- Perfis legados com `password` mantem alguma escrita sem Auth para nao quebrar compatibilidade antiga.
+
+### Convidados e estatisticas
+
+- Convidado pode continuar a jogar em estruturas temporarias de sala/matchmaking.
+- Convidado nao pode criar `jogadores/guest_*`.
+- Convidado nao escreve `historicoJogos`.
+- Convidado nao publica/avalia categorias publicas.
+- A garantia de nao gravar estatisticas/XP/ranking permanece dupla: Kotlin exige `uid` valido e nao guest, e rules bloqueiam perfil `guest_*`.
+
+### Validacoes executadas
+
+- `python3 -m json.tool firebase-rules.json`
+  - OK; JSON valido.
+- Pesquisa de permissividades restantes com `rg` para `.read=true`, `auth == null`, `.indexOn`, `guest_` e `$other`.
+  - OK; permissoes restantes foram documentadas.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Testes manuais recomendados
+
+- Auth/registo: criar conta nova, confirmar `jogadores/{uid}`, perfil/avatar, logout/login.
+- Legado: testar login antigo por `nomeUtilizador/password`, se ainda estiver ativo no ambiente.
+- Convidado: jogar sala/matchmaking e confirmar ausencia de `jogadores/guest_*`, historico e XP.
+- Grupo/1x1/2x2: criar/entrar/jogar ate podio, com Auth e convidados.
+- Amigos/convites: pedido, aceitar, remover, convite 1x1, convite 2x2.
+- Categorias: Auth cria/edita/publica/avalia/guarda; guest deve ser bloqueado em publicar/avaliar/guardar.
+- Ataques basicos: tentar escrever perfil alheio, pontuacao negativa, campo inesperado, historico de outro uid, avaliacao com uid diferente e categoria publica de outro criador.
+
+### Riscos pendentes
+
+- Results/XP/ranking continuam client-side; rules nao conseguem provar legitimidade de jogo.
+- Leitura global de `jogadores` permanece por ranking/pesquisa/login legado.
+- Matchmaking ainda e cliente-side e precisa de Cloud Functions para selecao autoritativa.
+- Fallbacks `auth == null` em salas continuam necessarios enquanto convidados sem Firebase Anonymous Auth forem suportados.
+
+## Fecho competitivo 1x1/2x2, desforra e podio - 2026-05-08
+
+### Problemas encontrados
+
+- `Pontuacao1x1Activity` e `Pontuacao2x2Activity` ainda apagavam diretamente `sala_1x1/{codigoSala}` e `sala_2x2/{codigoSala}` no botao Voltar.
+- `Pontuacao1x1Activity` concentrava logica Firebase de desforra, criacao de sala nova, listeners e limpeza de flags.
+- `Pontuacao2x2Activity` mostrava Toasts de vencedor/espera dentro do listener realtime, repetindo mensagens sempre que a sala mudava.
+- As Activities ja tinham protecoes por `uid`, mas foram reforcadas com `tipoJogador/isGuest` para impedir convidados de gravar estatisticas/historico.
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao1x1ViewModel.kt`
+
+### Ficheiros alterados nesta fase
+
+- `app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/res/layout/activity_pontuacao1x1.xml`
+- `app/src/main/res/layout/activity_pontuacao_multi.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Fluxo 1x1
+
+- O botao Voltar deixou de chamar `removeValue()` na sala; agora apenas regressa a Main/Login com `uid`/nomes preservados.
+- A sala antiga permanece disponivel no Firebase depois de um jogador sair do podio.
+- A desforra escreve apenas `jogadores/{playerKey}/desforra=true`, observa aceitacao do adversario e cria/navega para uma nova `sala_1x1`.
+- A nova sala de desforra preserva `uid`, `playerKey`, `tipoJogador`, `isGuest`, `nomeDisplay`, `nomeUtilizador`, `nomeJogador` e `avatar` quando existem.
+- O estado visual mostra "A aguardar adversario..." ou "Desforra aceite. A criar nova sala..." sem depender de Toast repetido.
+
+### Fluxo 2x2
+
+- O botao Voltar deixou de chamar `removeValue()` em `sala_2x2/{codigoSala}`.
+- O resultado final passou a ser mostrado em `txtResultado2x2`: "Vitoria da Equipa A!", "Vitoria da Equipa B!" ou "Empate!".
+- Enquanto o podio esta incompleto, `txtEstadoPontuacao` mostra "A aguardar todos os jogadores terminarem... X/4".
+- Os Toasts repetidos de vencedor/espera foram removidos; manteve-se apenas o Toast pontual de novo recorde para autenticados.
+
+### Protecao de convidados e anti-duplicacao
+
+- `Pontuacao1x1Activity` e `Pontuacao2x2Activity` so gravam estatisticas/historico quando `uid` esta preenchido, `isGuest=false` e `tipoJogador != guest`.
+- Convidados continuam a aparecer no podio, mas nao consultam recorde, nao gravam historico e nao atualizam `jogadores`.
+- `PontuacaoRepository.atualizarProximoJogador` ignora resultados sem `uid`, evitando resolver `guestKey` ou nome de convidado como perfil persistente.
+- Flags locais `estatisticasAtualizadas`, `historicoGuardado`, `recordeConsultado` e `navegouParaDesforra` reduzem chamadas repetidas quando listeners disparam novamente ou a Activity recria.
+- A criacao da desforra usa transacao em `novaSalaDesforra`; se outra instancia ja criou a sala, o fluxo reutiliza o codigo existente.
+- A sala antiga nao e apagada ao pedir desforra, aceitar desforra ou voltar do podio.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK em verificacao intermedia apos as alteracoes de codigo.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+### Testes manuais recomendados
+
+- 1x1 autenticado: confirmar podio, Voltar sem apagar `sala_1x1/{codigoSala}`, estatisticas uma vez por jogador.
+- 1x1 desforra: jogador A pede, jogador B aceita, uma unica nova sala e ambos entram na mesma `SalaDeEspera1x1Activity`.
+- 1x1 com convidado: convidado aparece no podio/desforra, mas nao cria `jogadores/{guestKey}` nem grava XP/estatisticas/historico.
+- 2x2 autenticado: podio completo mostra resultado fixo, sem spam de Toast, e Voltar nao apaga `sala_2x2/{codigoSala}`.
+- 2x2 misto: convidados aparecem no podio, mas apenas autenticados com UID gravam dados persistentes.
+- Recriacao/rotacao: confirmar que estatisticas, historico e navegacao de desforra nao duplicam.
+
+### Riscos pendentes
+
+- A limpeza definitiva/TTL de salas antigas continua pendente e deve ser feita por mecanismo dedicado, idealmente Cloud Functions ou rotina administrativa.
+- A desforra continua cliente-side; a transacao evita duplicacao normal, mas validacao autoritativa contra cliente malicioso exigiria backend/rules mais fortes.
+- Firebase Rules nao foram alteradas nesta fase.
+- Matchmaking, convites, formula de pontuacao, XP, rankings, historico funcional e categorias nao foram reestruturados nesta fase.
+
+## Matchmaking real, convidados e avatares - 2026-05-08
+
+### Estrutura Firebase final
+
+- `matchmaking/1x1/fila/{playerKey}` e `matchmaking/2x2/fila/{playerKey}` guardam `playerKey`, `uid`, `tipoJogador`, `nomeUtilizador`, `nomeJogador`, `nomeDisplay`, `avatar`, `timestampEntrada`, `estado` e `isGuest`.
+- `matchmaking/1x1/resultados/{playerKey}` e `matchmaking/2x2/resultados/{playerKey}` guardam `codigoSala`, `modo`, `nomeCategoria`, `criadorId`, `criadorUid`, `estado=encontrado`, `timestampEntrada` e `jogadores/{playerKey}`.
+- `matchmaking/{modo}/matches/{matchId}` guarda o claim transacional usado para evitar matches duplicados.
+- 1x1 cria sala real em `sala_1x1/{codigoSala}` com 2 jogadores, admin/adminId/adminUid, `estado=em_espera`, `nomeCategoria` e `prontos`.
+- 2x2 cria sala real em `sala_2x2/{codigoSala}` com 4 jogadores, admin/adminId/adminUid, `estado=em_espera` e `nomeCategoria`; equipas continuam a ser definidas pelo fluxo existente ao iniciar.
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/models/MatchmakingModels.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/AvatarUtils.kt`
+
+### Ficheiros alterados nesta fase
+
+- `MatchmakingActivity.kt` e `activity_matchmaking.xml`
+- `SalaDeEspera1x1Activity.kt`, `SalaDeEspera2x2Activity.kt`, `Sala1x1ViewModel.kt`, `Sala2x2ViewModel.kt`
+- `Jogo1x1Activity.kt`, `Jogo2x2Activity.kt`, `Jogo1x1ViewModel.kt`, `Jogo2x2ViewModel.kt`
+- `Pontuacao1x1Activity.kt`, `Pontuacao2x2Activity.kt`, `PontuacoesActivity.kt`, `PontuacaoRepository.kt`
+- `JogadorSalaIdentidade.kt`, `JogoCompetitivoRepository.kt`, `UteisNavegacao.kt`
+- `FirebasePaths.kt`, `GameConstants.kt`, `IntentExtras.kt`
+- `MainActivity.kt`, `MeuPerfilActivity.kt`, `PerfilAmigoActivity.kt`, `AmigoAdapter.kt`, `JogadoresSalaAdapter.kt`, `RegistarActivity.kt`, `RegistarViewModel.kt`
+- `firebase-rules.json`, `ARCHITECTURE_PLAN.md`, `FIREBASE_RULES_NOTES.md`, `TEST_REPORT.md`
+
+### Autenticados vs convidados
+
+- Autenticado: `playerKey = uid`, `uid` preenchido, `tipoJogador=auth`, `nomeDisplay` vem de `nomeUtilizador`/`nomeJogador`/`uid`, avatar vem do perfil.
+- Convidado: `uid` vazio, `tipoJogador=guest`, `playerKey = guest_{nome}_{timestamp}`, `nomeDisplay = nomeJogador`, avatar fallback.
+- O `playerKey` e passado para sala, jogo e pontuacao para nao depender apenas do nome visual.
+
+### Garantia de convidados sem estatisticas
+
+- Convidados aparecem em sala, jogo e podio, mas nao criam perfil em `jogadores`.
+- `Pontuacao1x1Activity`, `Pontuacao2x2Activity` e `PontuacoesActivity` so chamam atualizacao de estatisticas quando `uid` nao esta vazio.
+- `PontuacaoRepository` tambem ignora resultados sem `uid`, evitando fallback por nome que poderia atingir um perfil real indevido.
+- `HistoricoRepository` ja rejeita `uid` vazio, e os ecras de pontuacao mantem esse guard.
+
+### Race conditions mitigadas
+
+- Entrada usa `playerKey` como chave unica; mesmo UID substitui a propria entrada.
+- Ao entrar num modo, remove a entrada/resultado do mesmo `playerKey` no outro modo.
+- `onDisconnect` remove a fila se a ligacao cair.
+- Entradas stale com mais de 2 minutos sao limpas ao entrar e dentro da transacao de claim.
+- O claim de match corre em transacao em `matchmaking/{modo}` e so prossegue se o jogador que tentou criar esta entre os selecionados mais antigos.
+- `matches/{matchId}` evita claim duplicado do mesmo conjunto.
+- Navegacao e cancelamento usam flags para evitar eventos duplicados.
+- Cancelar remove fila se nao houver resultado; se ja houver resultado, mostra que a partida ja foi encontrada e nao apaga a sala.
+
+### Avatares
+
+- `AvatarUtils` centraliza a resolucao: normaliza strings, aceita `avatar_1_playstore`, `avatar_1`, extensoes e prefixos `@drawable/`/`@mipmap/`.
+- Procura primeiro em `drawable`, depois `mipmap`, e faz fallback seguro para `R.drawable.avatar_1_playstore`.
+- Registo continua alinhado: index 0 grava `avatar_1_playstore`, index 7 grava `avatar_8_playstore`, index 11 grava `avatar_12_playstore`.
+
+### Comandos executados
+
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew clean`
+  - OK.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew build`
+  - OK.
+- `python3 -m json.tool firebase-rules.json`
+  - OK.
+
+Avisos mantidos: `SalaRepository.kt:84 Parameter 'adminHint' is never used` e deprecated Gradle features.
+
+### Testes manuais recomendados
+
+- 1x1 com duas contas Auth: fila, sala `sala_1x1`, resultados, entrada na mesma sala e inicio.
+- 1x1 convidado + Auth: convidado joga, aparece no podio e nao cria/atualiza `jogadores`.
+- 2x2 com quatro contas: nenhuma sala com 3 jogadores; sala criada ao quarto jogador; admin inicia.
+- 2x2 misto com convidados: sala com 4 jogadores, convidados visiveis e sem estatisticas.
+- Cancelar antes/depois do match.
+- Mesmo UID em dois dispositivos e alternancia rapida entre 1x1/2x2.
+- Avatar `avatar_1_playstore`, `avatar_8_playstore`, vazio e invalido em Main/perfis/amigos.
+
+### Riscos pendentes
+
+- Matchmaking ainda e cliente-side. Rules reduzem writes malformados, mas Cloud Functions seriam necessarias para anti-abuso forte e escolha autoritativa dos jogadores.
+- Se o cliente que ganhou o claim fechar exatamente antes de criar a sala/publicar resultados, o claim pode ficar em `criando` ate uma limpeza futura/manual.
+- Os fluxos antigos de convites continuam preservados, mas tambem continuam com as limitacoes de seguranca client-side ja documentadas.
+
+## Estabilizacao tecnica e UX pequena - 2026-05-08
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/JogoActivity.kt`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/drawable/ic_history.xml`
+- `app/src/main/res/drawable/ic_logout.xml`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `TEST_REPORT.md`
+
+### Problemas corrigidos
+
+- Recriado `ExampleUnitTest.kt` em `app/src/test`, porque a arvore de testes unitarios nao existia neste checkout apesar de estar referida em relatorios anteriores.
+- O teste de estatisticas foi atualizado para construir `EstatisticasService.EstatisticasAtuais` com `recordePontuacao`.
+- O empate 2x2 ficou coberto por teste com a regra atual: `textoVencedor2x2(150.0, 150.0)` devolve `Empate!` e `vencedores(..., DOIS_CONTRA_DOIS)` devolve `emptySet()`.
+- O logout/sair na Main deixou de estar escondido como `1dp`/`gone`; o mesmo `btn_voltar` agora e uma acao visivel no cabecalho com descricao `Terminar sessao`.
+- A logica existente de logout foi preservada: se existir `uid` ou `nomeUtilizador`, chama `jogadorRepository.marcarOffline`; depois chama `authService.terminarSessao()`, abre `LoginActivity` e faz `finish()`. Para convidado, volta ao login sem tentar marcar offline.
+- O botao `btn_historico` passou a ter `contentDescription="Historico"` e icone proprio de historico, mantendo a abertura de `HistoricoActivity`.
+- Em `JogoActivity`, as quatro opcoes passam a ser bloqueadas depois de resposta ou timeout, e desbloqueadas ao apresentar uma nova pergunta.
+- O feedback visual de resposta foi mantido: resposta correta verde, resposta errada vermelha e resposta correta sempre visivel.
+
+### Verificacoes executadas
+
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew clean`
+  - OK.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew testDebugUnitTest`
+  - OK. Testes unitarios compilados e executados.
+- `JAVA_HOME='/Applications/Android Studio.app/Contents/jbr/Contents/Home' ./gradlew build`
+  - OK.
+
+### Avisos e pendencias
+
+- O wrapper Gradle falhou no sandbox ao tentar aceder a `~/.gradle`; os comandos foram executados com o JBR do Android Studio fora do sandbox.
+- Mantem-se o warning conhecido: `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Mantem-se o aviso generico de deprecated Gradle features.
+- Matchmaking real nao foi implementado nesta fase.
+- Firebase Rules nao foram alteradas nesta fase.
+- Pontuacao, ScoreService, XP, rankings, historico funcional, categorias e regras de estatisticas nao foram alterados nesta fase, exceto pela reposicao/atualizacao dos testes unitarios desatualizados.
+- Segurança Firebase autoritativa continua pendente para uma fase propria.
 
 ## Auditoria completa desconfiada - UI, fluxo e dados - 2026-05-07
 
@@ -2834,3 +3107,113 @@ Durante a validacao, o projeto ja referenciava `HistoricoActivity` e `Matchmakin
 6. Abrir Podio/Pontuacao e confirmar contraste, botoes e nomes longos.
 7. Abrir Historico e confirmar lista vazia, lista com itens e datas.
 8. Testar toque rapido em botoes principais para confirmar feedback visual e sem deslocamentos.
+
+## QA urgente pre-proxima fase - 2026-05-08
+
+### Bugs confirmados no codigo
+
+- Matchmaking 1x1/2x2 mantinha resultados persistidos em `matchmaking/{modo}/resultados/{playerKey}` depois da navegacao e a sala de espera podia interpretar uma leitura inicial inexistente como sala encerrada.
+- Entrada em sala aceitava codigo em minusculas sem normalizacao centralizada.
+- Salas mostravam codigo sem acao rapida de copiar.
+- `AmigosViewModel` publicava o proprio utilizador como primeiro item da lista de amigos.
+- Login Auth dependia quase so de `jogadores/{uid}` e nao fazia fallback suficiente para perfis Auth encontrados por `uid` como campo ou por email.
+- Registo permitia avancar para a etapa de perfil sem cumprir todos os requisitos mostrados na UI.
+- Icones de mostrar password em Login/Registo nao tinham acao ligada.
+- Textos com nomes longos tinham risco de cortar/forcar layout em perfil, amigos, ranking e salas.
+
+### Bugs corrigidos
+
+- Matchmaking passou a consumir o resultado apos emitir a navegacao, ignorar cancelamento depois de match encontrado e manter listeners durante recriacao de Activity.
+- Salas competitivas/grupo so emitem `SalaEncerrada` depois de a sala ja ter sido vista pelo listener pelo menos uma vez.
+- Campo de codigo de sala normaliza para maiusculas, limita a 6 caracteres e filtra caracteres nao alfanumericos.
+- Codigo mostrado em salas 1x1/2x2/grupo pode ser copiado para clipboard com feedback "Codigo copiado".
+- Bottom nav reutilizavel aplicada a Perfil, Ranking, Historico e Amigos, preservando `uid`, `nomeUtilizador`, `nomeJogador` e `email`.
+- Lista de amigos deixou de incluir o proprio utilizador.
+- `AvatarUtils` normaliza nomes em lowercase e continua a aceitar `avatar_1`, `avatar_1_playstore`, `@drawable/...` e extensoes comuns.
+- Badges de perfil ficam escondidas quando os thresholds nao sao cumpridos, incluindo perfil de amigo inexistente.
+- Login Auth tenta carregar perfil por UID, por campo `uid` e por email; Main tambem tenta fallback por email.
+- Registo valida email, password, confirmacao, username e avatar antes de criar Auth/DB.
+- Mostrar/ocultar password funciona em Login, password de Registo e confirmacao, mantendo cursor no fim.
+
+### Ficheiros criados
+
+- `app/src/main/java/com/example/brainbrawl/routes/BottomNavHelper.kt`
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/HistoricoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/LoginActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MainActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MatchmakingActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RankingActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/RegistarActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/AvatarUtils.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/CodigoSalaUtils.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/UteisValidacao.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/LoginViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/RegistarViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt`
+- `app/src/main/res/layout/activity_login.xml`
+- `app/src/main/res/layout/activity_main.xml`
+- `app/src/main/res/layout/activity_meu_perfil.xml`
+- `app/src/main/res/layout/activity_perfil_amigo.xml`
+- `app/src/main/res/layout/activity_registar.xml`
+- `app/src/main/res/layout/activity_sala_de_espera2x2.xml`
+- `app/src/main/res/layout/activity_sala_de_espera_1x1.xml`
+- `app/src/main/res/layout/item_amigo.xml`
+- `app/src/main/res/layout/item_jogador_sala.xml`
+- `app/src/main/res/layout/item_ranking_jogador.xml`
+
+### Regras Firebase
+
+- `firebase-rules.json` nao foi alterado nesta ronda.
+- `FIREBASE_RULES_NOTES.md` nao foi atualizado por nao haver alteracao de rules.
+
+### Verificacoes executadas
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Observacoes:
+
+- Continua o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Testes manuais recomendados
+
+1. Matchmaking 1x1 com duas contas Auth: confirmar uma unica sala, ambos no mesmo codigo e sem loop entra/sai.
+2. Matchmaking 1x1 com convidado/Auth e convidado/convidado, se convidados forem suportados no ambiente Firebase atual.
+3. Cancelar matchmaking antes de match e depois de match encontrado.
+4. Criar sala grupo, copiar codigo, entrar noutra sessao escrevendo o codigo em minusculas.
+5. Navegar Main, Perfil, Ranking, Historico e Amigos pela bottom nav, confirmando extras preservados.
+6. Criar/usar nomes longos em Main, Perfil, Amigos, Ranking e salas.
+7. Abrir Amigos com duas contas que se adicionaram e confirmar que o proprio utilizador nao aparece.
+8. Testar avatares `avatar_1_playstore`, `avatar_8_playstore`, vazio e invalido no Firebase.
+9. Criar conta nova, fazer logout, login por email/password e reabrir app com sessao persistente.
+10. Validar registo com email invalido, password curta, confirmacao diferente, username repetido/invalido.
+11. Testar mostrar/ocultar password em Login, Registo e confirmacao.
+
+### Riscos pendentes
+
+- Nao foi possivel executar testes manuais de Firebase/emulador nesta ronda automatica.
+- A bottom nav foi adicionada programaticamente aos ecras principais; deve ser validada visualmente em dispositivos pequenos.
+- O warning antigo `adminHint` permanece fora do escopo desta ronda.

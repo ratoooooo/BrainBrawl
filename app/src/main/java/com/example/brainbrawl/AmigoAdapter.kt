@@ -9,6 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.models.UtilizadorSocial
+import com.example.brainbrawl.utils.AvatarUtils
 
 class AmigoAdapter(
     private val amigos: List<UtilizadorSocial>,
@@ -40,8 +41,7 @@ class AmigoAdapter(
         // Define o avatar do amigo (ou avatar default)
         val avatarName = avatares.getOrNull(position) ?: "avatar_1_playstore"
         val context = holder.itemView.context
-        val resId = context.resources.getIdentifier(avatarName, "drawable", context.packageName)
-        holder.imgAvatarAmigo.setImageResource(resId)
+        holder.imgAvatarAmigo.setImageResource(AvatarUtils.resolverAvatar(context, avatarName))
 
         // Estado (verde se "on", cinza se "off" ou outro)
         val estado = estados.getOrNull(position) ?: "off"

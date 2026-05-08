@@ -34,6 +34,9 @@ class Jogo1x1Activity : AppCompatActivity() {
     private lateinit var nomeUtilizador: String
     private lateinit var nomeJogador: String
     private lateinit var perguntaAtual: Pergunta
+    private var playerKey: String = ""
+    private var tipoJogador: String = ""
+    private var avatar: String = ""
 
     private var mediaPlayer: MediaPlayer? = null
     private var somTocar = false
@@ -57,6 +60,9 @@ class Jogo1x1Activity : AppCompatActivity() {
             ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
+        playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
+        tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
+        avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
 
         configurarObservers()
         configurarBotoes()
@@ -65,6 +71,9 @@ class Jogo1x1Activity : AppCompatActivity() {
             uid = uid,
             nomeUtilizador = nomeUtilizador,
             nomeJogador = nomeJogador,
+            playerKey = playerKey,
+            tipoJogador = tipoJogador,
+            avatar = avatar,
             categoriaPadrao = "Todas as categorias",
             categoriaTodas = getString(R.string.categoria5)
         )
@@ -284,7 +293,10 @@ class Jogo1x1Activity : AppCompatActivity() {
             dados.totalPerguntasCertas,
             dados.numeroPerguntasCertas,
             dados.totalPerguntas,
-            uid = dados.uid
+            uid = dados.uid,
+            playerKey = dados.playerKey,
+            tipoJogador = dados.tipoJogador,
+            avatar = dados.avatar
         )
     }
 

@@ -11,32 +11,33 @@
     "categoriasPublicas": {
       ".read": true,
       "$categoriaId": {
-        ".write": "(auth != null && ((!data.exists() && (newData.child('criadorUid').val() == auth.uid || newData.child('criadorId').val() == auth.uid)) || (data.exists() && (data.child('criadorUid').val() == auth.uid || data.child('criadorId').val() == auth.uid || newData.child('criadorUid').val() == auth.uid || newData.child('avaliacoes').child(auth.uid).exists() || newData.child('usos').val() == data.child('usos').val() + 1)))) || (auth == null && data.exists() && newData.child('usos').isNumber())",
+        ".write": "auth != null && ((!data.exists() && (newData.child('criadorUid').val() == auth.uid || newData.child('criadorId').val() == auth.uid)) || (data.exists() && (data.child('criadorUid').val() == auth.uid || data.child('criadorId').val() == auth.uid || newData.child('criadorUid').val() == auth.uid || newData.child('avaliacoes').child(auth.uid).exists() || newData.child('usos').val() == data.child('usos').val() + 1)))",
         "id": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "nome": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "descricao": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "criador": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "criadorId": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "criadorUid": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "nomeUtilizador": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "nomeDisplay": {
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "perguntas": {
+          ".validate": "!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val()",
           "$perguntaId": {
             "pergunta": {
               ".validate": "newData.isString()"
@@ -55,13 +56,13 @@
           }
         },
         "usos": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() || newData.val() == data.val() + 1 || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "ratingMedio": {
           ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
         },
         "totalAvaliacoes": {
-          ".validate": "newData.isNumber() && newData.val() >= 0"
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() || newData.val() == data.val() + 1 || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "avaliacoes": {
           "$uidAvaliador": {
@@ -84,10 +85,10 @@
           }
         },
         "dataCriacao": {
-          ".validate": "newData.isNumber()"
+          ".validate": "newData.isNumber() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "dataPublicacao": {
-          ".validate": "newData.isNumber()"
+          ".validate": "newData.isNumber() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "$other": {
           ".validate": false
@@ -99,8 +100,8 @@
       ".read": true,
       ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao", "recordePontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"],
       "$jogadorId": {
-        ".write": "(auth != null && auth.uid == $jogadorId) || (auth == null && (!data.exists() || (data.exists() && newData.exists() && data.child('password').exists() && newData.child('password').val() == data.child('password').val())))",
-        ".validate": "newData.hasChildren(['avatar']) && ((newData.hasChildren(['uid', 'nomeUtilizador', 'email', 'estado', 'pontuacao', 'taxaAcertos', 'totalJogos', 'totalRespostasCertas', 'totalVitorias', 'totalVitoriasModo1x1', 'totalVitoriasModo2x2', 'totalVitoriasModoSolo']) && newData.child('uid').val() == $jogadorId) || newData.hasChildren(['password']))",
+        ".write": "!$jogadorId.matches(/^guest_/) && ((auth != null && auth.uid == $jogadorId) || (auth == null && (!data.exists() || (data.exists() && newData.exists() && data.child('password').exists() && newData.child('password').val() == data.child('password').val()))))",
+        ".validate": "!$jogadorId.matches(/^guest_/) && newData.hasChildren(['avatar']) && ((newData.hasChildren(['uid', 'nomeUtilizador', 'email', 'estado', 'pontuacao', 'taxaAcertos', 'totalJogos', 'totalRespostasCertas', 'totalVitorias', 'totalVitoriasModo1x1', 'totalVitoriasModo2x2', 'totalVitoriasModoSolo']) && newData.child('uid').val() == $jogadorId) || newData.hasChildren(['password']))",
         "uid": {
           ".validate": "newData.isString() && newData.val() == $jogadorId"
         },
@@ -253,7 +254,7 @@
         },
         "categoriasPersonalizadas": {
           "$nomeCategoria": {
-            ".write": "(auth != null && auth.uid == $jogadorId) || auth == null",
+            ".write": "(auth != null && (auth.uid == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId)) || (auth == null && root.child('jogadores').child($jogadorId).child('password').exists())",
             "nome": {
               ".validate": "newData.isString()"
             },
@@ -397,6 +398,15 @@
             "uid": {
               ".validate": "newData.isString()"
             },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
             "nomeUtilizador": {
               ".validate": "newData.isString()"
             },
@@ -499,6 +509,15 @@
             },
             "uid": {
               ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
             },
             "nomeUtilizador": {
               ".validate": "newData.isString()"
@@ -615,6 +634,15 @@
             "uid": {
               ".validate": "newData.isString()"
             },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
             "nomeUtilizador": {
               ".validate": "newData.isString()"
             },
@@ -644,18 +672,72 @@
         "equipaA": {
           "$jogadorId": {
             ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
-            ".validate": "newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            ".validate": "!newData.exists() || newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
             "$other": {
-              ".validate": true
+              ".validate": false
             }
           }
         },
         "equipaB": {
           "$jogadorId": {
             ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
-            ".validate": "newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            ".validate": "!newData.exists() || newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
             "$other": {
-              ".validate": true
+              ".validate": false
             }
           }
         },
@@ -794,20 +876,29 @@
     },
 
     "matchmaking": {
-      ".read": "auth != null",
+      ".read": true,
       "$modo": {
-        ".write": "auth != null && ($modo == '1x1' || $modo == '2x2')",
+        ".write": "$modo == '1x1' || $modo == '2x2'",
         "fila": {
-          "$uid": {
-            ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'nomeUtilizador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('uid').val() == $uid)",
+          "$playerKey": {
+            ".validate": "!newData.exists() || ((newData.child('tipoJogador').val() == 'auth' && auth != null && $playerKey == auth.uid && newData.child('uid').val() == auth.uid) || (newData.child('tipoJogador').val() == 'guest' && $playerKey.matches(/^guest_[A-Za-z0-9_]+$/) && (!newData.child('uid').exists() || newData.child('uid').val() == ''))) && newData.hasChildren(['playerKey', 'tipoJogador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('playerKey').val() == $playerKey",
+            "playerKey": {
+              ".validate": "newData.isString() && newData.val() == $playerKey"
+            },
             "uid": {
-              ".validate": "newData.isString() && newData.val() == $uid"
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
             },
             "nomeUtilizador": {
               ".validate": "newData.isString()"
             },
-            "nomeDisplay": {
+            "nomeJogador": {
               ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString() && newData.val().length > 0"
             },
             "avatar": {
               ".validate": "newData.isString()"
@@ -816,7 +907,16 @@
               ".validate": "newData.isNumber()"
             },
             "estado": {
-              ".validate": "newData.isString() && newData.val() == 'aguardando'"
+              ".validate": "newData.isString() && (newData.val() == 'aguardando' || newData.val() == 'encontrado')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString()"
+            },
+            "criadorId": {
+              ".validate": "newData.isString()"
             },
             "$other": {
               ".validate": false
@@ -824,10 +924,16 @@
           }
         },
         "resultados": {
-          "$uid": {
-            ".validate": "!newData.exists() || (newData.hasChildren(['uid', 'codigoSala', 'modo', 'nomeCategoria', 'criadorUid', 'estado', 'timestampEntrada', 'jogadores']) && newData.child('uid').val() == $uid && newData.child('modo').val() == $modo)",
+          "$playerKey": {
+            ".validate": "!newData.exists() || newData.hasChildren(['playerKey', 'tipoJogador', 'codigoSala', 'modo', 'nomeCategoria', 'criadorId', 'estado', 'timestampEntrada', 'jogadores']) && newData.child('playerKey').val() == $playerKey && newData.child('modo').val() == $modo && ((newData.child('tipoJogador').val() == 'auth' && newData.child('uid').val() == $playerKey) || (newData.child('tipoJogador').val() == 'guest' && $playerKey.matches(/^guest_[A-Za-z0-9_]+$/)))",
+            "playerKey": {
+              ".validate": "newData.isString() && newData.val() == $playerKey"
+            },
             "uid": {
-              ".validate": "newData.isString() && newData.val() == $uid"
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
             },
             "codigoSala": {
               ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
@@ -836,6 +942,9 @@
               ".validate": "newData.isString() && newData.val() == $modo && (newData.val() == '1x1' || newData.val() == '2x2')"
             },
             "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "criadorId": {
               ".validate": "newData.isString()"
             },
             "criadorUid": {
@@ -849,15 +958,24 @@
             },
             "jogadores": {
               "$jogadorId": {
-                ".validate": "newData.hasChildren(['uid', 'nomeUtilizador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('uid').val() == $jogadorId",
-                "uid": {
+                ".validate": "newData.hasChildren(['playerKey', 'tipoJogador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('playerKey').val() == $jogadorId",
+                "playerKey": {
                   ".validate": "newData.isString() && newData.val() == $jogadorId"
+                },
+                "uid": {
+                  ".validate": "newData.isString()"
+                },
+                "tipoJogador": {
+                  ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
                 },
                 "nomeUtilizador": {
                   ".validate": "newData.isString()"
                 },
-                "nomeDisplay": {
+                "nomeJogador": {
                   ".validate": "newData.isString()"
+                },
+                "nomeDisplay": {
+                  ".validate": "newData.isString() && newData.val().length > 0"
                 },
                 "avatar": {
                   ".validate": "newData.isString()"
@@ -868,10 +986,39 @@
                 "estado": {
                   ".validate": "newData.isString() && (newData.val() == 'aguardando' || newData.val() == 'encontrado')"
                 },
+                "isGuest": {
+                  ".validate": "newData.isBoolean()"
+                },
                 "$other": {
                   ".validate": false
                 }
               }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "matches": {
+          "$matchId": {
+            ".validate": "!newData.exists() || newData.hasChildren(['estado', 'codigoSala', 'modo', 'criadorId', 'timestampEntrada'])",
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'criando' || newData.val() == 'encontrado')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
+            },
+            "modo": {
+              ".validate": "newData.isString() && newData.val() == $modo && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "criadorId": {
+              ".validate": "newData.isString()"
+            },
+            "criadorUid": {
+              ".validate": "newData.isString()"
+            },
+            "timestampEntrada": {
+              ".validate": "newData.isNumber()"
             },
             "$other": {
               ".validate": false

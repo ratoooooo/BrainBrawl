@@ -223,51 +223,33 @@ class AmigosViewModel(
     }
 
     private fun atualizarListaAmigos(utilizador: UtilizadorSocial, amigos: List<UtilizadorSocial>) {
-        val utilizadoresBase = mutableListOf(utilizador)
-        val avataresBase = mutableListOf(AVATAR_PADRAO)
-        val estadosBase = mutableListOf(ESTADO_ON)
+        val amigosTemp = amigos.filterNot { it.corresponde(utilizador) }
+        val avataresTemp = MutableList(amigosTemp.size) { AVATAR_PADRAO }
+        val estadosTemp = MutableList(amigosTemp.size) { ESTADO_OFF }
 
-        jogadorRepository.obterPerfil(utilizador.chavePrimaria)
-            .addOnSuccessListener { perfil ->
-                avataresBase[0] = perfil?.avatar ?: AVATAR_PADRAO
-                estadosBase[0] = perfil?.estado ?: ESTADO_ON
+        if (amigosTemp.isEmpty()) {
+            publicarAmigos(emptyList(), emptyList(), emptyList())
+            return
+        }
 
-                val amigosTemp = amigos.filterNot { it.corresponde(utilizador) }
-                val avataresTemp = MutableList(amigosTemp.size) { AVATAR_PADRAO }
-                val estadosTemp = MutableList(amigosTemp.size) { ESTADO_OFF }
-
-                if (amigosTemp.isEmpty()) {
-                    publicarAmigos(utilizadoresBase, avataresBase, estadosBase)
-                    return@addOnSuccessListener
+        var loaded = 0
+        amigosTemp.forEachIndexed { index, amigo ->
+            jogadorRepository.obterPerfil(amigo.chavePrimaria)
+                .addOnSuccessListener { perfilAmigo ->
+                    avataresTemp[index] = perfilAmigo?.avatar ?: AVATAR_PADRAO
+                    estadosTemp[index] = perfilAmigo?.estado ?: ESTADO_OFF
+                    loaded++
+                    if (loaded == amigosTemp.size) {
+                        publicarAmigos(amigosTemp, avataresTemp, estadosTemp)
+                    }
                 }
-
-                var loaded = 0
-                amigosTemp.forEachIndexed { index, amigo ->
-                    jogadorRepository.obterPerfil(amigo.chavePrimaria)
-                        .addOnSuccessListener { perfilAmigo ->
-                            avataresTemp[index] = perfilAmigo?.avatar ?: AVATAR_PADRAO
-                            estadosTemp[index] = perfilAmigo?.estado ?: ESTADO_OFF
-                            loaded++
-                            if (loaded == amigosTemp.size) {
-                                publicarAmigos(
-                                    utilizadoresBase + amigosTemp,
-                                    avataresBase + avataresTemp,
-                                    estadosBase + estadosTemp
-                                )
-                            }
-                        }
-                        .addOnFailureListener {
-                            loaded++
-                            if (loaded == amigosTemp.size) {
-                                publicarAmigos(
-                                    utilizadoresBase + amigosTemp,
-                                    avataresBase + avataresTemp,
-                                    estadosBase + estadosTemp
-                                )
-                            }
-                        }
+                .addOnFailureListener {
+                    loaded++
+                    if (loaded == amigosTemp.size) {
+                        publicarAmigos(amigosTemp, avataresTemp, estadosTemp)
+                    }
                 }
-            }
+        }
     }
 
     private fun publicarAmigos(

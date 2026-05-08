@@ -11,6 +11,7 @@ object GameConstants {
     const val ESTADO_ACEITE = "aceite"
     const val ESTADO_AGUARDANDO = "aguardando"
     const val ESTADO_ENCONTRADO = "encontrado"
+    const val ESTADO_CRIANDO = "criando"
     const val ESTADO_PUBLICA = "publica"
     const val ESTADO_PRIVADA = "privada"
 
@@ -23,4 +24,7 @@ object GameConstants {
     const val EQUIPA_A = "A"
     const val EQUIPA_B = "B"
     const val JOGADOR_ADMIN = "admin"
+
+    const val TIPO_JOGADOR_AUTH = "auth"
+    const val TIPO_JOGADOR_GUEST = "guest"
 }

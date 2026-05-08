@@ -2,6 +2,62 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Revisao de hardening - 2026-05-08
+
+Alteracoes aplicadas nesta ronda:
+
+- `jogadores/{jogadorId}` passou a bloquear chaves com prefixo `guest_`, impedindo criacao direta de perfis persistentes para convidados.
+- `categoriasPublicas/{categoriaId}` deixou de aceitar writes sem Auth. Convidados podem ler/jogar categorias publicas, mas nao publicar, avaliar nem incrementar usos.
+- Campos estruturais de categorias publicas (`nome`, `descricao`, `criador*`, `perguntas`, datas) passaram a ficar imutaveis para nao-criadores. Um utilizador autenticado que nao e criador so consegue participar no fluxo de avaliacao/usos sem alterar perguntas ou metadados principais.
+- `totalAvaliacoes` e `usos` passaram a aceitar manutencao do valor atual ou incremento de uma unidade; valores negativos continuam bloqueados.
+- `jogadores/{uid}/categoriasPersonalizadas` passou a exigir Auth no proprio UID ou fallback legado explicito por `nomeUtilizador`; sem Auth, so fica permitido se existir perfil legado com `password`.
+- `sala_2x2/{codigo}/equipaA` e `equipaB` deixaram de aceitar campos arbitrarios em jogadores de equipa. Agora aceitam apenas campos conhecidos de identidade temporaria: `nome`, `nomeDisplay`, `uid`, `playerKey`, `tipoJogador`, `isGuest`, `nomeUtilizador`, `nomeJogador` e `avatar`.
+- `matchmaking/{modo}/resultados/{playerKey}/jogadores` e `matchmaking/{modo}/matches/{matchId}` passaram a bloquear `$other` e a validar os campos esperados.
+- `matchmaking` continua com `.write` no nivel de `matchmaking/{modo}` porque o cliente atual faz transacao nesse node para reclamar jogadores, marcar fila como encontrada e criar `matches`.
+
+Paths endurecidos:
+
+- `jogadores`
+- `categoriasPublicas`
+- `jogadores/{uid}/categoriasPersonalizadas`
+- `sala_2x2/{codigo}/equipaA`
+- `sala_2x2/{codigo}/equipaB`
+- `matchmaking/{modo}/resultados`
+- `matchmaking/{modo}/matches`
+
+Permissoes que continuam abertas por compatibilidade:
+
+- `jogadores` continua com `.read=true` porque ranking, pesquisa social, login legado e resolucao de perfis por `nomeUtilizador` ainda leem o node inteiro ou fazem queries globais.
+- `categorias`, `categoriasPublicas`, `salas`, `sala_1x1`, `sala_2x2` e `matchmaking` mantem leitura aberta para permitir descoberta de categorias, sala por codigo, podios, matchmaking realtime e convidados.
+- `salas`, `sala_1x1` e `sala_2x2` ainda tem varios fallbacks `auth == null` porque convidados e alguns fluxos legados escrevem dados temporarios de jogo/sala.
+- `matchmaking/{modo}` mantem write no nivel do modo para preservar a transacao cliente-side; as rules validam formato, mas nao provam que o conjunto escolhido era realmente o correto.
+- Perfis legados com `password` ainda podem receber algumas escritas sem Auth para nao quebrar login/compatibilidade antiga. Isto deve ser removido apos migracao completa para Firebase Auth.
+
+Convidados:
+
+- Podem continuar a escrever apenas dados temporarios de sala/matchmaking quando o fluxo sem Auth precisa disso.
+- Nao podem criar `jogadores/guest_*`.
+- Nao podem escrever `historicoJogos/{uid}` porque historico exige `auth.uid == uid`.
+- Nao podem publicar, avaliar nem incrementar usos em categorias publicas.
+- Nao devem gravar estatisticas, XP, historico ou ranking; o Kotlin tambem bloqueia estes writes quando `uid` esta vazio ou `tipoJogador=guest`.
+
+Limites que continuam impossiveis de resolver so com rules:
+
+- As rules nao conseguem provar que uma resposta foi dada dentro do tempo nem que a pontuacao e legitima.
+- As rules nao conseguem impedir um cliente modificado de escrever valores de sala aparentemente validos.
+- A media de avaliacoes ainda e calculada client-side; as rules validam faixa e incremento basico, mas Cloud Functions seriam ideais para calcular `ratingMedio` e `totalAvaliacoes`.
+- A escolha de jogadores no matchmaking e a criacao da sala continuam cliente-side; a transacao reduz duplicacao, mas nao substitui um backend autoritativo.
+- Estatisticas, XP e ranking continuam sendo writes client-side do proprio perfil autenticado; as rules validam ownership e limites basicos, nao a justica do resultado.
+
+Plano futuro recomendado:
+
+1. Migrar ou encerrar login legado por `jogadores/{nomeUtilizador}/password`.
+2. Separar perfis publicos de dados privados e remover hashes de password da Realtime Database.
+3. Mover calculo de resultados, estatisticas, XP, ranking, usos e rating para Cloud Functions.
+4. Deixar o cliente escrever apenas respostas/resultados temporarios em sala.
+5. Remover writes `auth == null` de salas/matchmaking quando convidados passarem por token anonimo Auth ou backend.
+6. Fechar `.read=true` global de `jogadores` com um modelo separado para ranking/pesquisa publica.
+
 ## Auditoria de rules - 2026-05-03
 
 Resumo:
@@ -179,38 +235,48 @@ Antes de usar em producao, validar num projeto de testes com:
 
 Novos paths permitidos:
 
-- `matchmaking/1x1/fila/{uid}`
-- `matchmaking/1x1/resultados/{uid}`
-- `matchmaking/2x2/fila/{uid}`
-- `matchmaking/2x2/resultados/{uid}`
+- `matchmaking/1x1/fila/{playerKey}`
+- `matchmaking/1x1/resultados/{playerKey}`
+- `matchmaking/1x1/matches/{matchId}`
+- `matchmaking/2x2/fila/{playerKey}`
+- `matchmaking/2x2/resultados/{playerKey}`
+- `matchmaking/2x2/matches/{matchId}`
 
-Campos validados em `fila/{uid}`:
+Campos validados em `fila/{playerKey}`:
 
-- `uid` igual a chave do node.
-- `nomeUtilizador`
+- `playerKey` igual a chave do node.
+- `tipoJogador = auth` com `auth.uid == playerKey` e `uid == auth.uid`.
+- `tipoJogador = guest` com chave `guest_...` e `uid` vazio/ausente.
+- `nomeUtilizador` opcional.
+- `nomeJogador` opcional.
 - `nomeDisplay`
 - `avatar` opcional.
 - `timestampEntrada`
-- `estado = aguardando`
+- `estado = aguardando` ou `encontrado`
+- `isGuest`
 
-Campos validados em `resultados/{uid}`:
+Campos validados em `resultados/{playerKey}`:
 
-- `uid` igual a chave do node.
+- `playerKey` igual a chave do node.
+- `uid` opcional para convidados e preenchido para contas.
+- `tipoJogador`
 - `codigoSala` com 6 caracteres `[A-Z0-9]`.
 - `modo` igual ao modo do path (`1x1` ou `2x2`).
 - `nomeCategoria`
+- `criadorId`
 - `criadorUid`
 - `estado = encontrado`
 - `timestampEntrada`
-- `jogadores/{uidJogador}` com identidade coerente por UID.
+- `jogadores/{playerKeyJogador}` com identidade coerente por `playerKey`.
 
-Tambem foi aceite `avatar` em `sala_1x1/{codigo}/jogadores/{uid}` e `sala_2x2/{codigo}/jogadores/{uid}`, porque o matchmaking reaproveita o avatar quando o perfil o fornece.
+Tambem foram aceites `playerKey`, `tipoJogador`, `isGuest` e `avatar` em `salas`, `sala_1x1` e `sala_2x2`, porque o matchmaking e os fluxos de sala reaproveitam a mesma identidade.
 
 Nota de seguranca:
 
-- As rules exigem Auth para ler/escrever matchmaking e validam que cada entrada declara o mesmo UID da chave.
-- A transacao cliente precisa escrever resultados para varios jogadores e remover entradas da fila. Por isso, em Realtime Database puro, as rules nao conseguem restringir perfeitamente cada claim sem um backend confiavel.
-- Para producao anti-abuso forte, mover a escolha de jogadores e criacao de sala para Cloud Functions e deixar o cliente escrever apenas `fila/{auth.uid}`.
+- As rules validam ownership forte para entradas autenticadas (`uid == auth.uid`) e limitam convidados a `playerKey` com prefixo `guest_` sem UID.
+- Para permitir convidados, a leitura de `matchmaking` fica aberta ao cliente e a escrita de resultados/matches continua dependente do fluxo cliente.
+- A transacao cliente reduz duplicacao de matches, mas as rules nao conseguem provar que os jogadores escolhidos eram realmente os mais antigos nem que a sala criada corresponde ao claim.
+- Para producao anti-abuso forte, mover a escolha de jogadores, criacao de sala e publicacao de resultados para Cloud Functions e deixar o cliente escrever apenas a propria entrada de fila.
 
 ## Atualizacao historico de jogos
 

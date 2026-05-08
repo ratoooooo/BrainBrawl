@@ -10,6 +10,7 @@ import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMainBinding
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.AvatarUtils
 
 class MainActivity : AppCompatActivity() {
     // Acessar os elementos do layout
@@ -154,27 +155,36 @@ class MainActivity : AppCompatActivity() {
 
         jogadorRepository.obterPerfil(identificador)
             .addOnSuccessListener { perfil ->
-                perfil ?: return@addOnSuccessListener
-
-                if (uid.isNullOrBlank()) {
-                    uid = perfil.uid.takeIf { it.isNotBlank() }
+                if (perfil != null) {
+                    aplicarPerfilPrincipal(perfil)
+                    return@addOnSuccessListener
                 }
-                nomeUtilizador = perfil.nomeUtilizador.takeIf { it.isNotBlank() } ?: nomeUtilizador
-                email = email ?: perfil.email.takeIf { it.isNotBlank() }
-
-                binding.txtBoasVindas.text = perfil.nomeUtilizador.ifBlank { nomeUtilizador ?: "Jogador" }
-                binding.txtNivel.text = "Nível ${perfil.estatisticas.nivel}"
-                binding.txtLevelBadge.text = perfil.estatisticas.nivel.toString()
-                binding.txtXp.text = "${perfil.estatisticas.xpNoNivelAtual} / ${perfil.estatisticas.xpNecessarioProximoNivel} XP"
-                binding.progressXp.max = perfil.estatisticas.xpNecessarioProximoNivel.coerceAtLeast(1)
-                binding.progressXp.progress = perfil.estatisticas.xpNoNivelAtual.coerceAtLeast(0)
-
-                val avatarRes = resources.getIdentifier(perfil.avatar, "drawable", packageName)
-                    .takeIf { it != 0 }
-                    ?: R.drawable.avatar_1_playstore
-                binding.imgAvatar.setImageResource(avatarRes)
-                atualizarBoasVindas()
+                val emailAtual = email.orEmpty()
+                if (emailAtual.isNotBlank()) {
+                    jogadorRepository.obterPerfilPorEmail(emailAtual)
+                        .addOnSuccessListener { perfilPorEmail ->
+                            perfilPorEmail?.let { aplicarPerfilPrincipal(it) }
+                        }
+                }
             }
+    }
+
+    private fun aplicarPerfilPrincipal(perfil: JogadorRepository.PerfilJogador) {
+        if (uid.isNullOrBlank()) {
+            uid = perfil.uid.takeIf { it.isNotBlank() }
+        }
+        nomeUtilizador = perfil.nomeUtilizador.takeIf { it.isNotBlank() } ?: nomeUtilizador
+        email = email ?: perfil.email.takeIf { it.isNotBlank() }
+
+        binding.txtBoasVindas.text = perfil.nomeUtilizador.ifBlank { nomeUtilizador ?: "Jogador" }
+        binding.txtNivel.text = "Nível ${perfil.estatisticas.nivel}"
+        binding.txtLevelBadge.text = perfil.estatisticas.nivel.toString()
+        binding.txtXp.text = "${perfil.estatisticas.xpNoNivelAtual} / ${perfil.estatisticas.xpNecessarioProximoNivel} XP"
+        binding.progressXp.max = perfil.estatisticas.xpNecessarioProximoNivel.coerceAtLeast(1)
+        binding.progressXp.progress = perfil.estatisticas.xpNoNivelAtual.coerceAtLeast(0)
+
+        binding.imgAvatar.setImageResource(AvatarUtils.resolverAvatar(this, perfil.avatar))
+        atualizarBoasVindas()
     }
 
     private fun abrirRanking() {

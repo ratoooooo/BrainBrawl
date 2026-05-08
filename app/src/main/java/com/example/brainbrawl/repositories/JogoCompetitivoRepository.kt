@@ -28,7 +28,10 @@ class JogoCompetitivoRepository(
         val nomeDisplay: String,
         val uid: String,
         val nomeUtilizador: String,
-        val nomeJogador: String
+        val nomeJogador: String,
+        val playerKey: String = "",
+        val tipoJogador: String = "",
+        val avatar: String = ""
     )
 
     data class EquipaJogador(
@@ -63,7 +66,10 @@ class JogoCompetitivoRepository(
                                 nomeDisplay = jogador.nomeDisplay,
                                 uid = jogador.uid,
                                 nomeUtilizador = jogador.nomeUtilizador,
-                                nomeJogador = jogador.nomeJogador
+                                nomeJogador = jogador.nomeJogador,
+                                playerKey = jogador.playerKey.ifBlank { chave },
+                                tipoJogador = jogador.tipoJogador,
+                                avatar = jogador.avatar
                             )
                         )
                     }
@@ -219,7 +225,13 @@ class JogoCompetitivoRepository(
                 nomeUtilizador = jogadorSnapshot?.child(FirebasePaths.NOME_UTILIZADOR)?.texto()
                     ?.ifBlank { jogador.nomeUtilizador } ?: jogador.nomeUtilizador,
                 nomeJogador = jogadorSnapshot?.child(FirebasePaths.NOME_JOGADOR)?.texto()
-                    ?.ifBlank { jogador.nomeJogador } ?: jogador.nomeJogador
+                    ?.ifBlank { jogador.nomeJogador } ?: jogador.nomeJogador,
+                playerKey = jogadorSnapshot?.child(FirebasePaths.PLAYER_KEY)?.texto()
+                    ?.ifBlank { jogador.playerKey } ?: jogador.playerKey,
+                tipoJogador = jogadorSnapshot?.child(FirebasePaths.TIPO_JOGADOR)?.texto()
+                    ?.ifBlank { jogador.tipoJogador } ?: jogador.tipoJogador,
+                avatar = jogadorSnapshot?.child(FirebasePaths.AVATAR)?.texto()
+                    ?.ifBlank { jogador.avatar } ?: jogador.avatar
             )
         }
     }
@@ -607,6 +619,7 @@ class JogoCompetitivoRepository(
         return children.firstOrNull { jogadorSnapshot ->
             val chave = jogadorSnapshot.key.orEmpty()
             chave in jogador.chavesCompatibilidade ||
+                jogadorSnapshot.child(FirebasePaths.PLAYER_KEY).texto() in jogador.chavesCompatibilidade ||
                 jogadorSnapshot.child(FirebasePaths.UID).texto() in jogador.chavesCompatibilidade ||
                 jogadorSnapshot.child(FirebasePaths.NOME_UTILIZADOR).texto() in jogador.chavesCompatibilidade ||
                 jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto() in jogador.chavesCompatibilidade ||
@@ -622,13 +635,16 @@ class JogoCompetitivoRepository(
                 nomeDisplay = jogadorSnapshot.nomeDisplay().ifBlank { chave },
                 uid = jogadorSnapshot.child(FirebasePaths.UID).texto(),
                 nomeUtilizador = jogadorSnapshot.child(FirebasePaths.NOME_UTILIZADOR).texto(),
-                nomeJogador = jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto()
+                nomeJogador = jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto(),
+                playerKey = jogadorSnapshot.child(FirebasePaths.PLAYER_KEY).texto().ifBlank { chave },
+                tipoJogador = jogadorSnapshot.child(FirebasePaths.TIPO_JOGADOR).texto(),
+                avatar = jogadorSnapshot.child(FirebasePaths.AVATAR).texto()
             )
         }
     }
 
     private fun JogadorCompetitivo.identificadores(): List<String> {
-        return listOf(chave, uid, nomeUtilizador, nomeJogador, nomeDisplay)
+        return listOf(chave, uid, playerKey, nomeUtilizador, nomeJogador, nomeDisplay)
             .filter { it.isNotBlank() }
             .distinct()
     }
@@ -637,6 +653,7 @@ class JogoCompetitivoRepository(
         if (this == null || !exists()) return emptyList()
         return listOf(
             key.orEmpty(),
+            child(FirebasePaths.PLAYER_KEY).texto(),
             child(FirebasePaths.UID).texto(),
             child(FirebasePaths.NOME_UTILIZADOR).texto(),
             child(FirebasePaths.NOME_JOGADOR).texto(),
@@ -659,11 +676,15 @@ class JogoCompetitivoRepository(
     private fun JogadorCompetitivo.toFirebaseMap(): Map<String, Any> {
         val dados = linkedMapOf<String, Any>(
             FirebasePaths.NOME to nomeDisplay,
-            FirebasePaths.NOME_DISPLAY to nomeDisplay
+            FirebasePaths.NOME_DISPLAY to nomeDisplay,
+            FirebasePaths.PLAYER_KEY to playerKey.ifBlank { chave }
         )
         if (uid.isNotBlank()) dados[FirebasePaths.UID] = uid
         if (nomeUtilizador.isNotBlank()) dados[FirebasePaths.NOME_UTILIZADOR] = nomeUtilizador
         if (nomeJogador.isNotBlank()) dados[FirebasePaths.NOME_JOGADOR] = nomeJogador
+        if (tipoJogador.isNotBlank()) dados[FirebasePaths.TIPO_JOGADOR] = tipoJogador
+        if (avatar.isNotBlank()) dados[FirebasePaths.AVATAR] = avatar
+        dados[FirebasePaths.IS_GUEST] = tipoJogador == GameConstants.TIPO_JOGADOR_GUEST
         return dados
     }
 

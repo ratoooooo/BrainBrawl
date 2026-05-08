@@ -13,6 +13,7 @@ import com.example.brainbrawl.databinding.ActivityAmigosBinding
 import com.example.brainbrawl.models.Convite
 import com.example.brainbrawl.models.PedidoAmizade
 import com.example.brainbrawl.models.UtilizadorSocial
+import com.example.brainbrawl.routes.BottomNavHelper
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.AmigosEvent
 import com.example.brainbrawl.viewmodels.AmigosListaUiState
@@ -49,6 +50,10 @@ class AmigosActivity : AppCompatActivity() {
             ?: authService.utilizadorAtual()?.uid
             ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: ""
+        val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
+        BottomNavHelper.instalar(this, BottomNavHelper.Item.AMIGOS, uid, nomeUtilizador, nomeJogador, email)
+        binding.btnVoltar.visibility = android.view.View.GONE
 
         // Configura o adaptador para a lista de amigos
         amigoAdapter = AmigoAdapter(amigos, avataresAmigos, estadoAmigos, nomeUtilizador, uid)

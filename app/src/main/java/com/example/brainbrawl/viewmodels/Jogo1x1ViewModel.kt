@@ -45,6 +45,9 @@ class Jogo1x1ViewModel(
         uid: String,
         nomeUtilizador: String,
         nomeJogador: String,
+        playerKey: String = "",
+        tipoJogador: String = "",
+        avatar: String = "",
         categoriaPadrao: String,
         categoriaTodas: String
     ) {
@@ -52,7 +55,7 @@ class Jogo1x1ViewModel(
         this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
-        this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+        this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         this.chaveJogador = jogadorAtual.chaveSala
 
         observarOffsetServidor()
@@ -222,6 +225,9 @@ class Jogo1x1ViewModel(
             uid = uid,
             nomeUtilizador = nomeUtilizador,
             nomeJogador = nomeJogador.ifBlank { jogadorAtual.nomeDisplay },
+            playerKey = chaveJogador,
+            tipoJogador = jogadorAtual.tipoJogador,
+            avatar = jogadorAtual.avatar,
             totalPontos = totalPontos,
             categoria = categoria,
             totalPerguntasCertas = totalPerguntascertas,

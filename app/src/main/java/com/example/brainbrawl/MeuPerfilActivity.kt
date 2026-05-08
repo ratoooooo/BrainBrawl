@@ -7,7 +7,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMeuPerfilBinding
+import com.example.brainbrawl.routes.BottomNavHelper
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
 import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
 import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
@@ -27,12 +29,17 @@ class MeuPerfilActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
 
+        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: ""
+        val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
+        BottomNavHelper.instalar(this, BottomNavHelper.Item.PERFIL, uid, nomeUtilizador, nomeJogador, email)
+
+        binding.btnVoltarPerfil.visibility = View.GONE
         binding.btnVoltarPerfil.setOnClickListener {
             finish()
         }
 
-        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
-        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         if (uid.isBlank() && nomeUtilizador.isBlank()) {
             Toast.makeText(this, "Não foi possível abrir o perfil.", Toast.LENGTH_SHORT).show()
             finish()
@@ -48,27 +55,27 @@ class MeuPerfilActivity : AppCompatActivity() {
     private fun mostrarPerfil(perfil: MeuPerfilUiState) {
         // Mostra badges se atingir thresholds
         getBadgeDrawable(perfil.totalJogos, jogosBadges)?.let {
+            binding.imgTotalJogos.visibility = View.VISIBLE
             binding.imgTotalJogos.setImageResource(it)
         } ?: run {
             binding.imgTotalJogos.visibility = View.GONE
         }
 
         getBadgeDrawable(perfil.totalVitorias, vitoriaBadges)?.let {
+            binding.imgTotalVitorias.visibility = View.VISIBLE
             binding.imgTotalVitorias.setImageResource(it)
         } ?: run {
             binding.imgTotalVitorias.visibility = View.GONE
         }
 
         getBadgeDrawable(perfil.totalRespostasCertas, respostasBadges)?.let {
+            binding.imgTotalRespostasCertas.visibility = View.VISIBLE
             binding.imgTotalRespostasCertas.setImageResource(it)
         } ?: run {
             binding.imgTotalRespostasCertas.visibility = View.GONE
         }
 
-        val resId = resources.getIdentifier(perfil.avatar, "drawable", packageName)
-            .takeIf { it != 0 }
-            ?: R.drawable.avatar_1_playstore
-        binding.imgAvatarAmigo.setImageResource(resId)
+        binding.imgAvatarAmigo.setImageResource(AvatarUtils.resolverAvatar(this, perfil.avatar))
 
         // Mostra os dados do perfil
         binding.txtNomeAmigo.text = perfil.nome

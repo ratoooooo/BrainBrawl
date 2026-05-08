@@ -20,14 +20,31 @@
 
     <TextView
         android:id="@+id/txtCodigoSala"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/c_digo_da_sala"
+        android:gravity="center"
         android:textSize="18sp"
         android:background="@drawable/bg_empty_state_card"
         android:padding="@dimen/bb_space_md"
         android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
+        android:maxLines="2"
+        android:ellipsize="end"
+        android:layout_marginBottom="8dp" />
+
+    <Button
+        android:id="@+id/btnCopiarCodigoSala"
+        style="@android:style/Widget.Button"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:background="@drawable/bg_button_secondary"
+        android:fontFamily="sans-serif-black"
+        android:text="Copiar código"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_secondary_text"
+        android:textSize="15sp"
+        android:textStyle="bold"
         android:layout_marginBottom="16dp" />
 
     <TextView
@@ -42,14 +59,17 @@
 
     <TextView
         android:id="@+id/txtListaJogadores"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/aguardando_jogadores"
         android:textSize="18sp"
+        android:gravity="center"
         android:background="@drawable/bg_card_surface"
         android:padding="@dimen/bb_space_md"
         android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
+        android:maxLines="4"
+        android:ellipsize="end"
         android:layout_marginBottom="24dp" />
 
     <Button

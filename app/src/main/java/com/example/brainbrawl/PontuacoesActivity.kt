@@ -109,7 +109,7 @@ class PontuacoesActivity : AppCompatActivity() {
                     mostrarMensagemPodio("Sem jogadores na sala.")
                 }
 
-                if (resumo.completos && !estatisticasAtualizadas) {
+                if (uid.isNotBlank() && resumo.completos && !estatisticasAtualizadas) {
                     guardarHistoricoSeNecessario(jogadores)
                     estatisticasAtualizadas = true
                     pontuacaoRepository.atualizarEstatisticasSalaUmaVez(

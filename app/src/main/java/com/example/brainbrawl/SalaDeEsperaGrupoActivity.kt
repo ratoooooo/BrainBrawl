@@ -1,5 +1,8 @@
 package com.example.brainbrawl
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -58,6 +61,9 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
 
         binding.txtTituloSala.text = "Sala de Espera"
         binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+        binding.btnCopiarCodigoSala.setOnClickListener {
+            copiarCodigoSala()
+        }
         binding.btnIniciarJogo.isEnabled = false
 
         configurarObservers()
@@ -136,5 +142,11 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
         viewModel.sairDaSala(codigoSala, jogadorAtual, admin)
         abrirMainActivity(this, nomeUtilizador, nomeJogador ?: nomeAtual, uid.ifBlank { null })
         finish()
+    }
+
+    private fun copiarCodigoSala() {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        clipboard.setPrimaryClip(ClipData.newPlainText("Código da sala", codigoSala))
+        Toast.makeText(this, "Código copiado", Toast.LENGTH_SHORT).show()
     }
 }

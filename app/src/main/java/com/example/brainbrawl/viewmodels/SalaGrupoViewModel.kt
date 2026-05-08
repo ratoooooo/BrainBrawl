@@ -7,6 +7,7 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.SalaRepository
+import com.example.brainbrawl.utils.CodigoSalaUtils
 import com.example.brainbrawl.utils.UteisValidacao
 
 class SalaGrupoViewModel(
@@ -30,14 +31,20 @@ class SalaGrupoViewModel(
     private var nomeAtual: String = ""
     private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var admin = false
+    private var salaConfirmada = false
 
     fun criarSala(codigoSala: String, dadosSala: Map<String, Any>) {
         salaRepository.criarSala(codigoSala, dadosSala)
     }
 
     fun entrarEmSala(codigoSala: String, nomeJogador: String, uid: String, nomeUtilizador: String?) {
-        if (codigoSala.isEmpty()) {
+        val codigoNormalizado = CodigoSalaUtils.normalizarCodigo(codigoSala)
+        if (codigoNormalizado.isEmpty()) {
             _entrada.value = SalaEntradaEvent.CodigoVazio
+            return
+        }
+        if (!CodigoSalaUtils.codigoTemCaracteresValidos(codigoNormalizado)) {
+            _entrada.value = SalaEntradaEvent.CodigoInvalido
             return
         }
 
@@ -48,7 +55,7 @@ class SalaGrupoViewModel(
         }
 
         val jogador = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
-        salaRepository.procurarSalaPorCodigo(codigoSala, jogador)
+        salaRepository.procurarSalaPorCodigo(codigoNormalizado, jogador)
             .addOnSuccessListener { resultado ->
                 if (!resultado.existe) {
                     _entrada.value = SalaEntradaEvent.CodigoInvalido
@@ -63,13 +70,13 @@ class SalaGrupoViewModel(
                 if (!nomeUtilizador.isNullOrEmpty()) {
                     jogadorRepository.obterAvatar(uid.ifBlank { nomeUtilizador })
                         .addOnSuccessListener { avatar ->
-                            adicionarJogadorComAvatar(jogador, codigoSala, avatar, nomeUtilizador)
+                            adicionarJogadorComAvatar(jogador, codigoNormalizado, avatar, nomeUtilizador)
                         }
                         .addOnFailureListener {
-                            adicionarJogadorComAvatar(jogador, codigoSala, AVATAR_PADRAO, nomeUtilizador)
+                            adicionarJogadorComAvatar(jogador, codigoNormalizado, AVATAR_PADRAO, nomeUtilizador)
                         }
                 } else {
-                    adicionarJogadorComAvatar(jogador, codigoSala, AVATAR_PADRAO, null)
+                    adicionarJogadorComAvatar(jogador, codigoNormalizado, AVATAR_PADRAO, null)
                 }
             }
             .addOnFailureListener { error ->
@@ -82,6 +89,7 @@ class SalaGrupoViewModel(
         this.nomeAtual = jogador.nomeDisplay
         this.admin = admin
         saidaManual = false
+        salaConfirmada = false
         salaRepository.garantirJogadorNaSala(codigoSala, jogador, admin)
     }
 
@@ -121,7 +129,9 @@ class SalaGrupoViewModel(
         salaListener = salaRepository.escutarSalaApagada(
             codigoSala,
             onSalaExisteAlterada = { existe ->
-                if (!saidaManual && !existe) {
+                if (existe) {
+                    salaConfirmada = true
+                } else if (salaConfirmada && !saidaManual) {
                     _evento.value = SalaGrupoEvent.SalaEncerrada
                 }
             }

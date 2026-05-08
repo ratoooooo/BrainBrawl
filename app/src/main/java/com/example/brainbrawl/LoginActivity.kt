@@ -2,6 +2,8 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.text.InputType
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -26,13 +28,14 @@ class LoginActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         configurarObservers()
+        configurarPasswordToggle()
         viewModel.verificarSessaoAtual()
 
         // Configurar os botoes de login, registo e iniciar jogo sem conta
         binding.btnEntrar.setOnClickListener {
             // Guarda os valores inseridos nos campos
             val identificador = binding.edtNomeJogador.text.toString().trim()
-            val password = binding.edtPasswordJogador.text.toString().trim()
+            val password = binding.edtPasswordJogador.text.toString()
             viewModel.entrar(identificador, password)
         }
         binding.btnRegisto.setOnClickListener {
@@ -92,5 +95,22 @@ class LoginActivity : AppCompatActivity() {
                 finish()
             }
         }
+    }
+
+    private fun configurarPasswordToggle() {
+        var visivel = false
+        binding.btnTogglePassword.setOnClickListener {
+            visivel = !visivel
+            alternarPassword(binding.edtPasswordJogador, visivel)
+        }
+    }
+
+    private fun alternarPassword(editText: EditText, visivel: Boolean) {
+        editText.inputType = InputType.TYPE_CLASS_TEXT or if (visivel) {
+            InputType.TYPE_TEXT_VARIATION_VISIBLE_PASSWORD
+        } else {
+            InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        editText.setSelection(editText.text?.length ?: 0)
     }
 }

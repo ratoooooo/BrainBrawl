@@ -52,6 +52,26 @@ class JogadorRepository(
         return result.task
     }
 
+    fun obterPerfilPorEmail(email: String): Task<PerfilJogador?> {
+        val result = TaskCompletionSource<PerfilJogador?>()
+        if (email.isBlank()) {
+            result.setResult(null)
+            return result.task
+        }
+        jogadoresRef()
+            .orderByChild(FirebasePaths.EMAIL)
+            .equalTo(email)
+            .limitToFirst(1)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                result.setResult(snapshot.children.firstOrNull()?.toPerfilJogador())
+            }
+            .addOnFailureListener { exception ->
+                result.setException(exception)
+            }
+        return result.task
+    }
+
     fun verificarJogadorExiste(nomeJogador: String): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
         procurarJogador(
@@ -183,12 +203,28 @@ class JogadorRepository(
                 }
 
                 jogadoresRef()
-                    .orderByChild(FirebasePaths.NOME_UTILIZADOR)
+                    .orderByChild(FirebasePaths.UID)
                     .equalTo(identificador)
                     .limitToFirst(1)
                     .get()
-                    .addOnSuccessListener { querySnapshot ->
-                        onSuccess(querySnapshot.children.firstOrNull())
+                    .addOnSuccessListener uidListener@{ uidSnapshot ->
+                        val perfilPorUid = uidSnapshot.children.firstOrNull()
+                        if (perfilPorUid != null) {
+                            onSuccess(perfilPorUid)
+                            return@uidListener
+                        }
+
+                        jogadoresRef()
+                            .orderByChild(FirebasePaths.NOME_UTILIZADOR)
+                            .equalTo(identificador)
+                            .limitToFirst(1)
+                            .get()
+                            .addOnSuccessListener { querySnapshot ->
+                                onSuccess(querySnapshot.children.firstOrNull())
+                            }
+                            .addOnFailureListener { exception ->
+                                onFailure(exception)
+                            }
                     }
                     .addOnFailureListener { exception ->
                         onFailure(exception)

@@ -95,7 +95,7 @@
                     android:maxLines="1"
                     android:text="@string/bem_vindo"
                     android:textColor="#16120D"
-                    android:textSize="25sp"
+                    android:textSize="23sp"
                     android:textStyle="bold"
                     app:layout_constraintTop_toBottomOf="@id/txt_ola"
                     app:layout_constraintStart_toEndOf="@id/avatar_frame"
@@ -173,14 +173,32 @@
                         android:layout_marginStart="10dp"
                         android:background="@drawable/bg_main_icon_button"
                         android:clickable="true"
-                        android:contentDescription="Notificações"
+                        android:contentDescription="Histórico"
                         android:focusable="true"
                         android:gravity="center">
 
                         <ImageView
                             android:layout_width="24dp"
                             android:layout_height="24dp"
-                            android:src="@drawable/ic_bell"
+                            android:src="@drawable/ic_history"
+                            app:tint="#16120D" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:id="@+id/btn_voltar"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="10dp"
+                        android:background="@drawable/bg_main_icon_button"
+                        android:clickable="true"
+                        android:contentDescription="Terminar sessão"
+                        android:focusable="true"
+                        android:gravity="center">
+
+                        <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_logout"
                             app:tint="#16120D" />
                     </LinearLayout>
                 </LinearLayout>
@@ -442,14 +460,6 @@
                     android:textStyle="bold" />
             </LinearLayout>
 
-            <LinearLayout
-                android:id="@+id/btn_voltar"
-                android:layout_width="1dp"
-                android:layout_height="1dp"
-                android:clickable="true"
-                android:focusable="true"
-                android:orientation="horizontal"
-                android:visibility="gone" />
         </LinearLayout>
     </ScrollView>
 

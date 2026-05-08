@@ -7,6 +7,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityHistoricoBinding
+import com.example.brainbrawl.routes.BottomNavHelper
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.HistoricoUiState
 import com.example.brainbrawl.viewmodels.HistoricoViewModel
@@ -20,11 +21,16 @@ class HistoricoActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
+        val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
+        val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: ""
+        val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
+        BottomNavHelper.instalar(this, BottomNavHelper.Item.HISTORICO, uid, nomeUtilizador, nomeJogador, email)
         binding.recyclerHistorico.layoutManager = LinearLayoutManager(this)
         binding.recyclerHistorico.adapter = adapter
+        binding.btnVoltarHistorico.visibility = View.GONE
         binding.btnVoltarHistorico.setOnClickListener { finish() }
         viewModel.estado.observe(this) { mostrarEstado(it) }
-        val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         viewModel.carregarHistorico(uid)
     }
 

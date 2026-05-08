@@ -52,6 +52,31 @@
             android:textColor="@color/bb_text_secondary"
             android:textSize="@dimen/bb_body_size" />
 
+        <TextView
+            android:id="@+id/txtContadorMatchmaking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bb_space_md"
+            android:fontFamily="sans-serif-black"
+            android:text="Jogadores à procura: 0/2"
+            android:textAlignment="center"
+            android:textColor="@color/bb_text_primary"
+            android:textSize="17sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtJogadoresMatchmaking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bb_space_md"
+            android:background="@drawable/bg_input_surface"
+            android:lineSpacingExtra="4dp"
+            android:minHeight="88dp"
+            android:padding="@dimen/bb_space_md"
+            android:text="Aguardando jogadores..."
+            android:textColor="@color/bb_text_secondary"
+            android:textSize="15sp" />
+
     </LinearLayout>
 
     <Button

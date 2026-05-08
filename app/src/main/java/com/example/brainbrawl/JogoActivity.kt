@@ -119,6 +119,7 @@ class JogoActivity : AppCompatActivity() {
         definirCorBotao(binding.btnOpcao3, "#E0E0E0")
         definirCorBotao(binding.btnOpcao4, "#E0E0E0")
 
+        desbloquearOpcoes()
         tempoDecorrido = true
         progressBarAtivo = true
 
@@ -129,10 +130,6 @@ class JogoActivity : AppCompatActivity() {
                 adminPrimeiraPergunta = false
             }
         } else {
-            binding.btnOpcao1.isEnabled = true
-            binding.btnOpcao2.isEnabled = true
-            binding.btnOpcao3.isEnabled = true
-            binding.btnOpcao4.isEnabled = true
             binding.btnOpcao1.setOnClickListener { verificarResposta(0) }
             binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
             binding.btnOpcao3.setOnClickListener { verificarResposta(2) }
@@ -142,15 +139,26 @@ class JogoActivity : AppCompatActivity() {
 
     private fun bloquearAdminSempre() {
         if (admin) {
-            binding.btnOpcao1.isEnabled = false
-            binding.btnOpcao2.isEnabled = false
-            binding.btnOpcao3.isEnabled = false
-            binding.btnOpcao4.isEnabled = false
-            binding.btnOpcao1.setOnClickListener(null)
-            binding.btnOpcao2.setOnClickListener(null)
-            binding.btnOpcao3.setOnClickListener(null)
-            binding.btnOpcao4.setOnClickListener(null)
+            bloquearOpcoes()
         }
+    }
+
+    private fun bloquearOpcoes() {
+        binding.btnOpcao1.isEnabled = false
+        binding.btnOpcao2.isEnabled = false
+        binding.btnOpcao3.isEnabled = false
+        binding.btnOpcao4.isEnabled = false
+        binding.btnOpcao1.setOnClickListener(null)
+        binding.btnOpcao2.setOnClickListener(null)
+        binding.btnOpcao3.setOnClickListener(null)
+        binding.btnOpcao4.setOnClickListener(null)
+    }
+
+    private fun desbloquearOpcoes() {
+        binding.btnOpcao1.isEnabled = true
+        binding.btnOpcao2.isEnabled = true
+        binding.btnOpcao3.isEnabled = true
+        binding.btnOpcao4.isEnabled = true
     }
 
     private fun verificarResposta(numeroOpcao: Int) {
@@ -175,6 +183,8 @@ class JogoActivity : AppCompatActivity() {
             perguntaAtual.respostaCorreta,
             tempoRestante
         ) ?: return
+
+        bloquearOpcoes()
 
         val indiceCorreto = opcoesAtuais.indexOf(perguntaAtual.respostaCorreta)
         val botaoCorreto = when (indiceCorreto) {
@@ -249,10 +259,7 @@ class JogoActivity : AppCompatActivity() {
                         if (!viewModel.jaRespondeuPergunta()) {
                             verificarResposta(-1)
                         }
-                        binding.btnOpcao1.isEnabled = false
-                        binding.btnOpcao2.isEnabled = false
-                        binding.btnOpcao3.isEnabled = false
-                        binding.btnOpcao4.isEnabled = false
+                        bloquearOpcoes()
                         handler.postDelayed({}, 3000)
                     }
                 }
