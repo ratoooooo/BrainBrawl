@@ -91,11 +91,11 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             criarSala(categoriaFirebase[getString(R.string.categoria5)] ?: "Gentílicos")
         }
         binding.btnCriarCategoria.setOnClickListener {
-            if (uid.isNullOrBlank() && nomeUtilizador.isNullOrBlank()) {
-                Toast.makeText(this, "Inicia sessão para criar categorias personalizadas.", Toast.LENGTH_SHORT).show()
-            } else {
-                mostrarCategoriasPersonalizadas(modoJogo, nomeUtilizador.orEmpty(), nomeJogador, admin, uid)
-            }
+            val intent = Intent(this, ExplorarCategoriasActivity::class.java)
+            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+            uid?.let { intent.putExtra(IntentExtras.UID, it) }
+            startActivity(intent)
         }
         binding.infoCategorias.setOnClickListener {
             mostrarDicasCategorias()
@@ -121,7 +121,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                 "Desporto" to "Modalidades, atletas e grandes provas.",
                 "Cultura Geral" to "Conhecimento variado para todos.",
                 "Gentílicos" to "Nomes de povos e localidades.",
-                "Personalizadas" to "Cria perguntas e joga com amigos."
+                "Explorar" to "Categorias públicas e personalizadas ficam no ecrã Explorar Categorias."
             )
         )
     }

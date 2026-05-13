@@ -10,9 +10,11 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardPerfil"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:layout_marginStart="@dimen/bb_space_lg"
+        android:layout_marginTop="@dimen/bb_space_lg"
         android:layout_marginEnd="@dimen/bb_space_lg"
+        android:layout_marginBottom="@dimen/bb_space_md"
         app:cardCornerRadius="@dimen/bb_radius_lg"
         app:cardElevation="10dp"
         app:cardBackgroundColor="@color/bb_surface"
@@ -20,12 +22,11 @@
         app:layout_constraintBottom_toTopOf="@id/btnVoltarPerfil"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.5">
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -53,7 +54,7 @@
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
                 android:maxLines="2"
-                android:text="Nome Utilizador"
+                android:text="@string/nome_utilizador_exemplo"
                 android:textColor="@color/bb_text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
@@ -83,7 +84,7 @@
                         android:id="@+id/txtTotalJogosConquista"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Jogos"
+                        android:text="@string/jogos"
                         android:textSize="12sp"
                     android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
@@ -105,12 +106,12 @@
                         android:id="@+id/imgTotalVitorias"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:contentDescription="Total de Vitórias" />
+                        android:contentDescription="@string/total_de_vitorias" />
                     <TextView
                         android:id="@+id/txtTotalVitoriasConquista"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Vitórias"
+                        android:text="@string/vit_rias"
                         android:textSize="12sp"
                         android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
@@ -131,12 +132,12 @@
                         android:id="@+id/imgTotalRespostasCertas"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:contentDescription="Total de Respostas Certas" />
+                        android:contentDescription="@string/total_de_respostas_certas" />
                     <TextView
                         android:id="@+id/txtTotalRespostasCertasConquista"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Resp. Certas"
+                        android:text="@string/respostas_certas_abrev"
                         android:textSize="12sp"
                         android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
@@ -178,7 +179,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:fontFamily="sans-serif-black"
-                android:text="Nível 1"
+                android:text="@string/nivel_inicial"
                 android:textColor="@color/bb_text_primary"
                 android:textSize="20sp" />
 
@@ -188,7 +189,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:fontFamily="sans-serif"
-                android:text="0 / 300 XP"
+                android:text="@string/xp_progress_format"
                 android:textColor="@color/bb_text_secondary"
                 android:textSize="16sp" />
 

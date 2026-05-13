@@ -48,7 +48,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Copiar código"
+            android:contentDescription="@string/copiar_codigo"
             android:padding="8dp"
             android:src="@drawable/ic_copy"
             app:tint="@color/bb_text_primary" />

@@ -499,7 +499,7 @@ class JogoCompetitivoRepository(
                 return@addOnSuccessListener
             }
 
-            buscarPerguntasAleatorias(categoria, categoriaTodas)
+            buscarPerguntasAleatorias(modo, codigoSala, categoria, categoriaTodas)
                 .addOnSuccessListener { perguntasAleatorias ->
                     guardarPerguntasSeAusentes(perguntasRef, perguntasAleatorias)
                         .addOnSuccessListener { perguntasGuardadas ->
@@ -702,9 +702,82 @@ class JogoCompetitivoRepository(
         handle?.remover()
     }
 
-    private fun buscarPerguntasAleatorias(categoria: String, categoriaTodas: String): Task<List<Pergunta>> {
+    private fun buscarPerguntasAleatorias(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        categoria: String,
+        categoriaTodas: String
+    ): Task<List<Pergunta>> {
+        val result = TaskCompletionSource<List<Pergunta>>()
+        salaRef(modo, codigoSala).get()
+            .addOnSuccessListener { salaSnapshot ->
+                val categoriaPublicaId = salaSnapshot.child(FirebasePaths.CATEGORIA_PUBLICA_ID).texto()
+                if (categoriaPublicaId.isNotBlank()) {
+                    database.child(FirebasePaths.CATEGORIAS_PUBLICAS)
+                        .child(categoriaPublicaId)
+                        .child(FirebasePaths.PERGUNTAS)
+                        .get()
+                        .addOnSuccessListener { result.setResult(it.toPerguntas().shuffled().take(8)) }
+                        .addOnFailureListener { result.setException(it) }
+                    return@addOnSuccessListener
+                }
+
+                if (salaSnapshot.child("categoriaPersonalizada").getValue(Boolean::class.java) == true) {
+                    val donosPossiveis = listOf(
+                        salaSnapshot.child(FirebasePaths.DONO_UID).texto(),
+                        salaSnapshot.child("donoCategoria").texto()
+                    ).filter { it.isNotBlank() }.distinct()
+                    if (donosPossiveis.isNotEmpty()) {
+                        carregarPerguntasPersonalizadas(donosPossiveis, categoria, result)
+                        return@addOnSuccessListener
+                    }
+                }
+
+                buscarPerguntasOficiais(categoria, categoriaTodas)
+                    .addOnSuccessListener { result.setResult(it) }
+                    .addOnFailureListener { result.setException(it) }
+            }
+            .addOnFailureListener { result.setException(it) }
+        return result.task
+    }
+
+    private fun carregarPerguntasPersonalizadas(
+        donosPossiveis: List<String>,
+        categoria: String,
+        result: TaskCompletionSource<List<Pergunta>>,
+        index: Int = 0
+    ) {
+        if (index >= donosPossiveis.size) {
+            result.setException(IllegalStateException("Erro ao buscar perguntas personalizadas."))
+            return
+        }
+
+        database.child(FirebasePaths.JOGADORES)
+            .child(donosPossiveis[index])
+            .child(FirebasePaths.CATEGORIAS_PERSONALIZADAS)
+            .child(categoria)
+            .child(FirebasePaths.PERGUNTAS)
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val perguntas = snapshot.toPerguntas().shuffled().take(8)
+                if (perguntas.isNotEmpty()) {
+                    result.setResult(perguntas)
+                } else {
+                    carregarPerguntasPersonalizadas(donosPossiveis, categoria, result, index + 1)
+                }
+            }
+            .addOnFailureListener { error ->
+                if (index + 1 < donosPossiveis.size) {
+                    carregarPerguntasPersonalizadas(donosPossiveis, categoria, result, index + 1)
+                } else {
+                    result.setException(error)
+                }
+            }
+    }
+
+    private fun buscarPerguntasOficiais(categoria: String, categoriaTodas: String): Task<List<Pergunta>> {
         val categoriasRef = database.child(FirebasePaths.CATEGORIAS)
-        val task = if (categoria == categoriaTodas || categoria.isEmpty()) {
+        return if (categoria == categoriaTodas || categoria.isEmpty()) {
             categoriasRef.get().continueWith { taskSnapshot ->
                 if (!taskSnapshot.isSuccessful) throw taskSnapshot.exception ?: IllegalStateException("Erro ao buscar perguntas.")
                 taskSnapshot.result.children
@@ -718,7 +791,6 @@ class JogoCompetitivoRepository(
                 taskSnapshot.result.toPerguntas().shuffled().take(8)
             }
         }
-        return task
     }
 
     private fun guardarPerguntasSeAusentes(
@@ -914,7 +986,13 @@ class JogoCompetitivoRepository(
             val respostaCorreta = perguntaSnapshot.child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java)
             val opcoes = perguntaSnapshot.child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
             if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                Pergunta(pergunta, respostaCorreta, opcoes)
+                Pergunta(
+                    pergunta = pergunta,
+                    respostaCorreta = respostaCorreta,
+                    opcoes = opcoes,
+                    imagem = perguntaSnapshot.child(FirebasePaths.IMAGEM).texto(),
+                    dificuldade = perguntaSnapshot.child(FirebasePaths.DIFICULDADE).texto().takeIf { it in DIFICULDADES_VALIDAS }
+                )
             } else {
                 null
             }
@@ -923,5 +1001,6 @@ class JogoCompetitivoRepository(
 
     private companion object {
         const val TAG = "JogoCompetitivoRepo"
+        val DIFICULDADES_VALIDAS = setOf("facil", "media", "dificil")
     }
 }

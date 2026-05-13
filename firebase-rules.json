@@ -50,6 +50,12 @@
                 ".validate": "newData.isString()"
               }
             },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "dificuldade": {
+              ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
+            },
             "$other": {
               ".validate": false
             }
@@ -301,6 +307,12 @@
                     ".validate": "newData.isString()"
                   }
                 },
+                "imagem": {
+                  ".validate": "newData.isString()"
+                },
+                "dificuldade": {
+                  ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
+                },
                 "$other": {
                   ".validate": false
                 }
@@ -453,6 +465,9 @@
             "imagem": {
               ".validate": "newData.isString()"
             },
+            "dificuldade": {
+              ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
+            },
             "$other": {
               ".validate": false
             }
@@ -498,6 +513,21 @@
         },
         "entradaFechada": {
           ".validate": "newData.isBoolean()"
+        },
+        "categoriaPersonalizada": {
+          ".validate": "newData.isBoolean()"
+        },
+        "donoCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "donoUid": {
+          ".validate": "newData.isString()"
+        },
+        "categoriaPublica": {
+          ".validate": "newData.isBoolean()"
+        },
+        "categoriaPublicaId": {
+          ".validate": "newData.isString()"
         },
         "novaSalaDesforra": {
           ".write": "auth == null || root.child('sala_1x1').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
@@ -584,6 +614,9 @@
             "imagem": {
               ".validate": "newData.isString()"
             },
+            "dificuldade": {
+              ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
+            },
             "$other": {
               ".validate": false
             }
@@ -645,6 +678,21 @@
         },
         "entradaFechada": {
           ".validate": "newData.isBoolean()"
+        },
+        "categoriaPersonalizada": {
+          ".validate": "newData.isBoolean()"
+        },
+        "donoCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "donoUid": {
+          ".validate": "newData.isString()"
+        },
+        "categoriaPublica": {
+          ".validate": "newData.isBoolean()"
+        },
+        "categoriaPublicaId": {
+          ".validate": "newData.isString()"
         },
         "jogadores": {
           "$jogadorId": {
@@ -795,6 +843,9 @@
             },
             "imagem": {
               ".validate": "newData.isString()"
+            },
+            "dificuldade": {
+              ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
             },
             "$other": {
               ".validate": false

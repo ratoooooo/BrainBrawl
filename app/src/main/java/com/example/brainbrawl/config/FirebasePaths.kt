@@ -47,6 +47,8 @@ object FirebasePaths {
     const val NOME_UTILIZADOR = "nomeUtilizador"
     const val NOVA_SALA_DESFORRA = "novaSalaDesforra"
     const val PASSWORD = "password"
+    const val DIFICULDADE = "dificuldade"
+    const val IMAGEM = "imagem"
     const val PERGUNTA = "pergunta"
     const val PERGUNTA_ATUAL = "perguntaAtual"
     const val PERGUNTA_ATUAL_INDEX = "perguntaAtualIndex"

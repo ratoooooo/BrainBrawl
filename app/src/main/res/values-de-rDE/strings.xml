@@ -1,67 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- SignIn -->
     <string name="app_name">Pergunta ó Luso</string>
+    <string name="brand_pergunta">PERGUNTA</string>
+    <string name="brand_o_luso">Ó LUSO</string>
+    <string name="brand_full_caps">PERGUNTA Ó LUSO</string>
+    <string name="email">Email</string>
+    <string name="email_ou_nome">Email or name</string>
+    <string name="mostrar_password">Show password</string>
+    <string name="mostrar_confirmacao_password">Show password confirmation</string>
+    <string name="confirmar_password">Confirm password</string>
+    <string name="nome_utilizador">Username</string>
+    <string name="ou">OR</string>
+    <string name="voltar">Zurück</string>
+    <string name="guardar">Save</string>
+    <string name="eliminar">Delete</string>
+    <string name="cancelar">Cancel</string>
+    <string name="aceitar">Akzeptieren</string>
+    <string name="recusar">Decline</string>
     <string name="insira_nome">Geben Sie Ihren Namen ein</string>
     <string name="insira_password">Geben Sie Ihr Passwort ein</string>
+    <string name="password_hint">Password</string>
     <string name="entrar">Einloggen</string>
     <string name="registar">Registrieren</string>
     <string name="entrar_sem_conta">Ohne Konto fortfahren</string>
-
-    <!-- SendQuestion -->
-    <string name="adicionar_nova_pergunta">Neue Frage hinzufügen</string>
-    <string name="insira_nome_categoria">Geben Sie den Kategorienamen ein</string>
-    <string name="hint_nova_categoria">Name der neuen Kategorie</string>
-    <string name="pergunta_label">Frage:</string>
-    <string name="insira_pergunta">Geben Sie die Frage ein</string>
-    <string name="opcoes_label">Optionen:</string>
-    <string name="opcao_a">Option A</string>
-    <string name="hint_opcao_a">Option A eingeben</string>
-    <string name="opcao_b">Option B</string>
-    <string name="hint_opcao_b">Option B eingeben</string>
-    <string name="opcao_c">Option C</string>
-    <string name="hint_opcao_c">Option C eingeben</string>
-    <string name="opcao_d">Option D</string>
-    <string name="hint_opcao_d">Option D eingeben</string>
-    <string name="enviar_pergunta">Frage senden</string>
-    <string name="comecar_jogo">Spiel starten</string>
-
-    <!-- Results -->
-    <string name="medalha_primeiro">1</string>
-    <string name="medalha_segundo">2</string>
-    <string name="medalha_terceiro">3</string>
-    <string name="voltar">Zurück</string>
-    <string name="jogar_novamente">Nochmal spielen</string>
-
-    <!-- Main -->
+    <string name="login_subtitulo">Continue your knowledge battle.</string>
+    <string name="cria_tua_conta">Create your account</string>
+    <string name="registo_subtitulo">Join the knowledge battle!</string>
+    <string name="personaliza_perfil">Customise your profile</string>
+    <string name="perfil_subtitulo">Choose your name and avatar.</string>
+    <string name="password_requisitos_titulo">Your password must have:</string>
+    <string name="password_requisitos">✓ At least 8 characters\n✓ One uppercase letter\n✓ One lowercase letter\n✓ One number or symbol</string>
+    <string name="continuar">CONTINUE</string>
+    <string name="ja_tens_conta">Already have an account? Sign in</string>
+    <string name="escolhe_avatar">Choose your avatar</string>
+    <string name="criar_conta">Konto erstellen</string>
+    <string name="criar_conta_caps">CREATE ACCOUNT</string>
+    <string name="avatar_selecionado">Avatar ausgewählt</string>
+    <string name="login_sucesso">Signed in successfully!</string>
+    <string name="senha_incorreta">Incorrect password</string>
+    <string name="email_senha_incorretos">Incorrect email or password</string>
+    <string name="conta_sem_perfil">Authenticated account without player profile</string>
+    <string name="jogador_nao_encontrado">Player not found</string>
+    <string name="erro_banco_dados">Error accessing the database</string>
+    <string name="insira_nome_jogador">Enter a player name!</string>
+    <string name="insere_email">Enter the email</string>
+    <string name="email_invalido">Enter a valid email</string>
+    <string name="insere_password">Enter the password</string>
+    <string name="confirma_password">Confirm the password</string>
+    <string name="passwords_nao_coincidem">Passwords do not match</string>
+    <string name="password_tamanho_invalido">Password must be between 8 and 20 characters</string>
+    <string name="password_precisa_maiuscula">Password must include an uppercase letter</string>
+    <string name="password_precisa_minuscula">Password must include a lowercase letter</string>
+    <string name="password_precisa_numero_simbolo">Password must include a number or symbol</string>
+    <string name="jogador_ja_existe">Player already exists</string>
+    <string name="erro_verificar_jogador_format">Error checking player: %1$s</string>
+    <string name="erro_criar_jogador_format">Error creating player: %1$s</string>
+    <string name="erro_criar_conta_format">Error creating account: %1$s</string>
+    <string name="ola">Hello,</string>
     <string name="bem_vindo">Willkommen</string>
+    <string name="nivel_inicial">Level 1</string>
+    <string name="nivel_format">Level %1$d</string>
+    <string name="xp_progress_format">%1$d / %2$d XP</string>
+    <string name="jogar_agora">PLAY NOW</string>
+    <string name="entrar_numa_sala_caps">JOIN A ROOM</string>
+    <string name="vamos_jogar">Ready to play?</string>
+    <string name="escolhe_teu_modo">CHOOSE YOUR MODE</string>
+    <string name="inicio">Home</string>
+    <string name="ranking">Ranking</string>
+    <string name="amigos">Friends</string>
+    <string name="perfil">Profile</string>
+    <string name="historico">History</string>
+    <string name="terminar_sessao">Sign out</string>
+    <string name="explorar_categorias">Explore Categories</string>
+    <string name="explorar_categorias_duas_linhas">Explore\nCategories</string>
+    <string name="temas">Topics</string>
+    <string name="modo_1x1_aleatorio">1v1\nRandom</string>
+    <string name="modo_2x2_aleatorio">2v2\nRandom</string>
+    <string name="online">Online</string>
+    <string name="perfil_requer_conta">Profile is only available for signed-in accounts.</string>
+    <string name="amigos_requer_conta">Friends are only available for signed-in accounts.</string>
+    <string name="disponivel_sessao_iniciada">Available only when signed in.</string>
+    <string name="indique_nome">Enter your name!</string>
     <string name="codigo_sala_nenhum">Raumcode: N/A</string>
     <string name="criar_sala">Raum erstellen</string>
     <string name="entrar_sala">Raum beitreten</string>
-    <string name="iniciar_jogo">Spiel starten</string>
-    <string name="sair">Abmelden</string>
-
-    <!-- JoinRoom -->
     <string name="entrar_numa_sala">Raum beitreten</string>
     <string name="insira_codigo_sala">Geben Sie den Raumcode ein</string>
     <string name="insira_seu_nome">Geben Sie Ihren Namen ein</string>
     <string name="entrar_sala_jogo">Beitreten</string>
-
-    <!-- Game -->
+    <string name="iniciar_jogo">Spiel starten</string>
+    <string name="sair">Abmelden</string>
+    <string name="sair_da_sala">Raum verlassen</string>
+    <string name="c_digo_da_sala">Raumcode:</string>
+    <string name="codigo_sala_format">Room Code: %1$s</string>
+    <string name="copiar_codigo">Copy code</string>
+    <string name="clipboard_codigo_sala">Room code</string>
+    <string name="codigo_copiado">Code copied</string>
+    <string name="a_carregar_sala">Loading room...</string>
+    <string name="partida_por_convite">Invite match</string>
+    <string name="total_de_jogadores">Gesamtanzahl Spieler:</string>
+    <string name="jogadores_na_sala">Spieler im Raum:</string>
+    <string name="sala_de_espera_grupo">Warteraum (Gruppe)</string>
+    <string name="sala_de_espera">Waiting Room</string>
+    <string name="sala_de_espera_1x1">Warteraum 1-gegen-1</string>
+    <string name="sala_de_espera_2x2">Warteraum 2-gegen-2</string>
+    <string name="aguardando_jogadores">Warte auf Spieler...</string>
+    <string name="aguardando">Warten...</string>
+    <string name="equipa_a">Team A</string>
+    <string name="equipa_b">Team B</string>
+    <string name="codigo_sala_vazio">Enter the room code!</string>
+    <string name="codigo_sala_invalido">Invalid room code</string>
+    <string name="nome_ja_existe_sala">Player name already exists in the room</string>
+    <string name="erro_verificar_sala_format">Error checking room: %1$s</string>
+    <string name="jogador_adicionado_sucesso">Player added successfully!</string>
+    <string name="sala_encerrada">The room was closed.</string>
+    <string name="aguardar_adversario">Still waiting for the opponent!</string>
+    <string name="ambos_jogadores_na_sala">Both players must be in the room!</string>
+    <string name="sala_1x1_cheia">1v1 room is already full.</string>
+    <string name="sala_2x2_cheia">2v2 room is already full.</string>
+    <string name="erro_iniciar_jogo_2x2">Error starting 2v2 game.</string>
+    <string name="dados_sala_invalidos">Invalid room data.</string>
+    <string name="so_criador_sala_iniciar">Only the room creator can start.</string>
+    <string name="erro_carregar_jogadores">Error loading players.</string>
+    <string name="erro_escutar_estado_sala">Error listening to room status.</string>
+    <string name="erro_validar_jogadores">Error validating players.</string>
+    <string name="jogadores_insuficientes">Wait for at least 1 player besides the admin.</string>
+    <string name="sala_privada_convite">Private invite room</string>
     <string name="progresso_pergunta">Frage %1$d/%2$d</string>
     <string name="carregar_perguntas">Fragen werden geladen...</string>
     <string name="cronometro_inicial">20.00</string>
-
-    <!-- ChoseCategory -->
+    <string name="jogar_novamente">Nochmal spielen</string>
     <string name="escolha_categoria">Kategorie auswählen</string>
     <string name="categoria_historia">Geschichte</string>
     <string name="categoria_geografia">Geografie</string>
     <string name="categoria_desporto">Sport</string>
     <string name="categoria_cultura_geral">Allgemeinwissen</string>
     <string name="criar_categoria">Kategorie erstellen</string>
+    <string name="editar_categoria">Edit Category</string>
+    <string name="eliminar_categoria">Delete category</string>
+    <string name="confirmar_eliminar_categoria_format">Do you want to delete "%1$s"?</string>
+    <string name="a_carregar_categorias">Loading categories...</string>
+    <string name="erro_carregar_categorias">Error loading categories.</string>
+    <string name="sem_categorias_mostrar">There are no categories to show yet.</string>
+    <string name="categorias_publicas">Public categories</string>
+    <string name="sem_categorias_publicas">There are no public categories yet.</string>
+    <string name="minhas_categorias">My categories</string>
+    <string name="login_guardar_categorias">Sign in to save categories.</string>
+    <string name="login_avaliar_categorias">Sign in to rate categories.</string>
+    <string name="login_gerir_categorias">Sign in to manage categories.</string>
+    <string name="categoria_guardada">Category saved to your categories.</string>
+    <string name="categoria_eliminada">Category deleted.</string>
+    <string name="categoria_publica_guardada">Public category saved.</string>
+    <string name="categoria_publica_removida">Public category removed.</string>
+    <string name="avaliacao_guardada">Rating saved.</string>
+    <string name="categoria_ja_avaliada">You have already rated this category.</string>
+    <string name="indica_nome_antes_jogar">Enter a name before playing.</string>
+    <string name="conta_registada_criar_categorias">You need a registered account to create categories.</string>
+    <string name="avaliar_categoria_format">Rate %1$s</string>
+    <string-array name="opcoes_avaliacao">
+        <item>1 star</item>
+        <item>2 stars</item>
+        <item>3 stars</item>
+        <item>4 stars</item>
+        <item>5 stars</item>
+    </string-array>
     <string name="escolher_todas_categorias">Alle Kategorien</string>
-
-    <!-- EscolherModo -->
+    <string name="categoria1">Geschichte</string>
+    <string name="categoria2">Geografie</string>
+    <string name="categoria3">Sport</string>
+    <string name="categoria4">Allgemeinwissen</string>
+    <string name="categoria5">Alle Kategorien</string>
+    <string name="categoria6">Gentilize</string>
+    <string name="info_categorias">Kategorietipps anzeigen</string>
     <string name="escolher_modo_jogo">Modus auswählen</string>
+    <string name="escolher_modo">Choose mode</string>
     <string name="modo_classico">Klassisch</string>
     <string name="modo_eliminatorias">K.O.-Modus</string>
     <string name="modo_solo">Solo</string>
@@ -77,8 +189,6 @@
 
         • <b>K.O.-Modus:</b> Falsch geantwortet? Du bist sofort raus! Der letzte Überlebende gewinnt. Sei schnell und präzise.
     </string>
-
-    <!-- Tipos Modo Classico -->
     <string name="escolher_tipo_modo_classico">Spielmodus wählen</string>
     <string name="modo_1x1">1-gegen-1-Modus</string>
     <string name="modo_2x2">2-gegen-2-Modus</string>
@@ -90,66 +200,137 @@
 
     • <b>Gruppenmodus:</b> Alle spielen gegeneinander in einem klassischen Wettbewerb. Zeige, wer am meisten weiß, und erobere die Spitze der Rangliste!
     </string>
-
-    <!-- Kategorien -->
-    <string name="categoria1">Geschichte</string>
-    <string name="categoria2">Geografie</string>
-    <string name="categoria3">Sport</string>
-    <string name="categoria4">Allgemeinwissen</string>
-    <string name="categoria5">Alle Kategorien</string>
-    <string name="categoria6">Gentilize</string>
-    <string name="info_categorias">Kategorietipps anzeigen</string>
-
-    <!-- item lista jogadores sala -->
+    <string name="modo_classico_grupo">Classic/group</string>
+    <string name="modo_1x1_convite">1v1 by invite</string>
+    <string name="modo_2x2_convite">2v2 by invite</string>
+    <string-array name="opcoes_modo_personalizado">
+        <item>Classic/group</item>
+        <item>1v1 by invite</item>
+        <item>2v2 by invite</item>
+        <item>Elimination</item>
+    </string-array>
+    <string name="adicionar_nova_pergunta">Neue Frage hinzufügen</string>
+    <string name="insira_nome_categoria">Geben Sie den Kategorienamen ein</string>
+    <string name="hint_nova_categoria">Name der neuen Kategorie</string>
+    <string name="pergunta_label">Frage:</string>
+    <string name="insira_pergunta">Geben Sie die Frage ein</string>
+    <string name="imagem_opcional">Image (optional)</string>
+    <string name="hint_imagem">URL or image reference</string>
+    <string name="opcoes_label">Optionen:</string>
+    <string name="opcao_a">Option A</string>
+    <string name="hint_opcao_a">Option A eingeben</string>
+    <string name="opcao_b">Option B</string>
+    <string name="hint_opcao_b">Option B eingeben</string>
+    <string name="opcao_c">Option C</string>
+    <string name="hint_opcao_c">Option C eingeben</string>
+    <string name="opcao_d">Option D</string>
+    <string name="hint_opcao_d">Option D eingeben</string>
+    <string name="dificuldade">Difficulty</string>
+    <string name="dificuldade_facil">Easy</string>
+    <string name="dificuldade_media">Medium</string>
+    <string name="dificuldade_dificil">Hard</string>
+    <string name="nova_pergunta">New question</string>
+    <string name="eliminar_atual">Delete current</string>
+    <string name="enviar_pergunta">Frage senden</string>
+    <string name="comecar_jogo">Spiel starten</string>
+    <string name="total_perguntas_inicial">Total questions: 0</string>
+    <string name="total_perguntas_format">Total questions: %1$d</string>
+    <string name="sem_perguntas_categoria">No questions saved in this category.</string>
+    <string name="apenas_registados_criar_categorias">Only registered players can create custom categories.</string>
+    <string name="indica_categoria_personalizada">Enter the custom category.</string>
+    <string name="pergunta_guardada_sucesso">Question saved successfully!</string>
+    <string name="erro_guardar_pergunta_format">Error saving question: %1$s</string>
+    <string name="escolhe_pergunta_eliminar">Choose a question to delete.</string>
+    <string name="eliminar_pergunta">Delete question</string>
+    <string name="confirmar_eliminar_pergunta">Do you want to delete the current question?</string>
+    <string name="convites_precisam_conta">1v1 and 2v2 require an account to invite friends.</string>
+    <string name="procurar_utilizador">Search user...</string>
+    <string name="pesquisar">Search</string>
+    <string name="adicionar_amigo">Freund hinzufügen</string>
+    <string name="adicionar_nome_format">Add %1$s</string>
+    <string name="ja_e_teu_amigo_format">%1$s is already your friend!</string>
+    <string name="utilizador_nao_encontrado">User not found</string>
+    <string name="ja_e_teu_amigo">Already your friend!</string>
+    <string name="pedido_amizade_enviado">Friend request sent!</string>
+    <string name="erro_enviar_pedido">Error sending request</string>
+    <string name="amizade_aceite">Friendship accepted!</string>
+    <string name="convite_aceite">Invite accepted!</string>
+    <string name="pedidos_amizade_recebidos">Received friend requests</string>
+    <string name="pedidos_de_amizade">Friend requests</string>
+    <string name="convites_recebidos">Erhaltene Einladungen:</string>
+    <string name="teus_amigos">Deine Freunde:</string>
+    <string name="convidar_amigo">Freund einladen</string>
+    <string name="convidar_equipa">Invite team</string>
+    <string name="convidar_para_2x2">Zu 2-gegen-2 einladen</string>
     <string name="nome_amigo">Name des Freundes</string>
-
-    <!-- item podio -->
-    <string name="nome_jogador">Spielername</string>
-
-    <!-- item jogador sala -->
-    <string name="avatar_do_jogador">Spieler-Avatar</string>
-
-    <!-- item convite -->
-    <string name="aceitar">Akzeptieren</string>
-    <string name="convite_de">Einladung von:</string>
-
-    <!-- item convidar amigo -->
-    <string name="desafiar_1x1">1-gegen-1 herausfordern</string>
     <string name="nome_do_amigo">Name des Freundes</string>
-    <string name="c_digo_da_sala">Raumcode:</string>
-    <string name="total_de_jogadores">Gesamtanzahl Spieler:</string>
-    <string name="jogadores_na_sala">Spieler im Raum:</string>
-    <string name="sair_da_sala">Raum verlassen</string>
-    <string name="sala_de_espera_grupo">Warteraum (Gruppe)</string>
-    <string name="sala_de_espera_1x1">Warteraum 1-gegen-1</string>
-    <string name="aguardando_jogadores">Warte auf Spieler...</string>
-    <string name="sala_de_espera_2x2">Warteraum 2-gegen-2</string>
-    <string name="equipa_a">Team A</string>
-    <string name="aguardando">Warten...</string>
-    <string name="criar_conta">Konto erstellen</string>
-    <string name="avatar_selecionado">Avatar ausgewählt</string>
+    <string name="avatar_do_amigo">Avatar des Freundes</string>
+    <string name="remover_amigo">Remove Friend</string>
+    <string name="amigo_removido_sucesso">Friend removed successfully!</string>
+    <string name="desafiar_1x1">1-gegen-1 herausfordern</string>
+    <string name="convite_de">Einladung von:</string>
+    <string name="convite_de_format">Invite from: %1$s</string>
+    <string name="nome_utilizador_placeholder">Username</string>
+    <string name="top_10_arena">Arena top 10</string>
+    <string name="ranking_solo">Solo</string>
+    <string name="ranking_1x1">1v1</string>
+    <string name="ranking_2x2">2v2</string>
+    <string name="ranking_recorde">Record</string>
+    <string name="ranking_global">Global</string>
+    <string name="ranking_global_titulo">Global Ranking</string>
+    <string name="ranking_recordes_titulo">Records Ranking</string>
+    <string name="ranking_solo_titulo">Solo Ranking</string>
+    <string name="ranking_1x1_titulo">1v1 Ranking</string>
+    <string name="ranking_2x2_titulo">2v2 Ranking</string>
+    <string name="pontos_totais">Total Points</string>
+    <string name="melhor_jogo">Best Game</string>
+    <string name="vitorias_solo">Solo Wins</string>
+    <string name="vitorias_1x1">1v1 Wins</string>
+    <string name="vitorias_2x2">2v2 Wins</string>
+    <string name="ainda_sem_ranking">There are no players in the ranking yet.</string>
+    <string name="erro_carregar_ranking">Could not load the ranking.</string>
+    <string name="nome_jogador">Spielername</string>
+    <string name="avatar_do_jogador">Spieler-Avatar</string>
+    <string name="pontos">Points</string>
+    <string name="posicao_ranking_format">#%1$d</string>
+    <string name="nome_nivel_format">%1$s • Lv %2$d</string>
+    <string name="jogos_format">Games: %1$d</string>
+    <string name="vitorias_format">Wins: %1$d</string>
+    <string name="acertos_format">Accuracy: %1$s%%</string>
+    <string name="jogos_curto_format">G: %1$d</string>
+    <string name="vitorias_curto_format">W: %1$d</string>
+    <string name="acertos_curto_format">Acc: %1$s%%</string>
+    <string name="p_dio">Podium</string>
+    <string name="medalha_primeiro">1</string>
+    <string name="medalha_segundo">2</string>
+    <string name="medalha_terceiro">3</string>
+    <string name="primeiro_lugar">🥇</string>
+    <string name="segundo_lugar">🥈</string>
+    <string name="nome_jogador_1">Spieler 1 Name</string>
+    <string name="nome_jogador_2">Spieler 2 Name</string>
     <string name="nome_jogador_1_equipa_a">Spieler 1 Name - Team A</string>
     <string name="nome_jogador_2_equipa_a">Spieler 2 Name - Team A</string>
     <string name="nome_jogador_3_equipa_b">Spieler 3 Name - Team B</string>
     <string name="nome_jogador_4_equipa_b">Spieler 4 Name - Team B</string>
+    <string name="aguardar_todos_jogadores">Waiting for all players to finish... 0/4</string>
     <string name="pedir_desforra">Revanche anfordern</string>
-    <string name="nome_jogador_2">Spieler 2 Name</string>
-    <string name="nome_jogador_1">Spieler 1 Name</string>
-    <string name="p_dio">Podium</string>
-    <string name="avatar_do_amigo">Avatar des Freundes</string>
+    <string name="pontuacao">Punkte:</string>
+    <string name="recorde_pontuacao_format">Score Record: %1$d points</string>
+    <string name="pontuacao_format">Score: %1$d</string>
     <string name="total_de_jogos">Gesamtzahl Spiele</string>
-    <string name="taxa_de_vit_ria">Siegquote:</string>
+    <string name="total_de_jogos_format">Total Games: %1$d</string>
     <string name="total_de_vit_rias_0">Gesamtsiege:</string>
+    <string name="total_de_vitorias">Gesamtsiege</string>
+    <string name="total_de_vitorias_format">Total Wins: %1$d</string>
     <string name="vit_rias">Siege</string>
     <string name="jogos">Spiele</string>
-    <string name="pontuacao">Punkte:</string>
     <string name="respostas_certas">Richtige Antworten</string>
+    <string name="respostas_certas_abrev">Correct</string>
     <string name="total_de_respostas_certas">Gesamtzahl richtiger Antworten</string>
-    <string name="total_de_vitorias">Gesamtsiege</string>
+    <string name="taxa_de_vit_ria">Siegquote:</string>
     <string name="taxa_de_acertos">Trefferquote</string>
-    <string name="convidar_para_2x2">Zu 2-gegen-2 einladen</string>
-    <string name="adicionar_amigo">Freund hinzufügen</string>
-    <string name="convites_recebidos">Erhaltene Einladungen:</string>
-    <string name="teus_amigos">Deine Freunde:</string>
-    <string name="convidar_amigo">Freund einladen</string>
+    <string name="taxa_de_acertos_format">Accuracy Rate: %1$.1f%%</string>
+    <string name="taxa_de_vitoria_format">Win Rate: %1$.1f%%</string>
+    <string name="perfil_indisponivel">Could not open the profile.</string>
+    <string name="nome_utilizador_exemplo">Username</string>
 </resources>

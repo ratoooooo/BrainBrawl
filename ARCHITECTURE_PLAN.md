@@ -1,5 +1,20 @@
 # Pergunta o Luso - Architecture Plan
 
+## Atualizacao categorias personalizadas, modo por categoria e Main - 2026-05-11
+
+- Categorias personalizadas passam a ser geridas em `ExplorarCategoriasActivity`, junto das categorias publicas e da criacao de categoria.
+- O fluxo principal iniciado por `MainActivity -> EscolherModoActivity` fica focado em modos e categorias oficiais; `EscolherCategoriaActivity` deixa de abrir a gestao personalizada e encaminha para `Explorar Categorias`.
+- Jogar uma categoria publica/personalizada passa por um chooser de modo especifico da categoria.
+- `Caotico` nao entra nesse chooser porque o contrato atual mistura categorias/todas as perguntas; manter fora evita criar uma semantica ambigua.
+- Grupo/eliminatorias continuam a criar salas por `UteisSala`; 1x1/2x2 continuam por convite via `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity`.
+- O matchmaking aleatorio continua sem entrada de UI e nao foi reativado.
+- `AmigosRepository` aceita metadados opcionais da categoria ao criar salas por convite, preservando `categoriaPublicaId`, `donoUid` e `donoCategoria`.
+- `JogoCompetitivoRepository` passa a resolver perguntas de categorias publicas/personalizadas quando uma sala competitiva por convite nao traz perguntas pregravadas.
+- A edicao de perguntas fica no par `AdicionarPerguntaActivity` + `EditarCategoriaViewModel` + `CategoriaRepository`: Activity trata UI/clicks, ViewModel valida e coordena estado, Repository escreve/le categorias Firebase.
+- `perguntaId` passa a ser preservado no fluxo de edicao numerada; guardar uma pergunta selecionada atualiza o mesmo node.
+- `Pergunta` ganhou `dificuldade` opcional; perguntas antigas sem esse campo continuam compativeis.
+- `MainActivity` continua fina: os IDs de navegacao mantiveram-se e a mudanca principal ficou em XML, com `JOGAR AGORA` e `ENTRAR NUMA SALA` dentro do card principal.
+
 ## Estado MVVM atual - 2026-05-08
 
 - Padrao alvo mantido: `Activity -> ViewModel -> Repository -> Service -> Models`.

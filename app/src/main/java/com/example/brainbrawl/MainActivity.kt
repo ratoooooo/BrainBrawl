@@ -82,9 +82,13 @@ class MainActivity : AppCompatActivity() {
 
             binding.txtBoasVindas.text = state.boasVindas
             binding.btnAddAmigo.visibility = if (state.amigosVisivel) View.VISIBLE else View.GONE
-            binding.txtNivel.text = "Nível ${state.nivel}"
+            binding.txtNivel.text = getString(R.string.nivel_format, state.nivel)
             binding.txtLevelBadge.text = state.nivel.toString()
-            binding.txtXp.text = "${state.xpNoNivelAtual} / ${state.xpNecessarioProximoNivel} XP"
+            binding.txtXp.text = getString(
+                R.string.xp_progress_format,
+                state.xpNoNivelAtual,
+                state.xpNecessarioProximoNivel
+            )
             binding.progressXp.max = state.xpNecessarioProximoNivel.coerceAtLeast(1)
             binding.progressXp.progress = state.xpNoNivelAtual.coerceAtLeast(0)
             if (state.avatar.isNotBlank()) {
@@ -166,7 +170,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun abrirPerfil() {
         if (uid.isNullOrBlank() && nomeUtilizador.isNullOrBlank()) {
-            Toast.makeText(this, "Perfil disponível apenas para contas com sessão iniciada.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.perfil_requer_conta, Toast.LENGTH_SHORT).show()
             return
         }
 
@@ -179,7 +183,7 @@ class MainActivity : AppCompatActivity() {
     private fun abrirAmigos() {
         val utilizador = nomeUtilizador
         if (utilizador.isNullOrBlank()) {
-            Toast.makeText(this, "Amigos disponível apenas para contas com sessão iniciada.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.amigos_requer_conta, Toast.LENGTH_SHORT).show()
             return
         }
 

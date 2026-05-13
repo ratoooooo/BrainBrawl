@@ -48,7 +48,7 @@
             android:layout_height="40dp"
             android:layout_marginStart="8dp"
             android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="Copiar código"
+            android:contentDescription="@string/copiar_codigo"
             android:padding="8dp"
             android:src="@drawable/ic_copy"
             app:tint="@color/bb_text_primary" />
@@ -85,7 +85,7 @@
             <!-- Jogador 1 Equipa A -->
             <LinearLayout
                 android:orientation="horizontal"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="8dp">
@@ -97,20 +97,21 @@
                     app:tint="@color/bb_team_a" />
                 <TextView
                     android:id="@+id/txtJogadorA1"
-                    android:layout_width="120dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="@string/aguardando"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:layout_marginLeft="8dp"/>
+                    android:layout_marginStart="8dp"/>
             </LinearLayout>
 
             <!-- Jogador 2 Equipa A -->
             <LinearLayout
                 android:orientation="horizontal"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical">
                 <ImageView
@@ -120,14 +121,15 @@
                     app:tint="@color/bb_team_a" />
                 <TextView
                     android:id="@+id/txtJogadorA2"
-                    android:layout_width="120dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="@string/aguardando"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:layout_marginLeft="8dp"/>
+                    android:layout_marginStart="8dp"/>
             </LinearLayout>
         </LinearLayout>
 
@@ -135,8 +137,8 @@
         <View
             android:layout_width="2dp"
             android:layout_height="match_parent"
-            android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp"
+            android:layout_marginStart="10dp"
+            android:layout_marginEnd="10dp"
             android:background="@color/bb_outline" />
 
         <!-- Equipa B -->
@@ -151,7 +153,7 @@
                 android:id="@+id/txtEquipaB"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Equipa B"
+                android:text="@string/equipa_b"
                 android:textStyle="bold"
                 android:textColor="@color/bb_team_b"
                 android:textSize="20sp"
@@ -160,7 +162,7 @@
             <!-- Jogador 1 Equipa B -->
             <LinearLayout
                 android:orientation="horizontal"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical"
                 android:layout_marginBottom="8dp">
@@ -171,20 +173,21 @@
                     app:tint="@color/bb_team_b" />
                 <TextView
                     android:id="@+id/txtJogadorB1"
-                    android:layout_width="120dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="@string/aguardando"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:layout_marginLeft="8dp"/>
+                    android:layout_marginStart="8dp"/>
             </LinearLayout>
 
             <!-- Jogador 2 Equipa B -->
             <LinearLayout
                 android:orientation="horizontal"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:gravity="center_vertical">
                 <ImageView
@@ -194,14 +197,15 @@
                     app:tint="@color/bb_team_b" />
                 <TextView
                     android:id="@+id/txtJogadorB2"
-                    android:layout_width="120dp"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:text="@string/aguardando"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="16sp"
                     android:maxLines="1"
                     android:ellipsize="end"
-                    android:layout_marginLeft="8dp"/>
+                    android:layout_marginStart="8dp"/>
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>

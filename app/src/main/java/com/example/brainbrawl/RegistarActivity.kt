@@ -125,16 +125,16 @@ class RegistarActivity : AppCompatActivity() {
     }
 
     private fun validarEtapaConta(email: String, password: String, confirmarPassword: String): String? {
-        if (email.isBlank()) return "Insere o e-mail"
-        if (!email.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))) return "Insira um email válido"
-        if (password.isBlank()) return "Insere a palavra-passe"
-        if (confirmarPassword.isBlank()) return "Confirma a palavra-passe"
-        if (password != confirmarPassword) return "As palavras-passe não coincidem"
-        if (password.length < 8 || password.length > 20) return "A senha deve ter entre 8 e 20 caracteres"
-        if (!password.any { it.isUpperCase() }) return "A senha deve incluir uma letra maiúscula"
-        if (!password.any { it.isLowerCase() }) return "A senha deve incluir uma letra minúscula"
+        if (email.isBlank()) return getString(R.string.insere_email)
+        if (!email.matches(Regex("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$"))) return getString(R.string.email_invalido)
+        if (password.isBlank()) return getString(R.string.insere_password)
+        if (confirmarPassword.isBlank()) return getString(R.string.confirma_password)
+        if (password != confirmarPassword) return getString(R.string.passwords_nao_coincidem)
+        if (password.length < 8 || password.length > 20) return getString(R.string.password_tamanho_invalido)
+        if (!password.any { it.isUpperCase() }) return getString(R.string.password_precisa_maiuscula)
+        if (!password.any { it.isLowerCase() }) return getString(R.string.password_precisa_minuscula)
         if (!password.any { it.isDigit() || !it.isLetterOrDigit() }) {
-            return "A senha deve incluir um número ou símbolo"
+            return getString(R.string.password_precisa_numero_simbolo)
         }
         return null
     }
@@ -146,8 +146,8 @@ class RegistarActivity : AppCompatActivity() {
         binding.txtStepConta.setTextColor(getColor(R.color.bb_text_primary))
         binding.txtStepPerfil.setBackgroundResource(R.drawable.bg_register_step_idle)
         binding.txtStepPerfil.setTextColor(getColor(R.color.bb_text_secondary))
-        binding.txtRegisto.text = "Cria a tua conta"
-        binding.txtRegistoSubtitulo.text = "Junta-te à batalha do conhecimento!"
+        binding.txtRegisto.text = getString(R.string.cria_tua_conta)
+        binding.txtRegistoSubtitulo.text = getString(R.string.registo_subtitulo)
         binding.registerScroll.post { binding.registerScroll.smoothScrollTo(0, 0) }
     }
 
@@ -158,8 +158,8 @@ class RegistarActivity : AppCompatActivity() {
         binding.txtStepConta.setTextColor(getColor(R.color.bb_text_secondary))
         binding.txtStepPerfil.setBackgroundResource(R.drawable.bg_register_step_active)
         binding.txtStepPerfil.setTextColor(getColor(R.color.bb_text_primary))
-        binding.txtRegisto.text = "Personaliza o teu perfil"
-        binding.txtRegistoSubtitulo.text = "Escolhe o teu nome e avatar."
+        binding.txtRegisto.text = getString(R.string.personaliza_perfil)
+        binding.txtRegistoSubtitulo.text = getString(R.string.perfil_subtitulo)
         binding.registerScroll.post { binding.registerScroll.smoothScrollTo(0, 0) }
     }
 
@@ -176,16 +176,16 @@ class RegistarActivity : AppCompatActivity() {
                 Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
             }
             RegistarEvent.JogadorJaExiste -> {
-                Toast.makeText(this, "Jogador já existe", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.jogador_ja_existe, Toast.LENGTH_SHORT).show()
             }
             is RegistarEvent.ErroVerificarJogador -> {
-                Toast.makeText(this, "Erro ao verificar jogador: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_verificar_jogador_format, evento.mensagem), Toast.LENGTH_SHORT).show()
             }
             is RegistarEvent.ErroCriarJogador -> {
-                Toast.makeText(this, "Erro ao criar jogador: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_criar_jogador_format, evento.mensagem), Toast.LENGTH_SHORT).show()
             }
             is RegistarEvent.ErroCriarAuth -> {
-                Toast.makeText(this, "Erro ao criar conta: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_criar_conta_format, evento.mensagem), Toast.LENGTH_SHORT).show()
             }
             is RegistarEvent.RegistoSucesso -> {
                 val intent = Intent(this, MainActivity::class.java)

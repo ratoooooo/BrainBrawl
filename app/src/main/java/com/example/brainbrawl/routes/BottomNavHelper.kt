@@ -118,7 +118,7 @@ object BottomNavHelper {
         container.setOnClickListener {
             if (ativo) return@setOnClickListener
             if (destino.requerConta && uid.isNullOrBlank() && nomeUtilizador.isNullOrBlank()) {
-                Toast.makeText(activity, "Disponível apenas com sessão iniciada.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(activity, R.string.disponivel_sessao_iniciada, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             activity.startActivity(Intent(activity, destino.activityClass).apply {

@@ -1,19 +1,222 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    // SingIn
+    <!-- App -->
     <string name="app_name">Pergunta ó Luso</string>
-    <string name="insira_nome">Insira o seu nome</string>
-    <string name="insira_password">Insira a sua password</string>"
-    <string name="entrar">Entrar</string>
-    <string name="registar">Registe-se</string>">
-    <string name="entrar_sem_conta">Entrar sem conta</string>">
+    <string name="brand_pergunta">PERGUNTA</string>
+    <string name="brand_o_luso">Ó LUSO</string>
+    <string name="brand_full_caps">PERGUNTA Ó LUSO</string>
+    <string name="email">E-mail</string>
+    <string name="email_ou_nome">Email ou nome</string>
+    <string name="mostrar_password">Mostrar palavra-passe</string>
+    <string name="mostrar_confirmacao_password">Mostrar confirmação da palavra-passe</string>
+    <string name="confirmar_password">Confirmar palavra-passe</string>
+    <string name="nome_utilizador">Nome de utilizador</string>
+    <string name="ou">OU</string>
+    <string name="voltar">Voltar</string>
+    <string name="guardar">Guardar</string>
+    <string name="eliminar">Eliminar</string>
+    <string name="cancelar">Cancelar</string>
+    <string name="aceitar">Aceitar</string>
+    <string name="recusar">Recusar</string>
 
-    //SendQuestion
+    <!-- Login e registo -->
+    <string name="insira_nome">Insira o seu nome</string>
+    <string name="insira_password">Insira a sua palavra-passe</string>
+    <string name="password_hint">Palavra-passe</string>
+    <string name="entrar">Entrar</string>
+    <string name="registar">Registar</string>
+    <string name="entrar_sem_conta">Entrar sem conta</string>
+    <string name="login_subtitulo">Continua a tua batalha do conhecimento.</string>
+    <string name="cria_tua_conta">Cria a tua conta</string>
+    <string name="registo_subtitulo">Junta-te à batalha do conhecimento!</string>
+    <string name="personaliza_perfil">Personaliza o teu perfil</string>
+    <string name="perfil_subtitulo">Escolhe o teu nome e avatar.</string>
+    <string name="password_requisitos_titulo">A tua palavra-passe deve ter:</string>
+    <string name="password_requisitos">✓ Pelo menos 8 caracteres\n✓ Uma letra maiúscula\n✓ Uma letra minúscula\n✓ Um número ou símbolo</string>
+    <string name="continuar">CONTINUAR</string>
+    <string name="ja_tens_conta">Já tens conta? Inicia sessão</string>
+    <string name="escolhe_avatar">Escolhe o teu avatar</string>
+    <string name="criar_conta">Criar Conta</string>
+    <string name="criar_conta_caps">CRIAR CONTA</string>
+    <string name="avatar_selecionado">Avatar selecionado</string>
+    <string name="login_sucesso">Login realizado com sucesso!</string>
+    <string name="senha_incorreta">Senha incorreta</string>
+    <string name="email_senha_incorretos">Email ou senha incorretos</string>
+    <string name="conta_sem_perfil">Conta autenticada sem perfil de jogador</string>
+    <string name="jogador_nao_encontrado">Jogador não encontrado</string>
+    <string name="erro_banco_dados">Erro ao aceder à base de dados</string>
+    <string name="insira_nome_jogador">Insira um nome de jogador!</string>
+    <string name="insere_email">Insere o e-mail</string>
+    <string name="email_invalido">Insira um email válido</string>
+    <string name="insere_password">Insere a palavra-passe</string>
+    <string name="confirma_password">Confirma a palavra-passe</string>
+    <string name="passwords_nao_coincidem">As palavras-passe não coincidem</string>
+    <string name="password_tamanho_invalido">A senha deve ter entre 8 e 20 caracteres</string>
+    <string name="password_precisa_maiuscula">A senha deve incluir uma letra maiúscula</string>
+    <string name="password_precisa_minuscula">A senha deve incluir uma letra minúscula</string>
+    <string name="password_precisa_numero_simbolo">A senha deve incluir um número ou símbolo</string>
+    <string name="jogador_ja_existe">Jogador já existe</string>
+    <string name="erro_verificar_jogador_format">Erro ao verificar jogador: %1$s</string>
+    <string name="erro_criar_jogador_format">Erro ao criar jogador: %1$s</string>
+    <string name="erro_criar_conta_format">Erro ao criar conta: %1$s</string>
+
+    <!-- Main -->
+    <string name="ola">Olá,</string>
+    <string name="bem_vindo">Bem-Vindo</string>
+    <string name="nivel_inicial">Nível 1</string>
+    <string name="nivel_format">Nível %1$d</string>
+    <string name="xp_progress_format">%1$d / %2$d XP</string>
+    <string name="jogar_agora">JOGAR AGORA</string>
+    <string name="entrar_numa_sala_caps">ENTRAR NUMA SALA</string>
+    <string name="vamos_jogar">Vamos jogar?</string>
+    <string name="escolhe_teu_modo">ESCOLHE O TEU MODO</string>
+    <string name="inicio">Início</string>
+    <string name="ranking">Ranking</string>
+    <string name="amigos">Amigos</string>
+    <string name="perfil">Perfil</string>
+    <string name="historico">Histórico</string>
+    <string name="terminar_sessao">Terminar sessão</string>
+    <string name="explorar_categorias">Explorar Categorias</string>
+    <string name="explorar_categorias_duas_linhas">Explorar\nCategorias</string>
+    <string name="temas">Temas</string>
+    <string name="modo_1x1_aleatorio">1x1\nAleatório</string>
+    <string name="modo_2x2_aleatorio">2x2\nAleatório</string>
+    <string name="online">Online</string>
+    <string name="perfil_requer_conta">Perfil disponível apenas para contas com sessão iniciada.</string>
+    <string name="amigos_requer_conta">Amigos disponível apenas para contas com sessão iniciada.</string>
+    <string name="disponivel_sessao_iniciada">Disponível apenas com sessão iniciada.</string>
+    <string name="indique_nome">Indique o seu nome!</string>
+
+    <!-- Salas -->
+    <string name="codigo_sala_nenhum">Código da Sala: N/A</string>
+    <string name="criar_sala">Criar Sala</string>
+    <string name="entrar_sala">Entrar numa Sala</string>
+    <string name="entrar_numa_sala">Entrar numa Sala</string>
+    <string name="insira_codigo_sala">Insira o código da sala</string>
+    <string name="insira_seu_nome">Insira o seu nome</string>
+    <string name="entrar_sala_jogo">Entrar</string>
+    <string name="iniciar_jogo">Iniciar Jogo</string>
+    <string name="sair">Sair</string>
+    <string name="sair_da_sala">Sair da Sala</string>
+    <string name="c_digo_da_sala">Código da Sala:</string>
+    <string name="codigo_sala_format">Código da Sala: %1$s</string>
+    <string name="copiar_codigo">Copiar código</string>
+    <string name="clipboard_codigo_sala">Código da sala</string>
+    <string name="codigo_copiado">Código copiado</string>
+    <string name="a_carregar_sala">A carregar sala...</string>
+    <string name="partida_por_convite">Partida por convite</string>
+    <string name="total_de_jogadores">Total de jogadores:</string>
+    <string name="jogadores_na_sala">Jogadores na Sala:</string>
+    <string name="sala_de_espera_grupo">Sala de Espera (Grupo)</string>
+    <string name="sala_de_espera">Sala de Espera</string>
+    <string name="sala_de_espera_1x1">Sala de Espera 1x1</string>
+    <string name="sala_de_espera_2x2">Sala de Espera 2x2</string>
+    <string name="aguardando_jogadores">Aguardando jogadores...</string>
+    <string name="aguardando">Aguardando...</string>
+    <string name="equipa_a">Equipa A</string>
+    <string name="equipa_b">Equipa B</string>
+    <string name="codigo_sala_vazio">Insira o código da sala!</string>
+    <string name="codigo_sala_invalido">Código da sala inválido</string>
+    <string name="nome_ja_existe_sala">Nome de jogador já existe na sala</string>
+    <string name="erro_verificar_sala_format">Erro ao verificar sala: %1$s</string>
+    <string name="jogador_adicionado_sucesso">Jogador adicionado com sucesso!</string>
+    <string name="sala_encerrada">A sala foi encerrada.</string>
+    <string name="aguardar_adversario">Ainda a aguardar o adversário!</string>
+    <string name="ambos_jogadores_na_sala">Ambos os jogadores têm de estar na sala!</string>
+    <string name="sala_1x1_cheia">Sala 1x1 já está cheia.</string>
+    <string name="sala_2x2_cheia">Sala 2x2 já está cheia.</string>
+    <string name="erro_iniciar_jogo_2x2">Erro ao iniciar jogo 2x2.</string>
+    <string name="dados_sala_invalidos">Dados da sala inválidos.</string>
+    <string name="so_criador_sala_iniciar">Só o criador da sala pode iniciar.</string>
+    <string name="erro_carregar_jogadores">Erro ao carregar jogadores.</string>
+    <string name="erro_escutar_estado_sala">Erro ao escutar estado da sala.</string>
+    <string name="erro_validar_jogadores">Erro ao validar jogadores.</string>
+    <string name="jogadores_insuficientes">Aguarde pelo menos 1 jogador além do admin.</string>
+    <string name="sala_privada_convite">Sala privada por convite</string>
+
+    <!-- Jogo -->
+    <string name="progresso_pergunta">Pergunta %1$d/%2$d</string>
+    <string name="carregar_perguntas">A carregar perguntas...</string>
+    <string name="cronometro_inicial">20.00</string>
+    <string name="jogar_novamente">Jogar Novamente</string>
+
+    <!-- Categorias e modos -->
+    <string name="escolha_categoria">Escolher uma Categoria</string>
+    <string name="categoria_historia">História</string>
+    <string name="categoria_geografia">Geografia</string>
+    <string name="categoria_desporto">Desporto</string>
+    <string name="categoria_cultura_geral">Cultura Geral</string>
+    <string name="criar_categoria">Criar Categoria</string>
+    <string name="editar_categoria">Editar Categoria</string>
+    <string name="eliminar_categoria">Eliminar categoria</string>
+    <string name="confirmar_eliminar_categoria_format">Queres eliminar "%1$s"?</string>
+    <string name="a_carregar_categorias">A carregar categorias...</string>
+    <string name="erro_carregar_categorias">Erro ao carregar categorias.</string>
+    <string name="sem_categorias_mostrar">Ainda não há categorias para mostrar.</string>
+    <string name="categorias_publicas">Categorias públicas</string>
+    <string name="sem_categorias_publicas">Ainda não há categorias públicas.</string>
+    <string name="minhas_categorias">Minhas categorias</string>
+    <string name="login_guardar_categorias">Inicia sessão para guardar categorias.</string>
+    <string name="login_avaliar_categorias">Inicia sessão para avaliar categorias.</string>
+    <string name="login_gerir_categorias">Inicia sessão para gerir categorias.</string>
+    <string name="categoria_guardada">Categoria guardada nas tuas categorias.</string>
+    <string name="categoria_eliminada">Categoria eliminada.</string>
+    <string name="categoria_publica_guardada">Categoria pública guardada.</string>
+    <string name="categoria_publica_removida">Categoria pública removida.</string>
+    <string name="avaliacao_guardada">Avaliação guardada.</string>
+    <string name="categoria_ja_avaliada">Já avaliaste esta categoria.</string>
+    <string name="indica_nome_antes_jogar">Indica um nome antes de jogar.</string>
+    <string name="conta_registada_criar_categorias">Precisas de uma conta registada para criar categorias.</string>
+    <string name="avaliar_categoria_format">Avaliar %1$s</string>
+    <string-array name="opcoes_avaliacao">
+        <item>1 estrela</item>
+        <item>2 estrelas</item>
+        <item>3 estrelas</item>
+        <item>4 estrelas</item>
+        <item>5 estrelas</item>
+    </string-array>
+    <string name="escolher_todas_categorias">Todas as Categorias</string>
+    <string name="categoria1">História</string>
+    <string name="categoria2">Geografia</string>
+    <string name="categoria3">Desporto</string>
+    <string name="categoria4">Cultura Geral</string>
+    <string name="categoria5">Todas as Categorias</string>
+    <string name="categoria6">Gentílicos</string>
+    <string name="info_categorias">Ver dicas das categorias</string>
+    <string name="escolher_modo_jogo">Escolher Modo</string>
+    <string name="escolher_modo">Escolher modo</string>
+    <string name="modo_classico">Clássico</string>
+    <string name="modo_eliminatorias">Eliminatórias</string>
+    <string name="modo_solo">Solo</string>
+    <string name="selecionar_modo_classico">Selecionar modo Clássico</string>
+    <string name="selecionar_modo_eliminatorias">Selecionar modo Eliminatórias</string>
+    <string name="voltar_para_main_activity">Voltar para a tela principal</string>
+    <string name="modo_caotico">Caótico</string>
+    <string name="info_todos">Ver explicação de todos os modos</string>
+    <string name="info_todos_modos">• &lt;b&gt;Modo Clássico:&lt;/b&gt; Responde a perguntas da categoria escolhida. Joga com outros jogadores e vence quem tiver mais pontos!\n\n• &lt;b&gt;Modo Caótico:&lt;/b&gt; Perguntas de todas as categorias aparecem de forma aleatória. Desafia-te e aos teus amigos numa experiência imprevisível!\n\n• &lt;b&gt;Modo Eliminatórias:&lt;/b&gt; Erraste? És eliminado logo! O último sobrevivente vence. Sê rápido e preciso.</string>
+    <string name="escolher_tipo_modo_classico">Escolher Modo de Jogo</string>
+    <string name="modo_1x1">Modo 1x1</string>
+    <string name="modo_2x2">Modo 2x2</string>
+    <string name="modo_todos">Todos</string>
+    <string name="info_todos_modos_classico">• &lt;b&gt;Modo 1x1:&lt;/b&gt; Duelo direto entre dois jogadores! Responde às mesmas perguntas que o teu adversário e vence quem somar mais pontos.\n\n• &lt;b&gt;Modo 2x2:&lt;/b&gt; Joga em equipa! Duas duplas competem entre si, somando pontos em conjunto. Coopera com o teu parceiro e desafia outra dupla!\n\n• &lt;b&gt;Modo Todos contra Todos:&lt;/b&gt; Todos jogam contra todos numa competição clássica. Mostra quem sabe mais e conquista o topo da tabela!</string>
+    <string name="modo_classico_grupo">Clássico/grupo</string>
+    <string name="modo_1x1_convite">1x1 por convite</string>
+    <string name="modo_2x2_convite">2x2 por convite</string>
+    <string-array name="opcoes_modo_personalizado">
+        <item>Clássico/grupo</item>
+        <item>1x1 por convite</item>
+        <item>2x2 por convite</item>
+        <item>Eliminatórias</item>
+    </string-array>
+
+    <!-- Adicionar pergunta -->
     <string name="adicionar_nova_pergunta">Adicionar Nova Pergunta</string>
     <string name="insira_nome_categoria">Insira o nome da categoria</string>
     <string name="hint_nova_categoria">Nome da nova categoria</string>
     <string name="pergunta_label">Pergunta:</string>
     <string name="insira_pergunta">Insira a pergunta</string>
+    <string name="imagem_opcional">Imagem (opcional)</string>
+    <string name="hint_imagem">URL ou referência da imagem</string>
     <string name="opcoes_label">Opções:</string>
     <string name="opcao_a">Opção A</string>
     <string name="hint_opcao_a">Digite a Opção A</string>
@@ -23,134 +226,116 @@
     <string name="hint_opcao_c">Digite a Opção C</string>
     <string name="opcao_d">Opção D</string>
     <string name="hint_opcao_d">Digite a Opção D</string>
+    <string name="dificuldade">Dificuldade</string>
+    <string name="dificuldade_facil">Fácil</string>
+    <string name="dificuldade_media">Média</string>
+    <string name="dificuldade_dificil">Difícil</string>
+    <string name="nova_pergunta">Nova pergunta</string>
+    <string name="eliminar_atual">Eliminar atual</string>
     <string name="enviar_pergunta">Enviar Pergunta</string>
     <string name="comecar_jogo">Começar jogo</string>
+    <string name="total_perguntas_inicial">Total de perguntas: 0</string>
+    <string name="total_perguntas_format">Total de perguntas: %1$d</string>
+    <string name="sem_perguntas_categoria">Sem perguntas guardadas nesta categoria.</string>
+    <string name="apenas_registados_criar_categorias">Só jogadores registados podem criar categorias personalizadas.</string>
+    <string name="indica_categoria_personalizada">Indica a categoria personalizada.</string>
+    <string name="pergunta_guardada_sucesso">Pergunta guardada com sucesso!</string>
+    <string name="erro_guardar_pergunta_format">Erro ao guardar pergunta: %1$s</string>
+    <string name="escolhe_pergunta_eliminar">Escolhe uma pergunta para eliminar.</string>
+    <string name="eliminar_pergunta">Eliminar pergunta</string>
+    <string name="confirmar_eliminar_pergunta">Queres eliminar a pergunta atual?</string>
+    <string name="convites_precisam_conta">1x1 e 2x2 precisam de conta para convidar amigos.</string>
 
-    //Results
+    <!-- Amigos e convites -->
+    <string name="procurar_utilizador">Procurar utilizador...</string>
+    <string name="pesquisar">Pesquisar</string>
+    <string name="adicionar_amigo">Adicionar Amigo</string>
+    <string name="adicionar_nome_format">Adicionar %1$s</string>
+    <string name="ja_e_teu_amigo_format">%1$s já é teu amigo!</string>
+    <string name="utilizador_nao_encontrado">Utilizador não encontrado</string>
+    <string name="ja_e_teu_amigo">Já é teu amigo!</string>
+    <string name="pedido_amizade_enviado">Pedido de amizade enviado!</string>
+    <string name="erro_enviar_pedido">Erro ao enviar pedido</string>
+    <string name="amizade_aceite">Amizade aceite!</string>
+    <string name="convite_aceite">Convite aceite!</string>
+    <string name="pedidos_amizade_recebidos">Pedidos de amizade recebidos</string>
+    <string name="pedidos_de_amizade">Pedidos de amizade</string>
+    <string name="convites_recebidos">Convites Recebidos:</string>
+    <string name="teus_amigos">Os Teus Amigos:</string>
+    <string name="convidar_amigo">Convidar amigo</string>
+    <string name="convidar_equipa">Convidar equipa</string>
+    <string name="convidar_para_2x2">Convidar para 2x2</string>
+    <string name="nome_amigo">Nome do amigo</string>
+    <string name="nome_do_amigo">Nome do amigo</string>
+    <string name="avatar_do_amigo">Avatar do amigo</string>
+    <string name="remover_amigo">Remover Amigo</string>
+    <string name="amigo_removido_sucesso">Amigo removido com sucesso!</string>
+    <string name="desafiar_1x1">Desafiar 1x1</string>
+    <string name="convite_de">Convite de:</string>
+    <string name="convite_de_format">Convite de: %1$s</string>
+    <string name="nome_utilizador_placeholder">Nome do utilizador</string>
+
+    <!-- Ranking e perfil -->
+    <string name="top_10_arena">Top 10 da arena</string>
+    <string name="ranking_solo">Solo</string>
+    <string name="ranking_1x1">1x1</string>
+    <string name="ranking_2x2">2x2</string>
+    <string name="ranking_recorde">Recorde</string>
+    <string name="ranking_global">Global</string>
+    <string name="ranking_global_titulo">Ranking Global</string>
+    <string name="ranking_recordes_titulo">Ranking de Recordes</string>
+    <string name="ranking_solo_titulo">Ranking Solo</string>
+    <string name="ranking_1x1_titulo">Ranking 1x1</string>
+    <string name="ranking_2x2_titulo">Ranking 2x2</string>
+    <string name="pontos_totais">Pontos Totais</string>
+    <string name="melhor_jogo">Melhor Jogo</string>
+    <string name="vitorias_solo">Vitórias Solo</string>
+    <string name="vitorias_1x1">Vitórias 1x1</string>
+    <string name="vitorias_2x2">Vitórias 2x2</string>
+    <string name="ainda_sem_ranking">Ainda não há jogadores no ranking.</string>
+    <string name="erro_carregar_ranking">Não foi possível carregar o ranking.</string>
+    <string name="nome_jogador">Nome Jogador</string>
+    <string name="avatar_do_jogador">Avatar do jogador</string>
+    <string name="pontos">Pontos</string>
+    <string name="posicao_ranking_format">#%1$d</string>
+    <string name="nome_nivel_format">%1$s • Nv %2$d</string>
+    <string name="jogos_format">Jogos: %1$d</string>
+    <string name="vitorias_format">Vitórias: %1$d</string>
+    <string name="acertos_format">Acertos: %1$s%%</string>
+    <string name="jogos_curto_format">J: %1$d</string>
+    <string name="vitorias_curto_format">V: %1$d</string>
+    <string name="acertos_curto_format">%1$s%%</string>
+    <string name="p_dio">Pódio</string>
     <string name="medalha_primeiro">1</string>
     <string name="medalha_segundo">2</string>
     <string name="medalha_terceiro">3</string>
-    <string name="voltar">Voltar</string>
-    <string name="jogar_novamente">Jogar Novamente</string>
-
-    //Main
-    <string name="bem_vindo">Bem-Vindo</string>
-    <string name="codigo_sala_nenhum">Código da Sala: N/A</string>
-    <string name="criar_sala">Criar Sala</string>
-    <string name="entrar_sala">Entrar numa Sala</string>
-    <string name="iniciar_jogo">Iniciar Jogo</string>
-    <string name="sair">Sair</string>
-
-    //JoinRoom
-    <string name="entrar_numa_sala">Entrar numa Sala</string>
-    <string name="insira_codigo_sala">Insira o código da sala</string>
-    <string name="insira_seu_nome">Insira o seu nome</string>
-    <string name="entrar_sala_jogo">Entrar</string>
-
-    //Game
-    <string name="progresso_pergunta">Pergunta %1$d/%2$d</string>
-    <string name="carregar_perguntas">A carregar perguntas...</string>
-    <string name="cronometro_inicial">20.00</string>
-
-    //ChoseCategory
-    <string name="escolha_categoria">Escolher uma Categoria</string>
-    <string name="categoria_historia">História</string>
-    <string name="categoria_geografia">Geografia</string>
-    <string name="categoria_desporto">Desporto</string>
-    <string name="categoria_cultura_geral">Cultura Geral</string>
-    <string name="criar_categoria">Criar Categoria</string>
-    <string name="escolher_todas_categorias">Todas as Categorias</string>
-
-    //EscolherModo
-    <string name="escolher_modo_jogo">Escolher Modo</string>
-    <string name="modo_classico">Clássico</string>
-    <string name="modo_eliminatorias">Eliminatórias</string>
-    <string name="modo_solo">Solo</string>
-    <string name="selecionar_modo_classico">Selecionar modo Clássico</string>
-    <string name="selecionar_modo_eliminatorias">Selecionar modo Eliminatórias</string>
-    <string name="voltar_para_main_activity">Voltar para a tela principal</string>
-    <string name="modo_caotico">Caótico</string>
-    <string name="info_todos">Ver explicação de todos os modos</string>
-    <string name="info_todos_modos">
-        • <b>Modo Clássico:</b> Responde a perguntas da categoria escolhida. Joga com outros jogadores e vence quem tiver mais pontos!
-
-        • <b>Modo Caótico:</b> Perguntas de todas as categorias aparecem de forma aleatória. Desafia-te e aos teus amigos numa experiência imprevisível!
-
-        • <b>Modo Eliminatórias:</b> Erraste? És eliminado logo! O último sobrevivente vence. Sê rápido e preciso.
-    </string>
-
-    //Tipos Modo Classico
-    <string name="escolher_tipo_modo_classico">Escolher Modo de Jogo</string>
-    <string name="modo_1x1">Modo 1x1</string>
-    <string name="modo_2x2">Modo 2x2</string>
-    <string name="modo_todos">Todos</string>
-    <string name="info_todos_modos_classico">
-    • <b>Modo 1x1:</b> Duelo direto entre dois jogadores! Responde às mesmas perguntas que o teu adversário e vence quem somar mais pontos.
-
-    • <b>Modo 2x2:</b> Joga em equipa! Duas duplas competem entre si, somando pontos em conjunto. Coopera com o teu parceiro e desafia outra dupla!
-
-    • <b>Modo Todos contra Todos:</b> Todos jogam contra todos numa competição clássica. Mostra quem sabe mais e conquista o topo da tabela!
-</string>
-
-    //Categorias
-    <string name="categoria1">História</string>
-    <string name="categoria2">Geografia</string>
-    <string name="categoria3">Desporto</string>
-    <string name="categoria4">Cultura Geral</string>
-    <string name="categoria5">Todas as Categorias</string>
-    <string name="categoria6">Gentílicos</string>
-    <string name="info_categorias">Ver dicas das categorias</string>
-
-    // item lista jogadores sala
-    <string name="nome_amigo">Nome do amigo</string>
-
-    // item podio
-    <string name="nome_jogador">Nome Jogador</string>
-
-    // item jogador sala
-    <string name="avatar_do_jogador">Avatar do jogador</string>
-
-    // item convite
-    <string name="aceitar">Aceitar</string>
-    <string name="convite_de">Convite de:</string>
-
-    // item convidar amigo
-    <string name="desafiar_1x1">Desafiar 1x1</string>
-    <string name="nome_do_amigo">Nome do amigo</string>
-    <string name="c_digo_da_sala">Código da Sala:</string>
-    <string name="total_de_jogadores">Total de jogadores:</string>
-    <string name="jogadores_na_sala">Jogadores na Sala:</string>
-    <string name="sair_da_sala">Sair da Sala</string>
-    <string name="sala_de_espera_grupo">Sala de Espera (Grupo)</string>
-    <string name="sala_de_espera_1x1">Sala de Espera 1x1</string>
-    <string name="aguardando_jogadores">Aguardando jogadores...</string>
-    <string name="sala_de_espera_2x2">Sala de Espera 2x2</string>
-    <string name="equipa_a">Equipa A</string>
-    <string name="aguardando">Aguardando...</string>
-    <string name="criar_conta">Criar Conta</string>
-    <string name="avatar_selecionado">Avatar selecionado</string>
+    <string name="primeiro_lugar">🥇</string>
+    <string name="segundo_lugar">🥈</string>
+    <string name="nome_jogador_1">Nome Jogador 1</string>
+    <string name="nome_jogador_2">Nome Jogador 2</string>
     <string name="nome_jogador_1_equipa_a">Nome Jogador 1 - Equipa A</string>
     <string name="nome_jogador_2_equipa_a">Nome Jogador 2 - Equipa A</string>
     <string name="nome_jogador_3_equipa_b">Nome Jogador 3 - Equipa B</string>
     <string name="nome_jogador_4_equipa_b">Nome Jogador 4 - Equipa B</string>
+    <string name="aguardar_todos_jogadores">A aguardar todos os jogadores terminarem... 0/4</string>
     <string name="pedir_desforra">Pedir Desforra</string>
-    <string name="nome_jogador_2">Nome Jogador 2</string>
-    <string name="nome_jogador_1">Nome Jogador 1</string>
-    <string name="p_dio">Pódio</string>
-    <string name="avatar_do_amigo">Avatar do amigo</string>
+    <string name="pontuacao">Pontuação:</string>
+    <string name="recorde_pontuacao_format">Recorde de Pontuação: %1$d pontos</string>
+    <string name="pontuacao_format">Pontuação: %1$d</string>
     <string name="total_de_jogos">Total de Jogos</string>
-    <string name="taxa_de_vit_ria">Taxa de Vitória:</string>
+    <string name="total_de_jogos_format">Total de Jogos: %1$d</string>
     <string name="total_de_vit_rias_0">Total de Vitórias:</string>
+    <string name="total_de_vitorias">Total de Vitórias</string>
+    <string name="total_de_vitorias_format">Total de Vitórias: %1$d</string>
     <string name="vit_rias">Vitórias</string>
     <string name="jogos">Jogos</string>
-    <string name="pontuacao">Pontuação:</string>
     <string name="respostas_certas">Respostas Certas</string>
+    <string name="respostas_certas_abrev">Resp. Certas</string>
     <string name="total_de_respostas_certas">Total de Respostas Certas</string>
-    <string name="total_de_vitorias">Total de Vitórias</string>
+    <string name="taxa_de_vit_ria">Taxa de Vitória:</string>
     <string name="taxa_de_acertos">Taxa de Acertos</string>
-    <string name="convidar_para_2x2">Convidar para 2x2</string>
-    <string name="adicionar_amigo">Adicionar Amigo</string>
-    <string name="convites_recebidos">Convites Recebidos:</string>
-    <string name="teus_amigos">Os Teus Amigos:</string>
-    <string name="convidar_amigo">Convidar amigo</string>
+    <string name="taxa_de_acertos_format">Taxa de Acertos: %1$.1f%%</string>
+    <string name="taxa_de_vitoria_format">Taxa de Vitória: %1$.1f%%</string>
+    <string name="perfil_indisponivel">Não foi possível abrir o perfil.</string>
+    <string name="nome_utilizador_exemplo">Nome Utilizador</string>
 </resources>

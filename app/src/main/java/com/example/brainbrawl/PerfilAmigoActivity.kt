@@ -50,7 +50,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
         }
         viewModel.evento.observe(this) { evento ->
             if (evento == PerfilAmigoEvent.AmigoRemovido) {
-                Toast.makeText(this, "Amigo removido com sucesso!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.amigo_removido_sucesso, Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, AmigosActivity::class.java)
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
                 uidUtilizador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
@@ -69,10 +69,10 @@ class PerfilAmigoActivity : AppCompatActivity() {
             binding.imgTotalVitorias.visibility = View.GONE
             binding.imgTotalRespostasCertas.visibility = View.GONE
             binding.txtNomeAmigo.text = perfil.nome
-            binding.txtPontuacao.text = "Pontuação: 0"
-            binding.txtTotalJogos.text = "Total de Jogos: 0"
-            binding.txtTotalVitorias.text = "Total de Vitórias: 0"
-            binding.txtTaxaAcertos.text = "Taxa de Acertos: 0.0%"
+            binding.txtPontuacao.text = getString(R.string.pontuacao_format, 0)
+            binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, 0)
+            binding.txtTotalVitorias.text = getString(R.string.total_de_vitorias_format, 0)
+            binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, 0.0)
             return
         }
 
@@ -102,10 +102,10 @@ class PerfilAmigoActivity : AppCompatActivity() {
 
         // Mostrar os dados do amigo no layout
         binding.txtNomeAmigo.text = perfil.nome
-        binding.txtPontuacao.text = "Pontuação: ${perfil.pontuacao}"
-        binding.txtTotalJogos.text = "Total de Jogos: ${perfil.totalJogos}"
-        binding.txtTotalVitorias.text = "Total de Vitórias: ${perfil.totalVitorias}"
-        binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(perfil.taxaAcertos)}%"
+        binding.txtPontuacao.text = getString(R.string.pontuacao_format, perfil.pontuacao.toInt())
+        binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, perfil.totalJogos)
+        binding.txtTotalVitorias.text = getString(R.string.total_de_vitorias_format, perfil.totalVitorias)
+        binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, perfil.taxaAcertos)
 
         if (perfil.perfilExiste) {
             binding.btnRemoverAmigo.setOnClickListener {

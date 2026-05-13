@@ -10,29 +10,30 @@
     <androidx.cardview.widget.CardView
         android:id="@+id/cardPerfil"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="32dp"
-        android:layout_marginEnd="32dp"
-        app:cardCornerRadius="28dp"
-        app:cardElevation="12dp"
-        app:cardBackgroundColor="#FFFFFF"
+        android:layout_height="0dp"
+        android:layout_marginStart="@dimen/bb_space_lg"
+        android:layout_marginTop="@dimen/bb_space_lg"
+        android:layout_marginEnd="@dimen/bb_space_lg"
+        android:layout_marginBottom="@dimen/bb_space_md"
+        app:cardCornerRadius="@dimen/bb_radius_lg"
+        app:cardElevation="10dp"
+        app:cardBackgroundColor="@color/bb_surface"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnVoltarPerfil"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintVertical_bias="0.5">
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="match_parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center_horizontal"
             android:orientation="vertical"
-            android:padding="32dp">
+            android:padding="@dimen/bb_space_lg">
 
             <!-- AVATAR GRANDE -->
             <ImageView
@@ -54,7 +55,7 @@
                 android:gravity="center"
                 android:maxLines="2"
                 android:text="@string/nome_amigo"
-                android:textColor="#222222"
+                android:textColor="@color/bb_text_primary"
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
@@ -83,9 +84,9 @@
                         android:id="@+id/txtTotalJogosConquista"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Jogos"
+                        android:text="@string/jogos"
                         android:textSize="12sp"
-                        android:textColor="#222"
+                        android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
                 </LinearLayout>
 
@@ -105,14 +106,14 @@
                         android:id="@+id/imgTotalVitorias"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:contentDescription="Total de Vitórias" />
+                        android:contentDescription="@string/total_de_vitorias" />
                     <TextView
                         android:id="@+id/txtTotalVitoriasConquista"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Vitórias"
+                        android:text="@string/vit_rias"
                         android:textSize="12sp"
-                        android:textColor="#222"
+                        android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
                 </LinearLayout>
 
@@ -131,14 +132,14 @@
                         android:id="@+id/imgTotalRespostasCertas"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:contentDescription="Total de Respostas Certas" />
+                        android:contentDescription="@string/total_de_respostas_certas" />
                     <TextView
                         android:id="@+id/txtTotalRespostasCertasConquista"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Resp. Certas"
+                        android:text="@string/respostas_certas_abrev"
                         android:textSize="12sp"
-                        android:textColor="#222"
+                        android:textColor="@color/bb_text_secondary"
                         android:gravity="center"/>
                 </LinearLayout>
             </LinearLayout>
@@ -156,7 +157,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Pontuação"
+                    android:contentDescription="@string/pontuacao"
                     android:src="@drawable/ic_star" />
 
                 <TextView
@@ -167,8 +168,8 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="2"
-                    android:text="Pontuação: 0"
-                    android:textColor="#111111"
+                    android:text="@string/pontuacao_format"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -185,7 +186,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Jogos"
+                    android:contentDescription="@string/jogos"
                     android:src="@drawable/ic_sport" />
 
                 <TextView
@@ -196,8 +197,8 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="2"
-                    android:text="Total de Jogos: 0"
-                    android:textColor="#111111"
+                    android:text="@string/total_de_jogos_format"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -214,7 +215,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Vitórias"
+                    android:contentDescription="@string/vit_rias"
                     android:src="@drawable/ic_trophy" />
 
                 <TextView
@@ -225,8 +226,8 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="2"
-                    android:text="Total de Vitórias: 0"
-                    android:textColor="#111111"
+                    android:text="@string/total_de_vitorias_format"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -243,7 +244,7 @@
                     android:layout_width="24dp"
                     android:layout_height="24dp"
                     android:layout_marginEnd="8dp"
-                    android:contentDescription="Taxa de Acertos"
+                    android:contentDescription="@string/taxa_de_acertos"
                     android:src="@drawable/ic_percent" />
 
                 <TextView
@@ -254,8 +255,8 @@
                     android:ellipsize="end"
                     android:fontFamily="sans-serif"
                     android:maxLines="2"
-                    android:text="Taxa de Vitória: 0%"
-                    android:textColor="#111111"
+                    android:text="@string/taxa_de_vitoria_format"
+                    android:textColor="@color/bb_text_primary"
                     android:textSize="18sp" />
             </LinearLayout>
 
@@ -266,7 +267,7 @@
                 android:layout_height="48dp"
                 android:layout_marginTop="24dp"
                 android:backgroundTint="#E53935"
-                android:text="Remover Amigo"
+                android:text="@string/remover_amigo"
                 android:textColor="#FFFFFF"
                 android:textSize="16sp"
                 android:fontFamily="sans-serif"
@@ -285,7 +286,7 @@
         android:layout_height="56dp"
         android:background="@drawable/botao_voltar"
         android:paddingVertical="14dp"
-        android:text="Voltar"
+        android:text="@string/voltar"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
         android:fontFamily="sans-serif-black"

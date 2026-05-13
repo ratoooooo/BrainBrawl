@@ -53,7 +53,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
 
-        binding.txtCodigoSala.text = "A carregar sala..."
+        binding.txtCodigoSala.text = getString(R.string.a_carregar_sala)
         binding.btnCopiarCodigoSala.visibility = View.GONE
         binding.btnCopiarCodigoSala.setOnClickListener {
             copiarCodigoSala()
@@ -93,7 +93,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
     private fun atualizarEstadoSala(estado: SalaCompetitivaUiState) {
         binding.txtListaJogadores.text = if (estado.jogadores.isEmpty()) {
-            "Aguardando jogadores..."
+            getString(R.string.aguardando_jogadores)
         } else {
             estado.jogadores.joinToString(separator = "\n")
         }
@@ -103,10 +103,10 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
     private fun atualizarCodigoSala(estado: SalaCompetitivaUiState) {
         if (estado.codigoSalaVisivel) {
-            binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+            binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
             binding.btnCopiarCodigoSala.visibility = View.VISIBLE
         } else {
-            binding.txtCodigoSala.text = estado.textoCodigoSalaPrivado.ifBlank { "Partida por convite" }
+            binding.txtCodigoSala.text = estado.textoCodigoSalaPrivado.ifBlank { getString(R.string.partida_por_convite) }
             binding.btnCopiarCodigoSala.visibility = View.GONE
         }
     }
@@ -125,16 +125,16 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
                 finish()
             }
             Sala1x1Event.SalaEncerrada -> {
-                Toast.makeText(this@SalaDeEspera1x1Activity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@SalaDeEspera1x1Activity, R.string.sala_encerrada, Toast.LENGTH_SHORT).show()
                 abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
                 finish()
             }
             Sala1x1Event.AguardarAdversario ->
-                Toast.makeText(this, "Ainda a aguardar o adversário!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.aguardar_adversario, Toast.LENGTH_SHORT).show()
             Sala1x1Event.JogadoresNaoProntos ->
-                Toast.makeText(this@SalaDeEspera1x1Activity, "Ambos os jogadores têm de estar na sala!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@SalaDeEspera1x1Activity, R.string.ambos_jogadores_na_sala, Toast.LENGTH_SHORT).show()
             Sala1x1Event.EntradaBloqueada -> {
-                Toast.makeText(this@SalaDeEspera1x1Activity, "Sala 1x1 já está cheia.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@SalaDeEspera1x1Activity, R.string.sala_1x1_cheia, Toast.LENGTH_SHORT).show()
                 abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
                 finish()
             }
@@ -156,7 +156,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
     private fun copiarCodigoSala() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Código da sala", codigoSala))
-        Toast.makeText(this, "Código copiado", Toast.LENGTH_SHORT).show()
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.clipboard_codigo_sala), codigoSala))
+        Toast.makeText(this, R.string.codigo_copiado, Toast.LENGTH_SHORT).show()
     }
 }

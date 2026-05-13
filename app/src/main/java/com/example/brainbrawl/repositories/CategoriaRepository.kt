@@ -20,14 +20,19 @@ class CategoriaRepository(
         val id: String? = null,
         val pergunta: String,
         val respostaCorreta: String,
-        val opcoes: List<String>
+        val opcoes: List<String>,
+        val imagem: String = "",
+        val dificuldade: String? = null
     ) {
         fun toMap(): Map<String, Any> {
-            return mapOf(
+            val dados = linkedMapOf<String, Any>(
                 FirebasePaths.PERGUNTA to pergunta,
                 FirebasePaths.RESPOSTA_CORRETA to respostaCorreta,
                 FirebasePaths.OPCOES to opcoes
             )
+            if (imagem.isNotBlank()) dados[FirebasePaths.IMAGEM] = imagem
+            if (!dificuldade.isNullOrBlank()) dados[FirebasePaths.DIFICULDADE] = dificuldade
+            return dados
         }
     }
 
@@ -676,7 +681,9 @@ class CategoriaRepository(
             id = key,
             pergunta = pergunta,
             respostaCorreta = respostaCorreta,
-            opcoes = opcoes
+            opcoes = opcoes,
+            imagem = child(FirebasePaths.IMAGEM).getValue(String::class.java).orEmpty(),
+            dificuldade = child(FirebasePaths.DIFICULDADE).getValue(String::class.java)
         )
     }
 
@@ -703,11 +710,18 @@ class CategoriaRepository(
             val opcoes = perguntaSnap.child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
             val opcoesValidas = if (exigirQuatroOpcoes) opcoes.size == 4 else opcoes.size >= minimoOpcoes
             if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoesValidas) {
-                mapOf(
+                val dados = linkedMapOf<String, Any>(
                     FirebasePaths.PERGUNTA to pergunta,
                     FirebasePaths.RESPOSTA_CORRETA to respostaCorreta,
                     FirebasePaths.OPCOES to opcoes
                 )
+                perguntaSnap.child(FirebasePaths.IMAGEM).getValue(String::class.java)
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { dados[FirebasePaths.IMAGEM] = it }
+                perguntaSnap.child(FirebasePaths.DIFICULDADE).getValue(String::class.java)
+                    ?.takeIf { it in DIFICULDADES_VALIDAS }
+                    ?.let { dados[FirebasePaths.DIFICULDADE] = it }
+                dados
             } else {
                 null
             }
@@ -767,5 +781,9 @@ class CategoriaRepository(
         val result = TaskCompletionSource<T>()
         result.setException(IllegalStateException(message))
         return result.task
+    }
+
+    private companion object {
+        val DIFICULDADES_VALIDAS = setOf("facil", "media", "dificil")
     }
 }

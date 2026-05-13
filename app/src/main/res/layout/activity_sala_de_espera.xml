@@ -97,26 +97,27 @@
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"
         style="@android:style/Widget.Button"
-        app:layout_constraintTop_toBottomOf="@id/btn_entrar_sala"
+        app:layout_constraintTop_toBottomOf="@id/txt_estado"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintWidth_percent="0.85"
-        android:layout_marginTop="32dp"
+        android:layout_marginTop="16dp"
         android:paddingVertical="14dp" />
 
     <!-- Texto de estado -->
     <TextView
         android:id="@+id/txt_estado"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text=""
         android:textSize="16sp"
         android:textColor="@color/bb_primary_text"
         app:layout_constraintTop_toBottomOf="@id/btn_entrar_sala"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.85"
         android:layout_marginTop="16dp"
         android:fontFamily="sans-serif-black"
+        android:gravity="center"
         android:textStyle="bold" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

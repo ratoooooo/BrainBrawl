@@ -6,6 +6,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
+import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityConvidarAmigoBinding
 import com.example.brainbrawl.models.UtilizadorSocial
@@ -24,6 +25,9 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
     private val amigos = mutableListOf<UtilizadorSocial>()
     private lateinit var convidarAmigoAdapter: Convidar1x1AmigoAdapter
     private var nomeCategoria: String? = null
+    private var categoriaPublicaId: String? = null
+    private var donoUid: String? = null
+    private var donoCategoria: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +39,9 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
             ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: getString(R.string.categoria5)
+        categoriaPublicaId = intent.getStringExtra(IntentExtras.CATEGORIA_PUBLICA_ID)
+        donoUid = intent.getStringExtra(IntentExtras.DONO_UID)
+        donoCategoria = intent.getStringExtra(IntentExtras.DONO_CATEGORIA)
 
         // Configurar a lista de amigos para convidar
         convidarAmigoAdapter = Convidar1x1AmigoAdapter(amigos) { amigoSelecionado ->
@@ -45,7 +52,8 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                 utilizador,
                 amigoSelecionado,
                 codigoSala,
-                categoriaSelecionada
+                categoriaSelecionada,
+                dadosCategoriaSelecionada()
             ).addOnSuccessListener {
                 Toast.makeText(this, "Convite enviado para ${amigoSelecionado.nomeDisplay}!", Toast.LENGTH_SHORT).show()
                 // Envia o utilizador para a sala de espera 1x1
@@ -87,5 +95,26 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                         convidarAmigoAdapter.notifyDataSetChanged()
                     }
             }
+    }
+
+    private fun dadosCategoriaSelecionada(): Map<String, Any> {
+        categoriaPublicaId?.takeIf { it.isNotBlank() }?.let { id ->
+            return mapOf(
+                "categoriaPublica" to true,
+                FirebasePaths.CATEGORIA_PUBLICA_ID to id
+            )
+        }
+
+        val donoLegado = donoCategoria.orEmpty().ifBlank { nomeUtilizador }
+        return if (!donoUid.isNullOrBlank() || donoLegado.isNotBlank()) {
+            val dados = linkedMapOf<String, Any>(
+                "categoriaPersonalizada" to true,
+                "donoCategoria" to donoLegado
+            )
+            donoUid?.takeIf { it.isNotBlank() }?.let { dados[FirebasePaths.DONO_UID] = it }
+            dados
+        } else {
+            emptyMap()
+        }
     }
 }

@@ -6,14 +6,14 @@
     android:background="@drawable/bg_card_surface"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-        android:padding="14dp">
+    android:padding="14dp">
 
     <TextView
         android:id="@+id/txtPosicaoRanking"
         android:layout_width="50dp"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
-        android:text="#1"
+        android:text="@string/posicao_ranking_format"
         android:textColor="@color/bb_text_primary"
         android:textSize="22sp"
         android:textStyle="bold" />
@@ -47,30 +47,36 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:fontFamily="sans-serif-black"
-                android:text="Jogos: 0"
+                android:singleLine="true"
+                android:text="@string/jogos_format"
                 android:textColor="@color/bb_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/txtTotalVitoriasRanking"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:fontFamily="sans-serif-black"
-                android:text="Vitórias: 0"
+                android:singleLine="true"
+                android:text="@string/vitorias_format"
                 android:textColor="@color/bb_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
 
             <TextView
                 android:id="@+id/txtTaxaAcertosRanking"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:fontFamily="sans-serif-black"
-                android:text="Acertos: 0%"
+                android:singleLine="true"
+                android:text="@string/acertos_format"
                 android:textColor="@color/bb_text_secondary"
-                android:textSize="12sp" />
+                android:textSize="11sp" />
         </LinearLayout>
     </LinearLayout>
 
@@ -85,7 +91,7 @@
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
             android:gravity="end"
-            android:text="Pontos"
+            android:text="@string/pontos"
             android:textColor="@color/bb_text_secondary"
             android:textSize="12sp" />
 

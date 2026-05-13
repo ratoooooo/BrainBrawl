@@ -82,26 +82,36 @@ class RankingActivity : AppCompatActivity() {
         when (estado) {
             is RankingUiState.Loading -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = estado.tipo.titulo
+                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
             }
 
             is RankingUiState.Empty -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = estado.tipo.titulo
-                binding.txtEstadoRanking.text = "Ainda não há jogadores no ranking."
+                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
+                binding.txtEstadoRanking.text = getString(R.string.ainda_sem_ranking)
             }
 
             is RankingUiState.Error -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = estado.tipo.titulo
-                binding.txtEstadoRanking.text = "Não foi possível carregar o ranking."
+                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
+                binding.txtEstadoRanking.text = getString(R.string.erro_carregar_ranking)
             }
 
             is RankingUiState.Content -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = estado.tipo.titulo
+                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
                 rankingAdapter.atualizar(estado.tipo, estado.jogadores)
             }
+        }
+    }
+
+    private fun tituloRanking(tipo: RankingTipo): String {
+        return when (tipo) {
+            RankingTipo.GLOBAL -> getString(R.string.ranking_global_titulo)
+            RankingTipo.RECORDE -> getString(R.string.ranking_recordes_titulo)
+            RankingTipo.SOLO -> getString(R.string.ranking_solo_titulo)
+            RankingTipo.MODO_1X1 -> getString(R.string.ranking_1x1_titulo)
+            RankingTipo.MODO_2X2 -> getString(R.string.ranking_2x2_titulo)
         }
     }
 

@@ -1,5 +1,185 @@
 # Pergunta o Luso - TEST_REPORT
 
+## UI polish e strings/i18n - 2026-05-12
+
+### Ficheiros alterados nesta fase
+
+- Kotlin/UI: `MainActivity.kt`, `LoginActivity.kt`, `RegistarActivity.kt`, `AmigosActivity.kt`, `RankingActivity.kt`, `RankingAdapter.kt`, `MeuPerfilActivity.kt`, `PerfilAmigoActivity.kt`, `SalaDeEsperaActivity.kt`, `SalaDeEsperaGrupoActivity.kt`, `SalaDeEspera1x1Activity.kt`, `SalaDeEspera2x2Activity.kt`, `ExplorarCategoriasActivity.kt`, `AdicionarPerguntaActivity.kt`, `ConviteAdapter.kt`, `EscolherModoActivity.kt`, `routes/BottomNavHelper.kt`.
+- Layouts: `activity_main.xml`, `activity_login.xml`, `activity_registar.xml`, `activity_amigos.xml`, `activity_ranking.xml`, `item_ranking_jogador.xml`, `activity_meu_perfil.xml`, `activity_perfil_amigo.xml`, `activity_sala_de_espera.xml`, `activity_sala_de_espera_1x1.xml`, `activity_sala_de_espera2x2.xml`, `activity_pontuacao1x1.xml`, `activity_pontuacao_multi.xml`, `activity_explorar_categorias.xml`, `activity_escolher_categoria.xml`, `activity_adicionar_pergunta.xml`, `item_pedido_amizade.xml`, `item_podio.xml`.
+- Resources: `values/strings.xml`, `values-en-rGB/strings.xml`, `values-es/strings.xml`, `values-fr/strings.xml`, `values-de-rDE/strings.xml`.
+
+### Ecra revistos
+
+- Revistos estaticamente: Login, Registo, Main, Ranking, Amigos, Perfil, Perfil de amigo, Entrar numa sala, Sala de espera grupo, Sala 1x1, Sala 2x2, Pontuacao 1x1, Pontuacao multi/grupo, Explorar Categorias, Criar/Editar Categoria.
+- Revistos visualmente em emulador 360dp aproximado: Login, Registo, Main e Ranking.
+- Abertura direta por `am start` de varias activities internas foi bloqueada pelo Android com `SecurityException` porque nao estao exportadas; por isso os restantes ecras ficaram validados por layout/build e nao por walkthrough completo.
+
+### Problemas visuais corrigidos
+
+- Main: o card `Vamos jogar?` ficou com a imagem principal do jogo, `JOGAR AGORA` centrado, `ENTRAR NUMA SALA` dentro do card e sem o botao separado por baixo.
+- Main: bottom nav alinhada com contentores de icone consistentes e header estabilizado para nao colapsar em 360dp.
+- Login/Registo: hints e textos movidos para resources; hint de password encurtado para evitar corte.
+- Ranking: estatisticas de cada linha compactadas para evitar quebra visual em largura estreita.
+- Perfil: card principal com scroll interno e altura constrangida para reduzir risco de corte em 360dp.
+- Sala de espera: estado e botao voltar separados para evitar sobreposicao.
+- Sala 2x2: linhas de jogadores passaram a usar pesos em vez de larguras fixas apertadas.
+- Adicionar Pergunta: campos, botoes e espacamentos aproximados ao estilo visual existente.
+
+### Strings e idiomas
+
+- Portugues fica como base em `res/values/strings.xml`.
+- Ingles usa a pasta existente `res/values-en-rGB/strings.xml`.
+- Criadas `res/values-es/strings.xml` e `res/values-fr/strings.xml`.
+- A pasta existente `res/values-de-rDE/strings.xml` foi mantida resource-complete para o lint/build; traducoes alemas antigas foram preservadas e novas chaves nao alvo foram preenchidas com fallback ingles.
+- A app continua a depender apenas dos resource qualifiers normais do Android para abrir na lingua do telemovel. Nao foi criado seletor manual nem alteracao programatica de `Locale`.
+- Foram corrigidos problemas de XML em resources, incluindo comentarios invalidos do tipo `//` e strings com aspas soltas.
+
+### Textos hardcoded remanescentes
+
+- Permanecem textos visiveis em areas fora do escopo seguro desta ronda: matchmaking desativado, jogo, convites 1x1/2x2, historico, espera de eliminado e alguns dialogs/adapters antigos.
+- Estes textos nao foram movidos agora para evitar mexer em fluxos explicitamente protegidos pelo pedido: matchmaking, jogo, convites, historico, pontuacao/XP/ranking funcional.
+- As strings principais dos ecras priorizados e da Main foram movidas para resources e existem nos idiomas suportados principais.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+
+Observacoes:
+
+- Mantem-se o warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Testes visuais e i18n
+
+- Emulador usado com `wm size 720x1600` e `wm density 320`, equivalente aproximado a 360dp de largura.
+- Screens revistos: Login, Registo, Main e Ranking.
+- App instalada e aberta em debug sem crash nos ecras testados.
+- Idiomas testados por app locale: `en-GB`, `es` e `fr`; os textos principais de Login/Registo mudaram conforme esperado. O locale foi depois reposto.
+
+### Riscos pendentes
+
+- Nao foi feito walkthrough visual completo de todos os ecras obrigatorios porque algumas activities internas nao sao exportadas e exigem dados/estado de fluxo.
+- Nao houve teste multi-dispositivo nem teste Firebase real para salas, convites ou partidas.
+- A pasta alema existente esta completa para build/lint, mas as novas chaves podem usar fallback ingles porque alemao nao era idioma alvo desta fase.
+- Ainda existem hardcoded strings em zonas preservadas para uma fase futura controlada.
+
+## Atualizacao categorias personalizadas, editor e Main - 2026-05-11
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/ExplorarCategoriasViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/models/Pergunta.kt`
+- `app/src/main/res/layout/activity_adicionar_pergunta.xml`
+- `app/src/main/res/layout/activity_escolher_categoria.xml`
+- `app/src/main/res/layout/activity_main.xml`
+- `firebase-rules.json`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+- `FIREBASE_RULES_NOTES.md`
+
+### Novo fluxo de categorias
+
+- A gestao de categorias personalizadas passou para `ExplorarCategoriasActivity`.
+- `Explorar Categorias` mostra categorias publicas, minhas categorias e o botao `Criar Categoria`.
+- O fluxo principal de `Jogar Agora` continua a escolher modo/categorias oficiais; o antigo botao de criar categoria em `EscolherCategoriaActivity` agora encaminha para `Explorar Categorias`.
+- Convidados podem ver/jogar publicas se ja tiverem nome de jogador, mas criar/editar/guardar/avaliar continua a pedir conta.
+- Nao houve migracao destrutiva nem limpeza de categorias antigas.
+
+### Jogar categoria -> escolher modo
+
+- Ao tocar em `Jogar` numa categoria publica ou personalizada, aparece o chooser: `Classico/grupo`, `1x1 por convite`, `2x2 por convite`, `Eliminatorias`.
+- `Caotico` nao aparece neste chooser porque continua a representar mistura de categorias/todas as perguntas, nao uma categoria especifica.
+- Grupo/eliminatorias criam sala com as perguntas da categoria escolhida.
+- 1x1/2x2 continuam a passar por `ConvidarAmigo1x1Activity`/`ConvidarAmigo2x2Activity`; nao foi reativado matchmaking aleatorio.
+- Extras preservados/adicionados para categoria: `uid`, `nomeUtilizador`, `nomeJogador`, `nomeCategoria`, `categoriaPublicaId`, `donoUid`, `donoCategoria`, `modoJogo`, `admin`.
+
+### Edicao por numero de pergunta
+
+- `AdicionarPerguntaActivity` mostra `Total de perguntas: X` e botoes numerados `1..N` vindos das perguntas reais carregadas do Firebase.
+- Ao tocar num numero, o formulario e preenchido com pergunta, opcoes, resposta correta, imagem e dificuldade quando existirem.
+- Guardar com uma pergunta selecionada reutiliza o `perguntaId` original e atualiza esse node, sem criar duplicado.
+- `Nova pergunta` limpa o formulario e volta ao estado de criacao.
+- `Eliminar atual` pede confirmacao e remove apenas a pergunta selecionada.
+- Categorias antigas sem `imagem` ou `dificuldade` continuam validas.
+
+### Dificuldade
+
+- Foi adicionado o campo opcional `dificuldade` com valores `facil`, `media`, `dificil`.
+- O editor mostra `media` por defeito visual.
+- O campo ainda nao altera pontuacao, tempo, XP, matchmaking, ranking ou historico.
+
+### Main
+
+- `ENTRAR NUMA SALA` foi movido para dentro do card principal `Vamos jogar?`.
+- O botao separado abaixo foi removido.
+- O card passou a usar `@mipmap/avatar_14_foreground` como imagem do jogo.
+- `JOGAR AGORA` continua a abrir `EscolherModoActivity`.
+- `ENTRAR NUMA SALA` continua a abrir `SalaDeEsperaActivity`.
+
+### Firebase Rules
+
+- `firebase-rules.json` foi alterado apenas para aceitar `imagem` e `dificuldade` em perguntas e metadados de categoria publica/personalizada em `sala_1x1`/`sala_2x2`.
+- `dificuldade` e opcional; quando existe tem de ser `facil`, `media` ou `dificil`.
+- Nao foram usadas validacoes com `childrenCount`.
+- Nao foram abertas permissoes globais.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+  - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+  - OK.
+
+Observacoes:
+
+- Continua o warning antigo `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Testes manuais recomendados
+
+1. Abrir Main e confirmar que `ENTRAR NUMA SALA` esta dentro do card principal.
+2. Tocar em `JOGAR AGORA` e confirmar que abre a escolha de modo.
+3. Tocar em `ENTRAR NUMA SALA` e confirmar que abre entrada por codigo.
+4. Abrir `Explorar Categorias` e confirmar `Categorias publicas`, `Minhas categorias` e `Criar Categoria`.
+5. Criar categoria personalizada e adicionar 5 perguntas.
+6. Confirmar `Total de perguntas: 5` e botoes `1 2 3 4 5`.
+7. Tocar na pergunta 2 e confirmar que pergunta/opcoes/resposta/imagem/dificuldade carregam.
+8. Editar a pergunta 2 e confirmar no Firebase que atualizou o mesmo `perguntaId`.
+9. Confirmar que nao foi criado duplicado.
+10. Usar `Nova pergunta` e criar uma pergunta nova.
+11. Eliminar uma pergunta com confirmacao.
+12. Jogar categoria personalizada e confirmar o chooser de modo.
+13. Jogar categoria publica e confirmar o chooser de modo.
+14. Confirmar que 1x1/2x2 continuam por convite.
+15. Confirmar que matchmaking aleatorio nao aparece.
+
+### Riscos pendentes
+
+- Nao executei testes manuais com Firebase real/emulador nesta ronda automatica.
+- O chooser de categoria especifica exclui `Caotico` por decisao de produto; se no futuro houver caotico por categoria, sera preciso novo contrato de perguntas.
+- A edicao remove pergunta individualmente; nao reordena nem reescreve a lista toda.
+
+
 Data: 2026-05-08
 
 ## Verificacao pos-MVVM - 2026-05-08

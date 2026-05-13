@@ -35,6 +35,8 @@ class EditarCategoriaViewModel(
         opcaoC: String,
         opcaoD: String,
         respostaCorreta: String,
+        imagem: String,
+        dificuldade: String?,
         categoriasReservadas: Set<String>
     ) {
         val validacao = validarPergunta(
@@ -60,7 +62,9 @@ class EditarCategoriaViewModel(
             CategoriaRepository.PerguntaCategoria(
                 pergunta = pergunta,
                 respostaCorreta = respostaCorreta,
-                opcoes = listOf(opcaoA, opcaoB, opcaoC, opcaoD)
+                opcoes = listOf(opcaoA, opcaoB, opcaoC, opcaoD),
+                imagem = imagem,
+                dificuldade = dificuldade
             )
         )
             .addOnSuccessListener {

@@ -30,7 +30,7 @@ class ConviteAdapter(
     // Define o nome do convite e o que acontece ao clicar no botão de aceitar convite
     override fun onBindViewHolder(holder: ConviteViewHolder, position: Int) {
         val convite = convites[position]
-        holder.txtNomeConvite.text = "Convite de: ${convite.nomeAmigo}"
+        holder.txtNomeConvite.text = holder.itemView.context.getString(R.string.convite_de_format, convite.nomeAmigo)
         holder.btnAceitarConvite.setOnClickListener { onAceitarClick(convite) }
     }
 

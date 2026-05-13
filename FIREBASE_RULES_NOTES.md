@@ -2,6 +2,27 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Atualizacao categorias e dificuldade opcional - 2026-05-11
+
+- `firebase-rules.json` foi atualizado para aceitar campos opcionais em perguntas:
+  - `imagem` como string.
+  - `dificuldade` como string limitada a `facil`, `media` ou `dificil`.
+- A validacao foi aplicada a perguntas em:
+  - `categoriasPublicas/{categoriaId}/perguntas/{perguntaId}`
+  - `jogadores/{uidOuLegado}/categoriasPersonalizadas/{nomeCategoria}/perguntas/{perguntaId}`
+  - `salas/{codigoSala}/perguntas/{perguntaId}`
+  - `sala_1x1/{codigoSala}/perguntas/{perguntaId}`
+  - `sala_2x2/{codigoSala}/perguntas/{perguntaId}`
+- `sala_1x1` e `sala_2x2` passaram a aceitar metadados opcionais de categoria especifica por convite:
+  - `categoriaPersonalizada`
+  - `donoCategoria`
+  - `donoUid`
+  - `categoriaPublica`
+  - `categoriaPublicaId`
+- Nao foram abertas permissoes globais.
+- Nao foi usado `childrenCount` nem `childrenCount()`.
+- `python3 -m json.tool firebase-rules.json` executado com sucesso.
+
 ## Atualizacao - matchmaking aleatorio desativado - 2026-05-08
 
 Alteracoes desta ronda:

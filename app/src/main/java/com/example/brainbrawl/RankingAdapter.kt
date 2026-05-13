@@ -31,13 +31,14 @@ class RankingAdapter(
 
     override fun onBindViewHolder(holder: RankingViewHolder, position: Int) {
         val jogador = jogadores[position]
-        holder.txtPosicao.text = "#${jogador.posicao}"
-        holder.txtNome.text = "${jogador.nomeDisplay} • Nv ${jogador.nivel}"
-        holder.txtValorLabel.text = rankingTipo.valorLabel
+        val context = holder.itemView.context
+        holder.txtPosicao.text = context.getString(R.string.posicao_ranking_format, jogador.posicao)
+        holder.txtNome.text = context.getString(R.string.nome_nivel_format, jogador.nomeDisplay, jogador.nivel)
+        holder.txtValorLabel.text = rankingTipo.valorLabel(context)
         holder.txtPontuacao.text = rankingTipo.valorOrdenacao(jogador).formatarNumero()
-        holder.txtTotalJogos.text = "Jogos: ${jogador.totalJogos}"
-        holder.txtTotalVitorias.text = "Vitórias: ${jogador.totalVitorias}"
-        holder.txtTaxaAcertos.text = "Acertos: ${jogador.taxaAcertos.formatarPercentagem()}%"
+        holder.txtTotalJogos.text = context.getString(R.string.jogos_curto_format, jogador.totalJogos)
+        holder.txtTotalVitorias.text = context.getString(R.string.vitorias_curto_format, jogador.totalVitorias)
+        holder.txtTaxaAcertos.text = context.getString(R.string.acertos_curto_format, jogador.taxaAcertos.formatarPercentagem())
     }
 
     override fun getItemCount(): Int = jogadores.size
@@ -62,6 +63,16 @@ class RankingAdapter(
             toInt().toString()
         } else {
             String.format("%.1f", this)
+        }
+    }
+
+    private fun RankingTipo.valorLabel(context: android.content.Context): String {
+        return when (this) {
+            RankingTipo.GLOBAL -> context.getString(R.string.pontos_totais)
+            RankingTipo.RECORDE -> context.getString(R.string.melhor_jogo)
+            RankingTipo.SOLO -> context.getString(R.string.vitorias_solo)
+            RankingTipo.MODO_1X1 -> context.getString(R.string.vitorias_1x1)
+            RankingTipo.MODO_2X2 -> context.getString(R.string.vitorias_2x2)
         }
     }
 }

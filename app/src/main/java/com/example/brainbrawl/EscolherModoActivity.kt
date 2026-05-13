@@ -46,7 +46,7 @@ class EscolherModoActivity : AppCompatActivity() {
             } else if (nomeJogador != null) {
                 criarSalaCaoticaEEntrar(this, null, nomeJogador, uid)
             } else {
-                Toast.makeText(this, "Indique o seu nome!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.indique_nome, Toast.LENGTH_SHORT).show()
             }
 
         }

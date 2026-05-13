@@ -11,7 +11,7 @@
         android:id="@+id/txt_titulo_explorar"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Explorar Categorias"
+        android:text="@string/explorar_categorias"
         android:textColor="@color/bb_text_primary"
         android:textSize="30sp"
         android:textStyle="bold"

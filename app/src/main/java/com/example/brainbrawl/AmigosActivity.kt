@@ -140,29 +140,29 @@ class AmigosActivity : AppCompatActivity() {
             }
             is AmigosEvent.JogadorEncontrado -> {
                 binding.layoutAddAmigo.visibility = android.view.View.VISIBLE
-                binding.btnAdicionarAmigo.text = "Adicionar ${evento.nome}"
+                binding.btnAdicionarAmigo.text = getString(R.string.adicionar_nome_format, evento.nome)
             }
             is AmigosEvent.JogadorJaAmigo -> {
                 binding.layoutAddAmigo.visibility = android.view.View.GONE
-                Toast.makeText(this, "${evento.nome} já é teu amigo!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.ja_e_teu_amigo_format, evento.nome), Toast.LENGTH_SHORT).show()
             }
             AmigosEvent.JogadorNaoEncontrado -> {
                 binding.layoutAddAmigo.visibility = android.view.View.GONE
-                Toast.makeText(this, "Utilizador não encontrado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.utilizador_nao_encontrado, Toast.LENGTH_SHORT).show()
             }
             AmigosEvent.PedidoJaAmigo -> {
-                Toast.makeText(this, "Já é teu amigo!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.ja_e_teu_amigo, Toast.LENGTH_SHORT).show()
             }
             AmigosEvent.PedidoEnviado -> {
-                Toast.makeText(this, "Pedido de amizade enviado!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.pedido_amizade_enviado, Toast.LENGTH_SHORT).show()
                 binding.layoutAddAmigo.visibility = android.view.View.GONE
                 binding.edtPesquisar.text.clear()
             }
             AmigosEvent.ErroEnviarPedido -> {
-                Toast.makeText(this, "Erro ao enviar pedido", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.erro_enviar_pedido, Toast.LENGTH_SHORT).show()
             }
             AmigosEvent.PedidoAceite -> {
-                Toast.makeText(this, "Amizade aceite!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.amizade_aceite, Toast.LENGTH_SHORT).show()
             }
             AmigosEvent.PedidoRecusado,
             AmigosEvent.ConviteRecusado,
@@ -213,7 +213,7 @@ class AmigosActivity : AppCompatActivity() {
     private fun aceitarConvite(convite: Convite) {
         // Atualizar o estado do convite na base de dados
         viewModel.aceitarConvite(uid, nomeUtilizador, convite)
-        Toast.makeText(this, "Convite aceite!", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, R.string.convite_aceite, Toast.LENGTH_SHORT).show()
 
         // Redirecionar para a sala de espera correspondente
         val intent = when (convite.modo) {

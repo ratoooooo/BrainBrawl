@@ -60,7 +60,7 @@ class LoginActivity : AppCompatActivity() {
                 Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
             }
             is LoginEvent.LoginSucesso -> {
-                Toast.makeText(this, "Login realizado com sucesso!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.login_sucesso, Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, MainActivity::class.java)
                 intent.putExtra(IntentExtras.NOME_UTILIZADOR, evento.nomeUtilizador)
                 evento.uid?.let { intent.putExtra(IntentExtras.UID, it) }
@@ -69,24 +69,24 @@ class LoginActivity : AppCompatActivity() {
                 finish()
             }
             LoginEvent.SenhaIncorreta -> {
-                Toast.makeText(this, "Senha incorreta", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.senha_incorreta, Toast.LENGTH_SHORT).show()
                 binding.edtPasswordJogador.text.clear()
             }
             LoginEvent.ErroAutenticacao -> {
-                Toast.makeText(this, "Email ou senha incorretos", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.email_senha_incorretos, Toast.LENGTH_SHORT).show()
                 binding.edtPasswordJogador.text.clear()
             }
             LoginEvent.ErroPerfilAuth -> {
-                Toast.makeText(this, "Conta autenticada sem perfil de jogador", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.conta_sem_perfil, Toast.LENGTH_SHORT).show()
             }
             LoginEvent.JogadorNaoEncontrado -> {
-                Toast.makeText(this, "Jogador não encontrado", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.jogador_nao_encontrado, Toast.LENGTH_SHORT).show()
             }
             LoginEvent.ErroBanco -> {
-                Toast.makeText(this, "Erro ao acessar o banco de dados", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.erro_banco_dados, Toast.LENGTH_SHORT).show()
             }
             LoginEvent.NomeConvidadoVazio -> {
-                Toast.makeText(this, "Insira um nome de jogador!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.insira_nome_jogador, Toast.LENGTH_SHORT).show()
             }
             is LoginEvent.ConvidadoSucesso -> {
                 val intent = Intent(this, MainActivity::class.java)

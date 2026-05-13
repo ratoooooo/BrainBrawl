@@ -20,7 +20,7 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="perguntaOLuso">
-        <option name="selectionMode" value="DIALOG" />
+        <option name="selectionMode" value="DROPDOWN" />
         <DropdownSelection timestamp="2026-05-08T16:17:35.541115Z">
           <Target type="DEFAULT_BOOT">
             <handle>

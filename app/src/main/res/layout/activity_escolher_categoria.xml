@@ -194,7 +194,7 @@
             android:textStyle="bold"/>
     </LinearLayout>
 
-    <!-- Botão Criar Categoria -->
+    <!-- Botão Explorar Categorias -->
     <LinearLayout
         android:id="@+id/layout_criar_categoria"
         android:layout_width="0dp"
@@ -220,7 +220,7 @@
             android:id="@+id/btn_criar_categoria"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/criar_categoria"
+            android:text="@string/explorar_categorias"
             android:textSize="18sp"
             android:textColor="@color/bb_text_primary"
             android:fontFamily="sans-serif-black"

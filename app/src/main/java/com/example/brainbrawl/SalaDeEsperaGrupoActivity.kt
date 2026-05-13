@@ -48,20 +48,20 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
             ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
-        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: "Todas as categorias"
+        nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: getString(R.string.categoria5)
         modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_CLASSICO
         admin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
         jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
         nomeAtual = jogadorAtual.nomeDisplay
 
         if (codigoSala.isBlank() || nomeAtual.isBlank()) {
-            Toast.makeText(this, "Dados da sala inválidos.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.dados_sala_invalidos, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
 
-        binding.txtTituloSala.text = "Sala de Espera"
-        binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+        binding.txtTituloSala.text = getString(R.string.sala_de_espera)
+        binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
         binding.btnCopiarCodigoSala.setOnClickListener {
             copiarCodigoSala()
         }
@@ -75,7 +75,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
 
         binding.btnIniciarJogo.setOnClickListener {
             if (!admin) {
-                Toast.makeText(this, "Só o criador da sala pode iniciar.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.so_criador_sala_iniciar, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             viewModel.validarEIniciarJogo(codigoSala)
@@ -103,7 +103,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
 
     private fun atualizarJogadores(estado: SalaGrupoJogadoresUiState) {
         binding.txtListaJogadores.text = if (estado.nomes.isEmpty()) {
-            "Aguardando jogadores..."
+            getString(R.string.aguardando_jogadores)
         } else {
             estado.nomes.joinToString(separator = "\n")
         }
@@ -113,13 +113,13 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private fun tratarEvento(evento: SalaGrupoEvent) {
         when (evento) {
             SalaGrupoEvent.ErroCarregarJogadores ->
-                Toast.makeText(this, "Erro ao carregar jogadores.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.erro_carregar_jogadores, Toast.LENGTH_SHORT).show()
             SalaGrupoEvent.ErroEscutarEstado ->
-                Toast.makeText(this, "Erro ao escutar estado da sala.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.erro_escutar_estado_sala, Toast.LENGTH_SHORT).show()
             SalaGrupoEvent.ErroValidarJogadores ->
-                Toast.makeText(this, "Erro ao validar jogadores.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.erro_validar_jogadores, Toast.LENGTH_SHORT).show()
             SalaGrupoEvent.JogadoresInsuficientes ->
-                Toast.makeText(this, "Aguarde pelo menos 1 jogador além do admin.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.jogadores_insuficientes, Toast.LENGTH_SHORT).show()
             SalaGrupoEvent.JogoIniciado -> {
                 val intent = Intent(this@SalaDeEsperaGrupoActivity, JogoActivity::class.java)
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
@@ -132,7 +132,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
                 finish()
             }
             SalaGrupoEvent.SalaEncerrada -> {
-                Toast.makeText(this@SalaDeEsperaGrupoActivity, "A sala foi encerrada.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@SalaDeEsperaGrupoActivity, R.string.sala_encerrada, Toast.LENGTH_SHORT).show()
                 abrirMainActivity(this@SalaDeEsperaGrupoActivity, nomeUtilizador, nomeJogador ?: nomeAtual, uid.ifBlank { null })
                 finish()
             }
@@ -147,7 +147,7 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
 
     private fun copiarCodigoSala() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        clipboard.setPrimaryClip(ClipData.newPlainText("Código da sala", codigoSala))
-        Toast.makeText(this, "Código copiado", Toast.LENGTH_SHORT).show()
+        clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.clipboard_codigo_sala), codigoSala))
+        Toast.makeText(this, R.string.codigo_copiado, Toast.LENGTH_SHORT).show()
     }
 }

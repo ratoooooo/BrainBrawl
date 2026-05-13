@@ -81,7 +81,7 @@ class SalaDeEsperaActivity : AppCompatActivity() {
     private fun tratarEntrada(evento: SalaEntradaEvent) {
         when (evento) {
             SalaEntradaEvent.CodigoVazio -> {
-                Toast.makeText(this, "Insira o código da sala!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.codigo_sala_vazio, Toast.LENGTH_SHORT).show()
                 binding.btnEntrarSala.isEnabled = true
             }
             is SalaEntradaEvent.ValidacaoFalhou -> {
@@ -89,22 +89,22 @@ class SalaDeEsperaActivity : AppCompatActivity() {
                 binding.btnEntrarSala.isEnabled = true
             }
             SalaEntradaEvent.CodigoInvalido -> {
-                Toast.makeText(this, "Código da sala inválido", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.codigo_sala_invalido, Toast.LENGTH_SHORT).show()
                 binding.btnEntrarSala.isEnabled = true
             }
             SalaEntradaEvent.NomeJaExiste -> {
-                Toast.makeText(this, "Nome de jogador já existe na sala", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.nome_ja_existe_sala, Toast.LENGTH_SHORT).show()
                 binding.btnEntrarSala.isEnabled = true
             }
             is SalaEntradaEvent.ErroVerificarSala -> {
-                Toast.makeText(this, "Erro ao verificar sala: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_verificar_sala_format, evento.mensagem), Toast.LENGTH_SHORT).show()
                 binding.btnEntrarSala.isEnabled = true
             }
             is SalaEntradaEvent.JogadorAdicionado -> {
                 binding.btnEntrarSala.isEnabled = false
                 binding.edtCodigoSala.isEnabled = false
                 binding.edtNomeJogador.isEnabled = false
-                Toast.makeText(this, "Jogador adicionado com sucesso!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, R.string.jogador_adicionado_sucesso, Toast.LENGTH_SHORT).show()
                 irParaSalaDeEsperaGrupo(evento.codigoSala, evento.nomeJogador, evento.nomeUtilizador, evento.uid)
             }
         }

@@ -34,7 +34,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="14dp"
         android:fontFamily="sans-serif-black"
-        android:text="Ranking"
+        android:text="@string/ranking"
         android:textColor="@color/bb_text_primary"
         android:textSize="31sp"
         android:textStyle="bold"
@@ -48,7 +48,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="18dp"
-        android:text="Top 10 da arena"
+        android:text="@string/top_10_arena"
         android:textColor="@color/bb_text_secondary"
         android:textSize="16sp"
         app:layout_constraintEnd_toEndOf="parent"
@@ -79,7 +79,7 @@
                 android:layout_height="42dp"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_segment_unselected"
-                android:text="Solo"
+                android:text="@string/ranking_solo"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_secondary_text"
                 android:textSize="13sp" />
@@ -90,7 +90,7 @@
                 android:layout_height="42dp"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_segment_unselected"
-                android:text="1x1"
+                android:text="@string/ranking_1x1"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_secondary_text"
                 android:textSize="13sp" />
@@ -101,7 +101,7 @@
                 android:layout_height="42dp"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_segment_unselected"
-                android:text="2x2"
+                android:text="@string/ranking_2x2"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_secondary_text"
                 android:textSize="13sp" />
@@ -112,7 +112,7 @@
                 android:layout_height="42dp"
                 android:layout_marginEnd="8dp"
                 android:background="@drawable/bg_segment_unselected"
-                android:text="Recorde"
+                android:text="@string/ranking_recorde"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_secondary_text"
                 android:textSize="13sp" />
@@ -122,7 +122,7 @@
                 android:layout_width="98dp"
                 android:layout_height="42dp"
                 android:background="@drawable/bg_segment_unselected"
-                android:text="Global"
+                android:text="@string/ranking_global"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_secondary_text"
                 android:textSize="13sp" />

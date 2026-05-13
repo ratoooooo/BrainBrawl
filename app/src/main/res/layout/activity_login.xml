@@ -39,7 +39,7 @@
                 <ImageView
                     android:layout_width="88dp"
                     android:layout_height="88dp"
-                    android:contentDescription="Pergunta ó Luso"
+                    android:contentDescription="@string/app_name"
                     android:src="@mipmap/avatar_14_foreground" />
 
                 <LinearLayout
@@ -52,7 +52,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="PERGUNTA"
+                        android:text="@string/brand_pergunta"
                         android:textColor="@color/bb_text_primary"
                         android:textSize="25sp"
                         android:textStyle="bold" />
@@ -61,7 +61,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="Ó LUSO"
+                        android:text="@string/brand_o_luso"
                         android:textColor="@color/bb_accent"
                         android:textSize="25sp"
                         android:textStyle="bold" />
@@ -85,7 +85,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:text="Continua a tua batalha do conhecimento."
+                android:text="@string/login_subtitulo"
                 android:textColor="@color/bb_text_secondary"
                 android:textSize="17sp" />
 
@@ -103,7 +103,7 @@
                 <ImageView
                     android:layout_width="24dp"
                     android:layout_height="24dp"
-                    android:contentDescription="Email ou nome"
+                    android:contentDescription="@string/email_ou_nome"
                     android:src="@drawable/ic_mail"
                     app:tint="@color/bb_text_primary" />
 
@@ -115,7 +115,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:fontFamily="sans-serif"
-                    android:hint="Email ou nome"
+                    android:hint="@string/email_ou_nome"
                     android:inputType="textEmailAddress"
                     android:padding="0dp"
                     android:singleLine="true"
@@ -151,7 +151,7 @@
                     android:layout_weight="1"
                     android:background="@android:color/transparent"
                     android:fontFamily="sans-serif"
-                    android:hint="@string/insira_password"
+                    android:hint="@string/password_hint"
                     android:inputType="textPassword"
                     android:padding="0dp"
                     android:singleLine="true"
@@ -163,7 +163,7 @@
                     android:id="@+id/btnTogglePassword"
                     android:layout_width="26dp"
                     android:layout_height="26dp"
-                    android:contentDescription="Mostrar palavra-passe"
+                    android:contentDescription="@string/mostrar_password"
                     android:src="@drawable/ic_eye"
                     app:tint="@color/bb_text_primary" />
             </LinearLayout>
@@ -214,7 +214,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="OU"
+                    android:text="@string/ou"
                     android:textColor="@color/bb_text_secondary"
                     android:textSize="12sp"
                     android:textStyle="bold" />

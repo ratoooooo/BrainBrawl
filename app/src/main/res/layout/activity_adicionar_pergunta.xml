@@ -53,10 +53,11 @@
             <EditText
                 android:id="@+id/edt_nova_categoria"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/bb_input_height"
                 android:hint="@string/hint_nova_categoria"
-                android:background="@android:drawable/edit_text"
-                android:padding="8dp"
+                android:background="@drawable/bg_register_input"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:layout_marginTop="8dp" />
 
             <!-- Campo para a pergunta -->
@@ -72,10 +73,30 @@
             <EditText
                 android:id="@+id/edt_pergunta"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="@dimen/bb_input_height"
                 android:hint="@string/insira_pergunta"
-                android:background="@android:drawable/edit_text"
-                android:padding="8dp"
+                android:background="@drawable/bg_register_input"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:layout_marginTop="8dp" />
+
+            <TextView
+                android:id="@+id/txt_imagem"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/imagem_opcional"
+                android:textSize="16sp"
+                android:textColor="@color/bb_text_primary"
+                android:layout_marginTop="16dp" />
+
+            <EditText
+                android:id="@+id/edt_imagem"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/bb_input_height"
+                android:hint="@string/hint_imagem"
+                android:background="@drawable/bg_register_input"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
                 android:layout_marginTop="8dp" />
 
             <!-- Campo para as opções -->
@@ -108,10 +129,11 @@
                 <EditText
                     android:id="@+id/edt_opcao_a"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/bb_input_height"
                     android:hint="@string/hint_opcao_a"
-                    android:background="@android:drawable/edit_text"
-                    android:padding="8dp"
+                    android:background="@drawable/bg_register_input"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:layout_marginStart="32dp"
                     android:layout_marginBottom="8dp" />
 
@@ -128,10 +150,11 @@
                 <EditText
                     android:id="@+id/edt_opcao_b"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/bb_input_height"
                     android:hint="@string/hint_opcao_b"
-                    android:background="@android:drawable/edit_text"
-                    android:padding="8dp"
+                    android:background="@drawable/bg_register_input"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:layout_marginStart="32dp"
                     android:layout_marginBottom="8dp" />
 
@@ -148,10 +171,11 @@
                 <EditText
                     android:id="@+id/edt_opcao_c"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/bb_input_height"
                     android:hint="@string/hint_opcao_c"
-                    android:background="@android:drawable/edit_text"
-                    android:padding="8dp"
+                    android:background="@drawable/bg_register_input"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:layout_marginStart="32dp"
                     android:layout_marginBottom="8dp" />
 
@@ -168,13 +192,83 @@
                 <EditText
                     android:id="@+id/edt_opcao_d"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="@dimen/bb_input_height"
                     android:hint="@string/hint_opcao_d"
-                    android:background="@android:drawable/edit_text"
-                    android:padding="8dp"
+                    android:background="@drawable/bg_register_input"
+                    android:paddingStart="14dp"
+                    android:paddingEnd="14dp"
                     android:layout_marginStart="32dp"
                     android:layout_marginBottom="8dp" />
             </RadioGroup>
+
+            <TextView
+                android:id="@+id/txt_dificuldade"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/dificuldade"
+                android:textSize="16sp"
+                android:textColor="@color/bb_text_primary"
+                android:layout_marginTop="16dp" />
+
+            <RadioGroup
+                android:id="@+id/rg_dificuldade"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="8dp">
+
+                <RadioButton
+                    android:id="@+id/rb_dificuldade_facil"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/dificuldade_facil"
+                    android:textColor="@color/bb_text_primary" />
+
+                <RadioButton
+                    android:id="@+id/rb_dificuldade_media"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:checked="true"
+                    android:text="@string/dificuldade_media"
+                    android:textColor="@color/bb_text_primary" />
+
+                <RadioButton
+                    android:id="@+id/rb_dificuldade_dificil"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/dificuldade_dificil"
+                    android:textColor="@color/bb_text_primary" />
+            </RadioGroup>
+
+            <LinearLayout
+                android:id="@+id/layout_acoes_pergunta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginTop="18dp">
+
+                <Button
+                    android:id="@+id/btn_nova_pergunta"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_secondary"
+                    android:text="@string/nova_pergunta"
+                    android:textColor="@color/bb_secondary_text" />
+
+                <Button
+                    android:id="@+id/btn_eliminar_pergunta_atual"
+                    android:layout_width="0dp"
+                    android:layout_height="52dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_button_danger"
+                    android:text="@string/eliminar_atual"
+                    android:textColor="@color/bb_primary_text" />
+            </LinearLayout>
 
             <!-- Botão para enviar a pergunta -->
             <LinearLayout
@@ -243,6 +337,17 @@
                     android:fontFamily="sans-serif-black"
                     android:textStyle="bold"/>
             </LinearLayout>
+
+            <TextView
+                android:id="@+id/txt_total_perguntas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/total_perguntas_inicial"
+                android:textColor="@color/bb_text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"
+                android:layout_marginBottom="8dp" />
 
             <LinearLayout
                 android:id="@+id/layout_perguntas_personalizadas"

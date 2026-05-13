@@ -11,7 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
-        android:text="Nome do utilizador"
+        android:text="@string/nome_utilizador_placeholder"
         android:textSize="16sp"
         android:textColor="#222"/>
 
@@ -19,6 +19,6 @@
         android:id="@+id/btnAceitarPedido"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Aceitar" />
+        android:text="@string/aceitar" />
 
 </LinearLayout>

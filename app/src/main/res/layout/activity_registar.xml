@@ -60,14 +60,14 @@
                 <ImageView
                     android:layout_width="112dp"
                     android:layout_height="112dp"
-                    android:contentDescription="Pergunta ó Luso"
+                    android:contentDescription="@string/app_name"
                     android:src="@mipmap/avatar_14_foreground" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="sans-serif-black"
-                    android:text="PERGUNTA Ó LUSO"
+                    android:text="@string/brand_full_caps"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="21sp"
                     android:textStyle="bold" />
@@ -80,7 +80,7 @@
                 android:layout_marginTop="20dp"
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
-                android:text="Cria a tua conta"
+                android:text="@string/cria_tua_conta"
                 android:textColor="@color/bb_text_primary"
                 android:textSize="34sp"
                 android:textStyle="bold" />
@@ -91,7 +91,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:gravity="center"
-                android:text="Junta-te à batalha do conhecimento!"
+                android:text="@string/registo_subtitulo"
                 android:textColor="@color/bb_text_secondary"
                 android:textSize="17sp" />
 
@@ -156,7 +156,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:contentDescription="E-mail"
+                        android:contentDescription="@string/email"
                         android:src="@drawable/ic_mail"
                         app:tint="@color/bb_text_primary" />
 
@@ -168,7 +168,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:fontFamily="sans-serif"
-                        android:hint="E-mail"
+                        android:hint="@string/email"
                         android:inputType="textEmailAddress"
                         android:padding="0dp"
                         android:singleLine="true"
@@ -205,7 +205,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:fontFamily="sans-serif"
-                        android:hint="Palavra-passe"
+                        android:hint="@string/password_hint"
                         android:inputType="textPassword"
                         android:padding="0dp"
                         android:singleLine="true"
@@ -217,7 +217,7 @@
                         android:id="@+id/btnTogglePassword"
                         android:layout_width="26dp"
                         android:layout_height="26dp"
-                        android:contentDescription="Mostrar palavra-passe"
+                        android:contentDescription="@string/mostrar_password"
                         android:src="@drawable/ic_eye"
                         app:tint="@color/bb_text_primary" />
                 </LinearLayout>
@@ -237,7 +237,7 @@
                     <ImageView
                         android:layout_width="24dp"
                         android:layout_height="24dp"
-                        android:contentDescription="Confirmar palavra-passe"
+                        android:contentDescription="@string/confirmar_password"
                         android:src="@drawable/ic_lock"
                         app:tint="@color/bb_text_primary" />
 
@@ -250,7 +250,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:fontFamily="sans-serif"
-                        android:hint="Confirmar palavra-passe"
+                        android:hint="@string/confirmar_password"
                         android:inputType="textPassword"
                         android:padding="0dp"
                         android:singleLine="true"
@@ -262,7 +262,7 @@
                         android:id="@+id/btnToggleConfirmarPassword"
                         android:layout_width="26dp"
                         android:layout_height="26dp"
-                        android:contentDescription="Mostrar confirmação da palavra-passe"
+                        android:contentDescription="@string/mostrar_confirmacao_password"
                         android:src="@drawable/ic_eye"
                         app:tint="@color/bb_text_primary" />
                 </LinearLayout>
@@ -280,7 +280,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="A tua palavra-passe deve ter:"
+                        android:text="@string/password_requisitos_titulo"
                         android:textColor="@color/bb_text_primary"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -290,7 +290,7 @@
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
                         android:lineSpacingExtra="6dp"
-                        android:text="✓ Pelo menos 8 caracteres\n✓ Uma letra maiúscula\n✓ Uma letra minúscula\n✓ Um número ou símbolo"
+                        android:text="@string/password_requisitos"
                         android:textColor="@color/bb_text_primary"
                         android:textSize="15sp" />
                 </LinearLayout>
@@ -314,7 +314,7 @@
                         android:layout_weight="1"
                         android:fontFamily="sans-serif-black"
                         android:gravity="center"
-                        android:text="CONTINUAR"
+                        android:text="@string/continuar"
                         android:textColor="@color/bb_primary_text"
                         android:textSize="19sp"
                         android:textStyle="bold" />
@@ -338,7 +338,7 @@
                     android:focusable="true"
                     android:fontFamily="sans-serif"
                     android:gravity="center"
-                    android:text="Já tens conta? Inicia sessão"
+                    android:text="@string/ja_tens_conta"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="16sp" />
             </LinearLayout>
@@ -377,7 +377,7 @@
                         android:layout_weight="1"
                         android:background="@android:color/transparent"
                         android:fontFamily="sans-serif"
-                        android:hint="Nome de utilizador"
+                        android:hint="@string/nome_utilizador"
                         android:inputType="textPersonName"
                         android:padding="0dp"
                         android:singleLine="true"
@@ -413,7 +413,7 @@
                         android:layout_marginTop="14dp"
                         android:fontFamily="sans-serif-black"
                         android:gravity="center"
-                        android:text="Escolhe o teu avatar"
+                        android:text="@string/escolhe_avatar"
                         android:textColor="@color/bb_text_primary"
                         android:textSize="18sp"
                         android:textStyle="bold" />
@@ -446,7 +446,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="CRIAR CONTA"
+                        android:text="@string/criar_conta_caps"
                         android:textColor="@color/bb_primary_text"
                         android:textSize="19sp"
                         android:textStyle="bold" />

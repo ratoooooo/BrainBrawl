@@ -41,7 +41,7 @@ class MeuPerfilActivity : AppCompatActivity() {
         }
 
         if (uid.isBlank() && nomeUtilizador.isBlank()) {
-            Toast.makeText(this, "Não foi possível abrir o perfil.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, R.string.perfil_indisponivel, Toast.LENGTH_SHORT).show()
             finish()
             return
         }
@@ -79,12 +79,16 @@ class MeuPerfilActivity : AppCompatActivity() {
 
         // Mostra os dados do perfil
         binding.txtNomeAmigo.text = perfil.nome
-        binding.txtPontuacao.text = "Recorde de Pontuação: ${perfil.recordePontuacao.toInt()} pontos"
-        binding.txtNivel.text = "Nível ${perfil.nivel}"
-        binding.txtXpProgress.text = "${perfil.xpNoNivelAtual} / ${perfil.xpNecessarioProximoNivel} XP"
-        binding.txtTotalJogos.text = "Total de Jogos: ${perfil.totalJogos}"
-        binding.txtTotalVitorias.text = "Total de Vitórias: ${perfil.totalVitorias}"
-        binding.txtTaxaAcertos.text = "Taxa de Acertos: ${"%.1f".format(perfil.taxaAcertos)}%"
+        binding.txtPontuacao.text = getString(R.string.recorde_pontuacao_format, perfil.recordePontuacao.toInt())
+        binding.txtNivel.text = getString(R.string.nivel_format, perfil.nivel)
+        binding.txtXpProgress.text = getString(
+            R.string.xp_progress_format,
+            perfil.xpNoNivelAtual,
+            perfil.xpNecessarioProximoNivel
+        )
+        binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, perfil.totalJogos)
+        binding.txtTotalVitorias.text = getString(R.string.total_de_vitorias_format, perfil.totalVitorias)
+        binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, perfil.taxaAcertos)
     }
 
     // Função utilitária para determinar que badge mostrar
