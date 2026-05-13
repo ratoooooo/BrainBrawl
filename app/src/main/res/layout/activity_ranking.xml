@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_register_screen"
+    android:padding="20dp">
+
+    <LinearLayout
+        android:id="@+id/btn_voltar"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:background="@drawable/bg_register_icon_button"
+        android:clickable="true"
+        android:contentDescription="@string/voltar"
+        android:elevation="3dp"
+        android:focusable="true"
+        android:gravity="center"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:contentDescription="@string/voltar"
+            android:src="@drawable/ic_back"
+            app:tint="@color/bb_text_primary" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txt_titulo_ranking"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:fontFamily="sans-serif-black"
+        android:text="@string/ranking"
+        android:textColor="@color/bb_text_primary"
+        android:textSize="31sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="@id/btn_voltar"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_voltar"
+        app:layout_constraintTop_toTopOf="@id/btn_voltar" />
+
+    <TextView
+        android:id="@+id/txt_subtitulo_ranking"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:text="@string/top_10_arena"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btn_voltar" />
+
+    <HorizontalScrollView
+        android:id="@+id/scroll_tipos_ranking"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="18dp"
+        android:fillViewport="false"
+        android:scrollbars="none"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txt_subtitulo_ranking">
+
+        <LinearLayout
+            android:id="@+id/layout_tipos_ranking"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnRankingSolo"
+                android:layout_width="92dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_segment_unselected"
+                android:text="@string/ranking_solo"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_secondary_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnRanking1x1"
+                android:layout_width="92dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_segment_unselected"
+                android:text="@string/ranking_1x1"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_secondary_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnRanking2x2"
+                android:layout_width="92dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_segment_unselected"
+                android:text="@string/ranking_2x2"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_secondary_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnRankingRecorde"
+                android:layout_width="98dp"
+                android:layout_height="42dp"
+                android:layout_marginEnd="8dp"
+                android:background="@drawable/bg_segment_unselected"
+                android:text="@string/ranking_recorde"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_secondary_text"
+                android:textSize="13sp" />
+
+            <Button
+                android:id="@+id/btnRankingGlobal"
+                android:layout_width="98dp"
+                android:layout_height="42dp"
+                android:background="@drawable/bg_segment_unselected"
+                android:text="@string/ranking_global"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_secondary_text"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <ProgressBar
+        android:id="@+id/progress_ranking"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:indeterminateTint="@color/bb_accent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txt_estado_ranking"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_empty_state_card"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:padding="22dp"
+        android:textColor="@color/bb_text_primary"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler_ranking"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="18dp"
+        android:clipToPadding="false"
+        android:paddingBottom="10dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/scroll_tipos_ranking" />
+</androidx.constraintlayout.widget.ConstraintLayout>

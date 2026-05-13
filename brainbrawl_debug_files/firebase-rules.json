@@ -1,0 +1,1049 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "categorias": {
+      ".read": true,
+      ".write": false
+    },
+
+    "categoriasPublicas": {
+      ".read": true,
+      "$categoriaId": {
+        ".write": "auth != null && ((!data.exists() && (newData.child('criadorUid').val() == auth.uid || newData.child('criadorId').val() == auth.uid)) || (data.exists() && (data.child('criadorUid').val() == auth.uid || data.child('criadorId').val() == auth.uid || newData.child('criadorUid').val() == auth.uid || newData.child('avaliacoes').child(auth.uid).exists() || newData.child('usos').val() == data.child('usos').val() + 1)))",
+        "id": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "nome": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "descricao": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "criador": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "criadorId": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "criadorUid": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "nomeUtilizador": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "nomeDisplay": {
+          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "perguntas": {
+          ".validate": "!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val()",
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "usos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() || newData.val() == data.val() + 1 || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "ratingMedio": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 5"
+        },
+        "totalAvaliacoes": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && (!data.exists() || newData.val() == data.val() || newData.val() == data.val() + 1 || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "avaliacoes": {
+          "$uidAvaliador": {
+            ".write": "auth != null && auth.uid == $uidAvaliador",
+            "valor": {
+              ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 5"
+            },
+            "uid": {
+              ".validate": "newData.isString() && newData.val() == $uidAvaliador"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "data": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "dataCriacao": {
+          ".validate": "newData.isNumber() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "dataPublicacao": {
+          ".validate": "newData.isNumber() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "jogadores": {
+      ".read": true,
+      ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao", "recordePontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"],
+      "$jogadorId": {
+        ".write": "!$jogadorId.matches(/^guest_/) && ((auth != null && auth.uid == $jogadorId) || (auth == null && (!data.exists() || (data.exists() && newData.exists() && data.child('password').exists() && newData.child('password').val() == data.child('password').val()))))",
+        ".validate": "!$jogadorId.matches(/^guest_/) && newData.hasChildren(['avatar']) && ((newData.hasChildren(['uid', 'nomeUtilizador', 'email', 'estado', 'pontuacao', 'taxaAcertos', 'totalJogos', 'totalRespostasCertas', 'totalVitorias', 'totalVitoriasModo1x1', 'totalVitoriasModo2x2', 'totalVitoriasModoSolo']) && newData.child('uid').val() == $jogadorId) || newData.hasChildren(['password']))",
+        "uid": {
+          ".validate": "newData.isString() && newData.val() == $jogadorId"
+        },
+        "nomeUtilizador": {
+          ".validate": "newData.isString()"
+        },
+        "email": {
+          ".validate": "newData.isString() && newData.val().matches(/^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$/)"
+        },
+        "password": {
+          ".validate": "newData.isString() && newData.val().matches(/^[a-f0-9]{64}$/)"
+        },
+        "avatar": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off')"
+        },
+        "pontuacao": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "recordePontuacao": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "taxaAcertos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100"
+        },
+        "totalJogos": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitorias": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalRespostasCertas": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitoriasModo1x1": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitoriasModo2x2": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalVitoriasModoSolo": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "xpTotal": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "nivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 1"
+        },
+        "xpNoNivelAtual": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "xpNecessarioProximoNivel": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "amigos": {
+          "$outroId": {
+            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId)",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "pedidos_amizade": {
+          "$outroId": {
+            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId)",
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "convites_recebidos": {
+          "$outroId": {
+            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId || auth.uid == data.child('remetenteUid').val() || auth.uid == data.child('destinatarioUid').val() || auth.uid == newData.child('remetenteUid').val() || auth.uid == newData.child('destinatarioUid').val() || auth.uid == root.child('jogadores').child(data.child('remetenteChavePerfil').val()).child('uid').val() || auth.uid == root.child('jogadores').child(data.child('destinatarioChavePerfil').val()).child('uid').val() || (newData.exists() && newData.child('remetenteUid').val() == auth.uid && newData.child('destinatarioChavePerfil').val() == $jogadorId && ($outroId == newData.child('remetenteUid').val() || $outroId == newData.child('remetenteChavePerfil').val())))",
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString()"
+            },
+            "modo": {
+              ".validate": "newData.isString() && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteUid": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteNome": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioUid": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioNome": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "convites_enviados": {
+          "$outroId": {
+            ".write": "auth != null && (auth.uid == $jogadorId || auth.uid == $outroId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $outroId || auth.uid == data.child('remetenteUid').val() || auth.uid == data.child('destinatarioUid').val() || auth.uid == newData.child('remetenteUid').val() || auth.uid == newData.child('destinatarioUid').val() || auth.uid == root.child('jogadores').child(data.child('remetenteChavePerfil').val()).child('uid').val() || auth.uid == root.child('jogadores').child(data.child('destinatarioChavePerfil').val()).child('uid').val() || (newData.exists() && newData.child('remetenteUid').val() == auth.uid && newData.child('remetenteChavePerfil').val() == $jogadorId && ($outroId == newData.child('destinatarioUid').val() || $outroId == newData.child('destinatarioChavePerfil').val())))",
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'pendente' || newData.val() == 'aceite')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString()"
+            },
+            "modo": {
+              ".validate": "newData.isString() && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteUid": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "remetenteNome": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioUid": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioChavePerfil": {
+              ".validate": "newData.isString()"
+            },
+            "destinatarioNome": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "categoriasPersonalizadas": {
+          "$nomeCategoria": {
+            ".write": "(auth != null && (auth.uid == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId)) || (auth == null && root.child('jogadores').child($jogadorId).child('password').exists())",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "descricao": {
+              ".validate": "newData.isString()"
+            },
+            "categoriaPublicaId": {
+              ".validate": "newData.isString()"
+            },
+            "estadoPublicacao": {
+              ".validate": "newData.isString()"
+            },
+            "origemCategoriaPublica": {
+              ".validate": "newData.isString()"
+            },
+            "criadorOriginal": {
+              ".validate": "newData.isString()"
+            },
+            "criadorOriginalId": {
+              ".validate": "newData.isString()"
+            },
+            "donoUid": {
+              ".validate": "newData.isString()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "dataCriacao": {
+              ".validate": "newData.isNumber()"
+            },
+            "dataPublicacao": {
+              ".validate": "newData.isNumber()"
+            },
+            "perguntas": {
+              "$perguntaId": {
+                "pergunta": {
+                  ".validate": "newData.isString()"
+                },
+                "respostaCorreta": {
+                  ".validate": "newData.isString()"
+                },
+                "opcoes": {
+                  "$opcaoId": {
+                    ".validate": "newData.isString()"
+                  }
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "salas": {
+      ".read": true,
+      "$codigoSala": {
+        ".write": "(!data.exists() && newData.exists() && (auth == null || auth.uid == newData.child('adminUid').val() || auth.uid == newData.child('adminId').val())) || (data.exists() && !newData.exists() && (auth == null || auth.uid == data.child('adminUid').val() || auth.uid == data.child('adminId').val()))",
+        "horaCriacao": {
+          ".validate": "newData.isNumber()"
+        },
+        "admin": {
+          ".validate": "newData.isString()"
+        },
+        "adminId": {
+          ".validate": "newData.isString()"
+        },
+        "adminUid": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".write": "auth == null || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isString() && (newData.val() == 'em_espera' || newData.val() == 'em_jogo' || newData.val() == 'terminado')"
+        },
+        "modoJogo": {
+          ".validate": "newData.isString()"
+        },
+        "categoria": {
+          ".validate": "newData.isString()"
+        },
+        "nomeCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "categoriaPersonalizada": {
+          ".validate": "newData.isBoolean()"
+        },
+        "donoCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "donoUid": {
+          ".validate": "newData.isString()"
+        },
+        "categoriaPublica": {
+          ".validate": "newData.isBoolean()"
+        },
+        "categoriaPublicaId": {
+          ".validate": "newData.isString()"
+        },
+        "criadorCategoriaPublica": {
+          ".validate": "newData.isString()"
+        },
+        "criadorCategoriaPublicaId": {
+          ".validate": "newData.isString()"
+        },
+        "perguntaAtualIndex": {
+          ".write": "auth == null || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "perguntaHoraInicio": {
+          ".write": "auth == null || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isNumber()"
+        },
+        "perguntaAtual": {
+          "respostas": {
+            "$jogadorId": {
+              ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('salas').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+              ".validate": "newData.isBoolean()"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+        "jogadores": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == data.child('uid').val() || auth.uid == newData.child('uid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "pontuacao": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "totalRespostasCertas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "totalPerguntasCertas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off' || newData.val() == 'eliminado')"
+            },
+            "isHostOnly": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "perguntas": {
+          ".write": "auth == null || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "estatisticasAtualizadas": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('salas').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "sala_1x1": {
+      ".read": true,
+      "$codigoSala": {
+        ".write": "(!data.exists() && newData.exists() && (auth == null || auth.uid == newData.child('adminUid').val() || auth.uid == newData.child('adminId').val())) || (data.exists() && !newData.exists() && (auth == null || auth.uid == data.child('adminUid').val() || auth.uid == data.child('adminId').val()))",
+        "admin": {
+          ".validate": "newData.isString()"
+        },
+        "adminId": {
+          ".validate": "newData.isString()"
+        },
+        "adminUid": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".write": "auth == null || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isString() && (newData.val() == 'em_espera' || newData.val() == 'em_jogo' || newData.val() == 'terminado')"
+        },
+        "nomeCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "novaSalaDesforra": {
+          ".write": "auth == null || root.child('sala_1x1').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isString()"
+        },
+        "jogadores": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == data.child('uid').val() || auth.uid == newData.child('uid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+            ".validate": "!newData.exists() || newData.isBoolean() || newData.hasChild('desforra') || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            "desforra": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "pontuacao": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "totalRespostasCertas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off')"
+            },
+            "isHostOnly": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "prontos": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_1x1').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "perguntas": {
+          ".write": "auth == null || root.child('sala_1x1').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "perguntaInicios": {
+          "$indice": {
+            ".write": "auth == null || root.child('sala_1x1').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "perguntaHoraInicio": {
+          ".write": "auth == null || root.child('sala_1x1').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isNumber()"
+        },
+        "pontuacoes": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_1x1').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "estatisticasAtualizadas": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_1x1').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_1x1').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "sala_2x2": {
+      ".read": true,
+      "$codigoSala": {
+        ".write": "(!data.exists() && newData.exists() && (auth == null || auth.uid == newData.child('adminUid').val() || auth.uid == newData.child('adminId').val())) || (data.exists() && !newData.exists() && (auth == null || auth.uid == data.child('adminUid').val() || auth.uid == data.child('adminId').val()))",
+        "admin": {
+          ".validate": "newData.isString()"
+        },
+        "adminId": {
+          ".validate": "newData.isString()"
+        },
+        "adminUid": {
+          ".validate": "newData.isString()"
+        },
+        "estado": {
+          ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isString() && (newData.val() == 'em_espera' || newData.val() == 'em_jogo' || newData.val() == 'terminado')"
+        },
+        "nomeCategoria": {
+          ".validate": "newData.isString()"
+        },
+        "jogadores": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == data.child('uid').val() || auth.uid == newData.child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "pontuacao": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "totalRespostasCertas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off')"
+            },
+            "isHostOnly": {
+              ".validate": "newData.isBoolean()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "equipaA": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "!newData.exists() || newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "equipaB": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "!newData.exists() || newData.isBoolean() || newData.hasChild('nome') || newData.hasChild('nomeDisplay')",
+            "nome": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString()"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "playerKey": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "pontuacaoA": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "pontuacaoB": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "perguntas": {
+          ".write": "auth == null || root.child('sala_2x2').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+          "$perguntaId": {
+            "pergunta": {
+              ".validate": "newData.isString()"
+            },
+            "respostaCorreta": {
+              ".validate": "newData.isString()"
+            },
+            "opcoes": {
+              "$opcaoId": {
+                ".validate": "newData.isString()"
+              }
+            },
+            "imagem": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "perguntaInicios": {
+          "$indice": {
+            ".write": "auth == null || root.child('sala_2x2').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber()"
+          }
+        },
+        "perguntaHoraInicio": {
+          ".write": "auth == null || root.child('sala_2x2').child($codigoSala).child('jogadores').child(auth.uid).exists() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+          ".validate": "newData.isNumber()"
+        },
+        "respostas": {
+          "$jogadorId": {
+            "$indice": {
+              ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val()",
+              ".validate": "newData.isString()"
+            }
+          }
+        },
+        "pontuacoes_A": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "pontuacoes_B": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "totalPerguntasCertas_A": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "totalPerguntasCertas_B": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          }
+        },
+        "estatisticasAtualizadas": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isBoolean()"
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "historicoJogos": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid",
+        ".write": "auth != null && auth.uid == $uid",
+        ".indexOn": ["dataHora"],
+        "$historicoId": {
+          ".validate": "!newData.exists() || newData.hasChildren(['modo', 'codigoSala', 'nomeCategoria', 'pontuacao', 'recordeFoiBatido', 'respostasCertas', 'totalPerguntas', 'venceu', 'empate', 'dataHora', 'jogadores'])",
+          "modo": {
+            ".validate": "newData.isString()"
+          },
+          "codigoSala": {
+            ".validate": "newData.isString()"
+          },
+          "nomeCategoria": {
+            ".validate": "newData.isString()"
+          },
+          "pontuacao": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "recordeFoiBatido": {
+            ".validate": "newData.isBoolean()"
+          },
+          "respostasCertas": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "totalPerguntas": {
+            ".validate": "newData.isNumber() && newData.val() >= 0"
+          },
+          "venceu": {
+            ".validate": "newData.isBoolean()"
+          },
+          "empate": {
+            ".validate": "newData.isBoolean()"
+          },
+          "equipa": {
+            ".validate": "newData.isString()"
+          },
+          "dataHora": {
+            ".validate": "newData.isNumber()"
+          },
+          "jogadores": {
+            "$index": {
+              ".validate": "newData.isString()"
+            }
+          },
+          "$other": {
+            ".validate": false
+          }
+        }
+      }
+    },
+
+    "matchmaking": {
+      ".read": true,
+      "$modo": {
+        ".write": "$modo == '1x1' || $modo == '2x2'",
+        "fila": {
+          "$playerKey": {
+            ".validate": "!newData.exists() || ((newData.child('tipoJogador').val() == 'auth' && auth != null && $playerKey == auth.uid && newData.child('uid').val() == auth.uid) || (newData.child('tipoJogador').val() == 'guest' && $playerKey.matches(/^guest_[A-Za-z0-9_]+$/) && (!newData.child('uid').exists() || newData.child('uid').val() == ''))) && newData.hasChildren(['playerKey', 'tipoJogador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('playerKey').val() == $playerKey",
+            "playerKey": {
+              ".validate": "newData.isString() && newData.val() == $playerKey"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "nomeUtilizador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeJogador": {
+              ".validate": "newData.isString()"
+            },
+            "nomeDisplay": {
+              ".validate": "newData.isString() && newData.val().length > 0"
+            },
+            "sessionId": {
+              ".validate": "newData.isString()"
+            },
+            "avatar": {
+              ".validate": "newData.isString()"
+            },
+            "timestampEntrada": {
+              ".validate": "newData.isNumber()"
+            },
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'aguardando' || newData.val() == 'encontrado')"
+            },
+            "isGuest": {
+              ".validate": "newData.isBoolean()"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString()"
+            },
+            "criadorId": {
+              ".validate": "newData.isString()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "resultados": {
+          "$playerKey": {
+            ".validate": "!newData.exists() || newData.hasChildren(['playerKey', 'tipoJogador', 'codigoSala', 'modo', 'nomeCategoria', 'criadorId', 'estado', 'timestampEntrada', 'jogadores']) && newData.child('playerKey').val() == $playerKey && newData.child('modo').val() == $modo && ((newData.child('tipoJogador').val() == 'auth' && newData.child('uid').val() == $playerKey) || (newData.child('tipoJogador').val() == 'guest' && $playerKey.matches(/^guest_[A-Za-z0-9_]+$/)))",
+            "playerKey": {
+              ".validate": "newData.isString() && newData.val() == $playerKey"
+            },
+            "uid": {
+              ".validate": "newData.isString()"
+            },
+            "tipoJogador": {
+              ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
+            },
+            "modo": {
+              ".validate": "newData.isString() && newData.val() == $modo && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "nomeCategoria": {
+              ".validate": "newData.isString()"
+            },
+            "criadorId": {
+              ".validate": "newData.isString()"
+            },
+            "criadorUid": {
+              ".validate": "newData.isString()"
+            },
+            "sessionId": {
+              ".validate": "newData.isString()"
+            },
+            "estado": {
+              ".validate": "newData.isString() && newData.val() == 'encontrado'"
+            },
+            "timestampEntrada": {
+              ".validate": "newData.isNumber()"
+            },
+            "jogadores": {
+              "$jogadorId": {
+                ".validate": "newData.hasChildren(['playerKey', 'tipoJogador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('playerKey').val() == $jogadorId",
+                "playerKey": {
+                  ".validate": "newData.isString() && newData.val() == $jogadorId"
+                },
+                "uid": {
+                  ".validate": "newData.isString()"
+                },
+                "tipoJogador": {
+                  ".validate": "newData.isString() && (newData.val() == 'auth' || newData.val() == 'guest')"
+                },
+                "nomeUtilizador": {
+                  ".validate": "newData.isString()"
+                },
+                "nomeJogador": {
+                  ".validate": "newData.isString()"
+                },
+                "nomeDisplay": {
+                  ".validate": "newData.isString() && newData.val().length > 0"
+                },
+                "sessionId": {
+                  ".validate": "newData.isString()"
+                },
+                "avatar": {
+                  ".validate": "newData.isString()"
+                },
+                "timestampEntrada": {
+                  ".validate": "newData.isNumber()"
+                },
+                "estado": {
+                  ".validate": "newData.isString() && (newData.val() == 'aguardando' || newData.val() == 'encontrado')"
+                },
+                "isGuest": {
+                  ".validate": "newData.isBoolean()"
+                },
+                "$other": {
+                  ".validate": false
+                }
+              }
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "matches": {
+          "$matchId": {
+            ".validate": "!newData.exists() || newData.hasChildren(['estado', 'codigoSala', 'modo', 'criadorId', 'timestampEntrada'])",
+            "estado": {
+              ".validate": "newData.isString() && (newData.val() == 'criando' || newData.val() == 'encontrado')"
+            },
+            "codigoSala": {
+              ".validate": "newData.isString() && newData.val().matches(/^[A-Z0-9]{6}$/)"
+            },
+            "modo": {
+              ".validate": "newData.isString() && newData.val() == $modo && (newData.val() == '1x1' || newData.val() == '2x2')"
+            },
+            "criadorId": {
+              ".validate": "newData.isString()"
+            },
+            "criadorUid": {
+              ".validate": "newData.isString()"
+            },
+            "timestampEntrada": {
+              ".validate": "newData.isNumber()"
+            },
+            "$other": {
+              ".validate": false
+            }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "$other": {
+      ".read": false,
+      ".write": false,
+      ".validate": false
+    }
+  }
+}

@@ -1,0 +1,38 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="10dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_card_surface">
+
+    <!-- Avatar -->
+    <ImageView
+        android:id="@+id/imgAvatarAmigo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginEnd="10dp"
+        android:scaleType="centerCrop"/>
+
+    <!-- Estado -->
+    <View
+        android:id="@+id/viewEstadoAmigo"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/bg_estado_circle"/>
+
+    <!-- Nome -->
+    <TextView
+        android:id="@+id/txtNomeAmigo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="@string/nome_amigo"
+        android:textSize="17sp"
+        android:textColor="#000"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"/>
+</LinearLayout>

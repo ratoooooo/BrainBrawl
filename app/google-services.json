@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "1006890493686",
+    "firebase_url": "https://project-34e54-default-rtdb.europe-west1.firebasedatabase.app",
+    "project_id": "project-34e54",
+    "storage_bucket": "project-34e54.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006890493686:android:6aa8d8dd2c6c86be6a6ed7",
+        "android_client_info": {
+          "package_name": "com.example.brainbrawl"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtUSjBLnttZNG62BGUM_JtUkfb-Fpe71s"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

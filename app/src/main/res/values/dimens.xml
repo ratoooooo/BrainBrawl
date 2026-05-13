@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="bb_space_xs">4dp</dimen>
+    <dimen name="bb_space_sm">8dp</dimen>
+    <dimen name="bb_space_md">16dp</dimen>
+    <dimen name="bb_space_lg">24dp</dimen>
+    <dimen name="bb_space_xl">32dp</dimen>
+
+    <dimen name="bb_screen_padding">20dp</dimen>
+    <dimen name="bb_card_padding">18dp</dimen>
+    <dimen name="bb_radius_sm">12dp</dimen>
+    <dimen name="bb_radius_md">18dp</dimen>
+    <dimen name="bb_radius_lg">24dp</dimen>
+    <dimen name="bb_button_height">54dp</dimen>
+    <dimen name="bb_input_height">52dp</dimen>
+
+    <dimen name="bb_title_size">30sp</dimen>
+    <dimen name="bb_heading_size">22sp</dimen>
+    <dimen name="bb_body_size">16sp</dimen>
+    <dimen name="bb_caption_size">13sp</dimen>
+</resources>

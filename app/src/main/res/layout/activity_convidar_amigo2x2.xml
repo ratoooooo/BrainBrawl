@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient"
+    android:padding="@dimen/bb_space_lg">
+
+    <TextView
+        android:id="@+id/txtTituloConvidar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:text="Convidar equipa"
+        android:textAlignment="center"
+        android:textColor="@color/bb_text_primary"
+        android:textSize="@dimen/bb_title_size"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerConvidarAmigos"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/bb_space_lg"
+        android:background="@drawable/bg_card_surface"
+        android:clipToPadding="false"
+        android:padding="@dimen/bb_space_md"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloConvidar"
+        app:layout_constraintBottom_toTopOf="@+id/btnConvidar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/btnConvidar"
+        style="@android:style/Widget.Button"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/bb_button_height"
+        android:background="@drawable/bg_button_primary"
+        android:fontFamily="sans-serif-black"
+        android:text="@string/convidar_para_2x2"
+        android:textColor="@color/bb_primary_text"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="@dimen/bb_space_md"/>
+</androidx.constraintlayout.widget.ConstraintLayout>

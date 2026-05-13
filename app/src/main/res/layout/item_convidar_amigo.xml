@@ -1,0 +1,31 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:gravity="center_vertical"
+    android:background="@drawable/bg_card_surface">
+
+    <TextView
+        android:id="@+id/txtNomeAmigo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="@string/nome_do_amigo"
+        android:textSize="18sp"
+        android:textColor="#000000"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"/>
+    <Button
+        android:id="@+id/btnDesafiar"
+        android:layout_width="wrap_content"
+        android:layout_height="40dp"
+        android:text="@string/desafiar_1x1"
+        android:textColor="#000000"
+        android:textSize="14sp"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        android:background="@drawable/botao_branco_arredondado"
+        android:paddingLeft="18dp"
+        android:paddingRight="18dp"/>
+</LinearLayout>

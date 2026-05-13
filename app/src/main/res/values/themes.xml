@@ -1,0 +1,24 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme -->
+    <style name="Base.Theme.BrainBrawl" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:fontFamily">sans</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:statusBarColor">@color/bb_bg_start</item>
+        <item name="android:navigationBarColor">@color/bb_bg_end</item>
+        <item name="colorAccent">@color/bb_primary</item>
+        <item name="android:colorAccent">@color/bb_primary</item>
+        <item name="android:windowNoTitle">true</item>
+    </style>
+
+    <style name="Theme.BrainBrawl" parent="Base.Theme.BrainBrawl" />
+
+    <style name="BrainBrawlButton">
+        <item name="android:minHeight">@dimen/bb_button_height</item>
+        <item name="android:paddingStart">@dimen/bb_space_md</item>
+        <item name="android:paddingEnd">@dimen/bb_space_md</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textSize">16sp</item>
+    </style>
+</resources>

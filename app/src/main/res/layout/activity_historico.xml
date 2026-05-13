@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient"
+    android:padding="@dimen/bb_space_lg">
+
+    <TextView
+        android:id="@+id/txtTituloHistorico"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Histórico"
+        android:textAlignment="center"
+        android:textColor="@color/bb_text_primary"
+        android:textSize="@dimen/bb_title_size"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ProgressBar
+        android:id="@+id/progressHistorico"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/bb_space_lg"
+        android:indeterminateTint="@color/bb_primary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
+
+    <TextView
+        android:id="@+id/txtMensagemHistorico"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/bb_space_lg"
+        android:background="@drawable/bg_empty_state_card"
+        android:padding="@dimen/bb_space_lg"
+        android:textAlignment="center"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="@dimen/bb_body_size"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerHistorico"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/bb_space_md"
+        android:clipToPadding="false"
+        android:paddingBottom="@dimen/bb_space_sm"
+        app:layout_constraintBottom_toTopOf="@id/btnVoltarHistorico"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
+
+    <Button
+        android:id="@+id/btnVoltarHistorico"
+        style="@style/BrainBrawlButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/bb_button_height"
+        android:layout_marginTop="@dimen/bb_space_md"
+        android:background="@drawable/bg_button_primary"
+        android:text="Voltar"
+        android:textColor="@color/bb_primary_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
