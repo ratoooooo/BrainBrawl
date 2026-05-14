@@ -92,6 +92,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:clipToPadding="false"
+        android:paddingTop="6dp"
         android:layout_marginBottom="16dp"/>
 
     <!-- Lista de convites recebidos -->
@@ -111,6 +113,8 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:visibility="gone"
+        android:clipToPadding="false"
+        android:paddingTop="6dp"
         android:layout_marginBottom="16dp"/>
 
     <TextView
@@ -128,7 +132,22 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
+        android:clipToPadding="false"
         android:paddingTop="6dp"/>
+
+    <TextView
+        android:id="@+id/txtAmigosVazio"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@drawable/bg_empty_state_card"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:padding="@dimen/bb_space_lg"
+        android:text="@string/amigos_lista_vazia"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="15sp"
+        android:visibility="gone" />
 
     <!-- Botão Voltar -->
     <LinearLayout

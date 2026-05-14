@@ -39,12 +39,14 @@ class HistoricoAdapter(
         private val txtJogadores: TextView = view.findViewById(R.id.txtJogadoresHistorico)
 
         fun bind(jogo: HistoricoJogo) {
-            txtModo.text = jogo.modo.ifBlank { "Modo" }
+            val context = itemView.context
+            txtModo.text = jogo.modo.ifBlank { context.getString(R.string.modo_generico) }
             txtResultado.text = jogo.resultadoTexto
-            txtPontuacao.text = "${jogo.pontuacao.toInt()} pts"
-            txtCategoria.text = jogo.nomeCategoria.ifBlank { "Sem categoria" }
+            txtPontuacao.text = context.getString(R.string.pontos_curto_format, jogo.pontuacao.toInt())
+            txtCategoria.text = jogo.nomeCategoria.ifBlank { context.getString(R.string.sem_categoria) }
             txtData.text = if (jogo.dataHora > 0L) dateFormat.format(Date(jogo.dataHora)) else ""
-            txtJogadores.text = jogo.jogadoresDaPartida.joinToString(", ").ifBlank { jogo.codigoSala }
+            txtJogadores.text = jogo.jogadoresDaPartida.joinToString(", ")
+                .ifBlank { jogo.codigoSala.ifBlank { context.getString(R.string.historico_sem_jogadores) } }
         }
     }
 }

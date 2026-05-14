@@ -47,7 +47,7 @@ class JogadoresSalaAdapter(
         holder.viewEstadoJogador.background.setTint(cor)
 
         holder.itemView.setOnClickListener {
-            Toast.makeText(context, "Clicou em $jogador", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.jogador_clicado_format, jogador), Toast.LENGTH_SHORT).show()
         }
     }
 

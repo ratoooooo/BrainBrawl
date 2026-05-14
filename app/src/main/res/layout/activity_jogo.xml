@@ -38,7 +38,7 @@
             android:id="@+id/txt_admin"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Admin"
+            android:text="@string/admin_label"
             android:textColor="@color/bb_text_primary"
             android:textSize="18sp"
             android:fontFamily="sans-serif-black"

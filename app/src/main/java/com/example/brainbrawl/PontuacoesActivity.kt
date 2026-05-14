@@ -7,6 +7,7 @@ import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPontuacaoBinding
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
@@ -39,6 +40,11 @@ class PontuacoesActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         val totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
         val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: ""
+        val tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
+        val isGuest = intent.getBooleanExtra(
+            IntentExtras.IS_GUEST,
+            tipoJogador == GameConstants.TIPO_JOGADOR_GUEST
+        )
 
         configurarObservers()
         viewModel.iniciar(
@@ -49,7 +55,9 @@ class PontuacoesActivity : AppCompatActivity() {
                 nomeJogador = nomeJogador,
                 nomeCategoria = nomeCategoria,
                 totalPerguntas = totalPerguntas,
-                modoJogo = modoJogo
+                modoJogo = modoJogo,
+                tipoJogador = tipoJogador,
+                isGuest = isGuest
             )
         )
 

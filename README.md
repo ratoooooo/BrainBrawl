@@ -1,6 +1,8 @@
-# BrainBrawl
+# Pergunta o Luso
 
-**BrainBrawl** é uma aplicação Android multiplayer de perguntas e respostas, desenvolvida em Kotlin, onde os jogadores competem em tempo real através de salas, categorias e diferentes modos de jogo.
+**Pergunta o Luso** é uma aplicação Android multiplayer de perguntas e respostas, desenvolvida em Kotlin, onde os jogadores competem em tempo real através de salas, categorias e diferentes modos de jogo.
+
+`BrainBrawl` continua a ser o nome técnico do repositório/package durante a v1.
 
 O objetivo é simples: criar ou entrar numa sala, escolher uma categoria, responder rápido e tentar terminar no topo da pontuação. A aplicação inclui contas de jogador, avatares, amigos, convites, estatísticas, perfis e categorias personalizadas.
 
@@ -24,11 +26,13 @@ O objetivo é simples: criar ou entrar numa sala, escolher uma categoria, respon
 ### Modos de jogo
 
 - **Clássico**: jogo por categoria, com perguntas da categoria escolhida.
-- **1x1**: duelo entre dois jogadores registados.
+- **1x1 por convite**: duelo entre dois jogadores registados.
 - **2x2**: jogo por equipas, com convite de amigos.
 - **Grupo / Todos contra todos**: sala multiplayer onde vários jogadores competem pela melhor pontuação.
 - **Caótico**: perguntas misturadas de várias categorias, criando uma partida mais imprevisível.
 - **Eliminatórias**: modo disponível na navegação da app, preparado para partidas onde os jogadores podem ser eliminados.
+
+O matchmaking aleatório 1x1/2x2 está desativado na v1. Os fluxos competitivos ativos são salas, entrada por código e convites.
 
 ### Multiplayer em tempo real
 
@@ -84,7 +88,7 @@ O objetivo é simples: criar ou entrar numa sala, escolher uma categoria, respon
 
 ---
 
-## Como executar o projeto
+## Build e execução
 
 ### Requisitos
 
@@ -111,20 +115,40 @@ O objetivo é simples: criar ou entrar numa sala, escolher uma categoria, respon
 4. Executar o build:
 
    ```bash
-   ./gradlew assembleDebug
+   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug
    ```
 
 5. Para correr os testes unitários:
 
    ```bash
-   ./gradlew testDebugUnitTest
+   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest
    ```
 
-6. No Android Studio, selecionar um emulador ou dispositivo físico e carregar em **Run**.
+6. Para validar a build completa:
+
+   ```bash
+   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build
+   ```
+
+7. Para gerar APK release local:
+
+   ```bash
+   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleRelease
+   ```
+
+No Android Studio, selecionar um emulador ou dispositivo físico e carregar em **Run**.
 
 ### Nota sobre Firebase
 
 A aplicação usa o Firebase Realtime Database para guardar dados como jogadores, salas, perguntas, categorias, amigos e pontuações. Para correr o projeto fora do ambiente original, é necessário configurar um projeto Firebase compatível e garantir que as regras da base de dados permitem os fluxos esperados durante testes.
+
+### Notas de segurança v1
+
+- A arquitetura nova é UID-first, mas mantém compatibilidade legado por `nomeUtilizador`.
+- O login legado e campos password/hash antigos ainda existem para compatibilidade e devem ser migrados/removidos antes de beta público.
+- Pontuação, XP, ranking e histórico ainda são client-authoritative; a versão robusta deve usar Cloud Functions.
+- Convidados podem jogar fluxos permitidos, mas não devem gravar XP, estatísticas, histórico, ranking ou conquistas.
+- O matchmaking aleatório continua desativado e só deve voltar numa branch/fase própria.
 
 ---
 
@@ -268,4 +292,4 @@ Projeto académico desenvolvido no contexto de aprendizagem de desenvolvimento A
 
 ## Estado do projeto
 
-O BrainBrawl encontra-se em desenvolvimento ativo. A base principal de autenticação, salas multiplayer, modos de jogo, categorias, pontuação, amigos e perfil já está implementada, com espaço para melhorias de segurança, testes e polimento visual.
+Pergunta o Luso está preparado como v1 Android para teste interno. A base principal de autenticação, salas multiplayer, modos de jogo, categorias, pontuação, amigos, perfil e conquistas já está implementada, com riscos de segurança conhecidos documentados para resolver antes de beta público.

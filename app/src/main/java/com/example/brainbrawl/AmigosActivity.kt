@@ -180,6 +180,8 @@ class AmigosActivity : AppCompatActivity() {
         avataresAmigos.addAll(estado.avatares)
         estadoAmigos.addAll(estado.estados)
         amigoAdapter.notifyDataSetChanged()
+        binding.recyclerAmigos.visibility = if (amigos.isEmpty()) android.view.View.GONE else android.view.View.VISIBLE
+        binding.txtAmigosVazio.visibility = if (amigos.isEmpty()) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     // Função para atualizar os convites recebidos

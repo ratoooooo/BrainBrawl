@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Pergunta ó Luso</string>
+    <string name="app_name">Pergunta o Luso</string>
     <string name="brand_pergunta">PERGUNTA</string>
-    <string name="brand_o_luso">Ó LUSO</string>
-    <string name="brand_full_caps">PERGUNTA Ó LUSO</string>
+    <string name="brand_o_luso">O LUSO</string>
+    <string name="brand_full_caps">PERGUNTA O LUSO</string>
     <string name="email">Email</string>
     <string name="email_ou_nome">Email or name</string>
     <string name="mostrar_password">Show password</string>
@@ -130,6 +130,23 @@
     <string name="carregar_perguntas">Fragen werden geladen...</string>
     <string name="cronometro_inicial">20.00</string>
     <string name="jogar_novamente">Nochmal spielen</string>
+    <string name="admin_label">Admin</string>
+    <string name="bonus_sequencia_format">Serienbonus! +%1$d Punkte</string>
+    <string name="admin_observar_respostas">Als Admin kannst du die Antworten nur beobachten.</string>
+    <string name="erro_carregar_sala_format">Fehler beim Laden des Raums: %1$s</string>
+    <string name="erro_carregar_perguntas_format">Fehler beim Laden der Fragen: %1$s</string>
+    <string name="erro_estado_sala_format">Fehler beim Prüfen des Raumstatus: %1$s</string>
+    <string name="erro_verificar_jogadores">Fehler beim Prüfen der Spieler.</string>
+    <string name="erro_eliminar_jogador">Fehler beim Entfernen des Spielers. Versuche es erneut.</string>
+    <string name="jogo_terminado_um_jogador">Spiel beendet! Nur ein Spieler bleibt übrig.</string>
+    <string name="jogador_eliminado">Du wurdest eliminiert!</string>
+    <string name="aguardar_fim_partida">Warte auf das Ende der Partie...</string>
+    <string name="erro_ler_categoria">Fehler beim Lesen der Kategorie.</string>
+    <string name="erro_guardar_pontuacao">Fehler beim Speichern der Punktzahl.</string>
+    <string name="aguarde_adversario_terminar">Warte, bis dein Gegner fertig ist.</string>
+    <string name="aguarde_todos_terminarem">Warte, bis alle fertig sind.</string>
+    <string name="erro_verificar_podio">Fehler beim Prüfen des Podiums.</string>
+    <string name="erro_carregar_equipa">Fehler beim Laden des Teams.</string>
     <string name="escolha_categoria">Kategorie auswählen</string>
     <string name="categoria_historia">Geschichte</string>
     <string name="categoria_geografia">Geografie</string>
@@ -148,6 +165,9 @@
     <string name="login_guardar_categorias">Sign in to save categories.</string>
     <string name="login_avaliar_categorias">Sign in to rate categories.</string>
     <string name="login_gerir_categorias">Sign in to manage categories.</string>
+    <string name="avaliar">Bewerten</string>
+    <string name="categoria_criador_format">von %1$s</string>
+    <string name="categoria_metricas_format">%1$d Fragen  •  %2$d Nutzungen  •  %3$s</string>
     <string name="categoria_guardada">Category saved to your categories.</string>
     <string name="categoria_eliminada">Category deleted.</string>
     <string name="categoria_publica_guardada">Public category saved.</string>
@@ -172,6 +192,15 @@
     <string name="categoria5">Alle Kategorien</string>
     <string name="categoria6">Gentilize</string>
     <string name="info_categorias">Kategorietipps anzeigen</string>
+    <string name="dica_categorias_titulo">Kategorien</string>
+    <string name="dica_historia_texto">Daten, Völker und wichtige Ereignisse.</string>
+    <string name="dica_geografia_texto">Hauptstädte, Flüsse, Länder und Karten.</string>
+    <string name="dica_desporto_texto">Vereine, Athleten, Regeln und Wettbewerbe.</string>
+    <string name="dica_cultura_geral_texto">Wissenschaft, Kunst, Musik, Kino und Kurioses.</string>
+    <string name="dica_gentilicos_texto">Wie Menschen aus jedem Ort genannt werden.</string>
+    <string name="dica_todas_texto">Mischt Fragen aus mehreren Bereichen.</string>
+    <string name="dica_explorar_titulo">Entdecken</string>
+    <string name="dica_explorar_texto">Sieh dir öffentliche Kategorien an oder erstelle eigene Fragen.</string>
     <string name="escolher_modo_jogo">Modus auswählen</string>
     <string name="escolher_modo">Choose mode</string>
     <string name="modo_classico">Klassisch</string>
@@ -182,6 +211,10 @@
     <string name="voltar_para_main_activity">Zurück zum Hauptbildschirm</string>
     <string name="modo_caotico">Chaotisch</string>
     <string name="info_todos">Erklärung aller Modi anzeigen</string>
+    <string name="dica_modos_titulo">Spielmodi</string>
+    <string name="dica_modo_classico_texto">Fragen aus der gewählten Kategorie. Die höchste Punktzahl gewinnt.</string>
+    <string name="dica_modo_caotico_texto">Gemischte Fragen aus allen Kategorien, mit weniger Zeit.</string>
+    <string name="dica_modo_eliminatorias_texto">Wer falsch antwortet, kann ausscheiden. Der letzte Spieler gewinnt.</string>
     <string name="info_todos_modos">
         • <b>Klassischer Modus:</b> Beantworte Fragen aus der gewählten Kategorie. Spiele mit anderen und gewinne mit den meisten Punkten!
 
@@ -270,6 +303,22 @@
     <string name="desafiar_1x1">1-gegen-1 herausfordern</string>
     <string name="convite_de">Einladung von:</string>
     <string name="convite_de_format">Invite from: %1$s</string>
+    <string name="convite_enviado_para_format">Einladung an %1$s gesendet.</string>
+    <string name="erro_enviar_convite">Fehler beim Senden der Einladung.</string>
+    <string name="seleciona_3_amigos_2x2">Wähle 3 Freunde aus, um das 2-gegen-2 zu vervollständigen.</string>
+    <string name="convite_2x2_enviado">2-gegen-2-Einladung gesendet.</string>
+    <string name="erro_enviar_convite_2x2">Fehler beim Senden der 2-gegen-2-Einladung.</string>
+    <string name="erro_aguardar_fim_jogo">Fehler beim Warten auf das Spielende.</string>
+    <string name="jogador_clicado_format">Spieler: %1$s</string>
+    <string name="criar_nova_categoria">Neue Kategorie erstellen</string>
+    <string name="sem_categorias_personalizadas">Du hast noch keine eigenen Kategorien.</string>
+    <string name="estado_publica">Öffentlich</string>
+    <string name="estado_privada">Privat</string>
+    <string name="jogar">Spielen</string>
+    <string name="atualizar_publica">Öffentliche aktualisieren</string>
+    <string name="tornar_publica">Öffentlich machen</string>
+    <string name="remover_publica">Öffentliche entfernen</string>
+    <string name="categorias_personalizadas">Eigene Kategorien</string>
     <string name="nome_utilizador_placeholder">Username</string>
     <string name="top_10_arena">Arena top 10</string>
     <string name="ranking_solo">Solo</string>
@@ -292,6 +341,11 @@
     <string name="nome_jogador">Spielername</string>
     <string name="avatar_do_jogador">Spieler-Avatar</string>
     <string name="pontos">Points</string>
+    <string name="pontos_curto_format">%1$d pts</string>
+    <string name="modo_generico">Mode</string>
+    <string name="sem_categoria">No category</string>
+    <string name="historico_sem_jogadores">No players recorded</string>
+    <string name="amigos_lista_vazia">You have no friends added yet.</string>
     <string name="posicao_ranking_format">#%1$d</string>
     <string name="nome_nivel_format">%1$s • Lv %2$d</string>
     <string name="jogos_format">Games: %1$d</string>
@@ -322,15 +376,27 @@
     <string name="total_de_vit_rias_0">Gesamtsiege:</string>
     <string name="total_de_vitorias">Gesamtsiege</string>
     <string name="total_de_vitorias_format">Total Wins: %1$d</string>
+    <string name="total_de_derrotas">Total Losses</string>
+    <string name="total_de_derrotas_format">Total Losses: %1$d</string>
     <string name="vit_rias">Siege</string>
     <string name="jogos">Spiele</string>
     <string name="respostas_certas">Richtige Antworten</string>
     <string name="respostas_certas_abrev">Correct</string>
     <string name="total_de_respostas_certas">Gesamtzahl richtiger Antworten</string>
+    <string name="total_de_respostas_certas_format">Total Correct Answers: %1$d</string>
     <string name="taxa_de_vit_ria">Siegquote:</string>
     <string name="taxa_de_acertos">Trefferquote</string>
     <string name="taxa_de_acertos_format">Accuracy Rate: %1$.1f%%</string>
     <string name="taxa_de_vitoria_format">Win Rate: %1$.1f%%</string>
+    <string name="xp_total_format">Total XP: %1$d</string>
+    <string name="resumo_competitivo">Competitive summary</string>
+    <string name="conquista">Badge</string>
+    <string name="conquistas">Badges</string>
+    <string name="conquistas_client_side">Unlocks saved to this account.</string>
+    <string name="conquistas_sem_persistencia">Guests see locked badges without saving.</string>
+    <string name="conquista_desbloqueada">Unlocked</string>
+    <string name="conquista_bloqueada">Locked</string>
+    <string name="badge_progresso_format">%1$d / %2$d</string>
     <string name="perfil_indisponivel">Could not open the profile.</string>
     <string name="nome_utilizador_exemplo">Username</string>
 </resources>

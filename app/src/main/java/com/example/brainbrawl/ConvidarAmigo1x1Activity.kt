@@ -55,7 +55,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                 categoriaSelecionada,
                 dadosCategoriaSelecionada()
             ).addOnSuccessListener {
-                Toast.makeText(this, "Convite enviado para ${amigoSelecionado.nomeDisplay}!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.convite_enviado_para_format, amigoSelecionado.nomeDisplay), Toast.LENGTH_SHORT).show()
                 // Envia o utilizador para a sala de espera 1x1
                 val intent = Intent(this, SalaDeEspera1x1Activity::class.java)
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
@@ -65,7 +65,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
                 startActivity(intent)
                 finish()
             }.addOnFailureListener {
-                Toast.makeText(this, "Erro ao enviar convite.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_enviar_convite), Toast.LENGTH_SHORT).show()
             }
         }
         binding.recyclerConvidarAmigos.layoutManager = LinearLayoutManager(this)
@@ -105,13 +105,14 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
             )
         }
 
-        val donoLegado = donoCategoria.orEmpty().ifBlank { nomeUtilizador }
-        return if (!donoUid.isNullOrBlank() || donoLegado.isNotBlank()) {
+        val donoUidExplicito = donoUid.orEmpty().trim()
+        val donoLegadoExplicito = donoCategoria.orEmpty().trim()
+        return if (donoUidExplicito.isNotBlank() || donoLegadoExplicito.isNotBlank()) {
             val dados = linkedMapOf<String, Any>(
                 "categoriaPersonalizada" to true,
-                "donoCategoria" to donoLegado
+                "donoCategoria" to donoLegadoExplicito.ifBlank { nomeUtilizador }
             )
-            donoUid?.takeIf { it.isNotBlank() }?.let { dados[FirebasePaths.DONO_UID] = it }
+            donoUidExplicito.takeIf { it.isNotBlank() }?.let { dados[FirebasePaths.DONO_UID] = it }
             dados
         } else {
             emptyMap()

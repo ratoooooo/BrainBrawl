@@ -114,14 +114,14 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     private fun mostrarDicasCategorias() {
         UteisDicas.mostrarDicas(
             this,
-            "Categorias",
+            getString(R.string.dica_categorias_titulo),
             listOf(
-                "História" to "Datas, povos e acontecimentos marcantes.",
-                "Geografia" to "Países, capitais, rios e mapas.",
-                "Desporto" to "Modalidades, atletas e grandes provas.",
-                "Cultura Geral" to "Conhecimento variado para todos.",
-                "Gentílicos" to "Nomes de povos e localidades.",
-                "Explorar" to "Categorias públicas e personalizadas ficam no ecrã Explorar Categorias."
+                getString(R.string.categoria_historia) to getString(R.string.dica_historia_texto),
+                getString(R.string.categoria_geografia) to getString(R.string.dica_geografia_texto),
+                getString(R.string.categoria_desporto) to getString(R.string.dica_desporto_texto),
+                getString(R.string.categoria_cultura_geral) to getString(R.string.dica_cultura_geral_texto),
+                getString(R.string.categoria6) to getString(R.string.dica_gentilicos_texto),
+                getString(R.string.dica_explorar_titulo) to getString(R.string.dica_explorar_texto)
             )
         )
     }
@@ -152,15 +152,15 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         when (evento) {
             CategoriasEvent.CategoriaCriada -> Unit
             CategoriasEvent.CategoriaEliminada -> {
-                Toast.makeText(this, "Categoria eliminada.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.categoria_eliminada), Toast.LENGTH_SHORT).show()
                 recarregarDialogCategorias()
             }
             CategoriasEvent.CategoriaPublicada -> {
-                Toast.makeText(this, "Categoria pública guardada.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.categoria_publica_guardada), Toast.LENGTH_SHORT).show()
                 recarregarDialogCategorias()
             }
             CategoriasEvent.CategoriaPublicaRemovida -> {
-                Toast.makeText(this, "Categoria pública removida.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.categoria_publica_removida), Toast.LENGTH_SHORT).show()
                 recarregarDialogCategorias()
             }
             is CategoriasEvent.Erro -> {
@@ -190,7 +190,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                 lateinit var dialog: AlertDialog
 
                 val btnCriar = Button(this).apply {
-                    text = "Criar nova categoria"
+                    text = getString(R.string.criar_nova_categoria)
                     setOnClickListener {
                         dialog.dismiss()
                         abrirAdicionarPerguntaActivity(
@@ -206,7 +206,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
 
                 if (estado.personalizadas.isEmpty()) {
                     lista.addView(TextView(this).apply {
-                        text = "Ainda não tens categorias personalizadas."
+                        text = getString(R.string.sem_categorias_personalizadas)
                         textSize = 16f
                         setPadding(0, 16, 0, 8)
                     })
@@ -227,7 +227,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                         setPadding(0, 0, 0, 8)
                     })
                     container.addView(TextView(this).apply {
-                        text = if (jaPublica) "Pública" else "Privada"
+                        text = if (jaPublica) getString(R.string.estado_publica) else getString(R.string.estado_privada)
                         textSize = 14f
                         setPadding(0, 0, 0, 8)
                     })
@@ -240,7 +240,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                         )
                     }
 
-                    botoes.addView(criarBotaoCategoria("Jogar") {
+                    botoes.addView(criarBotaoCategoria(getString(R.string.jogar)) {
                         dialog.dismiss()
                         codigoSala = gerarCodigoSala()
                         criarSalaPersonalizadaEEntrar(
@@ -254,7 +254,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                         ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
                     })
 
-                    botoes.addView(criarBotaoCategoria("Editar") {
+                    botoes.addView(criarBotaoCategoria(getString(R.string.editar_categoria)) {
                         dialog.dismiss()
                         abrirAdicionarPerguntaActivity(
                             contexto.modo,
@@ -265,7 +265,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                         )
                     })
 
-                    botoes.addView(criarBotaoCategoria("Eliminar") {
+                    botoes.addView(criarBotaoCategoria(getString(R.string.eliminar)) {
                         confirmarEliminarCategoria(categoria.nome)
                     })
 
@@ -278,11 +278,11 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                             ViewGroup.LayoutParams.WRAP_CONTENT
                         )
                     }
-                    botoesPublicos.addView(criarBotaoCategoria(if (jaPublica) "Atualizar pública" else "Tornar pública") {
+                    botoesPublicos.addView(criarBotaoCategoria(if (jaPublica) getString(R.string.atualizar_publica) else getString(R.string.tornar_publica)) {
                         viewModel.publicarCategoria(contexto.uid.orEmpty(), contexto.nomeUtilizador, contexto.nomeJogador, categoria.nome)
                     })
                     if (jaPublica) {
-                        botoesPublicos.addView(criarBotaoCategoria("Remover pública") {
+                        botoesPublicos.addView(criarBotaoCategoria(getString(R.string.remover_publica)) {
                             viewModel.removerCategoriaPublica(contexto.uid.orEmpty(), contexto.nomeUtilizador, categoria.nome)
                         })
                     }
@@ -291,9 +291,9 @@ class EscolherCategoriaActivity : AppCompatActivity() {
                 }
 
                 dialog = AlertDialog.Builder(this)
-                    .setTitle("Categorias personalizadas")
+                    .setTitle(getString(R.string.categorias_personalizadas))
                     .setView(scrollView)
-                    .setNegativeButton("Voltar", null)
+                    .setNegativeButton(getString(R.string.voltar), null)
                     .create()
                 dialog.show()
                 dialogCategoriasPersonalizadas = dialog
@@ -318,10 +318,10 @@ class EscolherCategoriaActivity : AppCompatActivity() {
     ) {
         val contexto = contextoCategorias ?: return
         AlertDialog.Builder(this)
-            .setTitle("Eliminar categoria")
-            .setMessage("Queres eliminar \"$categoria\"?")
-            .setNegativeButton("Cancelar", null)
-            .setPositiveButton("Eliminar") { _, _ ->
+            .setTitle(getString(R.string.eliminar_categoria))
+            .setMessage(getString(R.string.confirmar_eliminar_categoria_format, categoria))
+            .setNegativeButton(getString(R.string.cancelar), null)
+            .setPositiveButton(getString(R.string.eliminar)) { _, _ ->
                 viewModel.eliminarCategoria(contexto.uid.orEmpty(), contexto.nomeUtilizador, categoria)
             }
             .show()

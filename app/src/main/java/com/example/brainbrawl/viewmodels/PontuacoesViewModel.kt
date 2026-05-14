@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.HistoricoJogo
 import com.example.brainbrawl.repositories.HistoricoRepository
 import com.example.brainbrawl.repositories.PontuacaoRepository
@@ -147,10 +148,15 @@ data class PontuacoesInput(
     val nomeJogador: String,
     val nomeCategoria: String,
     val totalPerguntas: Int,
-    val modoJogo: String
+    val modoJogo: String,
+    val tipoJogador: String = "",
+    val isGuest: Boolean = false
 ) {
     fun podeGravarPersistente(): Boolean {
-        return uid.isNotBlank()
+        return uid.isNotBlank() &&
+            !uid.startsWith("guest_") &&
+            !isGuest &&
+            tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
     }
 
     fun identificadoresJogadorAtual(): List<String> {

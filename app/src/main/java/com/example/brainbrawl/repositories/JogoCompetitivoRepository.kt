@@ -16,6 +16,11 @@ import com.google.firebase.database.ServerValue
 import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
+}
+
 class JogoCompetitivoRepository(
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 ) {
@@ -86,8 +91,9 @@ class JogoCompetitivoRepository(
                     if (chaveExistente == null) {
                         Log.w(
                             TAG,
-                            "Entrada bloqueada em sala fechada: modo=${modo.node} codigo=$codigoSala " +
-                                "playerKey=${jogador.playerKey.ifBlank { jogador.uid }}"
+                            "Entrada bloqueada em sala fechada: modo=${modo.node} " +
+                                "codigo=${codigoSala.maskedLogId()} " +
+                                "player=${jogador.playerKey.ifBlank { jogador.uid }.maskedLogId()}"
                         )
                         result.setException(IllegalStateException("Sala fechada para jogadores selecionados."))
                         return@addOnSuccessListener
@@ -196,7 +202,7 @@ class JogoCompetitivoRepository(
                     return
                 }
                 if (!committed) {
-                    Log.w(TAG, "Reserva bloqueada em sala cheia: modo=${modo.node} codigo=$codigoSala limite=$limite")
+                    Log.w(TAG, "Reserva bloqueada em sala cheia: modo=${modo.node} codigo=${codigoSala.maskedLogId()} limite=$limite")
                     result.setException(
                         IllegalStateException(
                             if (salaCheia) "Sala ${modo.node}/$codigoSala cheia: limite=$limite" else "Entrada nao reservada."
@@ -495,12 +501,21 @@ class JogoCompetitivoRepository(
 
         perguntasRef.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
-                result.setResult(snapshot.toPerguntas())
+                val perguntas = snapshot.toPerguntas()
+                if (perguntas.isNotEmpty()) {
+                    result.setResult(perguntas)
+                } else {
+                    result.setException(IllegalStateException("Sala sem perguntas validas."))
+                }
                 return@addOnSuccessListener
             }
 
             buscarPerguntasAleatorias(modo, codigoSala, categoria, categoriaTodas)
-                .addOnSuccessListener { perguntasAleatorias ->
+                .addOnSuccessListener perguntasAleatoriasListener@ { perguntasAleatorias ->
+                    if (perguntasAleatorias.isEmpty()) {
+                        result.setException(IllegalStateException("Categoria sem perguntas validas."))
+                        return@perguntasAleatoriasListener
+                    }
                     guardarPerguntasSeAusentes(perguntasRef, perguntasAleatorias)
                         .addOnSuccessListener { perguntasGuardadas ->
                             result.setResult(perguntasGuardadas)
@@ -717,7 +732,14 @@ class JogoCompetitivoRepository(
                         .child(categoriaPublicaId)
                         .child(FirebasePaths.PERGUNTAS)
                         .get()
-                        .addOnSuccessListener { result.setResult(it.toPerguntas().shuffled().take(8)) }
+                        .addOnSuccessListener {
+                            val perguntas = it.toPerguntas().shuffled().take(8)
+                            if (perguntas.isNotEmpty()) {
+                                result.setResult(perguntas)
+                            } else {
+                                result.setException(IllegalStateException("Categoria publica sem perguntas validas."))
+                            }
+                        }
                         .addOnFailureListener { result.setException(it) }
                     return@addOnSuccessListener
                 }
@@ -748,7 +770,7 @@ class JogoCompetitivoRepository(
         index: Int = 0
     ) {
         if (index >= donosPossiveis.size) {
-            result.setException(IllegalStateException("Erro ao buscar perguntas personalizadas."))
+            result.setException(IllegalStateException("Categoria personalizada sem perguntas validas."))
             return
         }
 
@@ -780,15 +802,23 @@ class JogoCompetitivoRepository(
         return if (categoria == categoriaTodas || categoria.isEmpty()) {
             categoriasRef.get().continueWith { taskSnapshot ->
                 if (!taskSnapshot.isSuccessful) throw taskSnapshot.exception ?: IllegalStateException("Erro ao buscar perguntas.")
-                taskSnapshot.result.children
+                val perguntas = taskSnapshot.result.children
                     .flatMap { categoriaSnapshot -> categoriaSnapshot.child(FirebasePaths.PERGUNTAS).toPerguntas() }
                     .shuffled()
                     .take(8)
+                if (perguntas.isEmpty()) {
+                    throw IllegalStateException("Sem perguntas validas nas categorias oficiais.")
+                }
+                perguntas
             }
         } else {
             categoriasRef.child(categoria).child(FirebasePaths.PERGUNTAS).get().continueWith { taskSnapshot ->
                 if (!taskSnapshot.isSuccessful) throw taskSnapshot.exception ?: IllegalStateException("Erro ao buscar perguntas.")
-                taskSnapshot.result.toPerguntas().shuffled().take(8)
+                val perguntas = taskSnapshot.result.toPerguntas().shuffled().take(8)
+                if (perguntas.isEmpty()) {
+                    throw IllegalStateException("Sem perguntas validas para a categoria $categoria.")
+                }
+                perguntas
             }
         }
     }
@@ -814,7 +844,12 @@ class JogoCompetitivoRepository(
                 }
 
                 perguntasRef.get().addOnSuccessListener { snapshot ->
-                    result.setResult(snapshot.toPerguntas())
+                    val perguntas = snapshot.toPerguntas()
+                    if (perguntas.isNotEmpty()) {
+                        result.setResult(perguntas)
+                    } else {
+                        result.setException(IllegalStateException("Sala sem perguntas validas."))
+                    }
                 }.addOnFailureListener { exception ->
                     result.setException(exception)
                 }
@@ -977,26 +1012,32 @@ class JogoCompetitivoRepository(
 
     private fun DataSnapshot.toPerguntas(): List<Pergunta> {
         return children.mapNotNull { perguntaSnapshot ->
-            val perguntaCompleta = perguntaSnapshot.getValue(Pergunta::class.java)
-            if (perguntaCompleta != null && perguntaCompleta.opcoes.size == 4) {
-                return@mapNotNull perguntaCompleta
-            }
-
-            val pergunta = perguntaSnapshot.child(FirebasePaths.PERGUNTA).getValue(String::class.java)
-            val respostaCorreta = perguntaSnapshot.child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java)
-            val opcoes = perguntaSnapshot.child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
-            if (pergunta != null && respostaCorreta != null && opcoes.size == 4) {
-                Pergunta(
-                    pergunta = pergunta,
-                    respostaCorreta = respostaCorreta,
-                    opcoes = opcoes,
-                    imagem = perguntaSnapshot.child(FirebasePaths.IMAGEM).texto(),
-                    dificuldade = perguntaSnapshot.child(FirebasePaths.DIFICULDADE).texto().takeIf { it in DIFICULDADES_VALIDAS }
-                )
-            } else {
-                null
-            }
+            perguntaSnapshot.toPerguntaValida()
         }
+    }
+
+    private fun DataSnapshot.toPerguntaValida(): Pergunta? {
+        val pergunta = child(FirebasePaths.PERGUNTA).getValue(String::class.java)?.trim()
+        val respostaCorreta = child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java)?.trim()
+        val opcoesOrigem = child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
+        val opcoes = opcoesOrigem
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+
+        if (pergunta.isNullOrBlank() || respostaCorreta.isNullOrBlank()) return null
+        if (respostaCorreta !in opcoes) return null
+
+        val opcoesErradas = opcoes.filterNot { it == respostaCorreta }
+        if (opcoesErradas.size < 3) return null
+
+        return Pergunta(
+            pergunta = pergunta,
+            respostaCorreta = respostaCorreta,
+            opcoes = (listOf(respostaCorreta) + opcoesErradas.take(3)),
+            imagem = child(FirebasePaths.IMAGEM).texto(),
+            dificuldade = child(FirebasePaths.DIFICULDADE).texto().takeIf { it in DIFICULDADES_VALIDAS }
+        )
     }
 
     private companion object {

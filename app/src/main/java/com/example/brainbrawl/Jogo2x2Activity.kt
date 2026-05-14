@@ -107,7 +107,7 @@ class Jogo2x2Activity : AppCompatActivity() {
     private fun mostrarPergunta(estado: JogoCompetitivoPerguntaUiState) {
         handler.removeCallbacksAndMessages(null)
         perguntaAtual = estado.pergunta
-        binding.txtProgresso.text = "Pergunta ${estado.indice + 1}/${estado.totalPerguntas}"
+        binding.txtProgresso.text = getString(R.string.progresso_pergunta, estado.indice + 1, estado.totalPerguntas)
         binding.txtPergunta.text = perguntaAtual.pergunta
 
         opcoesAtuais = obterOpcoesAleatorias(perguntaAtual)
@@ -172,7 +172,7 @@ class Jogo2x2Activity : AppCompatActivity() {
             if (resultado.bonusAplicado > 0) {
                 Toast.makeText(
                     this,
-                    "Bónus de sequência! +${resultado.bonusAplicado} pontos",
+                    getString(R.string.bonus_sequencia_format, resultado.bonusAplicado),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -258,11 +258,11 @@ class Jogo2x2Activity : AppCompatActivity() {
                 iniciarCronometro(evento.horaInicio)
             }
             Jogo2x2Event.ErroLerCategoria -> {
-                Toast.makeText(this, "Erro ao ler categoria!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_ler_categoria), Toast.LENGTH_SHORT).show()
                 finish()
             }
             Jogo2x2Event.ErroCarregarEquipa -> {
-                Toast.makeText(this, "Erro ao carregar equipa!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_carregar_equipa), Toast.LENGTH_SHORT).show()
                 finish()
             }
             is Jogo2x2Event.ErroPerguntas -> {
@@ -270,10 +270,10 @@ class Jogo2x2Activity : AppCompatActivity() {
                 finish()
             }
             Jogo2x2Event.AguardarJogadores -> {
-                Toast.makeText(this@Jogo2x2Activity, "Aguarde que todos terminem!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Jogo2x2Activity, getString(R.string.aguarde_todos_terminarem), Toast.LENGTH_SHORT).show()
             }
             Jogo2x2Event.ErroPodio -> {
-                Toast.makeText(this@Jogo2x2Activity, "Erro ao verificar pódio!", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this@Jogo2x2Activity, getString(R.string.erro_verificar_podio), Toast.LENGTH_SHORT).show()
             }
             Jogo2x2Event.FinalizarJogo -> finalizarJogo()
             is Jogo2x2Event.AbrirPontuacoes -> abrirPontuacoes(evento.dados)

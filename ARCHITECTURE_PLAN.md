@@ -1,5 +1,48 @@
 # Pergunta o Luso - Architecture Plan
 
+## Estado v1 final - Release Prep - 2026-05-14
+
+- A v1 Android mantém arquitetura UID-first para dados autenticados novos, preservando compatibilidade legado por `nomeUtilizador` em leituras e fallbacks onde ainda existem dados antigos.
+- `FirebasePaths` centraliza os nomes de paths/campos Firebase usados pelos repositories e viewmodels; `IntentExtras` centraliza chaves de navegação entre Activities.
+- O padrão atual é MVVM parcial: Activities principais focam UI/ViewBinding/navegação, ViewModels concentram estado/orquestração, Repositories falam com Firebase e Services guardam lógica pura quando já migrada.
+- `LoginActivity` continua como launcher no `AndroidManifest.xml`; a app label usa `@string/app_name` com nome visível `Pergunta o Luso`.
+- `MatchmakingActivity` não está registada no manifest nem é aberta pela Main. Os ficheiros de matchmaking permanecem no repositório apenas como código desativado/histórico; o matchmaking aleatório só deve voltar numa branch nova.
+- Convidados continuam temporários: podem jogar fluxos permitidos, mas os guardas de pontuação/histórico/badges/ranking impedem persistência indevida quando `isGuest`, `TIPO_JOGADOR_GUEST`, `uid` vazio ou `guest_`.
+- Firebase Rules não foram alteradas no Release Prep. Riscos de segurança R1/R2/R3 continuam documentados em `FIREBASE_RULES_NOTES.md`.
+- Manifest v1: apenas `LoginActivity` está exportada por ser launcher; activities internas continuam `exported=false`; a permissão de notificações do sistema foi removida por não haver API de notificações Android em uso.
+- Assets v1: launcher icon aponta para `@mipmap/avatar_14`/`avatar_14_round`, ambos existentes; badges suportam assets locais por fallback, sem URLs remotos.
+
+### Riscos pendentes para depois da v1
+
+- Separar dados públicos/privados de jogadores e remover `jogadores.read=true` quando houver migração.
+- Remover password/hash legado após migração completa para Firebase Auth.
+- Mover fecho de pontuação, XP, ranking, histórico e conquistas para Cloud Functions.
+- Usar Firebase Anonymous Auth ou contrato equivalente para convidados, reduzindo writes amplos em salas.
+- Reintroduzir matchmaking aleatório apenas numa branch nova, com contrato atómico e backend/rules revistos.
+
+### Próximas fases pós-v1 sugeridas
+
+- V1 Release QA manual em dispositivo real.
+- Firebase Security Hardening: jogadores públicos/privados, passwords legadas e rules.
+- Backend autoritativo com Cloud Functions para pontuação/XP/ranking/histórico/conquistas.
+- Firebase Anonymous Auth para convidados.
+- Perguntas com imagem e pipeline de assets.
+- Badges/assets finais com imagens locais completas.
+- Versão iOS/Swift apenas depois da v1 Android estar fechada e testada.
+
+## Perfil competitivo e badges v1 - 2026-05-14
+
+- `BadgesService` concentra a logica pura de conquistas: define familias/thresholds, calcula progresso atual, marca badges bloqueadas/desbloqueadas e devolve a lista de badges novas a gravar.
+- `BadgesRepository` e o unico ponto novo que fala com Firebase para conquistas. Le `conquistas/{uid}` e grava `conquistas/{uid}/{badgeId}` por transaction idempotente, sem sobrescrever timestamp existente.
+- `MeuPerfilViewModel` passa a orquestrar perfil + stats + badges: carrega o perfil via `JogadorRepository`, calcula taxa de vitoria/derrotas derivadas, pede ao service a lista de badges e pede ao repository para persistir apenas as desbloqueadas novas.
+- `MeuPerfilActivity` fica responsavel por renderizacao: avatar, resumo competitivo e grelha de badges. A Activity resolve imagens locais por nome de drawable com fallback seguro, mas nao decide thresholds nem escreve Firebase.
+- `Badge`/`BadgeFamily` modelam id, familia, nome, descricao, condicao, estado, `drawableName`, progresso e objetivo.
+- A estrategia de assets locais usa nomes previsiveis (`rc10`, `pj100`, `vt500`, etc.) em `res/drawable` ou `res/drawable-nodpi`. Como os ficheiros podem ainda nao existir, a resolucao usa `resources.getIdentifier` nesta fase e fallback para `badge_default`/`badge_locked` quando forem adicionados, ou icones internos se continuarem ausentes.
+- Conquistas sao UID-first e so persistem quando `FirebaseAuth.currentUser.uid` corresponde ao perfil carregado. Convidados e perfis sem Auth veem badges bloqueadas sem leitura/escrita em `conquistas`.
+- O campo atual `totalRespostasCertas` ja existe no perfil e e atualizado pelo fluxo de estatisticas, por isso a familia RC fica ativa sem inventar dados.
+- Pontuacao base, calculo de XP, ranking, historico, convites, salas, categorias e compatibilidade legado por `nomeUtilizador` nao foram alterados.
+- Matchmaking aleatorio continua desativado e nao ganhou entrada nova.
+
 ## Atualizacao categorias personalizadas, modo por categoria e Main - 2026-05-11
 
 - Categorias personalizadas passam a ser geridas em `ExplorarCategoriasActivity`, junto das categorias publicas e da criacao de categoria.

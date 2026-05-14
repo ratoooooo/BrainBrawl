@@ -16,10 +16,10 @@
           ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
         "nome": {
-          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+          ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 60 && (!data.exists() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())))"
         },
         "descricao": {
-          ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+          ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length <= 300 && (!data.exists() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())))"
         },
         "criador": {
           ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
@@ -40,18 +40,18 @@
           ".validate": "!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val()",
           "$perguntaId": {
             "pergunta": {
-              ".validate": "newData.isString()"
+              ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 300))"
             },
             "respostaCorreta": {
-              ".validate": "newData.isString()"
+              ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 120))"
             },
             "opcoes": {
               "$opcaoId": {
-                ".validate": "newData.isString()"
+                ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 120))"
               }
             },
             "imagem": {
-              ".validate": "newData.isString()"
+              ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || newData.val().length <= 500)"
             },
             "dificuldade": {
               ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
@@ -262,10 +262,10 @@
           "$nomeCategoria": {
             ".write": "(auth != null && (auth.uid == $jogadorId || root.child('jogadores').child(auth.uid).child('nomeUtilizador').val() == $jogadorId)) || (auth == null && root.child('jogadores').child($jogadorId).child('password').exists())",
             "nome": {
-              ".validate": "newData.isString()"
+              ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 60))"
             },
             "descricao": {
-              ".validate": "newData.isString()"
+              ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || newData.val().length <= 300)"
             },
             "categoriaPublicaId": {
               ".validate": "newData.isString()"
@@ -297,18 +297,18 @@
             "perguntas": {
               "$perguntaId": {
                 "pergunta": {
-                  ".validate": "newData.isString()"
+                  ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 300))"
                 },
                 "respostaCorreta": {
-                  ".validate": "newData.isString()"
+                  ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 120))"
                 },
                 "opcoes": {
                   "$opcaoId": {
-                    ".validate": "newData.isString()"
+                    ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 120))"
                   }
                 },
                 "imagem": {
-                  ".validate": "newData.isString()"
+                  ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || newData.val().length <= 500)"
                 },
                 "dificuldade": {
                   ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
@@ -321,6 +321,49 @@
             "$other": {
               ".validate": false
             }
+          }
+        },
+        "$other": {
+          ".validate": false
+        }
+      }
+    },
+
+    "conquistas": {
+      "$uid": {
+        ".read": "auth != null && auth.uid == $uid && !$uid.matches(/^guest_/)",
+        ".write": "auth != null && auth.uid == $uid && !$uid.matches(/^guest_/)",
+        "$badgeId": {
+          ".validate": "newData.exists() && newData.hasChildren(['id', 'familia', 'nome', 'descricao', 'objetivo', 'progressoAoDesbloquear', 'drawableName', 'desbloqueadaEm', 'origem']) && newData.child('id').val() == $badgeId && newData.child('progressoAoDesbloquear').val() >= newData.child('objetivo').val()",
+          "id": {
+            ".validate": "newData.isString() && newData.val() == $badgeId"
+          },
+          "familia": {
+            ".validate": "newData.isString() && (newData.val() == 'RC' || newData.val() == 'PJ' || newData.val() == 'VT')"
+          },
+          "nome": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"
+          },
+          "descricao": {
+            ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 160"
+          },
+          "objetivo": {
+            ".validate": "newData.isNumber() && newData.val() >= 1"
+          },
+          "progressoAoDesbloquear": {
+            ".validate": "newData.isNumber() && newData.val() >= 1"
+          },
+          "drawableName": {
+            ".validate": "newData.isString() && newData.val().matches(/^[a-z0-9_]+$/)"
+          },
+          "desbloqueadaEm": {
+            ".validate": "newData.isNumber()"
+          },
+          "origem": {
+            ".validate": "newData.isString() && newData.val() == 'auto'"
+          },
+          "$other": {
+            ".validate": false
           }
         },
         "$other": {

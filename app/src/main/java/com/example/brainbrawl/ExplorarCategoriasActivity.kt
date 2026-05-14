@@ -150,7 +150,7 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             setTypeface(typeface, android.graphics.Typeface.BOLD)
         })
         card.addView(TextView(this).apply {
-            text = "por ${categoria.criador}"
+            text = getString(R.string.categoria_criador_format, categoria.criador)
             textSize = 14f
             setTextColor(0xFF333333.toInt())
             setPadding(0, dp(4), 0, dp(6))
@@ -161,16 +161,21 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             setTextColor(0xFF000000.toInt())
         })
         card.addView(TextView(this).apply {
-            text = "${categoria.totalPerguntas} perguntas  •  ${categoria.usos} usos  •  ${categoria.ratingTexto()}"
+            text = getString(
+                R.string.categoria_metricas_format,
+                categoria.totalPerguntas,
+                categoria.usos,
+                categoria.ratingTexto()
+            )
             textSize = 14f
             setTextColor(0xFF333333.toInt())
             setPadding(0, dp(8), 0, dp(10))
         })
 
         val botoes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoes.addView(criarBotao("Jogar") { mostrarEscolhaModo(CategoriaExploravel.Publica(categoria)) })
-        botoes.addView(criarBotao("Guardar") { guardarCategoria(categoria) })
-        botoes.addView(criarBotao("Avaliar") { mostrarAvaliacao(categoria) })
+        botoes.addView(criarBotao(getString(R.string.jogar)) { mostrarEscolhaModo(CategoriaExploravel.Publica(categoria)) })
+        botoes.addView(criarBotao(getString(R.string.guardar)) { guardarCategoria(categoria) })
+        botoes.addView(criarBotao(getString(R.string.avaliar)) { mostrarAvaliacao(categoria) })
         card.addView(botoes)
         binding.layoutCategoriasPublicas.addView(card)
     }
@@ -187,24 +192,24 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             setTypeface(typeface, android.graphics.Typeface.BOLD)
         })
         card.addView(TextView(this).apply {
-            text = if (jaPublica) "Pública" else "Privada"
+            text = if (jaPublica) getString(R.string.estado_publica) else getString(R.string.estado_privada)
             textSize = 14f
             setTextColor(0xFF333333.toInt())
             setPadding(0, dp(4), 0, dp(10))
         })
 
         val botoes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoes.addView(criarBotao("Jogar") { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) })
-        botoes.addView(criarBotao("Editar") { abrirEdicaoCategoria(categoria.nome) })
-        botoes.addView(criarBotao("Eliminar") { confirmarEliminarCategoria(categoria) })
+        botoes.addView(criarBotao(getString(R.string.jogar)) { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) })
+        botoes.addView(criarBotao(getString(R.string.editar_categoria)) { abrirEdicaoCategoria(categoria.nome) })
+        botoes.addView(criarBotao(getString(R.string.eliminar)) { confirmarEliminarCategoria(categoria) })
         card.addView(botoes)
 
         val botoesPublicos = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoesPublicos.addView(criarBotao(if (jaPublica) "Atualizar pública" else "Tornar pública") {
+        botoesPublicos.addView(criarBotao(if (jaPublica) getString(R.string.atualizar_publica) else getString(R.string.tornar_publica)) {
             viewModel.publicarCategoria(uid.orEmpty(), nomeUtilizador.orEmpty(), nomeJogador, categoria.nome)
         })
         if (jaPublica) {
-            botoesPublicos.addView(criarBotao("Remover pública") {
+            botoesPublicos.addView(criarBotao(getString(R.string.remover_publica)) {
                 viewModel.removerCategoriaPublica(uid.orEmpty(), nomeUtilizador.orEmpty(), categoria.nome)
             })
         }

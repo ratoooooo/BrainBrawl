@@ -21,13 +21,13 @@ object UteisJogo {
         // Bonus por sequência de respostas corretas
         if (numeroPerguntasCertas == 2) {
             pontuacao += bonus
-            Toast.makeText(context, "Bónus de sequência! +$bonus pontos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.bonus_sequencia_format, bonus), Toast.LENGTH_SHORT).show()
         } else if (numeroPerguntasCertas == 3) {
             pontuacao += bonus + 25
-            Toast.makeText(context, "Bónus de sequência! +${bonus + 25} pontos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.bonus_sequencia_format, bonus + 25), Toast.LENGTH_SHORT).show()
         } else if (numeroPerguntasCertas >= 4) {
             pontuacao += bonus + 100
-            Toast.makeText(context, "Bónus de sequência! +${bonus + 100} pontos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, context.getString(R.string.bonus_sequencia_format, bonus + 100), Toast.LENGTH_SHORT).show()
         }
         return pontuacao
     }

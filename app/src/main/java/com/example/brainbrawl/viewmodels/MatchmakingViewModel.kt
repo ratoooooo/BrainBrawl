@@ -10,6 +10,11 @@ import com.example.brainbrawl.models.MatchmakingResult
 import com.example.brainbrawl.repositories.JogadorRepository
 import com.example.brainbrawl.repositories.MatchmakingRepository
 
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
+}
+
 class MatchmakingViewModel(
     private val matchmakingRepository: MatchmakingRepository = MatchmakingRepository(),
     private val jogadorRepository: JogadorRepository = JogadorRepository()
@@ -165,12 +170,16 @@ class MatchmakingViewModel(
 
         matchmakingRepository.entrarNaFila(jogador, modo)
             .addOnSuccessListener {
-                Log.d(TAG, "Entrou na fila: modo=$modo playerKey=${jogador.playerKey} tipo=${jogador.tipoJogador}")
+                Log.d(TAG, "Entrou na fila: modo=$modo player=${jogador.playerKey.maskedLogId()} tipo=${jogador.tipoJogador}")
                 observarFila()
                 observarResultado()
             }
             .addOnFailureListener { erro ->
-                Log.e(TAG, "Erro ao entrar na fila: modo=$modo playerKey=${jogador.playerKey} tipo=${jogador.tipoJogador}", erro)
+                Log.e(
+                    TAG,
+                    "Erro ao entrar na fila: modo=$modo player=${jogador.playerKey.maskedLogId()} tipo=${jogador.tipoJogador}",
+                    erro
+                )
                 val mensagem = mensagemErroEntradaFila(erro)
                 _estado.value = _estado.value?.copy(estadoTexto = mensagem)
                 _evento.value = MatchmakingEvent.MostrarMensagem(mensagem)
@@ -224,7 +233,7 @@ class MatchmakingViewModel(
 
         aCriarMatch = true
         _estado.value = _estado.value?.copy(estadoTexto = "A criar sala...")
-        Log.d(TAG, "A tentar criar match: modo=$modo criador=${jogador.playerKey} jogadores=${jogadores.size}")
+        Log.d(TAG, "A tentar criar match: modo=$modo criador=${jogador.playerKey.maskedLogId()} jogadores=${jogadores.size}")
         matchmakingRepository.tentarCriarMatch(modo, nomeCategoria, jogador.playerKey)
             .addOnCompleteListener {
                 aCriarMatch = false
@@ -235,7 +244,7 @@ class MatchmakingViewModel(
                 }
             }
             .addOnFailureListener { erro ->
-                Log.e(TAG, "Erro ao criar sala/match: modo=$modo criador=${jogador.playerKey}", erro)
+                Log.e(TAG, "Erro ao criar sala/match: modo=$modo criador=${jogador.playerKey.maskedLogId()}", erro)
                 _estado.value = _estado.value?.copy(estadoTexto = "Erro ao criar sala. Pode cancelar e tentar novamente.")
                 _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao criar sala.")
             }
@@ -246,14 +255,18 @@ class MatchmakingViewModel(
         val jogador = jogadorAtual ?: return
 
         navegacaoIniciada = true
-        Log.d(TAG, "Resultado recebido: modo=${resultado.modo} sala=${resultado.codigoSala} playerKey=${jogador.playerKey}")
+        Log.d(
+            TAG,
+            "Resultado recebido: modo=${resultado.modo} sala=${resultado.codigoSala.maskedLogId()} " +
+                "player=${jogador.playerKey.maskedLogId()}"
+        )
         matchmakingRepository.verificarJogadorNaSala(resultado.modo, resultado.codigoSala, jogador.playerKey)
             .addOnSuccessListener { jogadorNaSala ->
                 if (!jogadorNaSala) {
                     Log.w(
                         TAG,
                         "Resultado antigo/invalido ignorado: modo=${resultado.modo} " +
-                            "sala=${resultado.codigoSala} playerKey=${jogador.playerKey}"
+                            "sala=${resultado.codigoSala.maskedLogId()} player=${jogador.playerKey.maskedLogId()}"
                     )
                     matchmakingRepository.consumirResultado(modo, jogador.playerKey)
                     matchmakingRepository.cancelarOnDisconnect(jogador.playerKey, modo)
@@ -265,7 +278,11 @@ class MatchmakingViewModel(
                 removerListeners()
                 matchmakingRepository.cancelarOnDisconnect(jogador.playerKey, modo)
                 matchmakingRepository.consumirResultado(modo, jogador.playerKey)
-                Log.d(TAG, "A navegar para sala: modo=${resultado.modo} sala=${resultado.codigoSala} playerKey=${jogador.playerKey}")
+                Log.d(
+                    TAG,
+                    "A navegar para sala: modo=${resultado.modo} sala=${resultado.codigoSala.maskedLogId()} " +
+                        "player=${jogador.playerKey.maskedLogId()}"
+                )
                 val dados = MatchmakingNavegacaoDados(
                     codigoSala = resultado.codigoSala,
                     modo = resultado.modo,
@@ -284,7 +301,11 @@ class MatchmakingViewModel(
                 }
             }
             .addOnFailureListener { erro ->
-                Log.e(TAG, "Erro ao confirmar sala antes de navegar: modo=${resultado.modo} sala=${resultado.codigoSala}", erro)
+                Log.e(
+                    TAG,
+                    "Erro ao confirmar sala antes de navegar: modo=${resultado.modo} sala=${resultado.codigoSala.maskedLogId()}",
+                    erro
+                )
                 navegacaoIniciada = false
                 _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao confirmar sala.")
             }

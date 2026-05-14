@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App -->
-    <string name="app_name">Pergunta ó Luso</string>
+    <string name="app_name">Pergunta o Luso</string>
     <string name="brand_pergunta">PERGUNTA</string>
-    <string name="brand_o_luso">Ó LUSO</string>
-    <string name="brand_full_caps">PERGUNTA Ó LUSO</string>
+    <string name="brand_o_luso">O LUSO</string>
+    <string name="brand_full_caps">PERGUNTA O LUSO</string>
     <string name="email">E-mail</string>
     <string name="email_ou_nome">Email ou nome</string>
     <string name="mostrar_password">Mostrar palavra-passe</string>
@@ -139,6 +139,23 @@
     <string name="carregar_perguntas">A carregar perguntas...</string>
     <string name="cronometro_inicial">20.00</string>
     <string name="jogar_novamente">Jogar Novamente</string>
+    <string name="admin_label">Admin</string>
+    <string name="bonus_sequencia_format">Bónus de sequência! +%1$d pontos</string>
+    <string name="admin_observar_respostas">Como admin, só podes observar as respostas.</string>
+    <string name="erro_carregar_sala_format">Erro ao carregar sala: %1$s</string>
+    <string name="erro_carregar_perguntas_format">Erro ao carregar perguntas: %1$s</string>
+    <string name="erro_estado_sala_format">Erro ao verificar estado da sala: %1$s</string>
+    <string name="erro_verificar_jogadores">Erro ao verificar jogadores.</string>
+    <string name="erro_eliminar_jogador">Erro ao eliminar jogador. Tenta novamente.</string>
+    <string name="jogo_terminado_um_jogador">Jogo terminado! Só resta um jogador.</string>
+    <string name="jogador_eliminado">Foste eliminado!</string>
+    <string name="aguardar_fim_partida">A aguardar o fim da partida...</string>
+    <string name="erro_ler_categoria">Erro ao ler categoria.</string>
+    <string name="erro_guardar_pontuacao">Erro ao guardar pontuação.</string>
+    <string name="aguarde_adversario_terminar">Aguarda que o adversário termine.</string>
+    <string name="aguarde_todos_terminarem">Aguarda que todos terminem.</string>
+    <string name="erro_verificar_podio">Erro ao verificar pódio.</string>
+    <string name="erro_carregar_equipa">Erro ao carregar equipa.</string>
 
     <!-- Categorias e modos -->
     <string name="escolha_categoria">Escolher uma Categoria</string>
@@ -159,6 +176,9 @@
     <string name="login_guardar_categorias">Inicia sessão para guardar categorias.</string>
     <string name="login_avaliar_categorias">Inicia sessão para avaliar categorias.</string>
     <string name="login_gerir_categorias">Inicia sessão para gerir categorias.</string>
+    <string name="avaliar">Avaliar</string>
+    <string name="categoria_criador_format">por %1$s</string>
+    <string name="categoria_metricas_format">%1$d perguntas  •  %2$d usos  •  %3$s</string>
     <string name="categoria_guardada">Categoria guardada nas tuas categorias.</string>
     <string name="categoria_eliminada">Categoria eliminada.</string>
     <string name="categoria_publica_guardada">Categoria pública guardada.</string>
@@ -183,6 +203,15 @@
     <string name="categoria5">Todas as Categorias</string>
     <string name="categoria6">Gentílicos</string>
     <string name="info_categorias">Ver dicas das categorias</string>
+    <string name="dica_categorias_titulo">Categorias</string>
+    <string name="dica_historia_texto">Datas, povos e acontecimentos marcantes.</string>
+    <string name="dica_geografia_texto">Capitais, rios, países e mapas.</string>
+    <string name="dica_desporto_texto">Clubes, atletas, regras e competições.</string>
+    <string name="dica_cultura_geral_texto">Ciência, arte, música, cinema e curiosidades.</string>
+    <string name="dica_gentilicos_texto">Como se chamam as pessoas de cada local.</string>
+    <string name="dica_todas_texto">Mistura perguntas de várias áreas.</string>
+    <string name="dica_explorar_titulo">Explorar</string>
+    <string name="dica_explorar_texto">Vê categorias públicas ou cria as tuas próprias perguntas.</string>
     <string name="escolher_modo_jogo">Escolher Modo</string>
     <string name="escolher_modo">Escolher modo</string>
     <string name="modo_classico">Clássico</string>
@@ -193,6 +222,10 @@
     <string name="voltar_para_main_activity">Voltar para a tela principal</string>
     <string name="modo_caotico">Caótico</string>
     <string name="info_todos">Ver explicação de todos os modos</string>
+    <string name="dica_modos_titulo">Modos de Jogo</string>
+    <string name="dica_modo_classico_texto">Perguntas da categoria escolhida. Vence quem somar mais pontos.</string>
+    <string name="dica_modo_caotico_texto">Perguntas misturadas de todas as categorias, com menos tempo.</string>
+    <string name="dica_modo_eliminatorias_texto">Quem falha pode sair da partida. O último resistente vence.</string>
     <string name="info_todos_modos">• &lt;b&gt;Modo Clássico:&lt;/b&gt; Responde a perguntas da categoria escolhida. Joga com outros jogadores e vence quem tiver mais pontos!\n\n• &lt;b&gt;Modo Caótico:&lt;/b&gt; Perguntas de todas as categorias aparecem de forma aleatória. Desafia-te e aos teus amigos numa experiência imprevisível!\n\n• &lt;b&gt;Modo Eliminatórias:&lt;/b&gt; Erraste? És eliminado logo! O último sobrevivente vence. Sê rápido e preciso.</string>
     <string name="escolher_tipo_modo_classico">Escolher Modo de Jogo</string>
     <string name="modo_1x1">Modo 1x1</string>
@@ -273,6 +306,22 @@
     <string name="desafiar_1x1">Desafiar 1x1</string>
     <string name="convite_de">Convite de:</string>
     <string name="convite_de_format">Convite de: %1$s</string>
+    <string name="convite_enviado_para_format">Convite enviado para %1$s!</string>
+    <string name="erro_enviar_convite">Erro ao enviar convite.</string>
+    <string name="seleciona_3_amigos_2x2">Seleciona 3 amigos para fechar o 2x2.</string>
+    <string name="convite_2x2_enviado">Convite 2x2 enviado!</string>
+    <string name="erro_enviar_convite_2x2">Erro ao enviar convite 2x2.</string>
+    <string name="erro_aguardar_fim_jogo">Erro ao aguardar fim do jogo.</string>
+    <string name="jogador_clicado_format">Jogador: %1$s</string>
+    <string name="criar_nova_categoria">Criar nova categoria</string>
+    <string name="sem_categorias_personalizadas">Ainda não tens categorias personalizadas.</string>
+    <string name="estado_publica">Pública</string>
+    <string name="estado_privada">Privada</string>
+    <string name="jogar">Jogar</string>
+    <string name="atualizar_publica">Atualizar pública</string>
+    <string name="tornar_publica">Tornar pública</string>
+    <string name="remover_publica">Remover pública</string>
+    <string name="categorias_personalizadas">Categorias personalizadas</string>
     <string name="nome_utilizador_placeholder">Nome do utilizador</string>
 
     <!-- Ranking e perfil -->
@@ -297,6 +346,11 @@
     <string name="nome_jogador">Nome Jogador</string>
     <string name="avatar_do_jogador">Avatar do jogador</string>
     <string name="pontos">Pontos</string>
+    <string name="pontos_curto_format">%1$d pts</string>
+    <string name="modo_generico">Modo</string>
+    <string name="sem_categoria">Sem categoria</string>
+    <string name="historico_sem_jogadores">Sem jogadores registados</string>
+    <string name="amigos_lista_vazia">Ainda não tens amigos adicionados.</string>
     <string name="posicao_ranking_format">#%1$d</string>
     <string name="nome_nivel_format">%1$s • Nv %2$d</string>
     <string name="jogos_format">Jogos: %1$d</string>
@@ -327,15 +381,27 @@
     <string name="total_de_vit_rias_0">Total de Vitórias:</string>
     <string name="total_de_vitorias">Total de Vitórias</string>
     <string name="total_de_vitorias_format">Total de Vitórias: %1$d</string>
+    <string name="total_de_derrotas">Total de Derrotas</string>
+    <string name="total_de_derrotas_format">Total de Derrotas: %1$d</string>
     <string name="vit_rias">Vitórias</string>
     <string name="jogos">Jogos</string>
     <string name="respostas_certas">Respostas Certas</string>
     <string name="respostas_certas_abrev">Resp. Certas</string>
     <string name="total_de_respostas_certas">Total de Respostas Certas</string>
+    <string name="total_de_respostas_certas_format">Total de Respostas Certas: %1$d</string>
     <string name="taxa_de_vit_ria">Taxa de Vitória:</string>
     <string name="taxa_de_acertos">Taxa de Acertos</string>
     <string name="taxa_de_acertos_format">Taxa de Acertos: %1$.1f%%</string>
     <string name="taxa_de_vitoria_format">Taxa de Vitória: %1$.1f%%</string>
+    <string name="xp_total_format">XP total: %1$d</string>
+    <string name="resumo_competitivo">Resumo competitivo</string>
+    <string name="conquista">Conquista</string>
+    <string name="conquistas">Conquistas</string>
+    <string name="conquistas_client_side">Desbloqueios guardados nesta conta.</string>
+    <string name="conquistas_sem_persistencia">Convidados veem conquistas bloqueadas sem gravação.</string>
+    <string name="conquista_desbloqueada">Desbloqueada</string>
+    <string name="conquista_bloqueada">Bloqueada</string>
+    <string name="badge_progresso_format">%1$d / %2$d</string>
     <string name="perfil_indisponivel">Não foi possível abrir o perfil.</string>
     <string name="nome_utilizador_exemplo">Nome Utilizador</string>
 </resources>

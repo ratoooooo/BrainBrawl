@@ -93,14 +93,14 @@ class EscolhaCategoriaModosActivity : AppCompatActivity() {
     private fun mostrarDicasCategorias() {
         UteisDicas.mostrarDicas(
             this,
-            "Categorias",
+            getString(R.string.dica_categorias_titulo),
             listOf(
-                "História" to "Datas, povos e acontecimentos marcantes.",
-                "Geografia" to "Países, capitais, rios e mapas.",
-                "Desporto" to "Modalidades, atletas e grandes provas.",
-                "Cultura Geral" to "Conhecimento variado para todos.",
-                "Todas" to "Mistura perguntas de várias áreas.",
-                "Gentílicos" to "Nomes de povos e localidades."
+                getString(R.string.categoria_historia) to getString(R.string.dica_historia_texto),
+                getString(R.string.categoria_geografia) to getString(R.string.dica_geografia_texto),
+                getString(R.string.categoria_desporto) to getString(R.string.dica_desporto_texto),
+                getString(R.string.categoria_cultura_geral) to getString(R.string.dica_cultura_geral_texto),
+                getString(R.string.categoria5) to getString(R.string.dica_todas_texto),
+                getString(R.string.categoria6) to getString(R.string.dica_gentilicos_texto)
             )
         )
     }

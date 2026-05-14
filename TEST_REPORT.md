@@ -1,5 +1,392 @@
 # Pergunta o Luso - TEST_REPORT
 
+## V1 Release Prep - 2026-05-14
+
+### Objetivo da fase
+
+- Preparar a app Android v1 para teste interno/release local.
+- Rever nome visivel, launcher label/icon, manifest, permissoes, matchmaking desativado, comandos de build e documentacao final.
+- Nao alterar logica de pontuacao, XP, ranking, historico, convites, salas, categorias, login legado ou matchmaking.
+
+### Verificacoes feitas
+
+- Nome visivel: `app_name`, `brand_o_luso` e `brand_full_caps` mantem `Pergunta o Luso`/`PERGUNTA O LUSO` nos idiomas configurados.
+- Manifest: `android:label="@string/app_name"`; `LoginActivity` continua `MAIN/LAUNCHER`; restantes activities internas estao `exported=false`.
+- Matchmaking: `MatchmakingActivity` nao esta registada no `AndroidManifest.xml`; `MainActivity` nao tem referencia/listener para abrir matchmaking; os ids antigos `btn_matchmaking_1x1` e `btn_matchmaking_2x2` continuam apenas no XML da Main.
+- Assets launcher: `@mipmap/avatar_14` e `@mipmap/avatar_14_round` existem, com foreground/background adaptativo em `mipmap-anydpi-v26` e variantes por densidade.
+- Permissoes: `INTERNET` mantida por Firebase; `POST_NOTIFICATIONS` mantida porque o lint Android 13+ exige a permissao devido a `NotificationTarget` presente na dependencia Glide ja existente, mesmo sem fluxo novo de notificacoes do sistema nesta fase.
+- Firebase Rules: nao foram alteradas nesta fase.
+
+### Ficheiros alterados nesta fase
+
+- `app/src/main/AndroidManifest.xml`
+- `README.md`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleRelease` - OK.
+
+Observacoes:
+
+- Uma primeira tentativa de `build` falhou quando `POST_NOTIFICATIONS` foi removida; o lint Android 13+ exige a permissao porque a dependencia Glide contem `NotificationTarget`. A permissao foi reposta e o `build` final passou.
+- `build` gerou o relatorio de lint em `app/build/reports/lint-results-debug.html`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Resultado esperado de release
+
+- `assembleRelease` gerou APK release local com sucesso.
+- O projeto nao configura signing real nesta fase; o artefacto serve para validacao tecnica interna, nao para publicacao final em loja.
+- Para distribuicao publica/fechada via Play Console sera necessario configurar signing real/seguro fora deste relatorio, sem commitar secrets.
+
+### Checklist manual final recomendada
+
+1. Abrir app.
+2. Criar conta nova.
+3. Login/logout.
+4. Entrar como convidado.
+5. Main.
+6. Perfil.
+7. Ranking.
+8. Historico.
+9. Amigos.
+10. Pedido de amizade.
+11. Convite 1x1.
+12. Jogo 1x1 completo.
+13. Convite 2x2.
+14. Jogo 2x2 completo.
+15. Sala grupo.
+16. Classico.
+17. Caotico.
+18. Eliminatorias.
+19. Pontuacao final.
+20. Categorias publicas.
+21. Categorias personalizadas.
+22. Criar/editar/eliminar pergunta.
+23. Confirmar convidado sem XP/historico/ranking.
+24. Confirmar matchmaking invisivel.
+25. Testar ecra pequeno.
+26. Testar idioma ingles.
+27. Fechar/reabrir app e confirmar sessao persistente.
+
+### Riscos pendentes
+
+- R1: `jogadores.read=true` e campo password/hash legado continuam bloqueador antes de beta publico.
+- R2: pontuacao/XP/ranking/historico continuam client-authoritative.
+- R3: salas com convidados ainda tem writes amplos.
+- Solucao futura recomendada: Cloud Functions para fechos/estatisticas/conquistas e Auth anonimo para convidados.
+- Matchmaking aleatorio continua desativado e so deve voltar numa branch nova.
+
+### Decisao final
+
+- V1 pronta para teste interno Android.
+- Antes de beta publico, resolver os riscos R1/R2/R3 e configurar signing real fora do repositorio.
+
+## V1 Textos + i18n + QA Final - 2026-05-14
+
+### Objetivo da fase
+
+- Uniformizar o nome visivel da app como `Pergunta o Luso`.
+- Corrigir textos principais em portugues e mover hardcoded seguro para resources.
+- Completar traducoes minimas nos idiomas existentes: `pt`, `en-rGB`, `es`, `fr`, `de-rDE`.
+- Fazer verificacao final estatica/build sem alterar matchmaking, pontuacao, XP, ranking, historico, convites, salas ou categorias de forma estrutural.
+
+### Textos/i18n corrigidos
+
+- Nome visivel da app atualizado de `Pergunta ó Luso` para `Pergunta o Luso` em `app_name`, `brand_o_luso` e `brand_full_caps`.
+- Títulos XML de convites 1x1/2x2, ecrã de eliminado e label `Admin` passaram a usar `@string`.
+- Toasts principais de jogo, eliminatorias, convites 1x1/2x2, bónus de sequência, erros de sala/perguntas/pódio e espera de eliminado passaram para resources.
+- Dialogs/dicas de categorias e modos passaram a usar strings localizadas.
+- Cards de categorias públicas/personalizadas passaram a usar strings para `Jogar`, `Guardar`, `Avaliar`, estado pública/privada, criador e métricas.
+
+### Idiomas atualizados
+
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/values-en-rGB/strings.xml`
+- `app/src/main/res/values-es/strings.xml`
+- `app/src/main/res/values-fr/strings.xml`
+- `app/src/main/res/values-de-rDE/strings.xml`
+
+### Hardcoded movidos
+
+- `EscolherCategoriaActivity.kt`: dicas, eventos, dialog de categorias personalizadas e confirmação de eliminação.
+- `EscolhaCategoriaModosActivity.kt` e `EscolherModoActivity.kt`: dicas de categorias/modos.
+- `ExplorarCategoriasActivity.kt`: botões e labels de cards principais.
+- `JogoActivity.kt`, `Jogo1x1Activity.kt`, `Jogo2x2Activity.kt`, `UteisJogo.kt`: progresso, bónus e mensagens de erro/espera.
+- `ConvidarAmigo1x1Activity.kt`, `ConvidarAmigo2x2Activity.kt`, `EsperaEliminadoActivity.kt`, `JogadoresSalaAdapter.kt`: mensagens visíveis.
+- Layouts: `activity_convidar_amigo.xml`, `activity_convidar_amigo2x2.xml`, `activity_espera_eliminado.xml`, `activity_jogo.xml`.
+
+### QA final por codigo
+
+- Main nao regista listeners para `MatchmakingActivity`; os botoes antigos de matchmaking continuam apenas no XML como `gone`/inativos.
+- `AndroidManifest.xml` nao expoe `MatchmakingActivity`.
+- Persistencia de convidados continua bloqueada pelos guardas existentes em pontuacoes/historico/badges: `isGuest`, `TIPO_JOGADOR_GUEST` e `uid` vazio/`guest_`.
+- 1x1/2x2 por convite mantem extras de categoria oficial/publica/personalizada; esta fase so alterou textos visiveis.
+- Firebase Rules nao foram alteradas nesta fase.
+
+### Ficheiros alterados nesta fase
+
+- Kotlin: `ConvidarAmigo1x1Activity.kt`, `ConvidarAmigo2x2Activity.kt`, `EscolhaCategoriaModosActivity.kt`, `EscolherCategoriaActivity.kt`, `EscolherModoActivity.kt`, `EsperaEliminadoActivity.kt`, `ExplorarCategoriasActivity.kt`, `JogadoresSalaAdapter.kt`, `JogoActivity.kt`, `Jogo1x1Activity.kt`, `Jogo2x2Activity.kt`, `UteisJogo.kt`.
+- Layouts: `activity_convidar_amigo.xml`, `activity_convidar_amigo2x2.xml`, `activity_espera_eliminado.xml`, `activity_jogo.xml`.
+- Resources: `values/strings.xml`, `values-en-rGB/strings.xml`, `values-es/strings.xml`, `values-fr/strings.xml`, `values-de-rDE/strings.xml`.
+- Docs: `TEST_REPORT.md`.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK durante a implementacao.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+
+Observacoes:
+
+- `build` gerou o relatorio de lint em `app/build/reports/lint-results-debug.html`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Checklist manual final v1
+
+1. Abrir app sem crash.
+2. Criar conta nova.
+3. Login com conta existente.
+4. Logout.
+5. Entrar como convidado.
+6. Ver Main em 360dp.
+7. Confirmar nome visivel da app consistente.
+8. Confirmar matchmaking invisivel/inacessivel.
+9. Abrir Perfil.
+10. Abrir Ranking.
+11. Abrir Historico.
+12. Abrir Amigos.
+13. Enviar pedido de amizade.
+14. Aceitar pedido de amizade.
+15. Enviar convite 1x1.
+16. Aceitar convite 1x1.
+17. Iniciar e terminar 1x1.
+18. Enviar convite 2x2.
+19. Aceitar convites 2x2.
+20. Iniciar e terminar 2x2.
+21. Criar sala grupo.
+22. Entrar numa sala por codigo.
+23. Jogar classico.
+24. Jogar caotico.
+25. Jogar eliminatorias.
+26. Ver pontuacao final.
+27. Explorar categorias.
+28. Criar categoria personalizada.
+29. Adicionar pergunta.
+30. Editar pergunta.
+31. Eliminar pergunta.
+32. Jogar categoria personalizada.
+33. Confirmar convidado sem XP.
+34. Confirmar convidado sem historico.
+35. Confirmar convidado fora do ranking.
+36. Testar idioma ingles.
+37. Testar idioma espanhol, se possivel.
+38. Testar idioma frances, se possivel.
+39. Confirmar que textos principais nao ficam cortados em 360dp.
+40. Confirmar que nao ha crashes ao voltar/navegar rapido entre ecras principais.
+
+### Riscos pendentes
+
+- `jogadores.read=true` e campo password/hash legado continuam bloqueador antes de beta publico.
+- Pontuacao/XP/ranking/historico continuam client-authoritative.
+- Salas com convidados ainda tem writes amplos.
+- Versao robusta futura deve usar Cloud Functions/Auth anonimo.
+- Matchmaking aleatorio continua desativado e so deve voltar numa branch nova.
+- Ainda podem existir hardcoded residuais em areas tecnicas, logs, repositorios e ficheiros de matchmaking desativado; os textos principais ativos foram priorizados.
+
+### Confirmacao
+
+- Matchmaking continua desativado/inacessivel pela Main.
+- Nao houve alteracao de Firebase Rules nesta fase.
+- Nao houve alteracao de pontuacao, XP, ranking, historico, convites, salas, categorias estruturais ou login legado.
+
+## V1 Polish Audit + UI Polish Pack - 2026-05-14
+
+### Resumo da auditoria
+
+- A Main mantem o matchmaking aleatorio invisivel/inacessivel: os cards antigos existem no XML como `gone`, sem foco/click, e `MainActivity` nao regista listeners para abrir `MatchmakingActivity`.
+- Login e Registo ja tinham scroll e hierarquia visual aceitavel para v1; nao houve alteracao de autenticacao nem login legado.
+- Meu Perfil ja tinha scroll e badges em grelha; nao houve alteracao de logica de stats, XP ou conquistas.
+- Ranking tinha risco de corte em labels/valores no item em 360dp.
+- Historico tinha hardcoded visivel em layout/adaptador e item com risco de aperto entre pontuacao/data/categoria.
+- Amigos, pedidos e convites estavam funcionais, mas os cards de pedido/convite destoavam visualmente e a lista de amigos nao tinha estado vazio simples.
+- Pontuacoes finais podiam transbordar em ecras pequenos por falta de scroll.
+- Entrada por codigo tinha texto de estado com contraste fraco no fundo claro.
+- Nao foi encontrada necessidade de alterar Firebase Rules.
+
+### Problemas encontrados
+
+- Hardcoded obvio em Historico: titulo, botao voltar e fallbacks do adapter.
+- Cards de pedidos/convites com padding/cores/botoes menos consistentes que o resto da app.
+- Falta de estado vazio em Amigos quando nao ha amigos carregados.
+- Possivel corte em item de Ranking para labels/valores mais longos.
+- Possivel overflow vertical em pontuacao final grupo/1x1/2x2.
+- Contraste fraco do `txt_estado` em Entrada em sala.
+- Warning simples de parametro `adminHint` nao usado em `SalaRepository`.
+
+### Correcoes aplicadas
+
+- Historico: removeu hardcoded, adicionou strings/fallbacks, melhorou elipses/maxLines e distribuiu data/pontuacao de forma mais segura.
+- Amigos: adicionou estado vazio simples, padding nos recyclers e cards mais consistentes para pedidos/convites.
+- Ranking: ajustou largura/tamanhos do item para reduzir risco de corte em 360dp.
+- Pontuacoes: `activity_pontuacao.xml`, `activity_pontuacao1x1.xml` e `activity_pontuacao_multi.xml` passaram a ter scroll seguro.
+- Entrada em sala: titulo ligeiramente mais contido, inputs com altura estavel e estado com cor legivel.
+- SalaRepository: warning simples de parametro legado suprimido sem alterar comportamento.
+
+### Ficheiros alterados nesta fase
+
+- `app/src/main/res/layout/activity_historico.xml`
+- `app/src/main/res/layout/item_historico_jogo.xml`
+- `app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt`
+- `app/src/main/res/layout/activity_amigos.xml`
+- `app/src/main/res/layout/item_pedido_amizade.xml`
+- `app/src/main/res/layout/item_convite.xml`
+- `app/src/main/java/com/example/brainbrawl/AmigosActivity.kt`
+- `app/src/main/res/layout/item_ranking_jogador.xml`
+- `app/src/main/res/layout/activity_pontuacao.xml`
+- `app/src/main/res/layout/activity_pontuacao1x1.xml`
+- `app/src/main/res/layout/activity_pontuacao_multi.xml`
+- `app/src/main/res/layout/activity_sala_de_espera.xml`
+- `app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt`
+- `app/src/main/res/values/strings.xml` e variantes `en-rGB`, `es`, `fr`, `de-rDE`
+- `TEST_REPORT.md`
+
+### Firebase Rules
+
+- Nao foram alteradas nesta fase.
+- Riscos R1/R2/R3 continuam documentados e fora do escopo deste polish pack.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK durante a implementacao.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+
+Observacoes:
+
+- `build` gerou o relatorio de lint em `app/build/reports/lint-results-debug.html`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Testes manuais recomendados
+
+1. Abrir app sem crash.
+2. Login com conta existente.
+3. Criar conta nova.
+4. Entrar como convidado.
+5. Ver Main em 360dp.
+6. Confirmar matchmaking invisivel/inacessivel.
+7. Abrir Perfil.
+8. Abrir Ranking.
+9. Abrir Historico.
+10. Abrir Amigos.
+11. Enviar/aceitar pedido de amizade.
+12. Enviar convite 1x1.
+13. Aceitar convite 1x1.
+14. Iniciar e terminar 1x1.
+15. Enviar convite 2x2.
+16. Aceitar convites 2x2.
+17. Iniciar e terminar 2x2.
+18. Criar sala grupo.
+19. Entrar numa sala por codigo.
+20. Jogar classico.
+21. Jogar caotico.
+22. Jogar eliminatorias.
+23. Ver pontuacao final.
+24. Explorar categorias.
+25. Criar categoria personalizada.
+26. Adicionar pergunta.
+27. Editar pergunta.
+28. Eliminar pergunta.
+29. Jogar categoria personalizada.
+30. Confirmar convidado sem XP/historico/ranking.
+31. Ver ecras principais em 360dp.
+32. Ver se textos nao ficam cortados.
+
+### Riscos pendentes
+
+- Nao houve walkthrough visual real nesta execucao automatica; as correcoes foram por auditoria estatica e build.
+- Algumas telas antigas ainda mantem estilos herdados/hardcoded fora do polish seguro desta fase.
+- O matchmaking continua com ficheiros antigos no repo, mas sem entrada ativa na Main/manifest.
+- Deprecated Gradle features continuam reportadas pelo Gradle.
+
+### Confirmacao
+
+- Matchmaking continua desativado/inacessivel pela Main.
+- Nao houve alteracao de pontuacao, XP, ranking, historico, convites, salas, categorias, Firebase paths ou Firebase Rules.
+
+## Perfil competitivo, stats avancadas e badges v1 - 2026-05-14
+
+### Objetivo da fase
+
+- Implementar o perfil competitivo com resumo de estatisticas, grelha de conquistas e suporte a imagens locais por nome de drawable.
+- Criar badges v1 client-side para respostas certas, partidas jogadas e vitorias, gravadas em Firebase por UID quando o jogador esta autenticado.
+- Preservar pontuacao base, XP, ranking, historico, convites, salas, categorias, convidados e matchmaking desativado.
+
+### Ficheiros alterados nesta fase
+
+- Modelos: `Badge.kt`, `BadgeFamily.kt`.
+- Service: `BadgesService.kt`.
+- Repository: `BadgesRepository.kt`.
+- Perfil: `MeuPerfilViewModel.kt`, `MeuPerfilActivity.kt`, `activity_meu_perfil.xml`, `item_badge.xml`.
+- Config/resources: `FirebasePaths.kt`, `strings.xml` e variantes `en-rGB`, `es`, `fr`, `de-rDE`.
+- Tests/docs: `BadgesServiceTest.kt`, `firebase-rules.json`, `TEST_REPORT.md`, `ARCHITECTURE_PLAN.md`, `FIREBASE_RULES_NOTES.md`.
+
+### Badges criadas
+
+- RC - respostas certas: `RC_1`, `RC_10`, `RC_50`, `RC_100`, `RC_250`, `RC_500`, `RC_1000`, `RC_2500`, `RC_5000`.
+- PJ - partidas jogadas/terminadas: `PJ_1`, `PJ_10`, `PJ_50`, `PJ_100`, `PJ_250`, `PJ_500`, `PJ_1000`, `PJ_2500`, `PJ_5000`.
+- VT - vitorias: `VT_1`, `VT_10`, `VT_50`, `VT_100`, `VT_250`, `VT_500`, `VT_1000`, `VT_2500`, `VT_5000`.
+
+### Assets locais
+
+- A UI resolve drawables por `drawableName`, usando nomes previsiveis: `rc1`, `rc10`, `rc50`, `rc100`, `rc250`, `rc500`, `rc1000`, `rc2500`, `rc5000`, equivalentes `pj*` e `vt*`.
+- Se o asset especifico nao existir, tenta `badge_default` ou `badge_locked`; se tambem nao existirem, usa icones internos existentes (`ic_trophy`/`ic_lock`) sem crash.
+- Nao foram geradas imagens, nao foram usados URLs remotos e nao foi introduzida dependencia nova para imagens.
+
+### Firebase
+
+- Novo node: `conquistas/{uid}/{badgeId}`.
+- Escrita client-side idempotente via transaction: se a badge ja existir, a transaction aborta sem sobrescrever `desbloqueadaEm`.
+- Convidados e perfis sem Auth nao leem nem gravam conquistas; a UI mostra a grelha bloqueada sem persistencia.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+
+Observacoes:
+
+- Mantem-se o warning existente `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+### Testes manuais recomendados
+
+1. Conta nova: abrir Perfil, confirmar stats a zero e 27 badges bloqueadas sem crash.
+2. Conta com jogos: confirmar partidas, vitorias, respostas certas, taxa de vitoria, XP e nivel; verificar desbloqueio conforme thresholds.
+3. Assets em falta: remover/nao adicionar `rc10.png` ou outro e confirmar fallback visual sem crash.
+4. Convidado: abrir perfil quando aplicavel e confirmar que nao aparece node em `conquistas`.
+5. Badge ja desbloqueada: reabrir perfil e confirmar que nao duplica nem altera timestamp.
+6. Matchmaking: confirmar que continua sem entrada ativa na UI.
+7. Fluxos preservados: 1x1/2x2 por convite, salas, categorias, historico e ranking.
+
+### Riscos pendentes
+
+- Badges v1 continuam client-side; um cliente modificado poderia tentar gravar conquistas proprias validas em termos de formato. A versao robusta deve mover validacao/desbloqueio para Cloud Functions.
+- A grelha mostra todas as 27 badges; em perfis com ecras pequenos fica dependente de scroll.
+- Nao houve walkthrough manual Firebase real automatizado nesta ronda; os testes finais foram build/unit.
+
 ## UI polish e strings/i18n - 2026-05-12
 
 ### Ficheiros alterados nesta fase
@@ -3743,3 +4130,119 @@ Observacoes:
 - Nao foi possivel executar testes manuais de Firebase/emulador nesta ronda automatica.
 - A bottom nav foi adicionada programaticamente aos ecras principais; deve ser validada visualmente em dispositivos pequenos.
 - O warning antigo `adminHint` permanece fora do escopo desta ronda.
+
+## Security Patch Pre-Walkthrough - 2026-05-14
+
+### Causa real confirmada
+
+- `jogadores/{id}/password` ainda nao e codigo morto: e escrito por `JogadorRepository.criarJogador`, lido por `JogadorRepository.toPerfilJogador` e usado por `LoginViewModel.entrarLegado`.
+- Firebase Auth ja e usado nos fluxos novos de email/password, mas o login legado por `nomeUtilizador/password` continua ativo.
+- Por isso, remover o campo `password` ou fechar totalmente `jogadores.read=true` nesta fase poderia quebrar compatibilidade legado, perfis, ranking ou amigos.
+
+### Correcoes aplicadas
+
+- Reforcado o guard de persistencia do resultado de grupo: `PontuacoesInput.podeGravarPersistente()` agora bloqueia `guest_`, `isGuest=true` e `tipoJogador=guest`, alem de exigir UID nao vazio.
+- `PontuacoesActivity` passa `tipoJogador` e `isGuest` para o ViewModel quando esses extras existem.
+- Adicionados limites conservadores nas Firebase Rules para categorias publicas e categorias personalizadas: nome, descricao, pergunta, resposta correta, opcoes, imagem e dificuldade.
+- `imagem` e `dificuldade` continuam opcionais; `dificuldade`, quando existe, continua limitada a `facil`, `media` ou `dificil`.
+- Valores antigos ja existentes e inalterados continuam aceites pelas rules, para reduzir risco de quebrar categorias antigas durante updates noutros campos.
+- Logs residuais de matchmaking/salas competitivas deixam de expor diretamente codigo de sala, `playerKey`, UID e paths completos de updates.
+- Matchmaking nao foi reativado nem alterado como fluxo.
+
+### Ficheiros alterados nesta ronda
+
+- `firebase-rules.json`
+- `FIREBASE_RULES_NOTES.md`
+- `TEST_REPORT.md`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/PontuacoesViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+
+### Riscos pendentes
+
+- R1: `jogadores.read=true` continua a expor dados de perfil e hash legado. Correccao completa deve esperar por migracao/split publico-privado e remocao planeada do login legado.
+- R2: pontuacao, XP, vitorias, ranking e historico continuam client-authoritative. Correccao robusta deve ser feita com Cloud Functions/backend.
+- R3: writes amplos em salas continuam necessarios enquanto convidados nao tiverem Auth anonimo ou backend autoritativo.
+- Limites de perguntas copiadas para `salas`, `sala_1x1` e `sala_2x2` ficaram pendentes para evitar risco de quebrar fluxos de jogo/convite antes do walkthrough.
+- Badges/conquistas futuras devem herdar o mesmo guard de convidados antes de persistirem progresso.
+
+### Checklist manual recomendada
+
+1. Criar conta nova.
+2. Fazer login/logout.
+3. Jogar como autenticado e confirmar XP, historico e ranking.
+4. Jogar como convidado e confirmar que aparece em sala/podio, nao ganha XP, nao aparece no ranking, nao grava historico e nao cria `jogadores/{guestKey}`.
+5. Criar categoria personalizada com texto normal.
+6. Tentar criar pergunta vazia.
+7. Tentar criar pergunta/opcao muito grande.
+8. Jogar categoria personalizada.
+9. Enviar convite 1x1.
+10. Enviar convite 2x2.
+11. Confirmar que matchmaking continua inacessivel.
+
+### Validacoes desta ronda
+
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+Observacoes:
+
+- Mantem-se o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+## Bugfix critico pre-walkthrough - convites 1x1/2x2 perguntas - 2026-05-14
+
+### Causa real confirmada
+
+- Nos convites 1x1/2x2, uma categoria oficial sem `categoriaPublicaId`, `donoUid` ou `donoCategoria` explicitos era marcada como `categoriaPersonalizada=true` porque o fallback usava `nomeUtilizador` do host.
+- Com isso, uma categoria oficial como `Cultura Geral` podia ser procurada em `jogadores/{host}/categoriasPersonalizadas/Cultura Geral/perguntas` em vez de `categorias/Cultura Geral/perguntas`.
+- O erro aparecia ao iniciar o jogo porque o carregamento competitivo nao encontrava perguntas validas no path personalizado errado.
+
+### Correcoes aplicadas
+
+- `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity` so marcam `categoriaPersonalizada=true` quando `donoUid` ou `donoCategoria` chegam explicitamente no intent.
+- Categorias oficiais por convite ficam sem metadados de publica/personalizada e voltam a usar `categorias/{nomeCategoria}/perguntas`.
+- `JogoCompetitivoRepository` passou a devolver erro claro quando a sala/categoria existe mas nao tem perguntas validas.
+- O parser competitivo de perguntas le sempre por `snapshot.children`, aceitando perguntas guardadas como array/lista ou objeto/map, e ignora entradas invalidas.
+- Para o ecrã competitivo atual continuam a ser usadas 4 opcoes por pergunta, porque `Jogo1x1Activity` e `Jogo2x2Activity` têm 4 botoes fixos.
+- Firebase Rules nao foram alteradas.
+- Matchmaking nao foi alterado nem reativado.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `TEST_REPORT.md`
+
+### Testes manuais obrigatorios
+
+1. Criar/usar conta A e conta B.
+2. Conta A convida conta B para 1x1.
+3. Conta B aceita.
+4. Conta A inicia.
+5. Confirmar que o jogo abre com perguntas.
+6. Jogar ate ao fim e confirmar pontuacao.
+7. Repetir com 2x2 usando quatro contas/jogadores.
+8. Testar categoria oficial, por exemplo `Cultura Geral`.
+9. Testar categoria oficial que tenha perguntas como objeto/map, por exemplo `Geografia`.
+10. Testar categoria publica/personalizada se o fluxo permitir.
+11. Confirmar que o erro "Erro a ir buscar perguntas" desapareceu.
+12. Confirmar que matchmaking nao aparece nem foi reativado.
+
+### Validacoes desta ronda
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+Observacoes:
+
+- Mantem-se o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.

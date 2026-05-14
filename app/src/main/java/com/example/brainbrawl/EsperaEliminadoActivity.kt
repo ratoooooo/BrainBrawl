@@ -48,7 +48,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         totalPerguntascertas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, 0)
         totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
 
-        binding.txtCodigoSala.text = "Código da Sala: $codigoSala"
+        binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
         configurarObservers()
         viewModel.escutarFimJogo(codigoSala)
     }
@@ -62,12 +62,12 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         viewModel.evento.observe(this) { evento ->
             when (evento ?: return@observe) {
                 EsperaEliminadoEvent.DadosInvalidos -> {
-                    Toast.makeText(this, "Dados da sala inválidos.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.dados_sala_invalidos), Toast.LENGTH_SHORT).show()
                     viewModel.consumirEvento()
                     finish()
                 }
                 EsperaEliminadoEvent.ErroAguardarFim -> {
-                    Toast.makeText(this, "Erro ao aguardar fim do jogo.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, getString(R.string.erro_aguardar_fim_jogo), Toast.LENGTH_SHORT).show()
                     viewModel.consumirEvento()
                 }
                 EsperaEliminadoEvent.JogoTerminado -> {

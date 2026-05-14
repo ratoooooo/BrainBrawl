@@ -18,14 +18,14 @@
     <!-- Título -->
     <TextView
         android:id="@+id/txt_titulo_entrar"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="@string/entrar_numa_sala"
-        android:textSize="36sp"
+        android:textSize="32sp"
         android:textStyle="bold"
         android:fontFamily="sans-serif-black"
         android:textColor="@color/bb_text_primary"
-        android:letterSpacing="0.05"
+        android:gravity="center"
         app:layout_constraintTop_toTopOf="@id/gl_center"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
@@ -34,7 +34,7 @@
     <EditText
         android:id="@+id/edt_codigo_sala"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:hint="@string/insira_codigo_sala"
         android:inputType="text"
         android:textSize="16sp"
@@ -52,7 +52,7 @@
     <EditText
         android:id="@+id/edt_nome_jogador"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="56dp"
         android:hint="@string/insira_seu_nome"
         android:inputType="text"
         android:textSize="16sp"
@@ -110,7 +110,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:textSize="16sp"
-        android:textColor="@color/bb_primary_text"
+        android:textColor="@color/bb_text_primary"
         app:layout_constraintTop_toBottomOf="@id/btn_entrar_sala"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

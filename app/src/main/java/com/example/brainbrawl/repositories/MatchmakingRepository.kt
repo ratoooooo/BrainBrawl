@@ -16,6 +16,15 @@ import com.google.firebase.database.MutableData
 import com.google.firebase.database.Transaction
 import com.google.firebase.database.ValueEventListener
 
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
+}
+
+private fun List<MatchmakingPlayer>.maskedPlayerKeys(): List<String> {
+    return map { it.playerKey.maskedLogId() }
+}
+
 class MatchmakingRepository(
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
 ) {
@@ -35,7 +44,7 @@ class MatchmakingRepository(
     fun entrarNaFila(player: MatchmakingPlayer, modo: String): Task<Void> {
         Log.d(
             TAG,
-            "A escrever fila: path=${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/${player.playerKey} " +
+            "A escrever fila: modo=$modo player=${player.playerKey.maskedLogId()} " +
                 "tipo=${player.tipoJogador} uidPresente=${player.uid.isNotBlank()} estado=${player.estado}"
         )
         val updates = hashMapOf<String, Any?>(
@@ -277,7 +286,7 @@ class MatchmakingRepository(
                     Log.w(
                         TAG,
                         "Selecao invalida para match: modo=$modo limite=$limite " +
-                            "quantidade=${jogadoresSelecionados.size} jogadores=${jogadoresSelecionados.map { it.playerKey }}"
+                            "quantidade=${jogadoresSelecionados.size} jogadores=${jogadoresSelecionados.maskedPlayerKeys()}"
                     )
                     jogadoresSelecionados = emptyList()
                     return Transaction.abort()
@@ -291,7 +300,11 @@ class MatchmakingRepository(
                 }
 
                 codigoSala = gerarCodigoSala()
-                Log.d(TAG, "Match claim: modo=$modo sala=$codigoSala criador=${criador.playerKey} jogadores=${jogadoresSelecionados.map { it.playerKey }}")
+                Log.d(
+                    TAG,
+                    "Match claim: modo=$modo sala=${codigoSala.maskedLogId()} " +
+                        "criador=${criador.playerKey.maskedLogId()} jogadores=${jogadoresSelecionados.maskedPlayerKeys()}"
+                )
 
                 currentData.child(FirebasePaths.MATCHES).child(matchId).value = mapOf(
                     FirebasePaths.ESTADO to GameConstants.ESTADO_CRIANDO,
@@ -307,7 +320,10 @@ class MatchmakingRepository(
 
             override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
                 if (error != null) {
-                    logErroFirebase("Transacao matchmaking falhou: modo=$modo criador=$criadorKey", error.toException())
+                    logErroFirebase(
+                        "Transacao matchmaking falhou: modo=$modo criador=${criadorKey.maskedLogId()}",
+                        error.toException()
+                    )
                     result.setException(error.toException())
                     return
                 }
@@ -347,7 +363,8 @@ class MatchmakingRepository(
 
         fun falharComRollback(exception: Exception, removerSala: Boolean) {
             logErroFirebase(
-                "Falha ao criar/publicar match. Rollback: modo=$modo sala=$codigoSala removerSala=$removerSala",
+                "Falha ao criar/publicar match. Rollback: modo=$modo " +
+                    "sala=${codigoSala.maskedLogId()} removerSala=$removerSala",
                 exception
             )
             rollbackMatch(modo, codigoSala, matchId, jogadores, removerSala)
@@ -360,7 +377,7 @@ class MatchmakingRepository(
             falharComRollback(
                 IllegalStateException(
                     "Selecao invalida para sala $modo: esperado=$limite recebido=${jogadores.size} " +
-                        "jogadores=${jogadores.map { it.playerKey }}"
+                        "jogadores=${jogadores.maskedPlayerKeys()}"
                 ),
                 removerSala = false
             )
@@ -373,9 +390,9 @@ class MatchmakingRepository(
                 val payload = salaMap(modo, nomeCategoria, criador, jogadores)
                 Log.d(
                     TAG,
-                    "A criar sala: node=$salaNode codigo=$codigoSala modo=$modo " +
-                        "adminId=${criador.playerKey} adminUid=${criador.uid} " +
-                        "jogadores=${jogadores.map { it.playerKey }} quantidade=${jogadores.size} " +
+                    "A criar sala: node=$salaNode codigo=${codigoSala.maskedLogId()} modo=$modo " +
+                        "adminId=${criador.playerKey.maskedLogId()} adminUid=${criador.uid.maskedLogId()} " +
+                        "jogadores=${jogadores.maskedPlayerKeys()} quantidade=${jogadores.size} " +
                         "campos=${payload.keys}"
                 )
                 currentData.value = payload
@@ -421,13 +438,17 @@ class MatchmakingRepository(
                 }
                 Log.d(
                     TAG,
-                    "A publicar resultados: modo=$modo sala=$codigoSala match=$matchId " +
-                        "jogadores=${jogadores.map { it.playerKey }} quantidade=${jogadores.size} " +
-                        "paths=${updates.keys}"
+                    "A publicar resultados: modo=$modo sala=${codigoSala.maskedLogId()} " +
+                        "match=${matchId.maskedLogId()} jogadores=${jogadores.maskedPlayerKeys()} " +
+                        "quantidade=${jogadores.size} updates=${updates.size}"
                 )
                 database.updateChildren(updates)
                     .addOnSuccessListener {
-                        Log.d(TAG, "Resultados publicados: modo=$modo sala=$codigoSala jogadores=${jogadores.map { it.playerKey }}")
+                        Log.d(
+                            TAG,
+                            "Resultados publicados: modo=$modo sala=${codigoSala.maskedLogId()} " +
+                                "jogadores=${jogadores.maskedPlayerKeys()}"
+                        )
                         result.setResult(null)
                     }
                     .addOnFailureListener { falharComRollback(it, removerSala = true) }

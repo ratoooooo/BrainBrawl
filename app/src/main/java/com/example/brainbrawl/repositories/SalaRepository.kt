@@ -78,6 +78,7 @@ class SalaRepository(
         return result.task
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun garantirJogadorNaSala(
         codigoSala: String,
         jogador: JogadorSalaIdentidade,

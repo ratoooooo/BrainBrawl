@@ -83,11 +83,11 @@ class EscolherModoActivity : AppCompatActivity() {
     private fun mostrarExplicacaoTodosModos() {
         UteisDicas.mostrarDicas(
             this,
-            "Modos de Jogo",
+            getString(R.string.dica_modos_titulo),
             listOf(
-                "Clássico" to "Perguntas da categoria escolhida. Vence quem somar mais pontos.",
-                "Caótico" to "Perguntas misturadas de todas as categorias, com menos tempo.",
-                "Eliminatórias" to "Quem falha pode sair da partida. O último resistente vence."
+                getString(R.string.modo_classico) to getString(R.string.dica_modo_classico_texto),
+                getString(R.string.modo_caotico) to getString(R.string.dica_modo_caotico_texto),
+                getString(R.string.modo_eliminatorias) to getString(R.string.dica_modo_eliminatorias_texto)
             )
         )
     }

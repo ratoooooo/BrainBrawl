@@ -2,6 +2,20 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Badges v1 / conquistas - 2026-05-14
+
+- Foi criado o node `conquistas/{uid}/{badgeId}` para conquistas UID-first.
+- Cada conquista gravada contem `id`, `familia`, `nome`, `descricao`, `objetivo`, `progressoAoDesbloquear`, `drawableName`, `desbloqueadaEm` e `origem`.
+- Permissoes:
+  - leitura apenas quando `auth != null` e `auth.uid == $uid`;
+  - escrita apenas quando `auth != null` e `auth.uid == $uid`;
+  - chaves `guest_` ficam bloqueadas em `conquistas`.
+- Convidados nao leem nem gravam conquistas, e o cliente tambem evita chamar o repository para convidados/perfis sem Auth.
+- As rules validam formato, familia (`RC`, `PJ`, `VT`), drawable local com nome simples e progresso suficiente para o objetivo.
+- Nao foram abertas permissoes globais e nao foi usado `childrenCount` nem `childrenCount()`.
+- Limitacao importante: badges v1 sao client-side. As rules protegem ownership e formato, mas nao provam que as estatisticas sao legitimas.
+- Futuro ideal: mover desbloqueio de conquistas para Cloud Functions junto ao fecho autoritativo de jogos/estatisticas, escrevendo `conquistas/{uid}` no servidor.
+
 ## Atualizacao categorias e dificuldade opcional - 2026-05-11
 
 - `firebase-rules.json` foi atualizado para aceitar campos opcionais em perguntas:
@@ -346,3 +360,34 @@ Notas:
 - A anti-duplicacao principal esta no cliente por transacao em `historicoJogos/{uid}/{historicoId}`.
 - O `historicoId` e deterministico por modo e codigo da sala, impedindo duplicacao em reabertura normal do ecra de pontuacao.
 - As rules protegem ownership por UID, mas nao substituem validacao server-side do resultado real da partida.
+
+## Security Patch Pre-Walkthrough - 2026-05-14
+
+### Password/hash legado
+
+- Campo confirmado: `jogadores/{id}/password`.
+- Escrita confirmada em `JogadorRepository.criarJogador(nomeJogador, passwordHash, avatar)`, usada para perfis legados por `nomeUtilizador`.
+- Leitura confirmada em `JogadorRepository.toPerfilJogador()`.
+- Uso ativo confirmado em `LoginViewModel.entrarLegado()`, que compara `UteisValidacao.hashPassword(password)` com `perfil.password`.
+- Firebase Auth ja cobre registos e logins por email/password nos fluxos novos, mas ainda nao substitui totalmente o campo legado porque o login por nome/password continua suportado.
+- Decisao desta fase: nao remover o campo nem fechar `jogadores.read=true`, para nao quebrar login legado, ranking, perfis e amigos antes de uma migracao planeada.
+
+### Ajustes aplicados nas rules
+
+- Adicionados limites conservadores em `categoriasPublicas/{categoriaId}` e `jogadores/{uid|nome}/categoriasPersonalizadas/{nomeCategoria}`:
+  - `nome`: 1 a 60 caracteres.
+  - `descricao`: ate 300 caracteres.
+  - `pergunta`: 1 a 300 caracteres.
+  - `respostaCorreta` e opcoes: 1 a 120 caracteres.
+  - `imagem`: ate 500 caracteres quando existir.
+  - `dificuldade`: mantida opcional e limitada a `facil`, `media` ou `dificil` quando existir.
+- Valores antigos que ja existam e fiquem inalterados continuam aceites, para reduzir risco de quebrar categorias antigas durante updates noutros campos.
+- Nao foi usado `childrenCount` nem `childrenCount()`.
+- Nao foram alteradas regras de salas, convites, pontuacao, XP, ranking ou matchmaking.
+
+### Riscos pendentes documentados
+
+- R1 fica pendente: `jogadores` continua com leitura publica e pode expor email e hash legado. Correccao completa exige separar dados publicos/privados ou encerrar login legado.
+- R2 fica pendente: pontuacao, XP, vitorias, ranking e historico continuam client-authoritative. Correccao forte exige Cloud Functions/backend autoritativo.
+- R3 fica pendente: `salas`, `sala_1x1` e `sala_2x2` ainda permitem writes amplos para suportar convidados sem Auth. Correccao forte exige Firebase Anonymous Auth para convidados ou backend.
+- Matchmaking aleatorio continua desativado/inacessivel; os logs residuais foram reduzidos, mas a funcionalidade nao foi reativada.

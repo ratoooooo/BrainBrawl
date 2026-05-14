@@ -2,7 +2,8 @@
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="10dp"
+    android:layout_marginBottom="@dimen/bb_space_sm"
+    android:padding="@dimen/bb_space_md"
     android:gravity="center_vertical"
     android:background="@drawable/bg_card_surface">
 
@@ -11,21 +12,24 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1"
+        android:ellipsize="end"
+        android:maxLines="2"
         android:text="@string/convite_de"
         android:textSize="16sp"
-        android:textColor="#000000"
+        android:textColor="@color/bb_text_primary"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"/>
     <Button
         android:id="@+id/btnAceitarConvite"
-        android:layout_width="wrap_content"
-        android:layout_height="40dp"
+        style="@android:style/Widget.Button"
+        android:layout_width="96dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="@dimen/bb_space_sm"
         android:text="@string/aceitar"
-        android:textColor="#000000"
-        android:textSize="14sp"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_secondary_text"
+        android:textSize="13sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"
-        android:background="@drawable/botao_branco_arredondado"
-        android:paddingLeft="24dp"
-        android:paddingRight="24dp"/>
+        android:background="@drawable/bg_button_secondary"/>
 </LinearLayout>

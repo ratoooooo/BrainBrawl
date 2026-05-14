@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     android:background="@drawable/bg_app_gradient">
 
-    <!-- Card Centralizado -->
     <androidx.cardview.widget.CardView
         android:id="@+id/cardPerfil"
         android:layout_width="0dp"
@@ -15,272 +14,201 @@
         android:layout_marginTop="@dimen/bb_space_lg"
         android:layout_marginEnd="@dimen/bb_space_lg"
         android:layout_marginBottom="@dimen/bb_space_md"
+        app:cardBackgroundColor="@color/bb_surface"
         app:cardCornerRadius="@dimen/bb_radius_lg"
         app:cardElevation="10dp"
-        app:cardBackgroundColor="@color/bb_surface"
-        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toTopOf="@id/btnVoltarPerfil"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintVertical_bias="0.5">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
         <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:fillViewport="false">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center_horizontal"
-            android:orientation="vertical"
-            android:padding="@dimen/bb_space_lg">
-
-            <!-- AVATAR GRANDE -->
-            <ImageView
-                android:id="@+id/imgAvatarAmigo"
-                android:layout_width="110dp"
-                android:layout_height="110dp"
-                android:layout_marginBottom="12dp"
-                android:scaleType="centerCrop"
-                android:contentDescription="@string/avatar_do_amigo" />
-
-            <!-- Nome do Amigo -->
-            <TextView
-                android:id="@+id/txtNomeAmigo"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="12dp"
-                android:ellipsize="end"
-                android:fontFamily="sans-serif-black"
-                android:gravity="center"
-                android:maxLines="2"
-                android:text="@string/nome_utilizador_exemplo"
-                android:textColor="@color/bb_text_primary"
-                android:textSize="24sp"
-                android:textStyle="bold" />
-
-
-            <!-- Linha das Conquistas -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center"
-                android:layout_marginBottom="4dp">
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:padding="@dimen/bb_space_lg">
 
-                <!-- Total de Jogos -->
-                <LinearLayout
+                <ImageView
+                    android:id="@+id/imgAvatarAmigo"
+                    android:layout_width="96dp"
+                    android:layout_height="96dp"
+                    android:layout_marginBottom="10dp"
+                    android:contentDescription="@string/avatar_do_amigo"
+                    android:scaleType="centerCrop" />
+
+                <TextView
+                    android:id="@+id/txtNomeAmigo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:text="@string/nome_utilizador_exemplo"
+                    android:textColor="@color/bb_text_primary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/txtNivel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:layout_marginTop="6dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/nivel_inicial"
+                    android:textColor="@color/bb_text_primary"
+                    android:textSize="18sp" />
 
-                    <ImageView
-                        android:id="@+id/imgTotalJogos"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:contentDescription="@string/total_de_jogos" />
-                    <TextView
-                        android:id="@+id/txtTotalJogosConquista"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/jogos"
-                        android:textSize="12sp"
+                <TextView
+                    android:id="@+id/txtXpProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:fontFamily="sans-serif"
+                    android:text="@string/xp_progress_format"
                     android:textColor="@color/bb_text_secondary"
-                        android:gravity="center"/>
-                </LinearLayout>
+                    android:textSize="14sp" />
 
-                <!-- Espaçamento entre conquistas -->
-                <Space
-                    android:layout_width="32dp"
-                    android:layout_height="0dp"/>
+                <TextView
+                    android:id="@+id/txtResumoCompetitivoTitulo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="18dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/resumo_competitivo"
+                    android:textColor="@color/bb_text_primary"
+                    android:textSize="18sp" />
 
-                <!-- Total de Vitórias -->
                 <LinearLayout
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
+                    android:layout_marginTop="8dp"
+                    android:orientation="vertical">
 
-                    <ImageView
-                        android:id="@+id/imgTotalVitorias"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:contentDescription="@string/total_de_vitorias" />
                     <TextView
-                        android:id="@+id/txtTotalVitoriasConquista"
-                        android:layout_width="wrap_content"
+                        android:id="@+id/txtTotalJogos"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="@string/vit_rias"
-                        android:textSize="12sp"
-                        android:textColor="@color/bb_text_secondary"
-                        android:gravity="center"/>
+                        android:text="@string/total_de_jogos"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtTotalVitorias"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/total_de_vitorias"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtTotalDerrotas"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/total_de_derrotas"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtTotalRespostasCertas"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/total_de_respostas_certas"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtTaxaVitoria"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/taxa_de_vit_ria"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtTaxaAcertos"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/taxa_de_acertos"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtPontuacao"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/pontuacao"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtRecordePontuacao"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/recorde_pontuacao_format"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
+
+                    <TextView
+                        android:id="@+id/txtXpTotal"
+                        style="@style/TextAppearance.AppCompat.Body1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/xp_total_format"
+                        android:textColor="@color/bb_text_primary"
+                        android:textSize="16sp" />
                 </LinearLayout>
 
-                <Space
-                    android:layout_width="32dp"
-                    android:layout_height="0dp"/>
-
-                <!-- Total de Respostas Certas -->
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:gravity="center">
-
-                    <ImageView
-                        android:id="@+id/imgTotalRespostasCertas"
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:contentDescription="@string/total_de_respostas_certas" />
-                    <TextView
-                        android:id="@+id/txtTotalRespostasCertasConquista"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/respostas_certas_abrev"
-                        android:textSize="12sp"
-                        android:textColor="@color/bb_text_secondary"
-                        android:gravity="center"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- Pontuação -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="14dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/iconPontuacao"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="@string/pontuacao"
-                    android:src="@drawable/ic_star" />
-
                 <TextView
-                    android:id="@+id/txtPontuacao"
-                    android:layout_width="0dp"
+                    android:id="@+id/txtConquistasTitulo"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif"
-                    android:maxLines="2"
-                    android:text="@string/pontuacao"
+                    android:layout_marginTop="20dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/conquistas"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="18sp" />
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/txtNivel"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:fontFamily="sans-serif-black"
-                android:text="@string/nivel_inicial"
-                android:textColor="@color/bb_text_primary"
-                android:textSize="20sp" />
-
-            <TextView
-                android:id="@+id/txtXpProgress"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:fontFamily="sans-serif"
-                android:text="@string/xp_progress_format"
-                android:textColor="@color/bb_text_secondary"
-                android:textSize="16sp" />
-
-            <!-- Total de Jogos -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/iconJogos"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="@string/jogos"
-                    android:src="@drawable/ic_sport" />
 
                 <TextView
-                    android:id="@+id/txtTotalJogos"
-                    android:layout_width="0dp"
+                    android:id="@+id/txtConquistasEstado"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif"
-                    android:maxLines="2"
-                    android:text="@string/total_de_jogos"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="18sp" />
-            </LinearLayout>
+                    android:layout_marginTop="2dp"
+                    android:text="@string/conquistas_client_side"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="12sp" />
 
-            <!-- Total de Vitórias -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/iconVitorias"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="@string/vit_rias"
-                    android:src="@drawable/ic_trophy" />
-
-                <TextView
-                    android:id="@+id/txtTotalVitorias"
-                    android:layout_width="0dp"
+                <GridLayout
+                    android:id="@+id/gridConquistas"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif"
-                    android:maxLines="2"
-                    android:text="@string/total_de_vit_rias_0"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="18sp" />
+                    android:layout_marginTop="10dp"
+                    android:columnCount="3"
+                    android:useDefaultMargins="false" />
+
             </LinearLayout>
-
-            <!-- Taxa de Acertos -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
-
-                <ImageView
-                    android:id="@+id/iconTaxa"
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:layout_marginEnd="8dp"
-                    android:contentDescription="@string/taxa_de_acertos"
-                    android:src="@drawable/ic_percent" />
-
-                <TextView
-                    android:id="@+id/txtTaxaAcertos"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif"
-                    android:maxLines="2"
-                    android:text="@string/taxa_de_vit_ria"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="18sp" />
-            </LinearLayout>
-
-        </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>
 
@@ -289,17 +217,17 @@
         style="@android:style/Widget.Button"
         android:layout_width="0dp"
         android:layout_height="56dp"
+        android:layout_marginBottom="32dp"
         android:background="@drawable/bg_button_primary"
+        android:fontFamily="sans-serif-black"
         android:paddingVertical="14dp"
         android:text="@string/voltar"
         android:textColor="#FFFFFF"
         android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
         android:textStyle="bold"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintWidth_percent="0.85"
-        android:layout_marginBottom="32dp"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintWidth_percent="0.85" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

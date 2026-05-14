@@ -52,7 +52,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         binding.btnConvidar.setOnClickListener {
             val selecionados = convidarAmigoAdapter.getSelecionados()
             if (selecionados.size != 3) {
-                Toast.makeText(this, "Seleciona 3 amigos para fechar o 2x2.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.seleciona_3_amigos_2x2), Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             // Chama a função para enviar convite 2x2
@@ -75,7 +75,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             categoriaSelecionada,
             dadosCategoriaSelecionada()
         ).addOnSuccessListener {
-            Toast.makeText(this, "Convite 2x2 enviado!", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.convite_2x2_enviado), Toast.LENGTH_SHORT).show()
             // Vai para sala de espera 2x2
             val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
             intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
@@ -85,7 +85,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }.addOnFailureListener {
-            Toast.makeText(this, "Erro ao enviar convite 2x2.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.erro_enviar_convite_2x2), Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -118,13 +118,14 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
             )
         }
 
-        val donoLegado = donoCategoria.orEmpty().ifBlank { nomeUtilizador }
-        return if (!donoUid.isNullOrBlank() || donoLegado.isNotBlank()) {
+        val donoUidExplicito = donoUid.orEmpty().trim()
+        val donoLegadoExplicito = donoCategoria.orEmpty().trim()
+        return if (donoUidExplicito.isNotBlank() || donoLegadoExplicito.isNotBlank()) {
             val dados = linkedMapOf<String, Any>(
                 "categoriaPersonalizada" to true,
-                "donoCategoria" to donoLegado
+                "donoCategoria" to donoLegadoExplicito.ifBlank { nomeUtilizador }
             )
-            donoUid?.takeIf { it.isNotBlank() }?.let { dados[FirebasePaths.DONO_UID] = it }
+            donoUidExplicito.takeIf { it.isNotBlank() }?.let { dados[FirebasePaths.DONO_UID] = it }
             dados
         } else {
             emptyMap()

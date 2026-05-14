@@ -91,7 +91,7 @@ class JogoActivity : AppCompatActivity() {
         modoJogo = estado.modoJogo
         binding.txtAdmin.apply {
             if (admin) {
-                text = "Admin"
+                text = getString(R.string.admin_label)
                 visibility = android.view.View.VISIBLE
             } else {
                 visibility = android.view.View.GONE
@@ -105,7 +105,7 @@ class JogoActivity : AppCompatActivity() {
 
         perguntaAtual = estado.pergunta
         perguntaAtualIndex = estado.indice
-        binding.txtProgresso.text = "Pergunta ${estado.indice + 1}/${estado.totalPerguntas}"
+        binding.txtProgresso.text = getString(R.string.progresso_pergunta, estado.indice + 1, estado.totalPerguntas)
         binding.txtPergunta.text = perguntaAtual.pergunta
 
         opcoesAtuais = obterOpcoesAleatorias(perguntaAtual)
@@ -126,7 +126,7 @@ class JogoActivity : AppCompatActivity() {
         if (estado.admin) {
             bloquearAdminSempre()
             if (adminPrimeiraPergunta) {
-                Toast.makeText(this, "Como admin, só pode observar as respostas.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.admin_observar_respostas), Toast.LENGTH_SHORT).show()
                 adminPrimeiraPergunta = false
             }
         } else {
@@ -203,7 +203,7 @@ class JogoActivity : AppCompatActivity() {
             if (resultado.bonusAplicado > 0) {
                 Toast.makeText(
                     this,
-                    "Bónus de sequência! +${resultado.bonusAplicado} pontos",
+                    getString(R.string.bonus_sequencia_format, resultado.bonusAplicado),
                     Toast.LENGTH_SHORT
                 ).show()
             }
@@ -336,30 +336,30 @@ class JogoActivity : AppCompatActivity() {
                 }
             }
             is JogoEvent.ErroCarregarSala -> {
-                Toast.makeText(this, "Erro ao carregar sala: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_carregar_sala_format, evento.mensagem), Toast.LENGTH_SHORT).show()
                 finish()
             }
             is JogoEvent.ErroCarregarPerguntas -> {
-                Toast.makeText(this, "Erro ao carregar perguntas: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_carregar_perguntas_format, evento.mensagem), Toast.LENGTH_SHORT).show()
                 finalizarJogo()
             }
             is JogoEvent.ErroEstadoSala -> {
-                Toast.makeText(this, "Erro ao verificar estado da sala: ${evento.mensagem}", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_estado_sala_format, evento.mensagem), Toast.LENGTH_SHORT).show()
                 abrirMainAposErro()
             }
             JogoEvent.ErroVerificarJogadores -> {
-                Toast.makeText(this, "Erro ao verificar jogadores.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.erro_verificar_jogadores), Toast.LENGTH_SHORT).show()
                 abrirMainAposErro()
             }
             JogoEvent.ErroEliminarJogador -> {
-                Toast.makeText(this, "Erro ao eliminar jogador. Tente novamente.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.erro_eliminar_jogador), Toast.LENGTH_LONG).show()
             }
             JogoEvent.FinalizarJogo -> finalizarJogo()
             JogoEvent.MensagemFimEliminatorias -> {
-                Toast.makeText(this, "Jogo terminado! Só resta um jogador.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.jogo_terminado_um_jogador), Toast.LENGTH_LONG).show()
             }
             is JogoEvent.AbrirEsperaEliminado -> {
-                Toast.makeText(this, "Você foi eliminado!", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, getString(R.string.jogador_eliminado), Toast.LENGTH_LONG).show()
                 abrirEsperaEliminadoActivity(evento.dados)
             }
             is JogoEvent.AbrirPontuacoes -> enviarPontuacaoActivity(evento.dados)
