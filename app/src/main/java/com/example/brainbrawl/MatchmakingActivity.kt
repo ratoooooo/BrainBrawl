@@ -13,6 +13,7 @@ import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.viewmodels.MatchmakingEvent
 import com.example.brainbrawl.viewmodels.MatchmakingNavegacaoDados
+import com.example.brainbrawl.viewmodels.MatchmakingStatus
 import com.example.brainbrawl.viewmodels.MatchmakingUiState
 import com.example.brainbrawl.viewmodels.MatchmakingViewModel
 
@@ -71,6 +72,13 @@ class MatchmakingActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    override fun onStop() {
+        if (!isChangingConfigurations && !navegando && !isFinishing) {
+            viewModel.cancelarPorBackground()
+        }
+        super.onStop()
+    }
+
     private fun configurarObservers() {
         viewModel.estado.observe(this) { estado ->
             renderizarEstado(estado)
@@ -107,10 +115,12 @@ class MatchmakingActivity : AppCompatActivity() {
             }
         }
         binding.btnCancelarMatchmaking.isEnabled = estado.podeCancelar && !navegando
-        binding.btnCancelarMatchmaking.text = if (estado.podeCancelar) {
-            getString(R.string.cancelar)
-        } else {
-            getString(R.string.matchmaking_cancelando)
+        binding.btnCancelarMatchmaking.text = when {
+            estado.status == MatchmakingStatus.CANCELLED ||
+                estado.status == MatchmakingStatus.TIMEOUT ||
+                estado.status == MatchmakingStatus.ERROR -> getString(R.string.voltar)
+            estado.podeCancelar -> getString(R.string.cancelar)
+            else -> getString(R.string.matchmaking_cancelando)
         }
         binding.txtTituloMatchmaking.text = getString(R.string.matchmaking_titulo_modo_format, labelModo)
     }

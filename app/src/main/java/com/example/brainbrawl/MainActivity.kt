@@ -26,6 +26,7 @@ class MainActivity : AppCompatActivity() {
     private var nomeUtilizador: String? = null
     private var nomeJogador: String? = null
     private var modoJogo: String? = null
+    private var matchmakingAberturaEmCurso = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -66,6 +67,12 @@ class MainActivity : AppCompatActivity() {
         viewModel.iniciarNotificacoes(getString(R.string.categoria5))
     }
 
+    override fun onResume() {
+        super.onResume()
+        matchmakingAberturaEmCurso = false
+        atualizarBotoesMatchmaking()
+    }
+
     override fun onStop() {
         viewModel.pararNotificacoes()
         super.onStop()
@@ -95,11 +102,7 @@ class MainActivity : AppCompatActivity() {
             if (state.avatar.isNotBlank()) {
                 binding.imgAvatar.setImageResource(AvatarUtils.resolverAvatar(this, state.avatar))
             }
-            val matchmakingVisivel = state.uid.isNotBlank()
-            binding.btnMatchmaking1x1.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
-            binding.btnMatchmaking2x2.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
-            binding.btnMatchmaking1x1.isEnabled = matchmakingVisivel
-            binding.btnMatchmaking2x2.isEnabled = matchmakingVisivel
+            atualizarBotoesMatchmaking()
             atualizarBadgeNotificacoes(state.notificacoesPendentes, state.amigosVisivel)
         }
     }
@@ -202,12 +205,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun abrirMatchmaking(modo: String) {
+        if (matchmakingAberturaEmCurso) return
         val uidAtual = uid
         if (uidAtual.isNullOrBlank()) {
             Toast.makeText(this, R.string.matchmaking_requer_conta, Toast.LENGTH_SHORT).show()
             return
         }
 
+        matchmakingAberturaEmCurso = true
+        atualizarBotoesMatchmaking()
         val intent = Intent(this, MatchmakingActivity::class.java)
         intent.putExtra(IntentExtras.MODO_JOGO, modo)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria ?: getString(R.string.categoria5))
@@ -215,6 +221,17 @@ class MainActivity : AppCompatActivity() {
         nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
         adicionarAuthExtras(intent)
         startActivity(intent)
+    }
+
+    private fun atualizarBotoesMatchmaking() {
+        val matchmakingVisivel = !uid.isNullOrBlank()
+        val enabled = matchmakingVisivel && !matchmakingAberturaEmCurso
+        binding.btnMatchmaking1x1.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
+        binding.btnMatchmaking2x2.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
+        binding.btnMatchmaking1x1.isEnabled = enabled
+        binding.btnMatchmaking2x2.isEnabled = enabled
+        binding.btnMatchmaking1x1.alpha = if (enabled) 1f else 0.64f
+        binding.btnMatchmaking2x2.alpha = if (enabled) 1f else 0.64f
     }
 
     private fun adicionarAuthExtras(intent: Intent) {

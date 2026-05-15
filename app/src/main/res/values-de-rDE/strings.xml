@@ -80,6 +80,7 @@
     <string name="matchmaking_2x2_titulo">2v2 Random</string>
     <string name="matchmaking_titulo_modo_format">%1$s Random</string>
     <string name="matchmaking_estado_default">Spieler werden gesucht...</string>
+    <string name="matchmaking_contador_inicial">Suchende Spieler: 0/2</string>
     <string name="matchmaking_contador_format">Suchende Spieler: %1$d/%2$d</string>
     <string name="matchmaking_tempo_format">Wartezeit: %1$s</string>
     <string name="matchmaking_tempo_inicial">Wartezeit: 0:00</string>

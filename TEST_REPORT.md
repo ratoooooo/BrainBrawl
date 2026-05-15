@@ -4321,6 +4321,66 @@ Observacoes:
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK apos correcao.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew test`: OK.
 
+## Matchmaking estabilizacao + polish + QA - 2026-05-15
+
+### Estado auditado
+
+- Entrada na fila: `MatchmakingViewModel.entrarComJogador()` chama `MatchmakingRepository.entrarNaFila()`.
+- Saida da fila: cancelamento normal, timeout, `onCleared` e limpeza stale do repository removem `matchmaking/{modo}/fila/{playerKey}` e o resultado local.
+- Criacao de sala: `MatchmakingRepository.tentarCriarMatch()` reclama jogadores por transacao e `criarSalaEPublicarResultados()` cria `sala_1x1` ou `sala_2x2`.
+- UI recebe match por listener em `matchmaking/{modo}/resultados/{playerKey}` e navega em `MatchmakingActivity.abrirSala()`.
+- Listeners ativos: fila e resultado; ambos sao removidos antes de recriar e ao navegar/cancelar/destruir.
+
+### Problemas encontrados
+
+- O estado operacional ainda estava implicito em strings e flags, dificultando QA de `searching`, `creating`, `navigating`, `timeout` e `error`.
+- A Main podia abrir mais de uma `MatchmakingActivity` com taps muito rapidos nos cards.
+- Ao receber resultado antigo/invalido, o timer ja estava parado e a UI podia ficar sem estado claro.
+- Ao ir para background durante procura, a fila nao era cancelada explicitamente enquanto a Activity continuava viva.
+- Havia textos hardcoded no layout de matchmaking.
+
+### Correcoes aplicadas
+
+- Adicionado `MatchmakingStatus` com estados explicitos: `IDLE`, `SEARCHING`, `MATCH_FOUND`, `CREATING_ROOM`, `NAVIGATING`, `CANCELLING`, `CANCELLED`, `TIMEOUT` e `ERROR`.
+- `MatchmakingUiState` passou a transportar o status operacional para a Activity.
+- `MatchmakingActivity` ajusta loading, botao Cancelar/Voltar e textos com base no estado recebido.
+- Main ganhou guard `matchmakingAberturaEmCurso` para evitar spam nos cards 1x1/2x2.
+- `MatchmakingViewModel.cancelarPorBackground()` cancela silenciosamente a fila quando a app vai para background sem navegacao iniciada.
+- Resultado antigo, sala invalida ou erro de confirmacao deixam agora um estado de erro claro e permitem voltar/tentar novamente.
+- Textos hardcoded do layout foram movidos para strings e completados nos idiomas existentes.
+- Firebase Rules nao foram alteradas nesta ronda de estabilizacao.
+
+### Testes manuais recomendados
+
+1. 1x1: jogador A entra sozinho e ve `SEARCHING` com tempo a contar.
+2. 1x1: jogador B entra e ambos veem preparacao/navegacao para a mesma sala.
+3. 1x1: A cancela antes de B entrar e sai da fila.
+4. 1x1: A cancela no momento em que B entra.
+5. 1x1: clicar 20 vezes no card de matchmaking na Main e confirmar uma unica Activity.
+6. 1x1: back durante procura.
+7. 1x1: background durante procura e confirmar limpeza da fila.
+8. 2x2: 1, 2 e 3 jogadores ficam em espera.
+9. 2x2: 4 jogadores formam sala.
+10. 2x2: 5 jogadores entram e apenas 4 formam a primeira sala.
+11. Spam no botao cancelar durante preparacao.
+12. Rotacao de ecra durante procura.
+13. Convites 1x1/2x2 continuam funcionais.
+14. Partida, pontuacao, XP/CR, ranking, perfil e conquistas sem regressao.
+
+### Riscos restantes
+
+- A criacao de sala e a escolha de jogadores continuam client-side; Cloud Functions continuariam mais seguras.
+- Nao existe `activeRooms/{uid}` autoritativo, portanto varias sessoes com a mesma conta ainda nao ficam 100% controladas.
+- O cancelamento em background favorece nao deixar filas presas, mas pode surpreender se o utilizador alternar apps durante a procura.
+- Perda de internet depende de `onDisconnect` e timeout/stale; limpeza perfeita exige backend.
+
+### Validacoes desta ronda
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK preliminar.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew test`: OK.
+
 ## Perfil de amigos - conquistas e polish visual - 2026-05-15
 
 ### Bug corrigido
@@ -4392,6 +4452,133 @@ Observacoes:
 - As conquistas de amigos sao derivadas de estatisticas publicas; nao mostram timestamp real de desbloqueio porque `conquistas/{uid}` permanece privado por design.
 - A grelha completa de conquistas continua alinhada com `BadgesService` v1: RC, PJ e VT. XP/CR existem em `UteisConquistas` como sistema de icones, mas nao foram ligados a persistencia de conquistas nesta correcao.
 - Riscos de seguranca ja documentados permanecem: `jogadores.read=true` com password/hash legado, estatisticas client-authoritative e writes amplos em salas.
+
+## Estado Atual — Matchmaking + Badges + Regressao Geral - 2026-05-15
+
+### Objetivo
+
+Validar o estado real depois da reativacao/estabilizacao do matchmaking e da integracao de badges/assets, sem criar funcionalidades novas e sem mexer em pontuacao, XP, ranking, historico, convites, salas ou categorias.
+
+### Estado do matchmaking 1x1
+
+- A entrada na fila usa `MatchmakingViewModel.entrarComJogador()` e `MatchmakingRepository.entrarNaFila()`.
+- Path principal: `matchmaking/1x1/fila/{playerKey}`.
+- Resultado individual: `matchmaking/1x1/resultados/{playerKey}`.
+- Claim de jogadores: transacao em `matchmaking/1x1`.
+- Sala criada em `sala_1x1/{codigoSala}` com exatamente 2 jogadores.
+- A fila do modo oposto e limpa ao entrar, reduzindo risco de estar em 1x1 e 2x2 em simultaneo.
+- `MatchmakingActivity` navega para `SalaDeEspera1x1Activity` apenas depois de confirmar que o jogador pertence a sala.
+- `navegacaoIniciada` no ViewModel e `navegando` na Activity reduzem navegacao duplicada.
+- Timeout de procura: 90 segundos, com limpeza da fila e mensagem ao utilizador.
+
+### Estado do matchmaking 2x2
+
+- A entrada na fila usa o mesmo fluxo controlado do 1x1, com limite de 4 jogadores.
+- Path principal: `matchmaking/2x2/fila/{playerKey}`.
+- Resultado individual: `matchmaking/2x2/resultados/{playerKey}`.
+- Claim de jogadores: transacao em `matchmaking/2x2`.
+- Sala criada em `sala_2x2/{codigoSala}` com exatamente 4 jogadores e `jogadoresPermitidos`.
+- O repository valida quantidade e unicidade de `playerKey` antes de criar/publicar resultados.
+- A Activity navega para `SalaDeEspera2x2Activity` apenas quando o resultado e a sala sao consistentes.
+
+### Correcoes feitas nesta validacao
+
+- Corrigido um edge case em `MatchmakingViewModel.cancelarPorBackground()`: se a app for para background quando a sala ja existe, o ViewModel deixa de apagar listeners/estado como se tivesse cancelado com sucesso. Agora mantem `MATCH_FOUND` e permite concluir o fluxo em vez de perder uma partida ja criada.
+- Firebase Rules nao foram alteradas.
+
+### Estado dos badges
+
+- `BadgesService` continua a calcular a grelha persistente v1 para RC, PJ e VT a partir de `BadgeProgress`.
+- Conquistas persistidas continuam UID-first em `conquistas/{uid}`.
+- `BadgesRepository` bloqueia leitura/escrita para convidados e usa transacao por badge para nao sobrescrever timestamp existente.
+- Perfil proprio le/grava conquistas apenas quando o `authUid` e o dono do perfil coincidem.
+- Perfil de amigo calcula badges visualmente a partir de estatisticas publicas do amigo; nao le `conquistas/{friendUid}` porque esse node permanece privado.
+- `UteisConquistas` contem resolucao de icones para PJ, VT, XP, RC e CR.
+- `BadgeGridRenderer` usa `resources.getIdentifier` com fallback seguro para `badge_default`, `badge_locked`, `ic_trophy` ou `ic_lock`.
+
+Assets verificados:
+
+- Presentes: `rc1`, `rc10`, `rc50`, `rc100`, `rc250`, `rc500`, `rc1000`, `rc2500`, `rc5000`, `pj1`, `pj10`, `pj50`, `pj100`, `pj250`, `pj500`, `pj1000`, `pj2500`, `pj5000`, `vt1`, `vt10`, `vt50`, `vt100`, `vt250`, `vt500`, `vt1000`, `vt2500`, `vt5000`, todos os `xp*` esperados e todos os `cr*` esperados.
+- Ausentes nesta copia local: `rc200`, `pj25`, `vt5`, `vt25`, `badge_default`, `badge_locked`.
+- Os assets ausentes nao quebram build porque os utilitarios devolvem `null` quando o drawable nao existe e a grelha cai para `ic_trophy`/`ic_lock`.
+
+### Regressao principal verificada por codigo
+
+- Login/registo e nome visivel continuam com `Pergunta o Luso`.
+- `MatchmakingActivity` esta no Manifest como `exported=false`.
+- Main so mostra matchmaking quando existe UID autenticado.
+- Convites 1x1/2x2 continuam separados do matchmaking automatico.
+- Salas por codigo continuam nos paths existentes.
+- Categorias e perguntas continuam fora desta alteracao.
+- Convidados continuam sem persistencia de conquistas; regras de XP/historico/ranking de convidados permanecem dependentes dos repositories/fluxos ja existentes.
+
+### Firebase Rules
+
+- `python3 -m json.tool firebase-rules.json`: OK, JSON valido.
+- Regras nao foram alteradas nesta fase.
+- `conquistas/{uid}` permite leitura/escrita apenas ao proprio utilizador autenticado.
+- `matchmaking/{modo}` continua client-side e depende de validacoes/transactions no cliente.
+
+### Ficheiros alterados nesta validacao
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+Nota: ja existiam alteracoes pendentes de fases anteriores em Main, Matchmaking, layouts e strings; esta validacao nao as reverteu.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+Observacoes:
+
+- Gradle continua a mostrar aviso conhecido de funcionalidades deprecated para Gradle 9.0.
+- `build` executou tambem lint/testes agregados e gerou APK release/debug sem falha.
+
+### Checklist manual recomendada
+
+1. Login com conta A.
+2. Login com conta B.
+3. Matchmaking 1x1 entre A e B.
+4. Cancelar fila 1x1.
+5. Terminar jogo 1x1.
+6. Confirmar pontuacao/historico/XP.
+7. Confirmar badges apos jogo.
+8. Matchmaking 2x2 com quatro contas.
+9. Cancelar fila 2x2.
+10. Terminar jogo 2x2.
+11. Confirmar equipa vencedora.
+12. Confirmar convites 1x1 continuam funcionais.
+13. Confirmar convites 2x2 continuam funcionais.
+14. Criar sala por codigo.
+15. Jogar modo classico.
+16. Jogar modo caotico.
+17. Jogar eliminatorias.
+18. Criar categoria personalizada.
+19. Jogar categoria personalizada.
+20. Entrar como convidado.
+21. Confirmar convidado sem XP/historico/ranking/badges.
+22. Abrir perfil.
+23. Confirmar badges e imagens.
+24. Abrir ranking.
+25. Abrir historico.
+26. Fechar e reabrir app.
+
+### Riscos pendentes
+
+- Matchmaking continua client-side; Cloud Functions seriam mais fortes para criacao autoritativa de sala, anti-spam, `activeRooms/{uid}` e limpeza global de jogadores fantasma.
+- Firebase Rules continuam a permitir bastante escrita em matchmaking/salas para suportar transacoes cliente-side.
+- Riscos ja conhecidos permanecem: `jogadores.read=true` com password/hash legado, pontuacao/XP/ranking/historico client-authoritative e writes amplos em salas.
+- Alguns assets opcionais/legado de badges estao ausentes (`rc200`, `pj25`, `vt5`, `vt25`, `badge_default`, `badge_locked`), embora haja fallback sem crash.
+
+### Decisao
+
+Com base na validacao estatica e nos comandos de build/teste, e seguro tratar esta versao como candidata para teste interno, com a ressalva de executar o checklist manual multi-conta antes de fechar release publica/beta.
 
 ## Bugfix critico pre-walkthrough - convites 1x1/2x2 perguntas - 2026-05-14
 

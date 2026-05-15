@@ -85,6 +85,7 @@
     <string name="matchmaking_2x2_titulo">2x2 Aleatório</string>
     <string name="matchmaking_titulo_modo_format">%1$s Aleatório</string>
     <string name="matchmaking_estado_default">À procura de jogadores...</string>
+    <string name="matchmaking_contador_inicial">Jogadores à procura: 0/2</string>
     <string name="matchmaking_contador_format">Jogadores à procura: %1$d/%2$d</string>
     <string name="matchmaking_tempo_format">Tempo de espera: %1$s</string>
     <string name="matchmaking_tempo_inicial">Tempo de espera: 0:00</string>

@@ -700,3 +700,69 @@ Limites:
 
 - A seguranca forte contra abuso, anti-spam, `activeRooms/{uid}` e limpeza de fantasma deve ser movida para Cloud Functions numa fase futura.
 - As Firebase Rules ainda precisam permitir write amplo no nivel `matchmaking/{modo}` porque a transacao cliente-side le e escreve fila/matches no mesmo node.
+
+## Matchmaking estabilizado - 2026-05-15
+
+Estado de UI:
+
+- `MatchmakingViewModel` expoe `MatchmakingStatus` no `MatchmakingUiState`.
+- Estados suportados: `IDLE`, `SEARCHING`, `MATCH_FOUND`, `CREATING_ROOM`, `NAVIGATING`, `CANCELLING`, `CANCELLED`, `TIMEOUT` e `ERROR`.
+- A Activity deixa de inferir o fluxo apenas por strings/flags e passa a ajustar loading, botao e mensagens com base no estado vindo da ViewModel.
+
+Cancelamento e limpeza:
+
+- Cancelar/back continuam a chamar o ViewModel, que remove fila/resultado quando ainda nao existe sala valida.
+- `cancelarPorBackground()` limpa a fila quando a Activity vai para background sem navegacao para sala.
+- Resultado antigo ou sala invalida passam para `ERROR`, limpam resultado local e permitem voltar/tentar novamente.
+
+Anti-duplicacao UI:
+
+- `MainActivity` usa `matchmakingAberturaEmCurso` para bloquear taps repetidos nos cards 1x1/2x2 ate a Activity voltar a `onResume`.
+- `MatchmakingActivity` mantem guard local `navegando` para evitar navegacao dupla.
+
+Limites preservados:
+
+- Sem alteracao de core da partida, pontuacao, XP, CR, ranking, perfil, conquistas ou convites.
+- Sem nova alteracao de Firebase Rules nesta estabilizacao.
+
+## Validacao estado atual - matchmaking, badges e regressao - 2026-05-15
+
+Estado validado:
+
+- `MatchmakingRepository` continua a concentrar fila, cancelamento, transacoes, criacao de sala, resultados e limpeza de listeners.
+- `MatchmakingViewModel` continua a ser a fonte de verdade de UI com `MatchmakingStatus`, timer, timeout, cancelamento e eventos de navegacao.
+- `MatchmakingActivity` permanece fina: observa estado/eventos, renderiza procura e navega para sala 1x1/2x2.
+- `MainActivity` expoe matchmaking apenas a utilizadores autenticados com UID.
+- Fluxos por convite e salas manuais continuam separados do matchmaking automatico.
+
+Paths ativos:
+
+- `matchmaking/1x1/fila/{playerKey}`
+- `matchmaking/1x1/matches/{matchId}`
+- `matchmaking/1x1/resultados/{playerKey}`
+- `matchmaking/2x2/fila/{playerKey}`
+- `matchmaking/2x2/matches/{matchId}`
+- `matchmaking/2x2/resultados/{playerKey}`
+- `sala_1x1/{codigoSala}`
+- `sala_2x2/{codigoSala}`
+
+Badges/conquistas:
+
+- `BadgesService` e `BadgesRepository` mantem o contrato persistente v1 em `conquistas/{uid}`.
+- Persistencia completa v1: RC, PJ e VT.
+- Perfil proprio usa UID-first e grava apenas conquistas novas do proprio utilizador autenticado.
+- Perfil de amigo calcula badges visualmente por estatisticas publicas, sem abrir `conquistas/{friendUid}`.
+- `UteisConquistas` resolve icones locais para PJ, VT, XP, RC e CR, devolvendo `null` se o drawable esperado nao existir.
+- `BadgeGridRenderer` centraliza grelha/fallback visual e evita logica de drawable nas Activities.
+
+Correcao pequena aplicada na validacao:
+
+- `MatchmakingViewModel.cancelarPorBackground()` deixa de limpar listeners/estado quando o repository indica que a partida ja foi encontrada e existe sala valida. Nesse caso, a UI mantem `MATCH_FOUND` para permitir concluir a navegacao quando a app volta.
+
+Riscos e proximas fases:
+
+- Manter checklist multi-conta para validar manualmente 1x1, 2x2, convites, salas e categorias.
+- Migrar matchmaking autoritativo para Cloud Functions numa fase futura, incluindo anti-spam, `activeRooms/{uid}` e limpeza global de filas fantasma.
+- Separar dados publicos/privados de jogadores e remover password/hash legado antes de beta publico.
+- Endurecer pontuacao/XP/ranking/historico com backend confiavel.
+- Completar assets opcionais de badges se forem usados visualmente: `rc200`, `pj25`, `vt5`, `vt25`, `badge_default`, `badge_locked`.
