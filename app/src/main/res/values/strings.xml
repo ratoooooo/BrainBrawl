@@ -385,6 +385,7 @@
     <string name="total_de_derrotas_format">Total de Derrotas: %1$d</string>
     <string name="vit_rias">Vitórias</string>
     <string name="jogos">Jogos</string>
+    <string name="partidas_jogadas">Partidas jogadas</string>
     <string name="respostas_certas">Respostas Certas</string>
     <string name="respostas_certas_abrev">Resp. Certas</string>
     <string name="total_de_respostas_certas">Total de Respostas Certas</string>
@@ -398,6 +399,7 @@
     <string name="conquista">Conquista</string>
     <string name="conquistas">Conquistas</string>
     <string name="conquistas_client_side">Desbloqueios guardados nesta conta.</string>
+    <string name="conquistas_amigo_publicas">Conquistas calculadas pelas estatísticas públicas.</string>
     <string name="conquistas_sem_persistencia">Convidados veem conquistas bloqueadas sem gravação.</string>
     <string name="conquista_desbloqueada">Desbloqueada</string>
     <string name="conquista_bloqueada">Bloqueada</string>

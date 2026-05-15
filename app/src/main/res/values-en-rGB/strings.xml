@@ -368,6 +368,7 @@
     <string name="total_de_derrotas_format">Total Losses: %1$d</string>
     <string name="vit_rias">Wins</string>
     <string name="jogos">Games</string>
+    <string name="partidas_jogadas">Matches played</string>
     <string name="respostas_certas">Correct Answers</string>
     <string name="respostas_certas_abrev">Correct</string>
     <string name="total_de_respostas_certas">Total Correct Answers</string>
@@ -381,6 +382,7 @@
     <string name="conquista">Badge</string>
     <string name="conquistas">Badges</string>
     <string name="conquistas_client_side">Unlocks saved to this account.</string>
+    <string name="conquistas_amigo_publicas">Badges calculated from public stats.</string>
     <string name="conquistas_sem_persistencia">Guests see locked badges without saving.</string>
     <string name="conquista_desbloqueada">Unlocked</string>
     <string name="conquista_bloqueada">Locked</string>

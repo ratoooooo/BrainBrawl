@@ -3,13 +3,17 @@ package com.example.brainbrawl.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.example.brainbrawl.models.Badge
+import com.example.brainbrawl.models.BadgeProgress
 import com.example.brainbrawl.models.UtilizadorSocial
 import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.repositories.JogadorRepository
+import com.example.brainbrawl.services.BadgesService
 
 class PerfilAmigoViewModel(
     private val jogadorRepository: JogadorRepository = JogadorRepository(),
-    private val amigosRepository: AmigosRepository = AmigosRepository()
+    private val amigosRepository: AmigosRepository = AmigosRepository(),
+    private val badgesService: BadgesService = BadgesService()
 ) : ViewModel() {
 
     private val _perfil = MutableLiveData<PerfilAmigoUiState>()
@@ -26,23 +30,40 @@ class PerfilAmigoViewModel(
                     return@addOnSuccessListener
                 }
 
-                jogadorRepository.obterPerfil(utilizador.chavePrimaria).addOnSuccessListener { perfil ->
-                    _perfil.value = if (perfil != null) {
-                        PerfilAmigoUiState(
-                            utilizador = utilizador,
-                            nome = perfil.nomeUtilizador.ifBlank { utilizador.nomeDisplay },
-                            avatar = perfil.avatar,
-                            pontuacao = perfil.estatisticas.pontuacao,
-                            taxaAcertos = perfil.estatisticas.taxaAcertos,
-                            totalJogos = perfil.estatisticas.totalJogos,
-                            totalVitorias = perfil.estatisticas.totalVitorias,
-                            totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
-                            perfilExiste = true
-                        )
-                    } else {
-                        PerfilAmigoUiState.perfilDesconhecido(utilizador.nomeDisplay, utilizador)
+                jogadorRepository.obterPerfil(utilizador.chavePrimaria)
+                    .addOnSuccessListener { perfil ->
+                        _perfil.value = if (perfil != null) {
+                            val progress = BadgeProgress(
+                                totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
+                                totalPartidasJogadas = perfil.estatisticas.totalJogos,
+                                totalVitorias = perfil.estatisticas.totalVitorias
+                            )
+                            PerfilAmigoUiState(
+                                utilizador = utilizador,
+                                nome = perfil.nomeUtilizador.ifBlank { utilizador.nomeDisplay },
+                                avatar = perfil.avatar,
+                                pontuacao = perfil.estatisticas.pontuacao,
+                                taxaAcertos = perfil.estatisticas.taxaAcertos,
+                                totalJogos = perfil.estatisticas.totalJogos,
+                                totalVitorias = perfil.estatisticas.totalVitorias,
+                                totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
+                                badges = badgesService.calcularBadges(
+                                    progress = progress,
+                                    badgesPersistidas = emptySet(),
+                                    permitirDesbloqueioLocal = true
+                                ),
+                                perfilExiste = true
+                            )
+                        } else {
+                            PerfilAmigoUiState.perfilDesconhecido(utilizador.nomeDisplay, utilizador)
+                        }
                     }
-                }
+                    .addOnFailureListener {
+                        _perfil.value = PerfilAmigoUiState.perfilDesconhecido(utilizador.nomeDisplay, utilizador)
+                    }
+            }
+            .addOnFailureListener {
+                _perfil.value = PerfilAmigoUiState.perfilDesconhecido(nomeAmigoFallback)
             }
     }
 
@@ -72,6 +93,7 @@ data class PerfilAmigoUiState(
     val totalJogos: Int,
     val totalVitorias: Int,
     val totalRespostasCertas: Int,
+    val badges: List<Badge>,
     val perfilExiste: Boolean
 ) {
     companion object {
@@ -92,6 +114,7 @@ data class PerfilAmigoUiState(
                 totalJogos = 0,
                 totalVitorias = 0,
                 totalRespostasCertas = 0,
+                badges = emptyList(),
                 perfilExiste = false
             )
         }

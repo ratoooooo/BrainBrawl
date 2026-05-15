@@ -1,5 +1,77 @@
 # Pergunta o Luso - TEST_REPORT
 
+## Correção ícones/badges/conquistas - 2026-05-15
+
+### Objetivo
+
+- Substituir o sistema antigo de badges com prefixes `j`/`v` por prefixes corretos `pj`, `vt`, `xp`, `rc` e `cr`.
+- Centralizar a escolha do maior badge desbloqueado em `UteisConquistas`.
+- Evitar crash/build fail quando algum asset de badge ainda não existe.
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/utils/UteisConquistas.kt`
+- `app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt`
+- `app/src/test/java/com/example/brainbrawl/utils/UteisConquistasTest.kt`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Alterações aplicadas
+
+- Removidos usos antigos de `jogosBadges`, `vitoriaBadges`, `respostasBadges`, `R.drawable.j*` e `R.drawable.v*`.
+- Criadas listas ordenadas de forma decrescente: `partidasJogadasBadges`, `vitoriasBadges`, `xpBadges`, `respostasCertasBadges`, `creditosBadges`/`crBadges`.
+- Criadas funções centralizadas para obter o drawable do maior marco atingido:
+  - `obterBadgePartidasJogadas`
+  - `obterBadgeVitorias`
+  - `obterBadgeRespostasCertas`
+  - `obterBadgeXp`
+  - `obterBadgeCreditos`
+- `PerfilAmigoActivity` passou a pedir os ícones a `UteisConquistas`, sem lógica local repetida.
+- A resolução usa o nome do drawable e devolve `null` se o asset estiver ausente, evitando crash e permitindo adicionar PNGs depois.
+
+### Drawables confirmados
+
+- Presentes: `pj10`, `pj50`, `pj100`.
+- Presentes: `vt50`, `vt100`.
+- Presentes: `xp100`, `xp500`, `xp1000`, `xp2500`, `xp5000`, `xp10000`, `xp25000`, `xp50000`, `xp100000`, `xp250000`, `xp500000`, `xp1000000`.
+- Presentes: `rc50`, `rc100`, `rc500`, `rc1000`.
+- Presentes: `cr1`, `cr5`, `cr10`, `cr25`, `cr50`, `cr100`, `cr250`, `cr500`, `cr1000`.
+
+### Drawables em falta
+
+- `pj25.png`
+- `vt5.png`
+- `vt25.png`
+- `rc200.png`
+
+### Edge cases cobertos
+
+- Valor negativo, zero e abaixo do primeiro marco devolvem `null`.
+- Valor exatamente igual a um marco devolve esse marco.
+- Valor entre dois marcos devolve o maior marco já atingido.
+- Valor acima do maior marco devolve o maior badge disponível.
+- Drawable ausente devolve `null` e a UI esconde a imagem em vez de crashar.
+- Testes unitários cobrem os thresholds puros por nome.
+
+### Testes manuais sugeridos
+
+1. Abrir perfil de amigo com 0 jogos/vitórias/respostas e confirmar que não aparece badge.
+2. Abrir perfil de amigo com valores abaixo do primeiro marco e confirmar que não aparece badge.
+3. Abrir perfil com 10/50/100 jogos e confirmar `pj10`/`pj50`/`pj100`.
+4. Adicionar manualmente `pj25.png`, `vt5.png`, `vt25.png` e `rc200.png` e confirmar que passam a aparecer sem alteração de código.
+5. Confirmar que perfis antigos sem campos continuam a abrir sem crash.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew test` - OK.
+
+Observações:
+
+- O build gera o relatório de lint em `app/build/reports/lint-results-debug.html`.
+- Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
 ## V1 Release Prep - 2026-05-14
 
 ### Objetivo da fase
@@ -4194,6 +4266,78 @@ Observacoes:
 
 - Mantem-se o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
 - Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+## Perfil de amigos - conquistas e polish visual - 2026-05-15
+
+### Bug corrigido
+
+- O perfil do proprio utilizador ja usava `MeuPerfilViewModel`, `BadgesService` e `BadgesRepository` para calcular conquistas e, quando aplicavel, persistir desbloqueios em `conquistas/{uid}`.
+- O perfil de amigo so mostrava tres icones de destaque calculados diretamente na Activity, sem uma lista completa de conquistas para o amigo.
+- Como `conquistas/{uid}` continua privado por rules, o perfil de amigo nao deve ler `conquistas/{friendUid}`. A correcao foi calcular as conquistas do amigo a partir das estatisticas publicas carregadas por `JogadorRepository.obterPerfil(utilizador.chavePrimaria)`.
+- Falhas de resolucao/leitura do amigo deixam agora de causar loading infinito e caem num estado seguro de perfil desconhecido.
+
+### Correcoes aplicadas
+
+- `PerfilAmigoViewModel` passou a montar `BadgeProgress` com estatisticas do amigo e a chamar `BadgesService.calcularBadges` com desbloqueio local apenas para visualizacao.
+- `PerfilAmigoActivity` passou a renderizar a grelha completa de conquistas do amigo, mantendo os icones de destaque existentes com `UteisConquistas`.
+- `MeuPerfilActivity` e `PerfilAmigoActivity` passaram a partilhar `BadgeGridRenderer`, evitando logica duplicada de grelha/drawable/fallback nas Activities.
+- `BadgeGridRenderer` agrupa conquistas por partidas jogadas, vitorias e respostas certas, usa fallback local seguro para drawables ausentes e diferencia bloqueadas/desbloqueadas por alpha/escala.
+- As dicas de categorias/modos passaram a usar cards mais compactos, scroll em dialogs longos, marcador visual e botao OK do sistema.
+- Firebase Rules nao foram alteradas.
+- Matchmaking nao foi alterado nem reativado.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/utils/BadgeGridRenderer.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisDicas.kt`
+- `app/src/main/res/layout/activity_perfil_amigo.xml`
+- `app/src/main/res/layout/item_badge.xml`
+- `app/src/main/res/drawable/bg_dica_card.xml`
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/values-en-rGB/strings.xml`
+- `app/src/main/res/values-es/strings.xml`
+- `app/src/main/res/values-fr/strings.xml`
+- `app/src/main/res/values-de-rDE/strings.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Edge cases cobertos
+
+- Perfil proprio continua a usar conquistas persistidas quando o utilizador autenticado e o dono do perfil coincidem.
+- Perfil de amigo mostra conquistas do amigo calculadas pelo perfil publico resolvido por UID/chave legado, nao pelo UID autenticado.
+- Amigo com estatisticas nulas/ausentes recebe progresso 0 pelos fallbacks existentes do repository.
+- Amigo com 0 estatisticas ve badges bloqueados.
+- Falha de permissao ou leitura do perfil de amigo deixa de manter loading sem fim.
+- Abrir perfis diferentes re-renderiza a grelha limpando views anteriores.
+- Drawable de badge em falta usa `badge_default`, `badge_locked`, `ic_trophy` ou `ic_lock` sem crash.
+
+### Testes manuais recomendados
+
+1. Abrir o proprio perfil com estatisticas a 0.
+2. Abrir o proprio perfil com algumas conquistas desbloqueadas.
+3. Abrir perfil de amigo com jogos/vitorias/respostas certas e confirmar que os badges sao dele.
+4. Abrir amigo A e depois amigo B e confirmar que a grelha nao fica trocada.
+5. Abrir amigo antigo sem alguns campos de estatisticas.
+6. Confirmar que `conquistas/{friendUid}` nao e lido nem exposto publicamente.
+7. Confirmar que convidados continuam sem persistir conquistas.
+8. Ver conquistas em ecra pequeno e maior.
+9. Ver dicas em categorias, escolha de modo e modos de jogo.
+10. Confirmar que matchmaking continua invisivel/inacessivel.
+
+### Validacoes desta ronda
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew test`: OK.
+
+### Riscos pendentes
+
+- As conquistas de amigos sao derivadas de estatisticas publicas; nao mostram timestamp real de desbloqueio porque `conquistas/{uid}` permanece privado por design.
+- A grelha completa de conquistas continua alinhada com `BadgesService` v1: RC, PJ e VT. XP/CR existem em `UteisConquistas` como sistema de icones, mas nao foram ligados a persistencia de conquistas nesta correcao.
+- Riscos de seguranca ja documentados permanecem: `jogadores.read=true` com password/hash legado, estatisticas client-authoritative e writes amplos em salas.
 
 ## Bugfix critico pre-walkthrough - convites 1x1/2x2 perguntas - 2026-05-14
 

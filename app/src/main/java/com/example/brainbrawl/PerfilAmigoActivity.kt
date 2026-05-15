@@ -4,16 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
-import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.brainbrawl.utils.UteisConquistas.jogosBadges
-import com.example.brainbrawl.utils.UteisConquistas.respostasBadges
-import com.example.brainbrawl.utils.UteisConquistas.vitoriaBadges
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityPerfilAmigoBinding
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.AvatarUtils
+import com.example.brainbrawl.utils.BadgeGridRenderer
+import com.example.brainbrawl.utils.UteisConquistas
 import com.example.brainbrawl.viewmodels.PerfilAmigoEvent
 import com.example.brainbrawl.viewmodels.PerfilAmigoUiState
 import com.example.brainbrawl.viewmodels.PerfilAmigoViewModel
@@ -68,6 +66,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
             binding.imgTotalJogos.visibility = View.GONE
             binding.imgTotalVitorias.visibility = View.GONE
             binding.imgTotalRespostasCertas.visibility = View.GONE
+            binding.gridConquistas.removeAllViews()
             binding.txtNomeAmigo.text = perfil.nome
             binding.txtPontuacao.text = getString(R.string.pontuacao_format, 0)
             binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, 0)
@@ -77,21 +76,21 @@ class PerfilAmigoActivity : AppCompatActivity() {
         }
 
         // Atualizar os badges de conquistas
-        getBadgeDrawable(perfil.totalJogos, jogosBadges)?.let {
+        UteisConquistas.obterBadgePartidasJogadas(resources, packageName, perfil.totalJogos)?.let {
             binding.imgTotalJogos.visibility = View.VISIBLE
             binding.imgTotalJogos.setImageResource(it)
         } ?: run {
             binding.imgTotalJogos.visibility = View.GONE
         }
 
-        getBadgeDrawable(perfil.totalVitorias, vitoriaBadges)?.let {
+        UteisConquistas.obterBadgeVitorias(resources, packageName, perfil.totalVitorias)?.let {
             binding.imgTotalVitorias.visibility = View.VISIBLE
             binding.imgTotalVitorias.setImageResource(it)
         } ?: run {
             binding.imgTotalVitorias.visibility = View.GONE
         }
 
-        getBadgeDrawable(perfil.totalRespostasCertas, respostasBadges)?.let {
+        UteisConquistas.obterBadgeRespostasCertas(resources, packageName, perfil.totalRespostasCertas)?.let {
             binding.imgTotalRespostasCertas.visibility = View.VISIBLE
             binding.imgTotalRespostasCertas.setImageResource(it)
         } ?: run {
@@ -106,6 +105,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
         binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, perfil.totalJogos)
         binding.txtTotalVitorias.text = getString(R.string.total_de_vitorias_format, perfil.totalVitorias)
         binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, perfil.taxaAcertos)
+        BadgeGridRenderer.render(this, layoutInflater, binding.gridConquistas, perfil.badges)
 
         if (perfil.perfilExiste) {
             binding.btnRemoverAmigo.setOnClickListener {
@@ -113,11 +113,5 @@ class PerfilAmigoActivity : AppCompatActivity() {
                 binding.btnRemoverAmigo.isEnabled = false
             }
         }
-    }
-
-
-    @DrawableRes
-    private fun getBadgeDrawable(value: Int, thresholds: List<Pair<Int, Int>>): Int? {
-        return thresholds.firstOrNull { value >= it.first }?.second
     }
 }

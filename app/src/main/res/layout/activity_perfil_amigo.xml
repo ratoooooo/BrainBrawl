@@ -260,6 +260,33 @@
                     android:textSize="18sp" />
             </LinearLayout>
 
+            <TextView
+                android:id="@+id/txtConquistasTitulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/conquistas"
+                android:textColor="@color/bb_text_primary"
+                android:textSize="18sp" />
+
+            <TextView
+                android:id="@+id/txtConquistasEstado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:text="@string/conquistas_amigo_publicas"
+                android:textColor="@color/bb_text_secondary"
+                android:textSize="12sp" />
+
+            <GridLayout
+                android:id="@+id/gridConquistas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:columnCount="3"
+                android:useDefaultMargins="false" />
+
             <!-- Botão Remover Amigo dentro do card -->
             <Button
                 android:id="@+id/btnRemoverAmigo"

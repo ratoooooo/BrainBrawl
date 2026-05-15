@@ -11,14 +11,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:minHeight="128dp"
+        android:minHeight="136dp"
         android:orientation="vertical"
-        android:padding="8dp">
+        android:padding="10dp">
 
         <ImageView
             android:id="@+id/imgBadge"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:contentDescription="@string/conquista"
             android:scaleType="fitCenter" />
 

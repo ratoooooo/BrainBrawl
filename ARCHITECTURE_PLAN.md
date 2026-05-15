@@ -1,5 +1,13 @@
 # Pergunta o Luso - Architecture Plan
 
+## Correção ícones/badges/conquistas - 2026-05-15
+
+- `UteisConquistas` passa a centralizar os ícones de badges por família com prefixes corretos: `pj`, `vt`, `xp`, `rc` e `cr`.
+- As listas de marcos ficam ordenadas de forma decrescente para permitir escolher o maior badge desbloqueado com `firstOrNull`.
+- A resolução de drawables usa nomes previsíveis e `Resources.getIdentifier`, devolvendo `null` quando o asset ainda não existe. Esta decisão evita `R.drawable.*` para ficheiros ausentes e permite importar imagens depois sem nova alteração de código.
+- `PerfilAmigoActivity` deixou de calcular badges localmente e passou a chamar `UteisConquistas`.
+- Não houve alteração de schema Firebase, rules, pontuação, XP, ranking, histórico, convites, salas, categorias ou matchmaking.
+
 ## Estado v1 final - Release Prep - 2026-05-14
 
 - A v1 Android mantém arquitetura UID-first para dados autenticados novos, preservando compatibilidade legado por `nomeUtilizador` em leituras e fallbacks onde ainda existem dados antigos.
@@ -638,3 +646,24 @@ Limites preservados:
 - Sem alteracao de formula de pontuacao, XP, rankings, categorias ou Cloud Functions.
 - Sem alteracao de Firebase Rules nesta ronda.
 - Convidados continuam sem ser tratados como UID nem como perfil em `jogadores/{guestKey}`.
+
+## Perfil e conquistas de amigos
+
+Decisao v1:
+
+- `conquistas/{uid}` continua privado e UID-first: apenas o proprio utilizador autenticado le/grava as suas conquistas persistidas.
+- O perfil de amigo nao tenta ler `conquistas/{friendUid}`. Para visualizacao publica, `PerfilAmigoViewModel` resolve o amigo por UID/chave legado, carrega o perfil publico via `JogadorRepository` e calcula badges com `BadgesService` a partir de `totalJogos`, `totalVitorias` e `totalRespostasCertas`.
+- Esta abordagem evita abrir dados privados nas Firebase Rules e mantem compatibilidade com contas antigas resolvidas por `nomeUtilizador`.
+- `MeuPerfilViewModel` mantem o fluxo persistente: calcula progresso, le conquistas do proprio `authUid` quando permitido, e grava apenas novos desbloqueios do proprio utilizador.
+
+UI:
+
+- `BadgeGridRenderer` centraliza a renderizacao da grelha de conquistas para o proprio perfil e perfil de amigo.
+- O renderer agrupa por partidas jogadas, vitorias e respostas certas, limpa a grelha antes de renderizar e usa fallback seguro para drawables de badge em falta.
+- `UteisDicas` continua como helper de UI Android, agora com dialog de dicas mais compacto, com scroll e cards consistentes.
+
+Limites preservados:
+
+- Sem alteracao de Firebase schema ou rules.
+- Sem alteracao de matchmaking, pontuacao, XP, ranking, historico, convites, salas ou categorias.
+- XP/CR permanecem em `UteisConquistas` como resolucao de icones, mas a persistencia/listagem completa de conquistas v1 continua limitada ao contrato atual de `BadgesService`.

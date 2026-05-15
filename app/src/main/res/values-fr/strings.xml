@@ -368,6 +368,7 @@
     <string name="total_de_derrotas_format">Total de défaites : %1$d</string>
     <string name="vit_rias">Victoires</string>
     <string name="jogos">Parties</string>
+    <string name="partidas_jogadas">Parties jouées</string>
     <string name="respostas_certas">Bonnes réponses</string>
     <string name="respostas_certas_abrev">Bonnes rép.</string>
     <string name="total_de_respostas_certas">Total de bonnes réponses</string>
@@ -381,6 +382,7 @@
     <string name="conquista">Badge</string>
     <string name="conquistas">Badges</string>
     <string name="conquistas_client_side">Déblocages enregistrés sur ce compte.</string>
+    <string name="conquistas_amigo_publicas">Badges calculés à partir des statistiques publiques.</string>
     <string name="conquistas_sem_persistencia">Les invités voient des badges verrouillés sans enregistrement.</string>
     <string name="conquista_desbloqueada">Débloqué</string>
     <string name="conquista_bloqueada">Verrouillé</string>
