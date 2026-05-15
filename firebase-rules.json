@@ -365,12 +365,10 @@
           "$other": {
             ".validate": false
           }
-        },
-        "$other": {
-          ".validate": false
         }
       }
     },
+
 
     "salas": {
       ".read": true,
@@ -1007,9 +1005,10 @@
         ".write": "$modo == '1x1' || $modo == '2x2'",
         "fila": {
           "$playerKey": {
-            ".validate": "!newData.exists() || ((newData.child('tipoJogador').val() == 'auth' && auth != null && $playerKey == auth.uid && newData.child('uid').val() == auth.uid) || (newData.child('tipoJogador').val() == 'guest' && $playerKey.matches(/^guest_[A-Za-z0-9_]+$/) && (!newData.child('uid').exists() || newData.child('uid').val() == ''))) && newData.hasChildren(['playerKey', 'tipoJogador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('playerKey').val() == $playerKey",
+            ".validate": "!newData.exists() || ((newData.child('tipoJogador').val() == 'auth' && auth != null && newData.child('uid').val() == $playerKey && ($playerKey == auth.uid || (newData.child('estado').val() == 'encontrado' && newData.child('criadorId').val() == auth.uid))) || (newData.child('tipoJogador').val() == 'guest' && $playerKey.matches(/^guest_[A-Za-z0-9_]+$/) && (!newData.child('uid').exists() || newData.child('uid').val() == ''))) && newData.hasChildren(['playerKey', 'tipoJogador', 'nomeDisplay', 'timestampEntrada', 'estado']) && newData.child('playerKey').val() == $playerKey",
             "playerKey": {
               ".validate": "newData.isString() && newData.val() == $playerKey"
+
             },
             "uid": {
               ".validate": "newData.isString()"

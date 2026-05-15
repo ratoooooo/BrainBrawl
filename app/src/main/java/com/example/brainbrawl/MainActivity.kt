@@ -6,6 +6,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityMainBinding
 import com.example.brainbrawl.utils.AvatarUtils
@@ -94,6 +95,11 @@ class MainActivity : AppCompatActivity() {
             if (state.avatar.isNotBlank()) {
                 binding.imgAvatar.setImageResource(AvatarUtils.resolverAvatar(this, state.avatar))
             }
+            val matchmakingVisivel = state.uid.isNotBlank()
+            binding.btnMatchmaking1x1.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
+            binding.btnMatchmaking2x2.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
+            binding.btnMatchmaking1x1.isEnabled = matchmakingVisivel
+            binding.btnMatchmaking2x2.isEnabled = matchmakingVisivel
             atualizarBadgeNotificacoes(state.notificacoesPendentes, state.amigosVisivel)
         }
     }
@@ -130,6 +136,8 @@ class MainActivity : AppCompatActivity() {
 
         binding.btnRanking.setOnClickListener { abrirRanking() }
         binding.btnRankingNav.setOnClickListener { abrirRanking() }
+        binding.btnMatchmaking1x1.setOnClickListener { abrirMatchmaking(GameConstants.MODO_1X1) }
+        binding.btnMatchmaking2x2.setOnClickListener { abrirMatchmaking(GameConstants.MODO_2X2) }
 
         binding.btnHistorico.setOnClickListener {
             val intent = Intent(this, HistoricoActivity::class.java)
@@ -189,6 +197,22 @@ class MainActivity : AppCompatActivity() {
 
         val intent = Intent(this, AmigosActivity::class.java)
         intent.putExtra(IntentExtras.NOME_UTILIZADOR, utilizador)
+        adicionarAuthExtras(intent)
+        startActivity(intent)
+    }
+
+    private fun abrirMatchmaking(modo: String) {
+        val uidAtual = uid
+        if (uidAtual.isNullOrBlank()) {
+            Toast.makeText(this, R.string.matchmaking_requer_conta, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val intent = Intent(this, MatchmakingActivity::class.java)
+        intent.putExtra(IntentExtras.MODO_JOGO, modo)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria ?: getString(R.string.categoria5))
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
         adicionarAuthExtras(intent)
         startActivity(intent)
     }

@@ -314,6 +314,10 @@ class MatchmakingRepository(
                     FirebasePaths.CRIADOR_UID to criador.uid,
                     FirebasePaths.TIMESTAMP_ENTRADA to agora
                 )
+                jogadoresSelecionados.forEach { jogador ->
+                    currentData.child(FirebasePaths.FILA).child(jogador.playerKey).value =
+                        jogador.toFilaReclamadaMap(criador, codigoSala, agora)
+                }
 
                 return Transaction.success(currentData)
             }
@@ -502,6 +506,20 @@ class MatchmakingRepository(
             FirebasePaths.JOGADORES to jogadores
         )
         return dados
+    }
+
+    private fun MatchmakingPlayer.toFilaReclamadaMap(
+        criador: MatchmakingPlayer,
+        codigoSala: String,
+        timestampReclamacao: Long
+    ): Map<String, Any> {
+        return toFirebaseMap(GameConstants.ESTADO_ENCONTRADO)
+            .toMutableMap()
+            .apply {
+                this[FirebasePaths.CODIGO_SALA] = codigoSala
+                this[FirebasePaths.CRIADOR_ID] = criador.playerKey
+                this[FirebasePaths.TIMESTAMP_ENTRADA] = timestampReclamacao
+            }
     }
 
     private fun limparStale(modo: String) {

@@ -667,3 +667,36 @@ Limites preservados:
 - Sem alteracao de Firebase schema ou rules.
 - Sem alteracao de matchmaking, pontuacao, XP, ranking, historico, convites, salas ou categorias.
 - XP/CR permanecem em `UteisConquistas` como resolucao de icones, mas a persistencia/listagem completa de conquistas v1 continua limitada ao contrato atual de `BadgesService`.
+
+## Matchmaking reativado de forma controlada - 2026-05-15
+
+Estado v1:
+
+- `MatchmakingActivity` voltou a estar registada no Manifest como `exported=false`.
+- A Main mostra os cards 1x1/2x2 aleatorios apenas para utilizadores com UID autenticado.
+- O fluxo continua separado dos convites; salas por convite e salas manuais mantem os paths e responsabilidades existentes.
+
+Contrato Firebase preservado:
+
+- `matchmaking/{modo}/fila/{playerKey}`
+- `matchmaking/{modo}/matches/{matchId}`
+- `matchmaking/{modo}/resultados/{playerKey}`
+- `sala_1x1/{codigoSala}`
+- `sala_2x2/{codigoSala}`
+
+Correcao de concorrencia:
+
+- O claim transacional em `MatchmakingRepository.tentarCriarMatch` continua a correr em `matchmaking/{modo}`.
+- Dentro da transacao, alem de criar `matches/{matchId}`, os jogadores selecionados sao marcados na fila como `estado=encontrado`, com `codigoSala` e `criadorId`.
+- Outros clientes filtram apenas `estado=aguardando` para criar novo match, evitando que 3 jogadores no 1x1 ou 5 jogadores no 2x2 fiquem a repetir o mesmo grupo reclamado.
+- A sala e criada depois do claim, e os resultados sao publicados em seguida. Se a criacao/publicacao falhar, o rollback remove match/fila/resultado conforme o estado existente.
+
+UI/ViewModel:
+
+- `MatchmakingViewModel` passou a gerir timer, timeout de 90 segundos, estados de cancelamento/preparacao e limpeza defensiva em `onCleared`.
+- `MatchmakingActivity` continua fina: observa estado/eventos, mostra jogadores, tempo e contador, e navega para `SalaDeEspera1x1Activity` ou `SalaDeEspera2x2Activity`.
+
+Limites:
+
+- A seguranca forte contra abuso, anti-spam, `activeRooms/{uid}` e limpeza de fantasma deve ser movida para Cloud Functions numa fase futura.
+- As Firebase Rules ainda precisam permitir write amplo no nivel `matchmaking/{modo}` porque a transacao cliente-side le e escreve fila/matches no mesmo node.

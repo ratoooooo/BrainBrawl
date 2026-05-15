@@ -4267,6 +4267,60 @@ Observacoes:
 - Mantem-se o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
 - Gradle continua a avisar sobre deprecated features para Gradle 9.0.
 
+## Matchmaking audit + controlled fixes - 2026-05-15
+
+### Bugs/riscos encontrados
+
+- `MatchmakingActivity` existia no codigo, mas nao estava registada no Manifest e os cards da Main estavam escondidos/inativos.
+- O claim transacional criava `matches/{matchId}`, mas nao reservava os jogadores selecionados na fila dentro da mesma transacao. Em cenarios 1x1 com 3 jogadores ou 2x2 com 5 jogadores, outros clientes podiam ficar a tentar reclamar o mesmo grupo enquanto a sala ainda estava a ser criada.
+- A procura nao tinha timeout visual nem contador de espera.
+- O cancelamento por back/botao existia, mas o ViewModel nao tentava limpar a fila em `onCleared` quando a Activity era destruida fora do caminho normal.
+- As rules de matchmaking continuam dependentes de transacao client-side no node `matchmaking/{modo}`, o que reduz duplicacao mas nao substitui um backend autoritativo.
+
+### Bugs corrigidos
+
+- A transacao de `MatchmakingRepository.tentarCriarMatch` agora marca os jogadores selecionados em `fila/{playerKey}` como `estado=encontrado`, com `codigoSala` e `criadorId`, antes de sair da transacao.
+- Como os jogadores reclamados deixam de estar `aguardando`, outros clientes passam a escolher os proximos jogadores livres em vez de repetir o mesmo grupo.
+- `MatchmakingViewModel` passou a ter timer de procura, timeout de 90 segundos, estado de cancelamento e limpeza defensiva em `onCleared`.
+- O botao cancelar fica desativado durante cancelamento/preparacao da sala, reduzindo cliques repetidos.
+- A Main voltou a expor os cards 1x1/2x2 aleatorios apenas quando existe UID autenticado.
+- `MatchmakingActivity` foi registada como `exported=false`.
+
+### Firebase Rules
+
+- `firebase-rules.json` foi alterado de forma minima para permitir que o cliente criador marque outros jogadores da fila como `encontrado` durante o claim transacional, exigindo `criadorId == auth.uid`.
+- `python3 -m json.tool firebase-rules.json`: OK.
+
+### Testes manuais recomendados
+
+1. Conta A abre matchmaking 1x1 sozinha e ve contador/tempo.
+2. Conta B entra em 1x1 e ambas navegam para a mesma `sala_1x1`.
+3. Conta A cancela antes de encontrar e a entrada sai da fila.
+4. Tres contas entram em 1x1 quase ao mesmo tempo; apenas duas formam a primeira sala e a terceira nao e emparelhada com jogador ja reclamado.
+5. Quatro contas entram em 2x2 e formam uma unica `sala_2x2` com 4 UIDs/playerKeys unicos.
+6. Cinco contas entram em 2x2; quatro formam sala e a quinta fica em fila/aguarda novo grupo.
+7. Spam no botao cancelar durante preparacao nao cria navegacao duplicada.
+8. Back press cancela a fila quando ainda nao ha partida.
+9. Fechar Activity antes de match tenta limpar a propria fila.
+10. Confirmar que convites 1x1/2x2 continuam a abrir salas por convite.
+11. Confirmar que pontuacao, XP, ranking, perfil e conquistas nao mudaram.
+
+### Riscos restantes
+
+- O matchmaking continua client-side. Um cliente malicioso ainda pode tentar abusar de writes amplos em `matchmaking/{modo}` enquanto a criacao da sala nao estiver em Cloud Functions.
+- Nao existe `activeRooms/{uid}` autoritativo; a UI reduz entrada duplicada, mas controlo forte de "uma sala ativa por UID" deve ir para backend.
+- `onDisconnect` ajuda contra perda de ligacao, mas varias sessoes com a mesma conta continuam a ser um caso imperfeito em Firebase client-side.
+- Limpeza de jogadores fantasma continua baseada em timeout/stale do cliente, nao num job servidor.
+
+### Validacoes desta ronda
+
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK preliminar.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: falhou inicialmente por `MissingTranslation` nas novas strings de matchmaking; corrigido ao completar EN/ES/FR/DE.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK apos correcao.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew test`: OK.
+
 ## Perfil de amigos - conquistas e polish visual - 2026-05-15
 
 ### Bug corrigido

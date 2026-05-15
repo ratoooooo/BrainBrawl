@@ -1,6 +1,7 @@
 package com.example.brainbrawl
 
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
@@ -42,8 +43,8 @@ class MatchmakingActivity : AppCompatActivity() {
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: getString(R.string.categoria5)
 
         binding.txtTituloMatchmaking.text = when (modoJogo) {
-            GameConstants.MODO_2X2 -> "2x2 Aleatório"
-            else -> "1x1 Aleatório"
+            GameConstants.MODO_2X2 -> getString(R.string.matchmaking_2x2_titulo)
+            else -> getString(R.string.matchmaking_1x1_titulo)
         }
         configurarObservers()
         binding.btnCancelarMatchmaking.setOnClickListener { viewModel.cancelar() }
@@ -82,17 +83,36 @@ class MatchmakingActivity : AppCompatActivity() {
 
     private fun renderizarEstado(estado: MatchmakingUiState) {
         val labelModo = if (estado.modo == GameConstants.MODO_2X2) "2x2" else "1x1"
-        binding.txtEstadoMatchmaking.text = estado.estadoTexto.ifBlank { "À procura de jogadores..." }
-        binding.txtContadorMatchmaking.text = "Jogadores à procura: ${estado.jogadores.size}/${estado.limite}"
+        binding.progressMatchmaking.visibility = if (estado.mostrarLoading) View.VISIBLE else View.GONE
+        binding.txtEstadoMatchmaking.text = estado.estadoTexto.ifBlank { getString(R.string.matchmaking_estado_default) }
+        binding.txtContadorMatchmaking.text = getString(
+            R.string.matchmaking_contador_format,
+            estado.jogadores.size,
+            estado.limite
+        )
+        binding.txtTempoMatchmaking.text = getString(
+            R.string.matchmaking_tempo_format,
+            formatarTempo(estado.tempoEsperaSegundos)
+        )
         binding.txtJogadoresMatchmaking.text = if (estado.jogadores.isEmpty()) {
-            "Aguardando jogadores..."
+            getString(R.string.matchmaking_aguardando)
         } else {
             estado.jogadores.joinToString(separator = "\n") { jogador ->
-                val tipo = if (jogador.isGuest) "Convidado" else "Conta"
-                "• ${jogador.nomeDisplay} ($tipo)"
+                val tipo = if (jogador.isGuest) {
+                    getString(R.string.matchmaking_tipo_convidado)
+                } else {
+                    getString(R.string.matchmaking_tipo_conta)
+                }
+                getString(R.string.matchmaking_jogador_linha, jogador.nomeDisplay, tipo)
             }
         }
-        binding.txtTituloMatchmaking.text = "$labelModo Aleatório"
+        binding.btnCancelarMatchmaking.isEnabled = estado.podeCancelar && !navegando
+        binding.btnCancelarMatchmaking.text = if (estado.podeCancelar) {
+            getString(R.string.cancelar)
+        } else {
+            getString(R.string.matchmaking_cancelando)
+        }
+        binding.txtTituloMatchmaking.text = getString(R.string.matchmaking_titulo_modo_format, labelModo)
     }
 
     private fun tratarEvento(evento: MatchmakingEvent) {
@@ -135,5 +155,11 @@ class MatchmakingActivity : AppCompatActivity() {
         dados.tipoJogador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.TIPO_JOGADOR, it) }
         dados.avatar.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.AVATAR, it) }
         intent.putExtra(IntentExtras.IS_GUEST, dados.tipoJogador == GameConstants.TIPO_JOGADOR_GUEST)
+    }
+
+    private fun formatarTempo(segundosTotais: Int): String {
+        val minutos = segundosTotais / 60
+        val segundos = segundosTotais % 60
+        return "%d:%02d".format(minutos, segundos)
     }
 }

@@ -1,6 +1,8 @@
 package com.example.brainbrawl.viewmodels
 
 import android.util.Log
+import android.os.Handler
+import android.os.Looper
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -34,6 +36,20 @@ class MatchmakingViewModel(
     private var navegacaoIniciada = false
     private var aCancelar = false
     private var aCriarMatch = false
+    private val handler = Handler(Looper.getMainLooper())
+    private var inicioProcuraMs = 0L
+    private val timerRunnable = object : Runnable {
+        override fun run() {
+            if (jogadorAtual == null || navegacaoIniciada || aCancelar) return
+            val segundos = ((System.currentTimeMillis() - inicioProcuraMs) / 1000L).toInt().coerceAtLeast(0)
+            _estado.value = _estado.value?.copy(tempoEsperaSegundos = segundos)
+            if (segundos >= TIMEOUT_PROCURA_SEGUNDOS && !aCriarMatch) {
+                cancelarPorTimeout()
+                return
+            }
+            handler.postDelayed(this, TIMER_INTERVAL_MS)
+        }
+    }
 
     fun iniciar(
         uid: String,
@@ -52,6 +68,16 @@ class MatchmakingViewModel(
             estadoTexto = "A preparar matchmaking..."
         )
 
+        if (uid.isBlank()) {
+            _estado.value = _estado.value?.copy(
+                estadoTexto = "Inicia sessão para procurar partida automática.",
+                podeCancelar = true,
+                mostrarLoading = false
+            )
+            _evento.value = MatchmakingEvent.MostrarMensagem("Inicia sessão para procurar partida automática.")
+            return
+        }
+
         prepararIdentidade(uid, nomeUtilizador.orEmpty(), nomeJogador.orEmpty())
     }
 
@@ -66,17 +92,34 @@ class MatchmakingViewModel(
         }
 
         aCancelar = true
+        _estado.value = _estado.value?.copy(
+            estadoTexto = "A cancelar procura...",
+            podeCancelar = false
+        )
         matchmakingRepository.cancelar(jogador.playerKey, modo)
             .addOnSuccessListener { removeuFila ->
                 aCancelar = false
+                pararTimer()
+                if (navegacaoIniciada) return@addOnSuccessListener
                 if (removeuFila) {
-                    _evento.value = MatchmakingEvent.VoltarMain(dadosNavegacao())
+                    val dados = dadosNavegacao()
+                    removerListeners()
+                    jogadorAtual = null
+                    _evento.value = MatchmakingEvent.VoltarMain(dados)
                 } else {
+                    _estado.value = _estado.value?.copy(
+                        estadoTexto = "Partida já encontrada. A preparar sala...",
+                        podeCancelar = false
+                    )
                     _evento.value = MatchmakingEvent.MostrarMensagem("Partida já encontrada.")
                 }
             }
             .addOnFailureListener {
                 aCancelar = false
+                _estado.value = _estado.value?.copy(
+                    estadoTexto = "Erro ao cancelar. Tenta novamente.",
+                    podeCancelar = true
+                )
                 _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao cancelar matchmaking.")
             }
     }
@@ -86,6 +129,7 @@ class MatchmakingViewModel(
     }
 
     fun removerListeners() {
+        pararTimer()
         matchmakingRepository.removerListener(filaListener)
         filaListener = null
         matchmakingRepository.removerListener(resultadoListener)
@@ -93,6 +137,11 @@ class MatchmakingViewModel(
     }
 
     override fun onCleared() {
+        if (!navegacaoIniciada && !aCancelar) {
+            jogadorAtual?.let { jogador ->
+                matchmakingRepository.cancelar(jogador.playerKey, modo)
+            }
+        }
         removerListeners()
         super.onCleared()
     }
@@ -165,12 +214,14 @@ class MatchmakingViewModel(
             modo = modo,
             limite = limiteJogadores(),
             jogadores = listOf(jogador),
-            estadoTexto = "À procura de jogadores..."
+            estadoTexto = "À procura de jogadores...",
+            podeCancelar = true
         )
 
         matchmakingRepository.entrarNaFila(jogador, modo)
             .addOnSuccessListener {
                 Log.d(TAG, "Entrou na fila: modo=$modo player=${jogador.playerKey.maskedLogId()} tipo=${jogador.tipoJogador}")
+                iniciarTimer()
                 observarFila()
                 observarResultado()
             }
@@ -181,7 +232,11 @@ class MatchmakingViewModel(
                     erro
                 )
                 val mensagem = mensagemErroEntradaFila(erro)
-                _estado.value = _estado.value?.copy(estadoTexto = mensagem)
+                _estado.value = _estado.value?.copy(
+                    estadoTexto = mensagem,
+                    podeCancelar = true,
+                    mostrarLoading = false
+                )
                 _evento.value = MatchmakingEvent.MostrarMensagem(mensagem)
             }
     }
@@ -202,7 +257,9 @@ class MatchmakingViewModel(
                     modo = modo,
                     limite = limiteJogadores(),
                     jogadores = jogadores,
-                    estadoTexto = if (jogadorEmCriacao || aCriarMatch) "A criar sala..." else "À procura de jogadores..."
+                    estadoTexto = if (jogadorEmCriacao || aCriarMatch) "A preparar partida..." else "À procura de jogadores...",
+                    tempoEsperaSegundos = _estado.value?.tempoEsperaSegundos ?: 0,
+                    podeCancelar = !jogadorEmCriacao && !aCriarMatch && !aCancelar
                 )
                 tentarCriarMatchSePossivel(jogadoresAguardando)
             },
@@ -232,7 +289,10 @@ class MatchmakingViewModel(
         if (navegacaoIniciada || aCancelar || aCriarMatch || jogadores.size < limiteJogadores()) return
 
         aCriarMatch = true
-        _estado.value = _estado.value?.copy(estadoTexto = "A criar sala...")
+        _estado.value = _estado.value?.copy(
+            estadoTexto = "A preparar partida...",
+            podeCancelar = false
+        )
         Log.d(TAG, "A tentar criar match: modo=$modo criador=${jogador.playerKey.maskedLogId()} jogadores=${jogadores.size}")
         matchmakingRepository.tentarCriarMatch(modo, nomeCategoria, jogador.playerKey)
             .addOnCompleteListener {
@@ -240,12 +300,18 @@ class MatchmakingViewModel(
             }
             .addOnSuccessListener { match ->
                 if (match == null && !navegacaoIniciada) {
-                    _estado.value = _estado.value?.copy(estadoTexto = "À procura de jogadores...")
+                    _estado.value = _estado.value?.copy(
+                        estadoTexto = "À procura de jogadores...",
+                        podeCancelar = true
+                    )
                 }
             }
             .addOnFailureListener { erro ->
                 Log.e(TAG, "Erro ao criar sala/match: modo=$modo criador=${jogador.playerKey.maskedLogId()}", erro)
-                _estado.value = _estado.value?.copy(estadoTexto = "Erro ao criar sala. Pode cancelar e tentar novamente.")
+                _estado.value = _estado.value?.copy(
+                    estadoTexto = "Erro ao criar sala. Pode cancelar e tentar novamente.",
+                    podeCancelar = true
+                )
                 _evento.value = MatchmakingEvent.MostrarMensagem("Erro ao criar sala.")
             }
     }
@@ -255,6 +321,7 @@ class MatchmakingViewModel(
         val jogador = jogadorAtual ?: return
 
         navegacaoIniciada = true
+        pararTimer()
         Log.d(
             TAG,
             "Resultado recebido: modo=${resultado.modo} sala=${resultado.codigoSala.maskedLogId()} " +
@@ -349,9 +416,53 @@ class MatchmakingViewModel(
         }
     }
 
+    private fun iniciarTimer() {
+        inicioProcuraMs = System.currentTimeMillis()
+        handler.removeCallbacks(timerRunnable)
+        handler.post(timerRunnable)
+    }
+
+    private fun pararTimer() {
+        handler.removeCallbacks(timerRunnable)
+    }
+
+    private fun cancelarPorTimeout() {
+        val jogador = jogadorAtual ?: return
+        if (aCancelar || navegacaoIniciada) return
+        aCancelar = true
+        _estado.value = _estado.value?.copy(
+            estadoTexto = "Tempo esgotado. A limpar fila...",
+            podeCancelar = false
+        )
+        matchmakingRepository.cancelar(jogador.playerKey, modo)
+            .addOnSuccessListener {
+                aCancelar = false
+                pararTimer()
+                val dados = dadosNavegacao()
+                removerListeners()
+                jogadorAtual = null
+                _evento.value = MatchmakingEvent.MostrarMensagem("Não encontrámos partida a tempo. Tenta novamente.")
+                handler.postDelayed({
+                    if (!navegacaoIniciada) {
+                        _evento.value = MatchmakingEvent.VoltarMain(dados)
+                    }
+                }, EVENTO_VOLTA_DELAY_MS)
+            }
+            .addOnFailureListener {
+                aCancelar = false
+                _estado.value = _estado.value?.copy(
+                    estadoTexto = "Erro ao limpar fila. Podes cancelar manualmente.",
+                    podeCancelar = true
+                )
+            }
+    }
+
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
         const val TAG = "MatchmakingVM"
+        const val TIMER_INTERVAL_MS = 1000L
+        const val TIMEOUT_PROCURA_SEGUNDOS = 90
+        const val EVENTO_VOLTA_DELAY_MS = 250L
     }
 }
 
@@ -359,7 +470,10 @@ data class MatchmakingUiState(
     val modo: String = GameConstants.MODO_1X1,
     val limite: Int = 2,
     val jogadores: List<MatchmakingPlayer> = emptyList(),
-    val estadoTexto: String = ""
+    val estadoTexto: String = "",
+    val tempoEsperaSegundos: Int = 0,
+    val podeCancelar: Boolean = true,
+    val mostrarLoading: Boolean = true
 )
 
 data class MatchmakingNavegacaoDados(

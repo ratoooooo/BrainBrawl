@@ -328,6 +328,26 @@ Nota de seguranca:
 - A transacao cliente reduz duplicacao de matches, mas as rules nao conseguem provar que os jogadores escolhidos eram realmente os mais antigos nem que a sala criada corresponde ao claim.
 - Para producao anti-abuso forte, mover a escolha de jogadores, criacao de sala e publicacao de resultados para Cloud Functions e deixar o cliente escrever apenas a propria entrada de fila.
 
+## Atualizacao matchmaking controlado - 2026-05-15
+
+Alteracao minima nas rules:
+
+- `matchmaking/{modo}/fila/{playerKey}` passou a aceitar que um utilizador autenticado marque a entrada de outro jogador auth como `estado=encontrado` quando `criadorId == auth.uid`.
+- Isto e necessario porque o claim transacional do cliente agora reserva os jogadores selecionados na fila no mesmo passo em que cria `matches/{matchId}`.
+- A entrada auth continua a exigir `uid == $playerKey`; a escrita normal de entrada propria continua limitada a `$playerKey == auth.uid`.
+- A estrutura validada da fila continua fechada por `$other=false`.
+
+Motivo:
+
+- Antes, a transacao criava apenas `matches/{matchId}`. Enquanto a sala ainda estava a ser criada, outros clientes podiam continuar a selecionar o mesmo grupo de jogadores `aguardando`.
+- Agora, jogadores reclamados deixam de ser candidatos para novos matches porque passam a `estado=encontrado` ate a sala/resultados serem publicados ou ate o rollback/timeout limpar a entrada.
+
+Limites mantidos:
+
+- `matchmaking/{modo}` ainda tem write amplo no nivel do modo para permitir a transacao cliente-side.
+- Um cliente malicioso ainda pode tentar claims falsos; a validacao reduz formato errado, mas nao prova intencao de negocio.
+- A solucao robusta continua a ser Cloud Functions para escolher jogadores, criar sala, publicar resultados, limpar fantasmas e aplicar anti-spam/active-room por UID.
+
 ## Atualizacao historico de jogos
 
 Novo path:
