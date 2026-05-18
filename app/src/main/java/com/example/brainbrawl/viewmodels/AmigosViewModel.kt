@@ -161,7 +161,25 @@ class AmigosViewModel(
 
     fun aceitarConvite(uid: String, nomeUtilizador: String, convite: Convite) {
         resolverUtilizadorAtual(uid, nomeUtilizador) { utilizador ->
-            amigosRepository.aceitarConvite(utilizador, convite)
+            amigosRepository.verificarSalaConviteExiste(convite)
+                .addOnSuccessListener { salaExiste ->
+                    if (!salaExiste) {
+                        amigosRepository.removerConvite(utilizador, convite)
+                        _evento.value = AmigosEvent.ConviteExpirado
+                        return@addOnSuccessListener
+                    }
+
+                    amigosRepository.aceitarConvite(utilizador, convite)
+                        .addOnSuccessListener {
+                            _evento.value = AmigosEvent.ConviteAceite(convite)
+                        }
+                        .addOnFailureListener {
+                            _evento.value = AmigosEvent.ErroAceitarConvite
+                        }
+                }
+                .addOnFailureListener {
+                    _evento.value = AmigosEvent.ErroAceitarConvite
+                }
         }
     }
 
@@ -286,4 +304,7 @@ sealed class AmigosEvent {
     data object PedidoRecusado : AmigosEvent()
     data object ConviteRecusado : AmigosEvent()
     data object ConviteRemovido : AmigosEvent()
+    data class ConviteAceite(val convite: Convite) : AmigosEvent()
+    data object ConviteExpirado : AmigosEvent()
+    data object ErroAceitarConvite : AmigosEvent()
 }

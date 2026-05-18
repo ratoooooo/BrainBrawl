@@ -4267,6 +4267,123 @@ Observacoes:
 - Mantem-se o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
 - Gradle continua a avisar sobre deprecated features para Gradle 9.0.
 
+## Beta Prep — UI/UX Polish + Anti-abuso leve - 2026-05-17
+
+### Ecras auditados
+
+- Login, perfil proprio, perfil publico de amigo, amigos/pedidos/convites.
+- Escolher modo, escolher tipo, escolher categoria, categorias por modo.
+- Explorar categorias, criar/editar categoria, adicionar/editar/eliminar pergunta.
+- Matchmaking, sala de espera manual, sala 1x1, sala 2x2.
+- Jogo classico/local, 1x1 e 2x2.
+
+### Problemas encontrados
+
+- Ainda existiam botoes com `@android:style/Widget.Button`, `@android:drawable` e fundos antigos `botao_branco_arredondado`/`botao_voltar`.
+- Cartoes de categorias e perguntas misturavam cores hardcoded com o novo visual `bb_*`.
+- Convites e pedidos de amizade tinham apenas acao positiva visivel no item; recusar ficava pouco claro no fluxo.
+- O perfil publico escondia badges de resumo quando nao havia drawable resolvido, criando espacos visualmente inconsistentes.
+- `UteisConquistas` referia assets inexistentes (`pj25`, `vt5`, `vt25`, `rc200`) apesar de existirem familias novas (`pj1`, `vt1`, `rc1`, `*250`, `*2500`, `*5000`).
+- Perguntas personalizadas aceitavam duplicados com diferencas de maiusculas/minusculas e podiam guardar resposta correta fora das quatro opcoes se o estado do radio group ficasse incoerente.
+- Convites podiam ser aceites sem confirmar primeiro se a sala ainda existia.
+- Alguns botoes de sala podiam receber toques repetidos antes do estado Firebase responder.
+
+### Correcoes visuais aplicadas
+
+- Substituidos os botoes antigos/default por `BrainBrawlButton`, `bg_button_primary`, `bg_button_secondary` e `bg_button_danger` nos fluxos principais auditados.
+- Polidos os cards dinamicos de `ExplorarCategoriasActivity`, incluindo cores `bb_text_*`, `bg_card_surface` e botoes com destaque/ perigo.
+- Polido `activity_adicionar_pergunta.xml` e a lista dinamica de perguntas numeradas, com estados vazios e selecao visual consistentes.
+- Polidos itens de pedidos, convites e convidar amigo, incluindo botoes aceitar/recusar/desafiar consistentes.
+- Polidos Login, escolher modo/tipo/categoria, sala manual, sala 1x1, sala 2x2, perfil proprio, perfil de amigo e ecras de jogo 1x1/2x2/local.
+- Removidas referencias visuais a drawables Android nativos nos ecras auditados.
+
+### Correcoes de badges/imagens
+
+- Criados fallbacks `badge_default.xml` e `badge_locked.xml`.
+- Atualizado o mapping de `UteisConquistas` para apontar apenas para drawables existentes.
+- Atualizados testes unitarios de `UteisConquistas`.
+- `PerfilAmigoActivity` passa a mostrar fallback bloqueado nos badges de resumo em vez de esconder as imagens.
+- `BadgeGridRenderer` ja tinha fallback centralizado; a nova ronda completou os assets que faltavam.
+
+### Melhorias no matchmaking UX
+
+- O ecrã de matchmaking foi preservado e continua com loading, contador, tempo, lista de jogadores e cancelamento.
+- A ronda manteve o ViewModel/repository existentes e nao alterou o algoritmo.
+- O polish incidiu no ecossistema do fluxo: salas 1x1/2x2, botoes de sair/iniciar, convites e entrada em sala.
+- Aceitar convite agora valida se a sala ainda existe antes de navegar; convite expirado mostra mensagem amigavel e remove o convite.
+
+### Validacoes anti-abuso leves
+
+- Duplo toque em aceitar/recusar convites e pedidos fica bloqueado no item enquanto a acao corre.
+- Duplo toque em guardar pergunta fica bloqueado ate receber evento do ViewModel.
+- Duplo toque em iniciar/sair de sala 1x1/2x2 fica bloqueado localmente.
+- Perguntas personalizadas rejeitam opcoes duplicadas ignorando caixa, campos vazios, campos longos e resposta correta fora das opcoes.
+- Categorias publicas/copias passam a filtrar perguntas sem opcoes validas, com opcoes duplicadas ou resposta correta fora das opcoes.
+- Convites expirados ou com sala apagada deixam de navegar para sala invalida.
+
+### Ficheiros alterados nesta ronda
+
+- Kotlin/UI: `AdicionarPerguntaActivity.kt`, `ExplorarCategoriasActivity.kt`, `AmigosActivity.kt`, `PerfilAmigoActivity.kt`, `SalaDeEspera1x1Activity.kt`, `SalaDeEspera2x2Activity.kt`.
+- Kotlin/adapters: `ConviteAdapter.kt`, `PedidoAmizadeAdapter.kt`.
+- Kotlin/dados: `AmigosRepository.kt`, `CategoriaRepository.kt`, `AmigosViewModel.kt`, `EditarCategoriaViewModel.kt`, `UteisConquistas.kt`.
+- Layouts: login, perfil, perfil amigo, amigos, convidar 2x2, escolher modo/tipo/categoria, explorar categorias, adicionar pergunta, salas, jogo local/1x1/2x2, itens de convite/pedido/convidar.
+- Resources: `badge_default.xml`, `badge_locked.xml`, strings de convite expirado/erro em PT/EN/ES/FR/DE.
+- Testes: `UteisConquistasTest.kt`.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git status`: executado no fim da ronda.
+
+Observacoes:
+
+- Gradle continua a mostrar o aviso conhecido de funcionalidades deprecated para Gradle 9.0.
+- `build` gerou relatorio lint debug e terminou com `BUILD SUCCESSFUL`.
+
+### Testes manuais recomendados
+
+1. Abrir Login.
+2. Abrir Registo.
+3. Abrir Main.
+4. Abrir Perfil.
+5. Abrir Ranking.
+6. Abrir Historico.
+7. Abrir Amigos.
+8. Abrir Explorar Categorias.
+9. Criar/editar categoria.
+10. Adicionar/editar/eliminar pergunta.
+11. Verificar botoes/cards em ecra pequeno.
+12. Ver badges no proprio perfil.
+13. Ver badges no perfil de amigo.
+14. Confirmar imagens/fallback.
+15. Enviar pedido de amizade.
+16. Aceitar/recusar.
+17. Tentar pedido duplicado.
+18. Tentar pedido para si proprio.
+19. Criar pergunta invalida.
+20. Criar categoria sem perguntas.
+21. Publicar categoria.
+22. Jogar categoria publica.
+23. Entrar matchmaking.
+24. Cancelar matchmaking.
+25. Convite 1x1.
+26. Convite 2x2.
+27. Sala grupo.
+28. Sair/voltar atras em sala.
+29. Terminar jogo e ver podio.
+30. Confirmar XP/historico nao duplicam.
+31. Confirmar convidado sem ranking/historico/XP/badges.
+
+### Riscos pendentes
+
+- Esta ronda nao endurece seguranca profunda; pontuacao/XP/ranking/historico continuam client-authoritative ate v2.0/Cloud Functions.
+- Matchmaking continua client-side, apesar de mais claro e preservado.
+- Ainda falta QA manual multi-conta real para corrida de convites, sala cheia, app fechada e reconexao.
+- Nao foram alteradas Firebase Rules nesta fase.
+
 ## Matchmaking audit + controlled fixes - 2026-05-15
 
 ### Bugs/riscos encontrados
@@ -4499,7 +4616,7 @@ Validar o estado real depois da reativacao/estabilizacao do matchmaking e da int
 Assets verificados:
 
 - Presentes: `rc1`, `rc10`, `rc50`, `rc100`, `rc250`, `rc500`, `rc1000`, `rc2500`, `rc5000`, `pj1`, `pj10`, `pj50`, `pj100`, `pj250`, `pj500`, `pj1000`, `pj2500`, `pj5000`, `vt1`, `vt10`, `vt50`, `vt100`, `vt250`, `vt500`, `vt1000`, `vt2500`, `vt5000`, todos os `xp*` esperados e todos os `cr*` esperados.
-- Ausentes nesta copia local: `rc200`, `pj25`, `vt5`, `vt25`, `badge_default`, `badge_locked`.
+- Ausentes nesta copia local: assets opcionais/legado `rc200`, `pj25`, `vt5`, `vt25`. Os fallbacks `badge_default` e `badge_locked` foram adicionados na ronda de beta prep.
 - Os assets ausentes nao quebram build porque os utilitarios devolvem `null` quando o drawable nao existe e a grelha cai para `ic_trophy`/`ic_lock`.
 
 ### Regressao principal verificada por codigo
@@ -4574,7 +4691,7 @@ Observacoes:
 - Matchmaking continua client-side; Cloud Functions seriam mais fortes para criacao autoritativa de sala, anti-spam, `activeRooms/{uid}` e limpeza global de jogadores fantasma.
 - Firebase Rules continuam a permitir bastante escrita em matchmaking/salas para suportar transacoes cliente-side.
 - Riscos ja conhecidos permanecem: `jogadores.read=true` com password/hash legado, pontuacao/XP/ranking/historico client-authoritative e writes amplos em salas.
-- Alguns assets opcionais/legado de badges estao ausentes (`rc200`, `pj25`, `vt5`, `vt25`, `badge_default`, `badge_locked`), embora haja fallback sem crash.
+- Alguns assets opcionais/legado de badges estao ausentes (`rc200`, `pj25`, `vt5`, `vt25`), embora haja fallback sem crash.
 
 ### Decisao
 
@@ -4631,3 +4748,125 @@ Observacoes:
 
 - Mantem-se o warning conhecido `SalaRepository.kt:84 Parameter 'adminHint' is never used`.
 - Gradle continua a avisar sobre deprecated features para Gradle 9.0.
+
+## Beta Prep UI Fixes — Categorias, Perfil, Badges, Main e Salas - 2026-05-18
+
+### Bugs encontrados
+
+- Adicionar/editar perguntas personalizadas dependia de uma escrita composta no nó da categoria, o que tornava a operação frágil quando a categoria ainda não existia ou quando a pergunta já existia.
+- As Firebase Rules de `categoriasPersonalizadas/{categoria}/perguntas/{perguntaId}` aceitavam criação, mas bloqueavam edição real dos campos existentes porque exigiam `newData == data` quando o campo já existia.
+- O perfil principal estava a renderizar a grelha completa de conquistas, deixando a página pesada.
+- Perfil público/amigo também mostrava demasiadas conquistas e não apresentava nível/XP de forma clara.
+- O ecrã de convidar amigo não tinha botão voltar nem empty state útil.
+- Salas 1x1/2x2 mostravam o texto/card `Partida por convite`, que não trazia valor ao jogador.
+- Main tinha avatar com camada circular atrás do asset e a seta do botão `JOGAR AGORA` podia parecer desalinhada.
+- Info cards/dicas usavam marcador com amarelo forte/torrado.
+
+### Causa real do bug de adicionar pergunta
+
+- A gravação usava `categoriaRef.updateChildren(...)` para atualizar metadados da categoria e escrever `perguntas/{perguntaKey}` no mesmo passo.
+- Para edição, as rules de perguntas personalizadas bloqueavam alterações de `pergunta`, `respostaCorreta`, `opcoes` e `imagem` quando o campo já existia.
+- Resultado: criação podia ficar inconsistente e edição podia falhar no Firebase, apesar de a UI parecer válida.
+
+### Correções aplicadas
+
+- `CategoriaRepository.guardarPerguntaPersonalizada` agora garante primeiro os metadados da categoria e depois grava diretamente `perguntas/{perguntaKey}` com `setValue`.
+- A edição usa o mesmo `perguntaId`, portanto não duplica pergunta.
+- As rules de perguntas personalizadas foram ajustadas minimamente para permitir edição pelo dono, mantendo limites de tamanho e campos fechados.
+- Validações leves mantidas: campos vazios, opções duplicadas ignorando caixa, resposta correta fora das opções e limites de tamanho.
+- `activity_adicionar_pergunta.xml` foi aliviado visualmente com card de formulário, pergunta multiline e dificuldade em bloco mais limpo.
+
+### Perfil e conquistas
+
+- Perfil principal passa a mostrar só melhores conquistas por família.
+- Criado `ConquistasActivity` com grelha completa, scroll e famílias RC/PJ/VT/XP/CR.
+- `BadgesService` passou a calcular XP e CR além de RC/PJ/VT.
+- `BadgeGridRenderer` ganhou `renderMelhores(...)` para perfil resumido e mantém `render(...)` para grelha completa.
+- Criado `EditarPerfilActivity` para edição segura de avatar; nome/email/password não foram alterados nesta fase.
+
+### Amigos/badges
+
+- Perfil público de amigo passa a mostrar nível, XP e melhores conquistas, não grelha completa.
+- Botão `Ver conquistas` abre as conquistas públicas calculadas pelas estatísticas do amigo.
+- Fallback de badges continua centralizado por `BadgeGridRenderer` e `badge_default`/`badge_locked`.
+
+### Salas e convites
+
+- Salas 1x1 e 2x2 escondem o card/código quando a sala é privada por convite.
+- Sala de grupo/código mantém informação útil para copiar/partilhar código.
+- `ConvidarAmigo1x1Activity` e `ConvidarAmigo2x2Activity` receberam botão voltar.
+- Ecrãs de convite mostram empty state quando não há amigos disponíveis.
+
+### Main/avatar e dicas
+
+- Main removeu o círculo/fundo atrás do avatar.
+- A seta do botão `JOGAR AGORA` foi trocada por seta alinhada num content box fixo.
+- Removidos fundos circulares em avatar selecionado/registo/dialog e no adapter de avatares.
+- `UteisDicas` passou para visual mais discreto: fundo claro, título azul escuro, marcador azul escuro com contorno dourado subtil.
+
+### Estado das avaliações
+
+- O fluxo de avaliação foi revisto e mantido ativo.
+- `ExplorarCategoriasViewModel` já bloqueia avaliação sem login e `CategoriaRepository.avaliarCategoria` usa transação para impedir avaliação duplicada por UID/chave compatível.
+- Não foi criado sistema novo de avaliação.
+- Teste manual obrigatório: avaliar categoria pública com conta autenticada, tentar avaliar de novo e confirmar mensagem de já avaliada.
+
+### Firebase Rules
+
+- Rules foram alteradas nesta fase por bug real:
+  - perguntas personalizadas agora podem ser editadas pelo dono mantendo validações de tipo/tamanho;
+  - `conquistas/{uid}/{badgeId}/familia` aceita também `XP` e `CR`.
+- `python3 -m json.tool firebase-rules.json` deve ser executado nesta ronda.
+
+### Ficheiros alterados nesta ronda
+
+- Categorias/perguntas: `AdicionarPerguntaActivity.kt`, `EditarCategoriaViewModel.kt`, `CategoriaRepository.kt`, `activity_adicionar_pergunta.xml`, `firebase-rules.json`.
+- Perfil/badges: `MeuPerfilActivity.kt`, `PerfilAmigoActivity.kt`, `MeuPerfilViewModel.kt`, `PerfilAmigoViewModel.kt`, `BadgesService.kt`, `BadgeGridRenderer.kt`, `Badge.kt`, `BadgeFamily.kt`, `activity_meu_perfil.xml`, `activity_perfil_amigo.xml`, `activity_conquistas.xml`, `ConquistasActivity.kt`.
+- Editar perfil: `EditarPerfilActivity.kt`, `activity_editar_perfil.xml`, `JogadorRepository.kt`, `AvatarGridAdapter.kt`.
+- Amigos/convites: `ConvidarAmigo1x1Activity.kt`, `ConvidarAmigo2x2Activity.kt`, `activity_convidar_amigo.xml`, `activity_convidar_amigo2x2.xml`.
+- Salas/Main/dicas: `SalaDeEspera1x1Activity.kt`, `SalaDeEspera2x2Activity.kt`, `activity_main.xml`, `activity_registar.xml`, `dialog_selecionar_avatar.xml`, `UteisDicas.kt`, `bg_dica_card.xml`, `colors.xml`.
+- Manifest/strings/testes/docs: `AndroidManifest.xml`, `strings.xml`, `BadgesServiceTest.kt`, `TEST_REPORT.md`, `ARCHITECTURE_PLAN.md`, `FIREBASE_RULES_NOTES.md`.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK durante a implementação.
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK após adicionar traduções das novas strings.
+- `git status`: executado no fim da ronda.
+
+Observações:
+
+- A primeira execução de `build` falhou por `MissingTranslation` nas novas strings de perfil/conquistas; foram adicionadas traduções em EN/ES/FR/DE e o `build` passou.
+- Gradle mantém o aviso conhecido de funcionalidades deprecated para Gradle 9.0.
+
+### Testes manuais recomendados
+
+1. Criar categoria personalizada nova.
+2. Adicionar pergunta válida e confirmar que aparece na lista.
+3. Editar a mesma pergunta e confirmar que não duplica.
+4. Eliminar pergunta e confirmar que desaparece.
+5. Começar jogo com categoria personalizada recém-criada.
+6. Tentar guardar pergunta vazia, opções vazias, duplicadas e resposta sem opção selecionada.
+7. Publicar categoria válida e abrir categoria pública.
+8. Avaliar categoria pública uma vez e tentar avaliar de novo.
+9. Abrir perfil próprio e confirmar só melhores badges.
+10. Abrir `Ver conquistas` e confirmar grelha completa RC/PJ/VT/XP/CR.
+11. Abrir `Editar perfil`, mudar avatar, guardar e voltar ao perfil.
+12. Abrir perfil de amigo e confirmar melhores badges/imagens.
+13. Abrir conquistas de amigo.
+14. Abrir convidar amigo 1x1/2x2, testar voltar e empty state.
+15. Criar convite 1x1 e 2x2.
+16. Confirmar sala 1x1/2x2 sem `Partida por convite`.
+17. Confirmar sala de grupo/código mantém código.
+18. Abrir Main em ecrã pequeno/grande e confirmar avatar limpo e seta alinhada.
+19. Abrir dicas de modo/categoria e confirmar novo visual.
+
+### Riscos pendentes
+
+- Editar perfil nesta fase só altera avatar; mudar nome/email/password fica pendente por risco de compatibilidade UID-first/social/legado.
+- Avaliação continua client-side; robustez forte exigiria backend/Cloud Functions.
+- XP/CR em badges são calculados a partir dos dados locais disponíveis (`xpTotal` e pontuação/créditos competitivos), não de um sistema económico novo.
+- Segurança profunda de pontuação/XP/ranking/histórico continua pendente para v2.0/backend.

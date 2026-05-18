@@ -177,6 +177,27 @@ class JogadorRepository(
         return result.task
     }
 
+    fun atualizarAvatar(identificador: String, avatar: String): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        procurarJogador(
+            identificador = identificador,
+            onSuccess = { snapshot ->
+                val key = snapshot?.key
+                if (key == null) {
+                    result.setException(IllegalStateException("Perfil não encontrado."))
+                } else {
+                    jogadorRef(key).child(FirebasePaths.AVATAR).setValue(avatar)
+                        .addOnSuccessListener { result.setResult(null) }
+                        .addOnFailureListener { exception -> result.setException(exception) }
+                }
+            },
+            onFailure = { exception ->
+                result.setException(exception)
+            }
+        )
+        return result.task
+    }
+
     fun marcarOnline(identificador: String): Task<Void> {
         return atualizarEstado(identificador, GameConstants.ESTADO_ON)
     }

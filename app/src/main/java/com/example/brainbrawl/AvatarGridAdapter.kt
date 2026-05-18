@@ -19,7 +19,6 @@ class AvatarGridAdapter(
             layoutParams = ViewGroup.LayoutParams(72.dp, 72.dp)
             scaleType = ImageView.ScaleType.CENTER_CROP
             setPadding(8, 8, 8, 8)
-            background = context.getDrawable(R.drawable.avatar_circular_background)
         }
         imageView.setImageResource(avatarResources[position])
         return imageView

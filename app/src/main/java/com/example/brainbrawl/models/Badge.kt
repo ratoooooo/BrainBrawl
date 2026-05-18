@@ -16,5 +16,7 @@ data class Badge(
 data class BadgeProgress(
     val totalRespostasCertas: Int,
     val totalPartidasJogadas: Int,
-    val totalVitorias: Int
+    val totalVitorias: Int,
+    val xpTotal: Int = 0,
+    val creditos: Int = 0
 )

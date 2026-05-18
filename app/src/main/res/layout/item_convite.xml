@@ -21,15 +21,29 @@
         android:textStyle="bold"/>
     <Button
         android:id="@+id/btnAceitarConvite"
-        style="@android:style/Widget.Button"
-        android:layout_width="96dp"
+        style="@style/BrainBrawlButton"
+        android:layout_width="88dp"
         android:layout_height="42dp"
         android:layout_marginStart="@dimen/bb_space_sm"
         android:text="@string/aceitar"
         android:textAllCaps="false"
-        android:textColor="@color/bb_secondary_text"
+        android:textColor="@color/bb_primary_text"
         android:textSize="13sp"
         android:fontFamily="sans-serif-black"
         android:textStyle="bold"
-        android:background="@drawable/bg_button_secondary"/>
+        android:background="@drawable/bg_button_primary"/>
+
+    <Button
+        android:id="@+id/btnRecusarConvite"
+        style="@style/BrainBrawlButton"
+        android:layout_width="88dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="@dimen/bb_space_sm"
+        android:text="@string/recusar"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_primary_text"
+        android:textSize="13sp"
+        android:fontFamily="sans-serif-black"
+        android:textStyle="bold"
+        android:background="@drawable/bg_button_danger"/>
 </LinearLayout>

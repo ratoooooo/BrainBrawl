@@ -1,6 +1,7 @@
 package com.example.brainbrawl
 
 import android.os.Bundle
+import android.content.Intent
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +23,9 @@ class MeuPerfilActivity : AppCompatActivity() {
         ViewModelProvider(this)[MeuPerfilViewModel::class.java]
     }
     private val authService = AuthService()
+    private var uidAtual: String = ""
+    private var nomeUtilizadorAtual: String = ""
+    private var nomeJogadorAtual: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -30,12 +34,29 @@ class MeuPerfilActivity : AppCompatActivity() {
         val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: ""
+        uidAtual = uid
+        nomeUtilizadorAtual = nomeUtilizador
+        nomeJogadorAtual = nomeJogador
         val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
         BottomNavHelper.instalar(this, BottomNavHelper.Item.PERFIL, uid, nomeUtilizador, nomeJogador, email)
 
         binding.btnVoltarPerfil.visibility = View.GONE
         binding.btnVoltarPerfil.setOnClickListener {
             finish()
+        }
+        binding.btnVerConquistas.setOnClickListener {
+            startActivity(Intent(this, ConquistasActivity::class.java).apply {
+                putExtra(IntentExtras.UID, uidAtual)
+                putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizadorAtual)
+                putExtra(IntentExtras.NOME_JOGADOR, nomeJogadorAtual)
+            })
+        }
+        binding.btnEditarPerfil.setOnClickListener {
+            startActivity(Intent(this, EditarPerfilActivity::class.java).apply {
+                putExtra(IntentExtras.UID, uidAtual)
+                putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizadorAtual)
+                putExtra(IntentExtras.NOME_JOGADOR, nomeJogadorAtual)
+            })
         }
 
         if (uid.isBlank() && nomeUtilizador.isBlank()) {
@@ -75,11 +96,7 @@ class MeuPerfilActivity : AppCompatActivity() {
         binding.txtTaxaVitoria.text = getString(R.string.taxa_de_vitoria_format, perfil.taxaVitoria)
         binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, perfil.taxaAcertos)
         binding.txtXpTotal.text = getString(R.string.xp_total_format, perfil.xpTotal)
-        binding.txtConquistasEstado.text = if (perfil.conquistasPersistentesAtivas) {
-            getString(R.string.conquistas_client_side)
-        } else {
-            getString(R.string.conquistas_sem_persistencia)
-        }
-        BadgeGridRenderer.render(this, layoutInflater, binding.gridConquistas, perfil.badges)
+        binding.txtConquistasEstado.text = getString(R.string.melhores_conquistas_resumo)
+        BadgeGridRenderer.renderMelhores(this, layoutInflater, binding.gridConquistas, perfil.badges)
     }
 }

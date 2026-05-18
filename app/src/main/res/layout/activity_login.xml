@@ -170,30 +170,27 @@
 
             <Button
                 android:id="@+id/btn_entrar"
-                style="@android:style/Widget.Button"
+                style="@style/BrainBrawlButton"
                 android:layout_width="match_parent"
                 android:layout_height="66dp"
                 android:layout_marginTop="28dp"
                 android:background="@drawable/bg_register_primary_button"
-                android:fontFamily="sans-serif-black"
                 android:text="@string/entrar"
+                android:textAllCaps="false"
                 android:textColor="@color/bb_primary_text"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+                android:textSize="18sp" />
 
             <Button
                 android:id="@+id/btn_iniciar_jogo"
-                style="@android:style/Widget.Button"
+                style="@style/BrainBrawlButton"
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
                 android:layout_marginTop="14dp"
                 android:background="@drawable/bg_button_secondary"
-                android:fontFamily="sans-serif-black"
                 android:text="@string/entrar_sem_conta"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_secondary_text"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="15sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -228,17 +225,15 @@
 
             <Button
                 android:id="@+id/btn_registo"
-                style="@android:style/Widget.Button"
+                style="@style/BrainBrawlButton"
                 android:layout_width="match_parent"
                 android:layout_height="58dp"
                 android:layout_marginTop="18dp"
                 android:background="@drawable/bg_register_icon_button"
-                android:fontFamily="sans-serif-black"
                 android:text="@string/registar"
                 android:textAllCaps="false"
                 android:textColor="@color/bb_text_primary"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:textSize="16sp" />
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

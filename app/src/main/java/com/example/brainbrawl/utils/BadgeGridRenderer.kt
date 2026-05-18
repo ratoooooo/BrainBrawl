@@ -22,7 +22,7 @@ object BadgeGridRenderer {
         grid.removeAllViews()
 
         val badgesPorFamilia = badges.groupBy { it.familia }
-        listOf(BadgeFamily.PJ, BadgeFamily.VT, BadgeFamily.RC).forEach { familia ->
+        BadgeFamily.values().forEach { familia ->
             val badgesFamilia = badgesPorFamilia[familia].orEmpty()
             if (badgesFamilia.isEmpty()) return@forEach
 
@@ -32,6 +32,24 @@ object BadgeGridRenderer {
                 configurarItem(context, itemBinding, badge)
                 grid.addView(itemBinding.root, criarParamsItem(context.dp(4)))
             }
+        }
+    }
+
+    fun renderMelhores(
+        context: Context,
+        inflater: LayoutInflater,
+        grid: GridLayout,
+        badges: List<Badge>
+    ) {
+        grid.columnCount = if (context.resources.configuration.screenWidthDp >= 360) 3 else 2
+        grid.removeAllViews()
+        BadgeFamily.values().mapNotNull { familia ->
+            badges.filter { it.familia == familia }
+                .maxWithOrNull(compareBy<Badge> { if (it.desbloqueada) 1 else 0 }.thenBy { it.objetivo })
+        }.forEach { badge ->
+            val itemBinding = ItemBadgeBinding.inflate(inflater, grid, false)
+            configurarItem(context, itemBinding, badge)
+            grid.addView(itemBinding.root, criarParamsItem(context.dp(4)))
         }
     }
 
@@ -61,6 +79,8 @@ object BadgeGridRenderer {
                 BadgeFamily.RC -> context.getString(R.string.respostas_certas)
                 BadgeFamily.PJ -> context.getString(R.string.partidas_jogadas)
                 BadgeFamily.VT -> context.getString(R.string.vit_rias)
+                BadgeFamily.XP -> "XP"
+                BadgeFamily.CR -> "Créditos"
             }
             gravity = Gravity.START
             setTextColor(context.getColor(R.color.bb_text_primary))

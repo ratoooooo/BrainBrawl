@@ -20,8 +20,8 @@
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
       <SelectionState runConfigName="perguntaOLuso">
-        <option name="selectionMode" value="DIALOG" />
-        <DropdownSelection timestamp="2026-05-14T21:53:37.552557Z">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2026-05-16T15:13:17.981024Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="LocalEmulator" identifier="path=/Users/dinisrato/.android/avd/Medium_Phone.avd" />

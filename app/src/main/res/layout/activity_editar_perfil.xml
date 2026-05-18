@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_app_gradient"
+    android:padding="@dimen/bb_space_lg">
+
+    <TextView
+        android:id="@+id/txtTituloEditarPerfil"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:text="@string/editar_perfil"
+        android:textColor="@color/bb_text_primary"
+        android:textSize="@dimen/bb_title_size"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/cardEditarPerfil"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="@dimen/bb_space_lg"
+        android:background="@drawable/bg_card_surface"
+        android:orientation="vertical"
+        android:padding="@dimen/bb_space_lg"
+        app:layout_constraintBottom_toTopOf="@id/layoutAcoesEditarPerfil"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloEditarPerfil">
+
+        <ImageView
+            android:id="@+id/imgAvatarAtual"
+            android:layout_width="104dp"
+            android:layout_height="104dp"
+            android:layout_gravity="center_horizontal"
+            android:contentDescription="@string/avatar_do_jogador"
+            android:scaleType="centerCrop"
+            android:src="@drawable/avatar_1_playstore" />
+
+        <TextView
+            android:id="@+id/txtNomePerfil"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bb_space_md"
+            android:fontFamily="sans-serif-black"
+            android:gravity="center"
+            android:textColor="@color/bb_text_primary"
+            android:textSize="18sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/bb_space_lg"
+            android:text="@string/escolher_avatar"
+            android:textColor="@color/bb_text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold" />
+
+        <GridView
+            android:id="@+id/gridAvatars"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_marginTop="@dimen/bb_space_md"
+            android:layout_weight="1"
+            android:clipToPadding="false"
+            android:gravity="center"
+            android:horizontalSpacing="10dp"
+            android:numColumns="4"
+            android:stretchMode="columnWidth"
+            android:verticalSpacing="10dp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/layoutAcoesEditarPerfil"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/bb_space_md"
+        android:orientation="vertical"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <Button
+            android:id="@+id/btnGuardarPerfil"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bb_button_height"
+            android:background="@drawable/bg_button_primary"
+            android:text="@string/guardar"
+            android:textAllCaps="false"
+            android:textColor="@color/bb_primary_text" />
+
+        <Button
+            android:id="@+id/btnVoltarEditarPerfil"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bb_button_height"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/bg_button_danger"
+            android:text="@string/voltar"
+            android:textAllCaps="false"
+            android:textColor="@color/bb_primary_text" />
+    </LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

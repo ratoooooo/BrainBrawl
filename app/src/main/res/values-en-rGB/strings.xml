@@ -290,6 +290,8 @@
     <string name="erro_enviar_pedido">Error sending request</string>
     <string name="amizade_aceite">Friendship accepted!</string>
     <string name="convite_aceite">Invite accepted!</string>
+    <string name="convite_expirado">This invite has expired or the room was closed.</string>
+    <string name="erro_aceitar_convite">Could not accept the invite. Try again.</string>
     <string name="pedidos_amizade_recebidos">Received friend requests</string>
     <string name="pedidos_de_amizade">Friend requests</string>
     <string name="convites_recebidos">Received Invites:</string>
@@ -403,4 +405,14 @@
     <string name="badge_progresso_format">%1$d / %2$d</string>
     <string name="perfil_indisponivel">Could not open the profile.</string>
     <string name="nome_utilizador_exemplo">Username</string>
+    <string name="melhores_conquistas">Best achievements</string>
+    <string name="melhores_conquistas_resumo">Summary by family. See all on the full screen.</string>
+    <string name="melhores_conquistas_publicas">Best achievements calculated from public stats.</string>
+    <string name="ver_conquistas">View achievements</string>
+    <string name="editar_perfil">Edit profile</string>
+    <string name="conquistas_todas_subtitulo">All families, unlocked and locked, with progress.</string>
+    <string name="escolher_avatar">Choose avatar</string>
+    <string name="perfil_guardado">Profile saved.</string>
+    <string name="erro_guardar_perfil">Could not save the profile.</string>
+    <string name="sem_amigos_para_convidar">You do not have friends available to invite yet. Add friends first and come back to start the challenge.</string>
 </resources>

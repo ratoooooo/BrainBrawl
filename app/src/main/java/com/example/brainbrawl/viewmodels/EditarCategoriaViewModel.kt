@@ -122,10 +122,6 @@ class EditarCategoriaViewModel(
             return "Campos excedem o tamanho máximo permitido"
         }
 
-        if (listOf(opcaoA, opcaoB, opcaoC, opcaoD).distinct().size != 4) {
-            return "As opções devem ser todas diferentes"
-        }
-
         if (
             nomeCategoria.isEmpty() ||
             pergunta.isEmpty() ||
@@ -136,6 +132,15 @@ class EditarCategoriaViewModel(
             respostaCorreta.isEmpty()
         ) {
             return "Preencha todos os campos"
+        }
+
+        val opcoes = listOf(opcaoA, opcaoB, opcaoC, opcaoD)
+        if (opcoes.map { it.trim().lowercase() }.distinct().size != 4) {
+            return "As opções devem ser todas diferentes"
+        }
+
+        if (respostaCorreta !in opcoes) {
+            return "Escolhe a resposta correta entre as quatro opções"
         }
 
         return null

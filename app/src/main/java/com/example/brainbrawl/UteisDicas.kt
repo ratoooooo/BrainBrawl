@@ -17,14 +17,14 @@ object UteisDicas {
         val content = LinearLayout(context).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(padding, padding, padding, padding / 2)
-            setBackgroundColor(ContextCompat.getColor(context, R.color.bb_bg_start))
+            setBackgroundColor(ContextCompat.getColor(context, R.color.bb_surface))
         }
 
         content.addView(TextView(context).apply {
             text = titulo
             textSize = 22f
             typeface = Typeface.DEFAULT_BOLD
-            setTextColor(ContextCompat.getColor(context, R.color.bb_text_primary))
+            setTextColor(ContextCompat.getColor(context, R.color.bb_info_dark))
             setPadding(0, 0, 0, padding / 2)
             includeFontPadding = false
         })
@@ -82,10 +82,11 @@ object UteisDicas {
             gravity = Gravity.CENTER
             typeface = Typeface.DEFAULT_BOLD
             textSize = 13f
-            setTextColor(ContextCompat.getColor(context, R.color.bb_text_primary))
+            setTextColor(ContextCompat.getColor(context, R.color.bb_primary_text))
             background = GradientDrawable().apply {
                 shape = GradientDrawable.OVAL
-                setColor(ContextCompat.getColor(context, R.color.bb_accent))
+                setColor(ContextCompat.getColor(context, R.color.bb_info_dark))
+                setStroke(context.dp(2), ContextCompat.getColor(context, R.color.bb_info_gold))
             }
             layoutParams = LinearLayout.LayoutParams(context.dp(28), context.dp(28)).apply {
                 marginEnd = context.dp(12)

@@ -290,6 +290,8 @@
     <string name="erro_enviar_pedido">Erreur lors de l’envoi de la demande</string>
     <string name="amizade_aceite">Amitié acceptée.</string>
     <string name="convite_aceite">Invitation acceptée.</string>
+    <string name="convite_expirado">Cette invitation a expiré ou la salle a été fermée.</string>
+    <string name="erro_aceitar_convite">Impossible d’accepter l’invitation. Réessaie.</string>
     <string name="pedidos_amizade_recebidos">Demandes d’amitié reçues</string>
     <string name="pedidos_de_amizade">Demandes d’amitié</string>
     <string name="convites_recebidos">Invitations reçues :</string>
@@ -403,4 +405,14 @@
     <string name="badge_progresso_format">%1$d / %2$d</string>
     <string name="perfil_indisponivel">Impossible d’ouvrir le profil.</string>
     <string name="nome_utilizador_exemplo">Nom d’utilisateur</string>
+    <string name="melhores_conquistas">Meilleurs badges</string>
+    <string name="melhores_conquistas_resumo">Résumé par famille. Voir tout sur l’écran complet.</string>
+    <string name="melhores_conquistas_publicas">Meilleurs badges calculés à partir des statistiques publiques.</string>
+    <string name="ver_conquistas">Voir les badges</string>
+    <string name="editar_perfil">Modifier le profil</string>
+    <string name="conquistas_todas_subtitulo">Toutes les familles, déverrouillées et verrouillées, avec progression.</string>
+    <string name="escolher_avatar">Choisir un avatar</string>
+    <string name="perfil_guardado">Profil enregistré.</string>
+    <string name="erro_guardar_perfil">Impossible d’enregistrer le profil.</string>
+    <string name="sem_amigos_para_convidar">Tu n’as pas encore d’amis disponibles à inviter. Ajoute des amis puis reviens lancer le défi.</string>
 </resources>

@@ -59,6 +59,26 @@
                 android:textSize="24sp"
                 android:textStyle="bold" />
 
+            <TextView
+                android:id="@+id/txtNivel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/nivel_inicial"
+                android:textColor="@color/bb_text_primary"
+                android:textSize="16sp" />
+
+            <TextView
+                android:id="@+id/txtXpProgress"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:fontFamily="sans-serif"
+                android:text="@string/xp_progress_format"
+                android:textColor="@color/bb_text_secondary"
+                android:textSize="13sp" />
+
 
             <!-- Linha das Conquistas -->
             <LinearLayout
@@ -266,7 +286,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="22dp"
                 android:fontFamily="sans-serif-black"
-                android:text="@string/conquistas"
+                android:text="@string/melhores_conquistas"
                 android:textColor="@color/bb_text_primary"
                 android:textSize="18sp" />
 
@@ -275,7 +295,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="2dp"
-                android:text="@string/conquistas_amigo_publicas"
+                android:text="@string/melhores_conquistas_publicas"
                 android:textColor="@color/bb_text_secondary"
                 android:textSize="12sp" />
 
@@ -287,19 +307,30 @@
                 android:columnCount="3"
                 android:useDefaultMargins="false" />
 
+            <Button
+                android:id="@+id/btnVerConquistas"
+                style="@style/BrainBrawlButton"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/bb_button_height"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_button_secondary"
+                android:text="@string/ver_conquistas"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_secondary_text" />
+
             <!-- Botão Remover Amigo dentro do card -->
             <Button
                 android:id="@+id/btnRemoverAmigo"
+                style="@style/BrainBrawlButton"
                 android:layout_width="wrap_content"
-                android:layout_height="48dp"
+                android:layout_height="@dimen/bb_button_height"
                 android:layout_marginTop="24dp"
-                android:backgroundTint="#E53935"
+                android:background="@drawable/bg_button_danger"
                 android:text="@string/remover_amigo"
-                android:textColor="#FFFFFF"
-                android:textSize="16sp"
-                android:fontFamily="sans-serif"
-                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_primary_text"
                 android:drawableStart="@drawable/ic_delete"
+                android:drawablePadding="8dp"
                 android:paddingStart="24dp"
                 android:paddingEnd="24dp"/>
         </LinearLayout>
@@ -308,16 +339,13 @@
 
     <Button
         android:id="@+id/btnVoltarPerfil"
-        style="@android:style/Widget.Button"
+        style="@style/BrainBrawlButton"
         android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:background="@drawable/botao_voltar"
-        android:paddingVertical="14dp"
+        android:layout_height="@dimen/bb_button_height"
+        android:background="@drawable/bg_button_danger"
         android:text="@string/voltar"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_primary_text"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

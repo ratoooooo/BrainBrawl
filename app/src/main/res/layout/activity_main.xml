@@ -38,9 +38,8 @@
                     android:id="@+id/avatar_frame"
                     android:layout_width="92dp"
                     android:layout_height="92dp"
-                    android:background="@drawable/bg_main_avatar_ring"
                     android:elevation="4dp"
-                    android:padding="5dp"
+                    android:padding="0dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent">
 
@@ -48,9 +47,8 @@
                         android:id="@+id/img_avatar"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:background="@drawable/avatar_circular_background"
                         android:contentDescription="@string/app_name"
-                        android:padding="2dp"
+                        android:padding="0dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/avatar_1_playstore" />
 
@@ -259,15 +257,6 @@
                         android:textSize="20sp"
                         android:textStyle="bold" />
 
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="end|center_vertical"
-                        android:fontFamily="sans-serif-black"
-                        android:text="›"
-                        android:textColor="#D8A42F"
-                        android:textSize="42sp"
-                        android:textStyle="bold" />
                 </FrameLayout>
 
                 <LinearLayout

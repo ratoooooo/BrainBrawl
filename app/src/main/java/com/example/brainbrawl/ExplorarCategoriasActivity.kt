@@ -1,6 +1,7 @@
 package com.example.brainbrawl
 
 import android.app.AlertDialog
+import android.graphics.Typeface
 import android.content.Intent
 import android.os.Bundle
 import android.view.ViewGroup
@@ -146,19 +147,19 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         card.addView(TextView(this).apply {
             text = categoria.nome
             textSize = 20f
-            setTextColor(0xFF000000.toInt())
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setTextColor(getColor(R.color.bb_text_primary))
+            setTypeface(typeface, Typeface.BOLD)
         })
         card.addView(TextView(this).apply {
             text = getString(R.string.categoria_criador_format, categoria.criador)
             textSize = 14f
-            setTextColor(0xFF333333.toInt())
+            setTextColor(getColor(R.color.bb_text_secondary))
             setPadding(0, dp(4), 0, dp(6))
         })
         card.addView(TextView(this).apply {
             text = categoria.descricaoCurta()
             textSize = 15f
-            setTextColor(0xFF000000.toInt())
+            setTextColor(getColor(R.color.bb_text_primary))
         })
         card.addView(TextView(this).apply {
             text = getString(
@@ -168,12 +169,12 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
                 categoria.ratingTexto()
             )
             textSize = 14f
-            setTextColor(0xFF333333.toInt())
+            setTextColor(getColor(R.color.bb_text_secondary))
             setPadding(0, dp(8), 0, dp(10))
         })
 
         val botoes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoes.addView(criarBotao(getString(R.string.jogar)) { mostrarEscolhaModo(CategoriaExploravel.Publica(categoria)) })
+        botoes.addView(criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Publica(categoria)) })
         botoes.addView(criarBotao(getString(R.string.guardar)) { guardarCategoria(categoria) })
         botoes.addView(criarBotao(getString(R.string.avaliar)) { mostrarAvaliacao(categoria) })
         card.addView(botoes)
@@ -188,20 +189,20 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         card.addView(TextView(this).apply {
             text = categoria.nome
             textSize = 20f
-            setTextColor(0xFF000000.toInt())
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setTextColor(getColor(R.color.bb_text_primary))
+            setTypeface(typeface, Typeface.BOLD)
         })
         card.addView(TextView(this).apply {
             text = if (jaPublica) getString(R.string.estado_publica) else getString(R.string.estado_privada)
             textSize = 14f
-            setTextColor(0xFF333333.toInt())
+            setTextColor(getColor(R.color.bb_text_secondary))
             setPadding(0, dp(4), 0, dp(10))
         })
 
         val botoes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoes.addView(criarBotao(getString(R.string.jogar)) { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) })
+        botoes.addView(criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) })
         botoes.addView(criarBotao(getString(R.string.editar_categoria)) { abrirEdicaoCategoria(categoria.nome) })
-        botoes.addView(criarBotao(getString(R.string.eliminar)) { confirmarEliminarCategoria(categoria) })
+        botoes.addView(criarBotao(getString(R.string.eliminar), perigo = true) { confirmarEliminarCategoria(categoria) })
         card.addView(botoes)
 
         val botoesPublicos = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
@@ -209,7 +210,7 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             viewModel.publicarCategoria(uid.orEmpty(), nomeUtilizador.orEmpty(), nomeJogador, categoria.nome)
         })
         if (jaPublica) {
-            botoesPublicos.addView(criarBotao(getString(R.string.remover_publica)) {
+            botoesPublicos.addView(criarBotao(getString(R.string.remover_publica), perigo = true) {
                 viewModel.removerCategoriaPublica(uid.orEmpty(), nomeUtilizador.orEmpty(), categoria.nome)
             })
         }
@@ -221,7 +222,7 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setPadding(dp(18), dp(16), dp(18), dp(16))
-            background = getDrawable(R.drawable.botao_branco_arredondado)
+            background = getDrawable(R.drawable.bg_card_surface)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
@@ -233,8 +234,8 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         binding.layoutCategoriasPublicas.addView(TextView(this).apply {
             text = texto
             textSize = 20f
-            setTextColor(0xFF000000.toInt())
-            setTypeface(typeface, android.graphics.Typeface.BOLD)
+            setTextColor(getColor(R.color.bb_text_primary))
+            setTypeface(typeface, Typeface.BOLD)
             setPadding(0, dp(10), 0, dp(10))
         })
     }
@@ -243,18 +244,37 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         binding.layoutCategoriasPublicas.addView(TextView(this).apply {
             text = texto
             textSize = 15f
-            setTextColor(0xFF333333.toInt())
+            setTextColor(getColor(R.color.bb_text_secondary))
             setPadding(0, 0, 0, dp(14))
         })
     }
 
-    private fun criarBotao(texto: String, onClick: () -> Unit): Button {
+    private fun criarBotao(texto: String, destaque: Boolean = false, perigo: Boolean = false, onClick: () -> Unit): Button {
         return Button(this).apply {
             text = texto
+            isAllCaps = false
+            minHeight = dp(44)
+            textSize = 13f
+            typeface = Typeface.DEFAULT_BOLD
+            setTextColor(getColor(if (destaque || perigo) R.color.bb_primary_text else R.color.bb_secondary_text))
+            background = getDrawable(
+                when {
+                    perigo -> R.drawable.bg_button_danger
+                    destaque -> R.drawable.bg_button_primary
+                    else -> R.drawable.bg_button_secondary
+                }
+            )
+            maxLines = 2
+            setPadding(dp(8), 0, dp(8), 0)
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
                 marginEnd = dp(6)
+                topMargin = dp(6)
             }
-            setOnClickListener { onClick() }
+            setOnClickListener {
+                isEnabled = false
+                postDelayed({ isEnabled = true }, 1200)
+                onClick()
+            }
         }
     }
 

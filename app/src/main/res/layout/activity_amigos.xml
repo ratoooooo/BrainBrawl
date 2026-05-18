@@ -48,11 +48,11 @@
                 android:id="@+id/btnPesquisar"
                 android:layout_width="32dp"
                 android:layout_height="32dp"
-                android:src="@android:drawable/ic_menu_search"
+                android:src="@drawable/ic_search"
                 android:layout_gravity="end|center_vertical"
                 android:layout_marginEnd="8dp"
                 android:contentDescription="@string/pesquisar"
-                app:tint="#000000" />
+                app:tint="@color/bb_text_primary" />
         </FrameLayout>
     </LinearLayout>
 

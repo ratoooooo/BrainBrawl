@@ -81,27 +81,25 @@
 
     <Button
         android:id="@+id/btnIniciarJogo"
+        style="@style/BrainBrawlButton"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bb_button_height"
         android:text="@string/iniciar_jogo"
         android:enabled="false"
+        android:textAllCaps="false"
         android:textColor="@color/bb_secondary_text"
         android:background="@drawable/bg_button_secondary"
-        android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"
         android:layout_marginTop="24dp" />
 
     <Button
         android:id="@+id/btnSairSala"
+        style="@style/BrainBrawlButton"
         android:layout_width="match_parent"
         android:layout_height="@dimen/bb_button_height"
         android:text="@string/sair_da_sala"
-        android:textColor="#FFFFFF"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_primary_text"
         android:background="@drawable/bg_button_danger"
-        android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"
         android:layout_marginTop="16dp" />
 
 </LinearLayout>

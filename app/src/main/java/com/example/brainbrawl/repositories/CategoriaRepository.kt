@@ -203,10 +203,10 @@ class CategoriaRepository(
             val categoriaRef = task.result
             val perguntaKey = perguntaId ?: categoriaRef.child(FirebasePaths.PERGUNTAS).push().key
                 ?: throw IllegalStateException("Erro ao gerar identificador da pergunta.")
-            val updates = HashMap<String, Any>()
-            updates.putAll(dadosCategoriaPersonalizada(dono, nomeCategoria))
-            updates["${FirebasePaths.PERGUNTAS}/$perguntaKey"] = pergunta.toMap()
-            categoriaRef.updateChildren(updates)
+            categoriaRef.updateChildren(dadosCategoriaPersonalizada(dono, nomeCategoria)).continueWithTask { metaTask ->
+                if (!metaTask.isSuccessful) throw metaTask.exception ?: IllegalStateException("Erro ao preparar categoria.")
+                categoriaRef.child(FirebasePaths.PERGUNTAS).child(perguntaKey).setValue(pergunta.toMap())
+            }
         }
     }
 
@@ -709,7 +709,10 @@ class CategoriaRepository(
             val respostaCorreta = perguntaSnap.child(FirebasePaths.RESPOSTA_CORRETA).getValue(String::class.java)
             val opcoes = perguntaSnap.child(FirebasePaths.OPCOES).children.mapNotNull { it.getValue(String::class.java) }
             val opcoesValidas = if (exigirQuatroOpcoes) opcoes.size == 4 else opcoes.size >= minimoOpcoes
-            if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoesValidas) {
+            val conteudoValido = opcoes.none { it.isBlank() } &&
+                opcoes.map { it.trim().lowercase() }.distinct().size == opcoes.size &&
+                respostaCorreta in opcoes
+            if (!pergunta.isNullOrBlank() && !respostaCorreta.isNullOrBlank() && opcoesValidas && conteudoValido) {
                 val dados = linkedMapOf<String, Any>(
                     FirebasePaths.PERGUNTA to pergunta,
                     FirebasePaths.RESPOSTA_CORRETA to respostaCorreta,

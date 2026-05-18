@@ -411,3 +411,21 @@ Notas:
 - R2 fica pendente: pontuacao, XP, vitorias, ranking e historico continuam client-authoritative. Correccao forte exige Cloud Functions/backend autoritativo.
 - R3 fica pendente: `salas`, `sala_1x1` e `sala_2x2` ainda permitem writes amplos para suportar convidados sem Auth. Correccao forte exige Firebase Anonymous Auth para convidados ou backend.
 - Matchmaking aleatorio continua desativado/inacessivel; os logs residuais foram reduzidos, mas a funcionalidade nao foi reativada.
+
+## Beta Prep UI Fixes - categorias e conquistas - 2026-05-18
+
+Alterações aplicadas por bug real:
+
+- Em `jogadores/{jogadorId}/categoriasPersonalizadas/{nomeCategoria}/perguntas/{perguntaId}` as validações de `pergunta`, `respostaCorreta`, `opcoes/*` e `imagem` deixaram de exigir que valores existentes permanecessem iguais.
+- O objetivo é permitir edição real de perguntas pelo dono da categoria, mantendo limites de tipo e tamanho.
+- A permissão `.write` do nó da categoria personalizada não foi alargada.
+
+Conquistas:
+
+- `conquistas/{uid}/{badgeId}/familia` passa a aceitar `XP` e `CR`, além de `RC`, `PJ` e `VT`.
+- A leitura/escrita continua limitada ao próprio UID autenticado e exclui guests.
+
+Limites:
+
+- Estas regras não tornam pontuação/XP/ranking autoritativos.
+- Avaliações e conquistas continuam client-side até existir backend/Cloud Functions.

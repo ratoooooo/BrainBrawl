@@ -16,6 +16,8 @@ class BadgesService {
                 BadgeFamily.RC -> progress.totalRespostasCertas
                 BadgeFamily.PJ -> progress.totalPartidasJogadas
                 BadgeFamily.VT -> progress.totalVitorias
+                BadgeFamily.XP -> progress.xpTotal
+                BadgeFamily.CR -> progress.creditos
             }.coerceAtLeast(0)
             val atingiuObjetivo = progressoAtual >= definicao.objetivo
             definicao.toBadge(
@@ -71,6 +73,34 @@ class BadgesService {
                     )
                 )
             }
+            XP_THRESHOLDS.forEach { objetivo ->
+                add(
+                    BadgeDefinition(
+                        familia = BadgeFamily.XP,
+                        objetivo = objetivo,
+                        nomeSingular = "1 XP",
+                        nomePlural = "$objetivo XP",
+                        descricaoSingular = "Ganhaste 1 ponto de experiência.",
+                        descricaoPlural = "Ganhaste $objetivo pontos de experiência.",
+                        condicao = "xpTotal",
+                        drawablePrefix = "xp"
+                    )
+                )
+            }
+            CREDIT_THRESHOLDS.forEach { objetivo ->
+                add(
+                    BadgeDefinition(
+                        familia = BadgeFamily.CR,
+                        objetivo = objetivo,
+                        nomeSingular = "1 crédito",
+                        nomePlural = "$objetivo créditos",
+                        descricaoSingular = "Somaste 1 crédito competitivo.",
+                        descricaoPlural = "Somaste $objetivo créditos competitivos.",
+                        condicao = "pontuacao",
+                        drawablePrefix = "cr"
+                    )
+                )
+            }
         }.sortedWith(compareBy<BadgeDefinition> { it.familia.ordinal }.thenBy { it.objetivo })
     }
 
@@ -104,5 +134,7 @@ class BadgesService {
 
     private companion object {
         val THRESHOLDS = listOf(1, 10, 50, 100, 250, 500, 1000, 2500, 5000)
+        val XP_THRESHOLDS = listOf(100, 300, 600, 1000, 2000, 5000, 10000)
+        val CREDIT_THRESHOLDS = listOf(1, 5, 10, 25, 50, 100, 250, 500, 1000)
     }
 }

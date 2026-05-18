@@ -297,18 +297,18 @@
             "perguntas": {
               "$perguntaId": {
                 "pergunta": {
-                  ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 300))"
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 300"
                 },
                 "respostaCorreta": {
-                  ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 120))"
+                  ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
                 },
                 "opcoes": {
                   "$opcaoId": {
-                    ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length > 0 && newData.val().length <= 120))"
+                    ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 120"
                   }
                 },
                 "imagem": {
-                  ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || newData.val().length <= 500)"
+                  ".validate": "newData.isString() && newData.val().length <= 500"
                 },
                 "dificuldade": {
                   ".validate": "newData.isString() && (newData.val() == 'facil' || newData.val() == 'media' || newData.val() == 'dificil')"
@@ -339,7 +339,7 @@
             ".validate": "newData.isString() && newData.val() == $badgeId"
           },
           "familia": {
-            ".validate": "newData.isString() && (newData.val() == 'RC' || newData.val() == 'PJ' || newData.val() == 'VT')"
+            ".validate": "newData.isString() && (newData.val() == 'RC' || newData.val() == 'PJ' || newData.val() == 'VT' || newData.val() == 'XP' || newData.val() == 'CR')"
           },
           "nome": {
             ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 80"

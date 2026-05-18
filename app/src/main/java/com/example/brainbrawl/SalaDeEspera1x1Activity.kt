@@ -68,10 +68,12 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
         // Listener para o clique no botão de iniciar jogo
         binding.btnIniciarJogo.setOnClickListener {
+            binding.btnIniciarJogo.isEnabled = false
             viewModel.verificarProntosEAvancar(codigoSala)
         }
 
         binding.btnSairSala.setOnClickListener {
+            binding.btnSairSala.isEnabled = false
             sairDaSala()
         }
     }
@@ -103,10 +105,11 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
 
     private fun atualizarCodigoSala(estado: SalaCompetitivaUiState) {
         if (estado.codigoSalaVisivel) {
+            binding.layoutCodigoSala.visibility = View.VISIBLE
             binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
             binding.btnCopiarCodigoSala.visibility = View.VISIBLE
         } else {
-            binding.txtCodigoSala.text = estado.textoCodigoSalaPrivado.ifBlank { getString(R.string.partida_por_convite) }
+            binding.layoutCodigoSala.visibility = View.GONE
             binding.btnCopiarCodigoSala.visibility = View.GONE
         }
     }
@@ -138,6 +141,9 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
                 abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
                 finish()
             }
+        }
+        if (evento == Sala1x1Event.AguardarAdversario || evento == Sala1x1Event.JogadoresNaoProntos) {
+            binding.btnIniciarJogo.isEnabled = viewModel.estado.value?.podeIniciar == true
         }
     }
 

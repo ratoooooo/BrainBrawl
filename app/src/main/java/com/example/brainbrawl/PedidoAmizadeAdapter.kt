@@ -10,13 +10,15 @@ import com.example.brainbrawl.models.PedidoAmizade
 
 class PedidoAmizadeAdapter(
     private val pedidos: List<PedidoAmizade>,
-    private val onAceitarClick: (PedidoAmizade) -> Unit
+    private val onAceitarClick: (PedidoAmizade) -> Unit,
+    private val onRecusarClick: (PedidoAmizade) -> Unit
 ) : RecyclerView.Adapter<PedidoAmizadeAdapter.PedidoViewHolder>() {
 
     // ViewHolder para cada item do RecyclerView
     inner class PedidoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val txtNomePedido: TextView = view.findViewById(R.id.txtNomePedido)
         val btnAceitar: Button = view.findViewById(R.id.btnAceitarPedido)
+        val btnRecusar: Button = view.findViewById(R.id.btnRecusarPedido)
     }
 
     // Cria uma nova ViewHolder quando o RecyclerView precisa de uma nova View
@@ -30,7 +32,18 @@ class PedidoAmizadeAdapter(
     override fun onBindViewHolder(holder: PedidoViewHolder, position: Int) {
         val pedido = pedidos[position]
         holder.txtNomePedido.text = pedido.utilizador.nomeDisplay
-        holder.btnAceitar.setOnClickListener { onAceitarClick(pedido) }
+        holder.btnAceitar.isEnabled = true
+        holder.btnRecusar.isEnabled = true
+        holder.btnAceitar.setOnClickListener {
+            holder.btnAceitar.isEnabled = false
+            holder.btnRecusar.isEnabled = false
+            onAceitarClick(pedido)
+        }
+        holder.btnRecusar.setOnClickListener {
+            holder.btnAceitar.isEnabled = false
+            holder.btnRecusar.isEnabled = false
+            onRecusarClick(pedido)
+        }
     }
 
     override fun getItemCount() = pedidos.size

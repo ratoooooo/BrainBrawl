@@ -400,10 +400,9 @@
                         android:layout_width="104dp"
                         android:layout_height="104dp"
                         android:layout_gravity="center_horizontal"
-                        android:background="@drawable/bg_main_avatar_ring"
                         android:contentDescription="@string/avatar_selecionado"
                         android:elevation="3dp"
-                        android:padding="5dp"
+                        android:padding="0dp"
                         android:scaleType="centerCrop"
                         android:src="@drawable/avatar_1_playstore" />
 

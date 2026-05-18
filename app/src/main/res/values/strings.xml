@@ -305,6 +305,8 @@
     <string name="erro_enviar_pedido">Erro ao enviar pedido</string>
     <string name="amizade_aceite">Amizade aceite!</string>
     <string name="convite_aceite">Convite aceite!</string>
+    <string name="convite_expirado">Este convite já expirou ou a sala foi encerrada.</string>
+    <string name="erro_aceitar_convite">Não foi possível aceitar o convite. Tenta novamente.</string>
     <string name="pedidos_amizade_recebidos">Pedidos de amizade recebidos</string>
     <string name="pedidos_de_amizade">Pedidos de amizade</string>
     <string name="convites_recebidos">Convites Recebidos:</string>
@@ -412,6 +414,16 @@
     <string name="resumo_competitivo">Resumo competitivo</string>
     <string name="conquista">Conquista</string>
     <string name="conquistas">Conquistas</string>
+    <string name="melhores_conquistas">Melhores conquistas</string>
+    <string name="melhores_conquistas_resumo">Resumo por família. Vê todas no ecrã completo.</string>
+    <string name="melhores_conquistas_publicas">Melhores conquistas calculadas pelas estatísticas públicas.</string>
+    <string name="ver_conquistas">Ver conquistas</string>
+    <string name="editar_perfil">Editar perfil</string>
+    <string name="conquistas_todas_subtitulo">Todas as famílias, desbloqueadas e bloqueadas, com progresso.</string>
+    <string name="escolher_avatar">Escolher avatar</string>
+    <string name="perfil_guardado">Perfil guardado.</string>
+    <string name="erro_guardar_perfil">Não foi possível guardar o perfil.</string>
+    <string name="sem_amigos_para_convidar">Ainda não tens amigos disponíveis para convidar. Adiciona amigos primeiro e volta aqui para lançar o desafio.</string>
     <string name="conquistas_client_side">Desbloqueios guardados nesta conta.</string>
     <string name="conquistas_amigo_publicas">Conquistas calculadas pelas estatísticas públicas.</string>
     <string name="conquistas_sem_persistencia">Convidados veem conquistas bloqueadas sem gravação.</string>

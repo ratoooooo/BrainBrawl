@@ -10,17 +10,27 @@ object UteisConquistas {
     )
 
     val partidasJogadasBadges = listOf(
+        5000 to "pj5000",
+        2500 to "pj2500",
+        1000 to "pj1000",
+        500 to "pj500",
+        250 to "pj250",
         100 to "pj100",
         50 to "pj50",
-        25 to "pj25",
-        10 to "pj10"
+        10 to "pj10",
+        1 to "pj1"
     ).map { (objetivo, drawableName) -> BadgeMarco(objetivo, drawableName) }
 
     val vitoriasBadges = listOf(
+        5000 to "vt5000",
+        2500 to "vt2500",
+        1000 to "vt1000",
+        500 to "vt500",
+        250 to "vt250",
         100 to "vt100",
         50 to "vt50",
-        25 to "vt25",
-        5 to "vt5"
+        10 to "vt10",
+        1 to "vt1"
     ).map { (objetivo, drawableName) -> BadgeMarco(objetivo, drawableName) }
 
     val xpBadges = listOf(
@@ -39,11 +49,15 @@ object UteisConquistas {
     ).map { (objetivo, drawableName) -> BadgeMarco(objetivo, drawableName) }
 
     val respostasCertasBadges = listOf(
+        5_000 to "rc5000",
+        2_500 to "rc2500",
         1_000 to "rc1000",
         500 to "rc500",
-        200 to "rc200",
+        250 to "rc250",
         100 to "rc100",
-        50 to "rc50"
+        50 to "rc50",
+        10 to "rc10",
+        1 to "rc1"
     ).map { (objetivo, drawableName) -> BadgeMarco(objetivo, drawableName) }
 
     val creditosBadges = listOf(

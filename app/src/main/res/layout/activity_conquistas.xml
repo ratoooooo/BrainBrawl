@@ -7,12 +7,12 @@
     android:padding="@dimen/bb_space_lg">
 
     <TextView
-        android:id="@+id/txtTituloConvidar"
+        android:id="@+id/txtTituloConquistas"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:fontFamily="sans-serif-black"
-        android:text="@string/convidar_amigo"
-        android:textAlignment="center"
+        android:gravity="center"
+        android:text="@string/conquistas"
         android:textColor="@color/bb_text_primary"
         android:textSize="@dimen/bb_title_size"
         android:textStyle="bold"
@@ -20,37 +20,43 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerConvidarAmigos"
+    <TextView
+        android:id="@+id/txtSubtituloConquistas"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:gravity="center"
+        android:text="@string/conquistas_todas_subtitulo"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="14sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloConquistas" />
+
+    <ScrollView
+        android:id="@+id/scrollConquistas"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_marginTop="@dimen/bb_space_lg"
         android:background="@drawable/bg_card_surface"
-        android:clipToPadding="false"
+        android:fillViewport="false"
         android:padding="@dimen/bb_space_md"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloConvidar"
-        app:layout_constraintBottom_toTopOf="@id/btnVoltarConvidar"
+        app:layout_constraintBottom_toTopOf="@id/btnVoltarConquistas"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/txtSubtituloConquistas">
 
-    <TextView
-        android:id="@+id/txtEstadoConvidar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_empty_state_card"
-        android:gravity="center"
-        android:padding="@dimen/bb_space_lg"
-        android:text="@string/sem_amigos_para_convidar"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="15sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/recyclerConvidarAmigos"
-        app:layout_constraintEnd_toEndOf="@id/recyclerConvidarAmigos"
-        app:layout_constraintStart_toStartOf="@id/recyclerConvidarAmigos"
-        app:layout_constraintTop_toTopOf="@id/recyclerConvidarAmigos" />
+        <GridLayout
+            android:id="@+id/gridConquistas"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:padding="@dimen/bb_space_sm"
+            android:useDefaultMargins="false" />
+    </ScrollView>
 
     <Button
-        android:id="@+id/btnVoltarConvidar"
+        android:id="@+id/btnVoltarConquistas"
         style="@style/BrainBrawlButton"
         android:layout_width="0dp"
         android:layout_height="@dimen/bb_button_height"
@@ -62,6 +68,5 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerConvidarAmigos" />
-
+        app:layout_constraintTop_toBottomOf="@id/scrollConquistas" />
 </androidx.constraintlayout.widget.ConstraintLayout>

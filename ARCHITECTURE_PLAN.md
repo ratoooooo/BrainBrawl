@@ -45,7 +45,7 @@
 - `MeuPerfilViewModel` passa a orquestrar perfil + stats + badges: carrega o perfil via `JogadorRepository`, calcula taxa de vitoria/derrotas derivadas, pede ao service a lista de badges e pede ao repository para persistir apenas as desbloqueadas novas.
 - `MeuPerfilActivity` fica responsavel por renderizacao: avatar, resumo competitivo e grelha de badges. A Activity resolve imagens locais por nome de drawable com fallback seguro, mas nao decide thresholds nem escreve Firebase.
 - `Badge`/`BadgeFamily` modelam id, familia, nome, descricao, condicao, estado, `drawableName`, progresso e objetivo.
-- A estrategia de assets locais usa nomes previsiveis (`rc10`, `pj100`, `vt500`, etc.) em `res/drawable` ou `res/drawable-nodpi`. Como os ficheiros podem ainda nao existir, a resolucao usa `resources.getIdentifier` nesta fase e fallback para `badge_default`/`badge_locked` quando forem adicionados, ou icones internos se continuarem ausentes.
+- A estrategia de assets locais usa nomes previsiveis (`rc10`, `pj100`, `vt500`, etc.) em `res/drawable` ou `res/drawable-nodpi`. Como alguns assets especificos podem nao existir, a resolucao usa `resources.getIdentifier` nesta fase e fallback para `badge_default`/`badge_locked`, ou icones internos se os fallbacks estiverem ausentes.
 - Conquistas sao UID-first e so persistem quando `FirebaseAuth.currentUser.uid` corresponde ao perfil carregado. Convidados e perfis sem Auth veem badges bloqueadas sem leitura/escrita em `conquistas`.
 - O campo atual `totalRespostasCertas` ja existe no perfil e e atualizado pelo fluxo de estatisticas, por isso a familia RC fica ativa sem inventar dados.
 - Pontuacao base, calculo de XP, ranking, historico, convites, salas, categorias e compatibilidade legado por `nomeUtilizador` nao foram alterados.
@@ -765,4 +765,61 @@ Riscos e proximas fases:
 - Migrar matchmaking autoritativo para Cloud Functions numa fase futura, incluindo anti-spam, `activeRooms/{uid}` e limpeza global de filas fantasma.
 - Separar dados publicos/privados de jogadores e remover password/hash legado antes de beta publico.
 - Endurecer pontuacao/XP/ranking/historico com backend confiavel.
-- Completar assets opcionais de badges se forem usados visualmente: `rc200`, `pj25`, `vt5`, `vt25`, `badge_default`, `badge_locked`.
+- Completar assets opcionais/legado de badges se voltarem a ser usados visualmente: `rc200`, `pj25`, `vt5`, `vt25`.
+
+## Beta Prep UI/UX polish - 2026-05-17
+
+Decisao de UI:
+
+- Manter o design system leve existente em vez de criar um sistema novo.
+- Reutilizar `BrainBrawlButton`, `bg_button_primary`, `bg_button_secondary`, `bg_button_danger`, `bg_card_surface`, `bg_empty_state_card` e cores `bb_*`.
+- Remover nos ecras principais auditados as referencias visuais a `@android:style/Widget.Button`, `@android:drawable`, `botao_branco_arredondado` e `botao_voltar`.
+
+Badges:
+
+- `UteisConquistas` deve apontar apenas para assets realmente existentes.
+- `badge_default` e `badge_locked` passam a existir como fallback visual local.
+- `BadgeGridRenderer` continua a ser o ponto central para fallback em grelha; os perfis tambem devem mostrar fallback quando o badge de resumo ainda nao foi atingido.
+
+Anti-abuso leve:
+
+- Bloqueio de duplo toque fica na camada de UI/adapter quando o risco e apenas repeticao de acao.
+- Validacao de integridade de perguntas fica no `EditarCategoriaViewModel` e no parser/filtro de `CategoriaRepository`.
+- Convite aceite valida existencia da sala no `AmigosRepository` antes de navegar, sem alterar schema Firebase.
+
+Limites preservados:
+
+- Sem refactor geral.
+- Sem alteracao de Firebase Rules.
+- Sem alteracao de schema.
+- Sem alteracao do calculo base de pontuacao, XP ou ranking.
+- Matchmaking automatico permanece ativo e separado dos convites.
+
+## Beta Prep UI Fixes - perfil, conquistas e categorias - 2026-05-18
+
+Categorias/perguntas:
+
+- `CategoriaRepository.guardarPerguntaPersonalizada` passa a separar a preparação da categoria da gravação da pergunta.
+- A categoria é garantida primeiro; a pergunta é gravada diretamente em `perguntas/{perguntaId}`.
+- Edição preserva `perguntaId`, evitando duplicação.
+- Firebase Rules foram ajustadas apenas para permitir edição real de perguntas personalizadas pelo dono.
+
+Perfil/conquistas:
+
+- `MeuPerfilActivity` passa a ser resumo de perfil, não página completa de conquistas.
+- `ConquistasActivity` é o ecrã próprio para todas as conquistas.
+- `BadgeGridRenderer.renderMelhores` serve perfis resumidos; `BadgeGridRenderer.render` mantém grelha completa.
+- `BadgesService` passa a calcular RC/PJ/VT/XP/CR. Persistência continua UID-first em `conquistas/{uid}`.
+- Perfil público de amigo calcula conquistas a partir de estatísticas públicas, sem ler `conquistas/{friendUid}`.
+
+Editar perfil:
+
+- `EditarPerfilActivity` suporta alteração segura de avatar.
+- Nome/email/password ficam fora de escopo porque podem quebrar compatibilidade social/legado e autenticação.
+- `JogadorRepository.atualizarAvatar` resolve UID/nome legado e grava apenas o campo `avatar`.
+
+UI:
+
+- Main remove fundos circulares estranhos nos avatares e alinha a seta do CTA principal.
+- Salas 1x1/2x2 escondem o código/card quando a sala é privada por convite; sala de grupo mantém código.
+- Dicas usam marcador azul escuro com dourado subtil, sem amarelo torrado dominante.

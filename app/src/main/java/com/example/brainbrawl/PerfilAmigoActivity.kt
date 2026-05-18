@@ -42,6 +42,14 @@ class PerfilAmigoActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+        binding.btnVerConquistas.setOnClickListener {
+            val intent = Intent(this, ConquistasActivity::class.java)
+            intent.putExtra(IntentExtras.UID_AMIGO, uidAmigo)
+            intent.putExtra(IntentExtras.NOME_AMIGO, nomeAmigo)
+            intent.putExtra(IntentExtras.UID, uidUtilizador)
+            intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
+            startActivity(intent)
+        }
 
         viewModel.perfil.observe(this) { perfil ->
             mostrarPerfil(perfil, uidUtilizador, nomeUtilizador)
@@ -67,6 +75,7 @@ class PerfilAmigoActivity : AppCompatActivity() {
             binding.imgTotalVitorias.visibility = View.GONE
             binding.imgTotalRespostasCertas.visibility = View.GONE
             binding.gridConquistas.removeAllViews()
+            binding.btnVerConquistas.isEnabled = false
             binding.txtNomeAmigo.text = perfil.nome
             binding.txtPontuacao.text = getString(R.string.pontuacao_format, 0)
             binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, 0)
@@ -80,21 +89,24 @@ class PerfilAmigoActivity : AppCompatActivity() {
             binding.imgTotalJogos.visibility = View.VISIBLE
             binding.imgTotalJogos.setImageResource(it)
         } ?: run {
-            binding.imgTotalJogos.visibility = View.GONE
+            binding.imgTotalJogos.visibility = View.VISIBLE
+            binding.imgTotalJogos.setImageResource(R.drawable.badge_locked)
         }
 
         UteisConquistas.obterBadgeVitorias(resources, packageName, perfil.totalVitorias)?.let {
             binding.imgTotalVitorias.visibility = View.VISIBLE
             binding.imgTotalVitorias.setImageResource(it)
         } ?: run {
-            binding.imgTotalVitorias.visibility = View.GONE
+            binding.imgTotalVitorias.visibility = View.VISIBLE
+            binding.imgTotalVitorias.setImageResource(R.drawable.badge_locked)
         }
 
         UteisConquistas.obterBadgeRespostasCertas(resources, packageName, perfil.totalRespostasCertas)?.let {
             binding.imgTotalRespostasCertas.visibility = View.VISIBLE
             binding.imgTotalRespostasCertas.setImageResource(it)
         } ?: run {
-            binding.imgTotalRespostasCertas.visibility = View.GONE
+            binding.imgTotalRespostasCertas.visibility = View.VISIBLE
+            binding.imgTotalRespostasCertas.setImageResource(R.drawable.badge_locked)
         }
 
         binding.imgAvatarAmigo.setImageResource(AvatarUtils.resolverAvatar(this, perfil.avatar))
@@ -105,7 +117,13 @@ class PerfilAmigoActivity : AppCompatActivity() {
         binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, perfil.totalJogos)
         binding.txtTotalVitorias.text = getString(R.string.total_de_vitorias_format, perfil.totalVitorias)
         binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, perfil.taxaAcertos)
-        BadgeGridRenderer.render(this, layoutInflater, binding.gridConquistas, perfil.badges)
+        binding.txtNivel.text = getString(R.string.nivel_format, perfil.nivel)
+        binding.txtXpProgress.text = getString(
+            R.string.xp_progress_format,
+            perfil.xpNoNivelAtual,
+            perfil.xpNecessarioProximoNivel
+        )
+        BadgeGridRenderer.renderMelhores(this, layoutInflater, binding.gridConquistas, perfil.badges)
 
         if (perfil.perfilExiste) {
             binding.btnRemoverAmigo.setOnClickListener {

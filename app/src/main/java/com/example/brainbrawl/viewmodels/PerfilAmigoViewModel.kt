@@ -36,13 +36,19 @@ class PerfilAmigoViewModel(
                             val progress = BadgeProgress(
                                 totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
                                 totalPartidasJogadas = perfil.estatisticas.totalJogos,
-                                totalVitorias = perfil.estatisticas.totalVitorias
+                                totalVitorias = perfil.estatisticas.totalVitorias,
+                                xpTotal = perfil.estatisticas.xpTotal,
+                                creditos = perfil.estatisticas.pontuacao.toInt()
                             )
                             PerfilAmigoUiState(
                                 utilizador = utilizador,
                                 nome = perfil.nomeUtilizador.ifBlank { utilizador.nomeDisplay },
                                 avatar = perfil.avatar,
                                 pontuacao = perfil.estatisticas.pontuacao,
+                                nivel = perfil.estatisticas.nivel,
+                                xpTotal = perfil.estatisticas.xpTotal,
+                                xpNoNivelAtual = perfil.estatisticas.xpNoNivelAtual,
+                                xpNecessarioProximoNivel = perfil.estatisticas.xpNecessarioProximoNivel,
                                 taxaAcertos = perfil.estatisticas.taxaAcertos,
                                 totalJogos = perfil.estatisticas.totalJogos,
                                 totalVitorias = perfil.estatisticas.totalVitorias,
@@ -89,6 +95,10 @@ data class PerfilAmigoUiState(
     val nome: String,
     val avatar: String,
     val pontuacao: Double,
+    val nivel: Int,
+    val xpTotal: Int,
+    val xpNoNivelAtual: Int,
+    val xpNecessarioProximoNivel: Int,
     val taxaAcertos: Double,
     val totalJogos: Int,
     val totalVitorias: Int,
@@ -110,6 +120,10 @@ data class PerfilAmigoUiState(
                 nome = nomeAmigo,
                 avatar = AVATAR_PADRAO,
                 pontuacao = 0.0,
+                nivel = 1,
+                xpTotal = 0,
+                xpNoNivelAtual = 0,
+                xpNecessarioProximoNivel = 300,
                 taxaAcertos = 0.0,
                 totalJogos = 0,
                 totalVitorias = 0,

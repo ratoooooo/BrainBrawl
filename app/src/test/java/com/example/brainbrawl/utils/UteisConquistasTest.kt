@@ -18,29 +18,32 @@ class UteisConquistasTest {
 
     @Test
     fun obterNomeBadgePartidasJogadas_devolveMaiorMarcoAtingido() {
-        assertNull(UteisConquistas.obterNomeBadgePartidasJogadas(9))
+        assertNull(UteisConquistas.obterNomeBadgePartidasJogadas(0))
+        assertEquals("pj1", UteisConquistas.obterNomeBadgePartidasJogadas(1))
         assertEquals("pj10", UteisConquistas.obterNomeBadgePartidasJogadas(10))
-        assertEquals("pj25", UteisConquistas.obterNomeBadgePartidasJogadas(49))
+        assertEquals("pj10", UteisConquistas.obterNomeBadgePartidasJogadas(49))
         assertEquals("pj50", UteisConquistas.obterNomeBadgePartidasJogadas(50))
-        assertEquals("pj100", UteisConquistas.obterNomeBadgePartidasJogadas(250))
+        assertEquals("pj250", UteisConquistas.obterNomeBadgePartidasJogadas(250))
     }
 
     @Test
     fun obterNomeBadgeVitorias_devolveMaiorMarcoAtingido() {
-        assertNull(UteisConquistas.obterNomeBadgeVitorias(4))
-        assertEquals("vt5", UteisConquistas.obterNomeBadgeVitorias(5))
-        assertEquals("vt25", UteisConquistas.obterNomeBadgeVitorias(49))
+        assertNull(UteisConquistas.obterNomeBadgeVitorias(0))
+        assertEquals("vt1", UteisConquistas.obterNomeBadgeVitorias(1))
+        assertEquals("vt10", UteisConquistas.obterNomeBadgeVitorias(49))
         assertEquals("vt50", UteisConquistas.obterNomeBadgeVitorias(50))
         assertEquals("vt100", UteisConquistas.obterNomeBadgeVitorias(101))
     }
 
     @Test
     fun obterNomeBadgeRespostasCertas_devolveMaiorMarcoAtingido() {
-        assertNull(UteisConquistas.obterNomeBadgeRespostasCertas(49))
+        assertNull(UteisConquistas.obterNomeBadgeRespostasCertas(0))
+        assertEquals("rc1", UteisConquistas.obterNomeBadgeRespostasCertas(1))
+        assertEquals("rc10", UteisConquistas.obterNomeBadgeRespostasCertas(49))
         assertEquals("rc50", UteisConquistas.obterNomeBadgeRespostasCertas(50))
-        assertEquals("rc200", UteisConquistas.obterNomeBadgeRespostasCertas(499))
+        assertEquals("rc250", UteisConquistas.obterNomeBadgeRespostasCertas(499))
         assertEquals("rc500", UteisConquistas.obterNomeBadgeRespostasCertas(500))
-        assertEquals("rc1000", UteisConquistas.obterNomeBadgeRespostasCertas(5_000))
+        assertEquals("rc5000", UteisConquistas.obterNomeBadgeRespostasCertas(5_000))
     }
 
     @Test

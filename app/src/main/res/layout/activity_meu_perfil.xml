@@ -187,7 +187,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="@string/conquistas"
+                    android:text="@string/melhores_conquistas"
                     android:textColor="@color/bb_text_primary"
                     android:textSize="18sp" />
 
@@ -196,7 +196,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="@string/conquistas_client_side"
+                    android:text="@string/melhores_conquistas_resumo"
                     android:textColor="@color/bb_text_secondary"
                     android:textSize="12sp" />
 
@@ -208,23 +208,42 @@
                     android:columnCount="3"
                     android:useDefaultMargins="false" />
 
+                <Button
+                    android:id="@+id/btnVerConquistas"
+                    style="@style/BrainBrawlButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/bb_button_height"
+                    android:layout_marginTop="14dp"
+                    android:background="@drawable/bg_button_primary"
+                    android:text="@string/ver_conquistas"
+                    android:textAllCaps="false"
+                    android:textColor="@color/bb_primary_text" />
+
+                <Button
+                    android:id="@+id/btnEditarPerfil"
+                    style="@style/BrainBrawlButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="@dimen/bb_button_height"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:text="@string/editar_perfil"
+                    android:textAllCaps="false"
+                    android:textColor="@color/bb_secondary_text" />
+
             </LinearLayout>
         </ScrollView>
     </androidx.cardview.widget.CardView>
 
     <Button
         android:id="@+id/btnVoltarPerfil"
-        style="@android:style/Widget.Button"
+        style="@style/BrainBrawlButton"
         android:layout_width="0dp"
-        android:layout_height="56dp"
+        android:layout_height="@dimen/bb_button_height"
         android:layout_marginBottom="32dp"
         android:background="@drawable/bg_button_primary"
-        android:fontFamily="sans-serif-black"
-        android:paddingVertical="14dp"
         android:text="@string/voltar"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:textStyle="bold"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_primary_text"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

@@ -36,14 +36,15 @@
 
     <Button
         android:id="@+id/btn_criar_categoria"
-        style="@android:style/Widget.Button"
+        style="@style/BrainBrawlButton"
         android:layout_width="0dp"
         android:layout_height="52dp"
         android:layout_marginTop="14dp"
-        android:background="@drawable/botao_branco_arredondado"
+        android:background="@drawable/bg_button_primary"
         android:fontFamily="sans-serif-black"
         android:text="@string/criar_categoria"
-        android:textColor="@color/bb_text_primary"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_primary_text"
         android:textSize="16sp"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/txt_estado"
@@ -72,11 +73,12 @@
 
     <Button
         android:id="@+id/btn_voltar"
-        style="@android:style/Widget.Button"
+        style="@style/BrainBrawlButton"
         android:layout_width="0dp"
         android:layout_height="56dp"
-        android:background="@drawable/botao_voltar"
+        android:background="@drawable/bg_button_danger"
         android:text="@string/voltar"
+        android:textAllCaps="false"
         android:textColor="@color/bb_primary_text"
         android:textSize="18sp"
         android:textStyle="bold"

@@ -11,7 +11,7 @@ class BadgesServiceTest {
     private val service = BadgesService()
 
     @Test
-    fun calcularBadges_criaTresFamiliasComNoveBadgesCada() {
+    fun calcularBadges_criaFamiliasComBadgesEsperadas() {
         val badges = service.calcularBadges(
             progress = BadgeProgress(
                 totalRespostasCertas = 0,
@@ -22,10 +22,12 @@ class BadgesServiceTest {
             permitirDesbloqueioLocal = true
         )
 
-        assertEquals(27, badges.size)
+        assertEquals(43, badges.size)
         assertEquals(9, badges.count { it.familia.codigo == "RC" })
         assertEquals(9, badges.count { it.familia.codigo == "PJ" })
         assertEquals(9, badges.count { it.familia.codigo == "VT" })
+        assertEquals(7, badges.count { it.familia.codigo == "XP" })
+        assertEquals(9, badges.count { it.familia.codigo == "CR" })
     }
 
     @Test
@@ -34,7 +36,9 @@ class BadgesServiceTest {
             progress = BadgeProgress(
                 totalRespostasCertas = 10,
                 totalPartidasJogadas = 50,
-                totalVitorias = 0
+                totalVitorias = 0,
+                xpTotal = 300,
+                creditos = 25
             ),
             badgesPersistidas = emptySet(),
             permitirDesbloqueioLocal = true
@@ -44,6 +48,8 @@ class BadgesServiceTest {
         assertFalse(badges.first { it.id == "RC_50" }.desbloqueada)
         assertTrue(badges.first { it.id == "PJ_50" }.desbloqueada)
         assertFalse(badges.first { it.id == "VT_1" }.desbloqueada)
+        assertTrue(badges.first { it.id == "XP_300" }.desbloqueada)
+        assertTrue(badges.first { it.id == "CR_25" }.desbloqueada)
     }
 
     @Test
@@ -52,7 +58,9 @@ class BadgesServiceTest {
             progress = BadgeProgress(
                 totalRespostasCertas = 5000,
                 totalPartidasJogadas = 5000,
-                totalVitorias = 5000
+                totalVitorias = 5000,
+                xpTotal = 10000,
+                creditos = 1000
             ),
             badgesPersistidas = setOf("RC_10"),
             permitirDesbloqueioLocal = false
@@ -61,6 +69,8 @@ class BadgesServiceTest {
         assertTrue(badges.first { it.id == "RC_10" }.desbloqueada)
         assertFalse(badges.first { it.id == "PJ_10" }.desbloqueada)
         assertFalse(badges.first { it.id == "VT_10" }.desbloqueada)
+        assertFalse(badges.first { it.id == "XP_100" }.desbloqueada)
+        assertFalse(badges.first { it.id == "CR_1" }.desbloqueada)
     }
 
     @Test

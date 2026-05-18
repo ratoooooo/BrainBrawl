@@ -2,6 +2,7 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -47,6 +48,7 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
         convidarAmigoAdapter = Convidar2x2AmigoAdapter(amigos)
         binding.recyclerConvidarAmigos.layoutManager = LinearLayoutManager(this)
         binding.recyclerConvidarAmigos.adapter = convidarAmigoAdapter
+        binding.btnVoltarConvidar.setOnClickListener { finish() }
 
         // Botão para convidar amigos
         binding.btnConvidar.setOnClickListener {
@@ -106,8 +108,15 @@ class ConvidarAmigo2x2Activity : AppCompatActivity() {
                     .addOnSuccessListener { amigosCarregados ->
                         amigos.addAll(amigosCarregados)
                         convidarAmigoAdapter.notifyDataSetChanged()
+                        atualizarEstadoVazio()
                     }
             }
+    }
+
+    private fun atualizarEstadoVazio() {
+        val vazio = amigos.isEmpty()
+        binding.txtEstadoConvidar.visibility = if (vazio) View.VISIBLE else View.GONE
+        binding.recyclerConvidarAmigos.visibility = if (vazio) View.INVISIBLE else View.VISIBLE
     }
 
     private fun dadosCategoriaSelecionada(): Map<String, Any> {

@@ -61,15 +61,19 @@ class AmigosActivity : AppCompatActivity() {
         binding.recyclerAmigos.adapter = amigoAdapter
 
         // Configura o adaptador para a lista de convites recebidos
-        conviteAdapter = ConviteAdapter(convitesRecebidos) { convite ->
-            aceitarConvite(convite)
-        }
+        conviteAdapter = ConviteAdapter(
+            convitesRecebidos,
+            onAceitarClick = { convite -> aceitarConvite(convite) },
+            onRecusarClick = { convite -> viewModel.recusarConvite(uid, nomeUtilizador, convite) }
+        )
         binding.recyclerConvites.layoutManager = LinearLayoutManager(this)
         binding.recyclerConvites.adapter = conviteAdapter
 
-        pedidoAdapter = PedidoAmizadeAdapter(pedidosAmizadeRecebidos) { pedido ->
-            aceitarPedidoAmizade(pedido)
-        }
+        pedidoAdapter = PedidoAmizadeAdapter(
+            pedidosAmizadeRecebidos,
+            onAceitarClick = { pedido -> aceitarPedidoAmizade(pedido) },
+            onRecusarClick = { pedido -> viewModel.recusarPedidoAmizade(uid, nomeUtilizador, pedido) }
+        )
         binding.recyclerPedidosAmizade.layoutManager = LinearLayoutManager(this)
         binding.recyclerPedidosAmizade.adapter = pedidoAdapter
 
@@ -167,6 +171,13 @@ class AmigosActivity : AppCompatActivity() {
             AmigosEvent.PedidoRecusado,
             AmigosEvent.ConviteRecusado,
             AmigosEvent.ConviteRemovido -> Unit
+            is AmigosEvent.ConviteAceite -> abrirSalaConvite(evento.convite)
+            AmigosEvent.ConviteExpirado -> {
+                Toast.makeText(this, R.string.convite_expirado, Toast.LENGTH_SHORT).show()
+            }
+            AmigosEvent.ErroAceitarConvite -> {
+                Toast.makeText(this, R.string.erro_aceitar_convite, Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -213,10 +224,11 @@ class AmigosActivity : AppCompatActivity() {
 
     // Função para aceitar um convite 1x1 ou 2x2
     private fun aceitarConvite(convite: Convite) {
-        // Atualizar o estado do convite na base de dados
         viewModel.aceitarConvite(uid, nomeUtilizador, convite)
-        Toast.makeText(this, R.string.convite_aceite, Toast.LENGTH_SHORT).show()
+    }
 
+    private fun abrirSalaConvite(convite: Convite) {
+        Toast.makeText(this, R.string.convite_aceite, Toast.LENGTH_SHORT).show()
         // Redirecionar para a sala de espera correspondente
         val intent = when (convite.modo) {
             GameConstants.MODO_2X2 -> Intent(this, SalaDeEspera2x2Activity::class.java)

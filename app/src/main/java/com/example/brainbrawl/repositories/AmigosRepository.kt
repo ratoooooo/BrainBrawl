@@ -403,6 +403,18 @@ class AmigosRepository(
         return result.task
     }
 
+    fun verificarSalaConviteExiste(convite: Convite): Task<Boolean> {
+        val node = if (convite.modo == GameConstants.MODO_2X2) {
+            FirebasePaths.SALA_2X2
+        } else {
+            FirebasePaths.SALA_1X1
+        }
+        return database.child(node).child(convite.codigoSala).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar sala.")
+            task.result.exists()
+        }
+    }
+
     fun recusarConvite(utilizador: UtilizadorSocial, convite: Convite): Task<Void> {
         return removerConvite(utilizador, convite)
     }

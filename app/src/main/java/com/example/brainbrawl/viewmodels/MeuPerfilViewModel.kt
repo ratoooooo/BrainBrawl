@@ -31,7 +31,9 @@ class MeuPerfilViewModel(
                 val progress = BadgeProgress(
                     totalRespostasCertas = perfil.estatisticas.totalRespostasCertas,
                     totalPartidasJogadas = perfil.estatisticas.totalJogos,
-                    totalVitorias = perfil.estatisticas.totalVitorias
+                    totalVitorias = perfil.estatisticas.totalVitorias,
+                    xpTotal = perfil.estatisticas.xpTotal,
+                    creditos = perfil.estatisticas.pontuacao.toInt()
                 )
 
                 val estadoInicial = criarUiState(

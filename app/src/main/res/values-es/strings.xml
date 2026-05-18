@@ -290,6 +290,8 @@
     <string name="erro_enviar_pedido">Error al enviar la solicitud</string>
     <string name="amizade_aceite">Amistad aceptada.</string>
     <string name="convite_aceite">Invitación aceptada.</string>
+    <string name="convite_expirado">Esta invitación ha caducado o la sala se cerró.</string>
+    <string name="erro_aceitar_convite">No se pudo aceptar la invitación. Inténtalo de nuevo.</string>
     <string name="pedidos_amizade_recebidos">Solicitudes de amistad recibidas</string>
     <string name="pedidos_de_amizade">Solicitudes de amistad</string>
     <string name="convites_recebidos">Invitaciones recibidas:</string>
@@ -403,4 +405,14 @@
     <string name="badge_progresso_format">%1$d / %2$d</string>
     <string name="perfil_indisponivel">No se pudo abrir el perfil.</string>
     <string name="nome_utilizador_exemplo">Nombre de usuario</string>
+    <string name="melhores_conquistas">Mejores logros</string>
+    <string name="melhores_conquistas_resumo">Resumen por familia. Ver todos en la pantalla completa.</string>
+    <string name="melhores_conquistas_publicas">Mejores logros calculados con estadísticas públicas.</string>
+    <string name="ver_conquistas">Ver logros</string>
+    <string name="editar_perfil">Editar perfil</string>
+    <string name="conquistas_todas_subtitulo">Todas las familias, desbloqueadas y bloqueadas, con progreso.</string>
+    <string name="escolher_avatar">Elegir avatar</string>
+    <string name="perfil_guardado">Perfil guardado.</string>
+    <string name="erro_guardar_perfil">No se pudo guardar el perfil.</string>
+    <string name="sem_amigos_para_convidar">Aún no tienes amigos disponibles para invitar. Añade amigos primero y vuelve para lanzar el desafío.</string>
 </resources>

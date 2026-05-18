@@ -74,10 +74,12 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         viewModel.observarSalaApagada(codigoSala)
 
         binding.btnIniciarJogo.setOnClickListener {
+            binding.btnIniciarJogo.isEnabled = false
             viewModel.iniciarJogo(codigoSala)
         }
 
         binding.btnSairSala.setOnClickListener {
+            binding.btnSairSala.isEnabled = false
             sairDaSala()
         }
     }
@@ -109,10 +111,11 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
 
     private fun atualizarCodigoSala(estado: Sala2x2UiState) {
         if (estado.codigoSalaVisivel) {
+            binding.layoutCodigoSala.visibility = View.VISIBLE
             binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
             binding.btnCopiarCodigoSala.visibility = View.VISIBLE
         } else {
-            binding.txtCodigoSala.text = estado.textoCodigoSalaPrivado.ifBlank { getString(R.string.partida_por_convite) }
+            binding.layoutCodigoSala.visibility = View.GONE
             binding.btnCopiarCodigoSala.visibility = View.GONE
         }
     }
@@ -153,6 +156,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
 
             Sala2x2Event.ErroIniciarJogo -> {
                 Toast.makeText(this, R.string.erro_iniciar_jogo_2x2, Toast.LENGTH_SHORT).show()
+                binding.btnIniciarJogo.isEnabled = viewModel.estado.value?.podeIniciar == true
             }
 
             Sala2x2Event.EntradaBloqueada -> {

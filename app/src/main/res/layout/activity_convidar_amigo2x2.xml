@@ -33,18 +33,48 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <TextView
+        android:id="@+id/txtEstadoConvidar"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_empty_state_card"
+        android:gravity="center"
+        android:padding="@dimen/bb_space_lg"
+        android:text="@string/sem_amigos_para_convidar"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="15sp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/recyclerConvidarAmigos"
+        app:layout_constraintEnd_toEndOf="@id/recyclerConvidarAmigos"
+        app:layout_constraintStart_toStartOf="@id/recyclerConvidarAmigos"
+        app:layout_constraintTop_toTopOf="@id/recyclerConvidarAmigos" />
+
     <Button
         android:id="@+id/btnConvidar"
-        style="@android:style/Widget.Button"
+        style="@style/BrainBrawlButton"
         android:layout_width="0dp"
         android:layout_height="@dimen/bb_button_height"
         android:background="@drawable/bg_button_primary"
-        android:fontFamily="sans-serif-black"
         android:text="@string/convidar_para_2x2"
+        android:textAllCaps="false"
         android:textColor="@color/bb_primary_text"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/btnVoltarConvidar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="@dimen/bb_space_md"/>
+
+    <Button
+        android:id="@+id/btnVoltarConvidar"
+        style="@style/BrainBrawlButton"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/bb_button_height"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/bg_button_danger"
+        android:text="@string/voltar"
+        android:textAllCaps="false"
+        android:textColor="@color/bb_primary_text"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/btnConvidar" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -67,7 +67,7 @@
         android:adjustViewBounds="true"
         android:scaleType="centerInside"
         android:visibility="gone"
-        android:background="@drawable/botao_branco_arredondado" />
+        android:background="@drawable/bg_card_surface" />
 
     <TextView
         android:id="@+id/txt_pergunta"
@@ -76,7 +76,7 @@
         android:layout_gravity="center"
         android:layout_marginBottom="32dp"
         android:layout_marginTop="32dp"
-        android:background="@drawable/botao_branco_arredondado"
+        android:background="@drawable/bg_card_surface"
         android:gravity="center"
         android:padding="24dp"
         android:text="@string/carregar_perguntas"
@@ -98,62 +98,62 @@
 
     <Button
         android:id="@+id/btn_opcao_1"
+        style="@style/BrainBrawlButton"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/botao_branco_arredondado"
+        android:background="@drawable/bg_button_secondary"
         android:elevation="2dp"
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_a"
         android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold" />
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/btn_opcao_2"
+        style="@style/BrainBrawlButton"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/botao_branco_arredondado"
+        android:background="@drawable/bg_button_secondary"
         android:elevation="2dp"
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_b"
         android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold" />
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/btn_opcao_3"
+        style="@style/BrainBrawlButton"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/botao_branco_arredondado"
+        android:background="@drawable/bg_button_secondary"
         android:elevation="2dp"
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_c"
         android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold" />
+        android:textAllCaps="false" />
 
     <Button
         android:id="@+id/btn_opcao_4"
+        style="@style/BrainBrawlButton"
         android:layout_width="match_parent"
         android:layout_height="56dp"
         android:layout_marginBottom="16dp"
-        android:background="@drawable/botao_branco_arredondado"
+        android:background="@drawable/bg_button_secondary"
         android:elevation="2dp"
         android:paddingVertical="12dp"
         android:stateListAnimator="@null"
         android:text="@string/opcao_d"
         android:textColor="@color/bb_text_primary"
         android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold" />
+        android:textAllCaps="false" />
 
 </LinearLayout>

@@ -3,6 +3,7 @@ package com.example.brainbrawl
 import android.content.Intent
 import android.os.Bundle
 import android.app.AlertDialog
+import android.graphics.Typeface
 import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -75,6 +76,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
 
         // Configurar o botão para enviar a pergunta
         binding.layoutBtnEnviar.setOnClickListener {
+            binding.layoutBtnEnviar.isEnabled = false
             //Guardar os dados dos editTexts
             val nomeCategoria = categoriaSelecionada()
             val pergunta = binding.edtPergunta.text.toString().trim()
@@ -150,6 +152,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     }
 
     private fun tratarEvento(evento: EditarCategoriaEvent) {
+        binding.layoutBtnEnviar.isEnabled = true
         when (evento) {
             EditarCategoriaEvent.CategoriaCriada -> Unit
             EditarCategoriaEvent.PerguntaGuardada -> {
@@ -179,7 +182,9 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         if (perguntas.isEmpty()) {
             val vazio = TextView(this)
             vazio.text = getString(R.string.sem_perguntas_categoria)
-            vazio.setTextColor(0xFF000000.toInt())
+            vazio.setTextColor(getColor(R.color.bb_text_secondary))
+            vazio.background = getDrawable(R.drawable.bg_empty_state_card)
+            vazio.setPadding(dp(18), dp(18), dp(18), dp(18))
             binding.layoutPerguntasPersonalizadas.addView(vazio)
             return
         }
@@ -188,11 +193,22 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         linhaNumeros.orientation = LinearLayout.HORIZONTAL
         for ((index, perguntaCategoria) in perguntas.withIndex()) {
             val perguntaId = perguntaCategoria.id ?: continue
-            val botao = Button(this)
-            botao.text = (index + 1).toString()
-            botao.isSelected = perguntaEmEdicaoId == perguntaId
+            val botao = Button(this).apply {
+                text = (index + 1).toString()
+                tag = perguntaId
+                isAllCaps = false
+                textSize = 14f
+                typeface = Typeface.DEFAULT_BOLD
+                minHeight = dp(44)
+                setTextColor(getColor(if (perguntaEmEdicaoId == perguntaId) R.color.bb_primary_text else R.color.bb_secondary_text))
+                background = getDrawable(if (perguntaEmEdicaoId == perguntaId) R.drawable.bg_button_primary else R.drawable.bg_button_secondary)
+                layoutParams = LinearLayout.LayoutParams(0, dp(44), 1f).apply {
+                    marginEnd = dp(6)
+                }
+            }
             botao.setOnClickListener {
                 perguntaEmEdicaoId = perguntaId
+                atualizarSelecaoPerguntas(linhaNumeros, perguntaId)
                 preencherFormulario(perguntaCategoria)
             }
             linhaNumeros.addView(botao)
@@ -342,5 +358,16 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             else -> binding.rbDificuldadeMedia.isChecked = true
         }
     }
+
+    private fun atualizarSelecaoPerguntas(linha: LinearLayout, perguntaId: String) {
+        for (i in 0 until linha.childCount) {
+            val botao = linha.getChildAt(i) as? Button ?: continue
+            val selecionado = botao.tag == perguntaId
+            botao.setTextColor(getColor(if (selecionado) R.color.bb_primary_text else R.color.bb_secondary_text))
+            botao.background = getDrawable(if (selecionado) R.drawable.bg_button_primary else R.drawable.bg_button_secondary)
+        }
+    }
+
+    private fun dp(valor: Int): Int = (valor * resources.displayMetrics.density).toInt()
 
 }

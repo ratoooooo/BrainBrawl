@@ -19,6 +19,8 @@
     <color name="bb_team_b">#D32F2F</color>
     <color name="bb_outline">#E7D7BC</color>
     <color name="bb_shadow">#22000000</color>
+    <color name="bb_info_dark">#12324A</color>
+    <color name="bb_info_gold">#C89B3C</color>
 
     <color name="red">#FF0000</color>
     <color name="vermelho">#F44336</color>
