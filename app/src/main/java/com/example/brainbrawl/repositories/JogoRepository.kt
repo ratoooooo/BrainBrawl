@@ -18,14 +18,18 @@ class JogoRepository(
 ) {
     data class SalaInfo(
         val admin: Boolean,
-        val modoJogo: String
+        val modoJogo: String,
+        val categoriaCompetitiva: Boolean
     )
 
     data class JogadorEliminatorias(
         val chave: String,
         val nome: String,
         val estado: String,
-        val isHostOnly: Boolean
+        val isHostOnly: Boolean,
+        val pontos: Double = 0.0,
+        val respostasCertas: Int = 0,
+        val perguntasRespondidas: Int = 0
     )
 
     data class ListenerHandle internal constructor(
@@ -61,7 +65,8 @@ class JogoRepository(
             SalaInfo(
                 admin = isAdmin,
                 modoJogo = sala.child(FirebasePaths.MODO_JOGO).getValue(String::class.java)
-                    ?: GameConstants.MODO_CLASSICO
+                    ?: GameConstants.MODO_CLASSICO,
+                categoriaCompetitiva = sala.eSalaCompetitiva()
             )
         }
     }
@@ -70,7 +75,6 @@ class JogoRepository(
         return salaRef(codigoSala).child(FirebasePaths.PERGUNTAS).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar perguntas.")
             task.result.children
-                .take(8)
                 .mapNotNull { it.getValue(Pergunta::class.java) }
         }
     }
@@ -121,13 +125,26 @@ class JogoRepository(
         }
     }
 
-    fun registarResposta(codigoSala: String, jogador: JogadorSalaIdentidade, acertou: Boolean): Task<Void> {
+    fun registarResposta(
+        codigoSala: String,
+        jogador: JogadorSalaIdentidade,
+        acertou: Boolean,
+        totalPontos: Double,
+        totalRespostasCertas: Int,
+        perguntasRespondidas: Int
+    ): Task<Void> {
         return resolverChaveJogador(codigoSala, jogador).continueWithTask { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao identificar jogador.")
-            salaRef(codigoSala).child(FirebasePaths.PERGUNTA_ATUAL)
-                .child(FirebasePaths.RESPOSTAS)
-                .child(task.result)
-                .setValue(acertou)
+            val chave = task.result
+            salaRef(codigoSala).updateChildren(
+                mapOf(
+                    "${FirebasePaths.PERGUNTA_ATUAL}/${FirebasePaths.RESPOSTAS}/$chave" to acertou,
+                    "${FirebasePaths.JOGADORES}/$chave/${FirebasePaths.PONTUACAO}" to totalPontos,
+                    "${FirebasePaths.JOGADORES}/$chave/${FirebasePaths.TOTAL_RESPOSTAS_CERTAS}" to totalRespostasCertas,
+                    "${FirebasePaths.JOGADORES}/$chave/${FirebasePaths.TOTAL_PERGUNTAS}" to perguntasRespondidas,
+                    "${FirebasePaths.JOGADORES}/$chave/${FirebasePaths.ESTADO}" to GameConstants.ESTADO_EM_JOGO
+                )
+            )
         }
     }
 
@@ -165,10 +182,44 @@ class JogoRepository(
                     chave = chave,
                     nome = jogadorSnapshot.nomeDisplay().ifBlank { chave },
                     estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty(),
-                    isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
+                    isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true,
+                    pontos = jogadorSnapshot.child(FirebasePaths.PONTUACAO).doubleValue(),
+                    respostasCertas = jogadorSnapshot.respostasCertas(),
+                    perguntasRespondidas = jogadorSnapshot.child(FirebasePaths.TOTAL_PERGUNTAS).intValue()
                 )
             }
         }
+    }
+
+    fun escutarJogadoresEliminatorias(
+        codigoSala: String,
+        onJogadoresAlterados: (List<JogadorEliminatorias>) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(codigoSala).child(FirebasePaths.JOGADORES)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val jogadores = snapshot.children.mapNotNull { jogadorSnapshot ->
+                    val chave = jogadorSnapshot.key ?: return@mapNotNull null
+                    JogadorEliminatorias(
+                        chave = chave,
+                        nome = jogadorSnapshot.nomeDisplay().ifBlank { chave },
+                        estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty(),
+                        isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true,
+                        pontos = jogadorSnapshot.child(FirebasePaths.PONTUACAO).doubleValue(),
+                        respostasCertas = jogadorSnapshot.respostasCertas(),
+                        perguntasRespondidas = jogadorSnapshot.child(FirebasePaths.TOTAL_PERGUNTAS).intValue()
+                    )
+                }
+                onJogadoresAlterados(jogadores)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle(reference, listener)
     }
 
     fun removerJogador(codigoSala: String, jogador: JogadorSalaIdentidade): Task<Void> {
@@ -208,7 +259,8 @@ class JogoRepository(
             mapOf(
                 FirebasePaths.NOME_DISPLAY to jogador.nomeDisplay,
                 FirebasePaths.PONTUACAO to totalPontos,
-                FirebasePaths.TOTAL_RESPOSTAS_CERTAS to totalRespostasCertas
+                FirebasePaths.TOTAL_RESPOSTAS_CERTAS to totalRespostasCertas,
+                FirebasePaths.ESTADO to GameConstants.ESTADO_TERMINADO
             )
         )
     }
@@ -294,6 +346,29 @@ class JogoRepository(
 
     private fun DataSnapshot.texto(): String {
         return getValue(String::class.java).orEmpty()
+    }
+
+    private fun DataSnapshot.doubleValue(): Double {
+        return getValue(Double::class.java)
+            ?: getValue(Long::class.java)?.toDouble()
+            ?: getValue(Int::class.java)?.toDouble()
+            ?: 0.0
+    }
+
+    private fun DataSnapshot.respostasCertas(): Int {
+        return if (hasChild(FirebasePaths.TOTAL_RESPOSTAS_CERTAS)) {
+            child(FirebasePaths.TOTAL_RESPOSTAS_CERTAS).intValue()
+        } else {
+            child(FirebasePaths.TOTAL_PERGUNTAS_CERTAS).intValue()
+        }
+    }
+
+    private fun DataSnapshot.eSalaCompetitiva(): Boolean {
+        val ePublica = child("categoriaPublica").getValue(Boolean::class.java) == true ||
+            child(FirebasePaths.CATEGORIA_PUBLICA_ID).texto().isNotBlank()
+        val ePersonalizada = child("categoriaPersonalizada").getValue(Boolean::class.java) == true ||
+            child(FirebasePaths.DONO_UID).texto().isNotBlank()
+        return !ePublica && !ePersonalizada
     }
 
     private fun DataSnapshot.intValue(): Int {

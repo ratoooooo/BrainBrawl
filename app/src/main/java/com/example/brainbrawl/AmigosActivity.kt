@@ -53,8 +53,6 @@ class AmigosActivity : AppCompatActivity() {
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: ""
         val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
         BottomNavHelper.instalar(this, BottomNavHelper.Item.AMIGOS, uid, nomeUtilizador, nomeJogador, email)
-        binding.btnVoltar.visibility = android.view.View.GONE
-
         // Configura o adaptador para a lista de amigos
         amigoAdapter = AmigoAdapter(amigos, avataresAmigos, estadoAmigos, nomeUtilizador, uid)
         binding.recyclerAmigos.layoutManager = LinearLayoutManager(this)

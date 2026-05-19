@@ -28,7 +28,6 @@ class HistoricoActivity : AppCompatActivity() {
         BottomNavHelper.instalar(this, BottomNavHelper.Item.HISTORICO, uid, nomeUtilizador, nomeJogador, email)
         binding.recyclerHistorico.layoutManager = LinearLayoutManager(this)
         binding.recyclerHistorico.adapter = adapter
-        binding.btnVoltarHistorico.visibility = View.GONE
         binding.btnVoltarHistorico.setOnClickListener { finish() }
         viewModel.estado.observe(this) { mostrarEstado(it) }
         viewModel.carregarHistorico(uid)

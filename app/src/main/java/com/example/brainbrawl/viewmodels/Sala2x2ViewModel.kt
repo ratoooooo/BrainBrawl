@@ -19,17 +19,21 @@ class Sala2x2ViewModel(
     val evento: LiveData<Sala2x2Event?> = _evento
 
     private var jogadoresListener: JogoCompetitivoRepository.ListenerHandle? = null
+    private var prontosListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var estadoListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var salaListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var jogadoresNaSala: List<JogoCompetitivoRepository.JogadorCompetitivo> = emptyList()
+    private var prontos: Set<String> = emptySet()
     private var admin = false
     private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var chaveJogador = ""
     private var saidaManual = false
     private var aIniciarJogo = false
     private var salaConfirmada = false
+    private var salaMatchmaking = false
     private var codigoSalaVisivel = false
     private var textoCodigoSalaPrivado = "A carregar sala..."
+    private var picoJogadoresPresentes = 0
 
     fun iniciar(
         codigoSala: String,
@@ -45,10 +49,15 @@ class Sala2x2ViewModel(
         saidaManual = false
         aIniciarJogo = false
         salaConfirmada = false
+        picoJogadoresPresentes = 0
         jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala, jogadorAtual)
             .addOnSuccessListener { jogadorNaSala ->
                 chaveJogador = jogadorNaSala.chave
-                atualizarAdminEPublicar(codigoSala)
+                carregarInfoSala(codigoSala) {
+                    jogoCompetitivoRepository.marcarPronto2x2(codigoSala, chaveJogador, pronto = !salaMatchmaking)
+                    atualizarAdminEPublicar(codigoSala)
+                }
+                observarProntos(codigoSala)
             }
             .addOnFailureListener {
                 _evento.value = Sala2x2Event.EntradaBloqueada
@@ -56,16 +65,23 @@ class Sala2x2ViewModel(
     }
 
     fun carregarExposicaoCodigo(codigoSala: String) {
+        carregarInfoSala(codigoSala)
+    }
+
+    private fun carregarInfoSala(codigoSala: String, onComplete: () -> Unit = {}) {
         jogoCompetitivoRepository.obterCodigoSalaInfo(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
             .addOnSuccessListener { info ->
+                salaMatchmaking = info.origem == GameConstants.ORIGEM_MATCHMAKING
                 codigoSalaVisivel = info.codigoVisivel
                 textoCodigoSalaPrivado = info.textoPrivado
                 publicarEstado()
+                onComplete()
             }
             .addOnFailureListener {
                 codigoSalaVisivel = true
                 textoCodigoSalaPrivado = ""
                 publicarEstado()
+                onComplete()
             }
     }
 
@@ -75,8 +91,32 @@ class Sala2x2ViewModel(
             ModoCompetitivo.DOIS_CONTRA_DOIS,
             codigoSala,
             onJogadoresAlterados = { jogadores ->
+                val presentes = jogadoresUnicosDeLista(jogadores)
+                if (presentes.size > picoJogadoresPresentes) {
+                    picoJogadoresPresentes = presentes.size
+                }
+                if (picoJogadoresPresentes >= 4 && presentes.size < picoJogadoresPresentes) {
+                    if (salaMatchmaking) {
+                        jogoCompetitivoRepository.apagarSala(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+                    }
+                    _evento.value = Sala2x2Event.OponenteSaiu
+                    picoJogadoresPresentes = presentes.size
+                }
                 jogadoresNaSala = jogadores
                 atualizarAdminEPublicar(codigoSala)
+            }
+        )
+    }
+
+    private fun observarProntos(codigoSala: String) {
+        removerProntosListener()
+        prontosListener = jogoCompetitivoRepository.escutarProntos(
+            ModoCompetitivo.DOIS_CONTRA_DOIS,
+            codigoSala,
+            onProntosAlterados = { prontosAtualizados ->
+                prontos = prontosAtualizados
+                publicarEstado()
+                tentarIniciarMatchmakingSePronto(codigoSala)
             }
         )
     }
@@ -110,14 +150,82 @@ class Sala2x2ViewModel(
     }
 
     fun iniciarJogo(codigoSala: String) {
+        if (salaMatchmaking) {
+            marcarProntoMatchmaking(codigoSala)
+            return
+        }
+        iniciarJogoSeCompleto(codigoSala)
+    }
+
+    private fun marcarProntoMatchmaking(codigoSala: String) {
+        if (chaveJogador.isBlank() || chaveJogador in prontos) return
+        jogoCompetitivoRepository.marcarPronto2x2(codigoSala, chaveJogador, pronto = true)
+            .addOnSuccessListener {
+                prontos = prontos + chaveJogador
+                publicarEstado()
+                tentarIniciarMatchmakingSePronto(codigoSala)
+            }
+            .addOnFailureListener {
+                _evento.value = Sala2x2Event.JogadoresNaoProntos
+            }
+    }
+
+    private fun iniciarJogoSeCompleto(codigoSala: String) {
         val jogadores = jogadoresUnicos()
         if (!admin || jogadores.size != 4 || aIniciarJogo) return
         aIniciarJogo = true
         publicarEstado()
 
+        jogoCompetitivoRepository.obterProntos2x2(codigoSala)
+            .addOnSuccessListener { prontos ->
+                val chavesPresentes = jogadores.map { it.chave }.toSet()
+                val prontosValidos = prontos.filter { it in chavesPresentes }
+                if (prontosValidos.size != 4) {
+                    aIniciarJogo = false
+                    publicarEstado()
+                    _evento.value = Sala2x2Event.JogadoresNaoProntos
+                    return@addOnSuccessListener
+                }
+
+                val equipaA = jogadores.take(2)
+                val equipaB = jogadores.drop(2).take(2)
+
+                jogoCompetitivoRepository.guardarEquipas2x2(codigoSala, equipaA, equipaB)
+                    .addOnSuccessListener {
+                        jogoCompetitivoRepository.atualizarEstadoSala(
+                            ModoCompetitivo.DOIS_CONTRA_DOIS,
+                            codigoSala,
+                            GameConstants.ESTADO_EM_JOGO
+                        ).addOnFailureListener {
+                            aIniciarJogo = false
+                            publicarEstado()
+                            _evento.value = Sala2x2Event.ErroIniciarJogo
+                        }
+                    }
+                    .addOnFailureListener {
+                        aIniciarJogo = false
+                        publicarEstado()
+                        _evento.value = Sala2x2Event.ErroIniciarJogo
+                    }
+            }
+            .addOnFailureListener {
+                aIniciarJogo = false
+                publicarEstado()
+                _evento.value = Sala2x2Event.ErroIniciarJogo
+            }
+    }
+
+    private fun tentarIniciarMatchmakingSePronto(codigoSala: String) {
+        val jogadores = jogadoresUnicos()
+        if (!salaMatchmaking || !admin || aIniciarJogo || jogadores.size != 4) return
+        val chavesPresentes = jogadores.map { it.chave }.toSet()
+        val prontosValidos = prontos.filter { it in chavesPresentes }
+        if (prontosValidos.size != 4) return
+
+        aIniciarJogo = true
+        publicarEstado()
         val equipaA = jogadores.take(2)
         val equipaB = jogadores.drop(2).take(2)
-
         jogoCompetitivoRepository.guardarEquipas2x2(codigoSala, equipaA, equipaB)
             .addOnSuccessListener {
                 jogoCompetitivoRepository.atualizarEstadoSala(
@@ -139,7 +247,9 @@ class Sala2x2ViewModel(
 
     fun sairDaSala(codigoSala: String) {
         saidaManual = true
-        if (admin) {
+        if (salaMatchmaking) {
+            jogoCompetitivoRepository.apagarSala(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+        } else if (admin) {
             jogoCompetitivoRepository.apagarSala(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
         } else {
             jogoCompetitivoRepository.removerJogador2x2(codigoSala, jogadorAtual, chaveJogador)
@@ -148,6 +258,7 @@ class Sala2x2ViewModel(
 
     fun removerListeners() {
         removerJogadoresListener()
+        removerProntosListener()
         removerEstadoListener()
         removerSalaListener()
     }
@@ -181,18 +292,40 @@ class Sala2x2ViewModel(
         val equipaA = jogadores.take(2)
         val equipaB = jogadores.drop(2).take(2)
         val salaCompleta = jogadores.size == 4
+        val jogadorPronto = chaveJogador.isNotBlank() && chaveJogador in prontos
+        val jogadorPresente = jogadores.any { it.chave == chaveJogador }
         _estado.value = Sala2x2UiState(
-            equipaA = equipaA.map { it.nomeDisplay },
-            equipaB = equipaB.map { it.nomeDisplay },
-            podeIniciar = admin && salaCompleta && !aIniciarJogo,
+            equipaA = equipaA.map { it.nomeComPronto() },
+            equipaB = equipaB.map { it.nomeComPronto() },
+            podeIniciar = if (salaMatchmaking) {
+                jogadorPresente && !jogadorPronto && !aIniciarJogo
+            } else {
+                admin && salaCompleta && !aIniciarJogo
+            },
             codigoSalaVisivel = codigoSalaVisivel,
-            textoCodigoSalaPrivado = textoCodigoSalaPrivado
+            textoCodigoSalaPrivado = textoCodigoSalaPrivado,
+            matchmaking = salaMatchmaking,
+            jogadorPronto = jogadorPronto
         )
     }
 
+    private fun JogoCompetitivoRepository.JogadorCompetitivo.nomeComPronto(): String {
+        return if (salaMatchmaking) {
+            "$nomeDisplay · ${if (chave in prontos) "Pronto" else "A aguardar"}"
+        } else {
+            nomeDisplay
+        }
+    }
+
     private fun jogadoresUnicos(): List<JogoCompetitivoRepository.JogadorCompetitivo> {
-        return jogadoresNaSala
-            .filterNot { it.chave == GameConstants.JOGADOR_ADMIN }
+        return jogadoresUnicosDeLista(jogadoresNaSala)
+    }
+
+    private fun jogadoresUnicosDeLista(
+        lista: List<JogoCompetitivoRepository.JogadorCompetitivo>
+    ): List<JogoCompetitivoRepository.JogadorCompetitivo> {
+        return lista
+            .filterNot { it.chave == GameConstants.JOGADOR_ADMIN || it.estado == GameConstants.ESTADO_OFF }
             .fold(emptyList()) { acumulado, jogador ->
                 val existenteIndex = acumulado.indexOfFirst { it.corresponde(jogador) }
                 if (existenteIndex == -1) {
@@ -233,6 +366,11 @@ class Sala2x2ViewModel(
         jogadoresListener = null
     }
 
+    private fun removerProntosListener() {
+        jogoCompetitivoRepository.removerListener(prontosListener)
+        prontosListener = null
+    }
+
     private fun removerEstadoListener() {
         jogoCompetitivoRepository.removerListener(estadoListener)
         estadoListener = null
@@ -249,7 +387,9 @@ data class Sala2x2UiState(
     val equipaB: List<String>,
     val podeIniciar: Boolean,
     val codigoSalaVisivel: Boolean = true,
-    val textoCodigoSalaPrivado: String = ""
+    val textoCodigoSalaPrivado: String = "",
+    val matchmaking: Boolean = false,
+    val jogadorPronto: Boolean = false
 )
 
 sealed class Sala2x2Event {
@@ -257,4 +397,6 @@ sealed class Sala2x2Event {
     data object SalaEncerrada : Sala2x2Event()
     data object ErroIniciarJogo : Sala2x2Event()
     data object EntradaBloqueada : Sala2x2Event()
+    data object JogadoresNaoProntos : Sala2x2Event()
+    data object OponenteSaiu : Sala2x2Event()
 }

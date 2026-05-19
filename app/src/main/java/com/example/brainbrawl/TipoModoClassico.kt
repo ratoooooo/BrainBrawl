@@ -2,6 +2,7 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.example.brainbrawl.routes.UteisNavegacao.abrirEscolherCategoriaActivity
 import com.example.brainbrawl.config.GameConstants
@@ -20,9 +21,18 @@ class TipoModoClassico : AppCompatActivity() {
 
         // Receber dados passados do intent
         val nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
-        val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO)
+        val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_CLASSICO
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: nomeUtilizador
         val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
+
+        binding.btnModoSolo.setOnClickListener {
+            abrirEscolherCategoriaActivity(this, modoJogo, nomeUtilizador, nomeJogador, false, uid, modoSolo = true)
+            finish()
+        }
+
+        val modoCompetitivoDiretoDisponivel = modoJogo == GameConstants.MODO_CLASSICO
+        binding.btnModo1x1.visibility = if (modoCompetitivoDiretoDisponivel) View.VISIBLE else View.GONE
+        binding.btnModo2x2.visibility = if (modoCompetitivoDiretoDisponivel) View.VISIBLE else View.GONE
 
         // Configurar o botao para o modo 1x1, modo 2x2 e modo de todos contra todos
         binding.btnModo1x1.setOnClickListener {
@@ -35,7 +45,7 @@ class TipoModoClassico : AppCompatActivity() {
 
         binding.btnModoGrupo.setOnClickListener {
             // Chama a função para abrir a EscolherCategoriaActivity com o modo de jogo selecionado
-            abrirEscolherCategoriaActivity(this, modoJogo.toString(), nomeUtilizador, nomeJogador, true, uid)
+            abrirEscolherCategoriaActivity(this, modoJogo, nomeUtilizador, nomeJogador, true, uid)
         }
 
         // Configurar o botão de voltar
@@ -51,7 +61,7 @@ class TipoModoClassico : AppCompatActivity() {
 
         // Configurar o botão de informação sobre todos os modos de jogo
         binding.infoTodos.setOnClickListener {
-            mostrarExplicacaoTodosModos()
+            mostrarExplicacaoTodosModos(modoJogo, modoCompetitivoDiretoDisponivel)
         }
     }
 
@@ -65,15 +75,24 @@ class TipoModoClassico : AppCompatActivity() {
     }
 
     // Função para mostrar explicação de todos os modos de jogo
-    private fun mostrarExplicacaoTodosModos() {
+    private fun mostrarExplicacaoTodosModos(modoJogo: String, modoCompetitivoDiretoDisponivel: Boolean) {
+        val titulo = when (modoJogo) {
+            GameConstants.MODO_CAOTICO -> getString(R.string.modo_caotico)
+            GameConstants.MODO_ELIMINATORIAS -> getString(R.string.modo_eliminatorias)
+            else -> getString(R.string.modo_classico)
+        }
+        val dicas = mutableListOf(
+            "Solo" to "Joga sozinho, sem sala, código ou espera por outros jogadores.",
+            "Grupo" to "Cria uma sala com código e inicia quando houver pelo menos 2 jogadores presentes."
+        )
+        if (modoCompetitivoDiretoDisponivel) {
+            dicas.add(0, "2x2" to "Quatro jogadores em duas equipas.")
+            dicas.add(0, "1x1" to "Duelo direto entre dois jogadores.")
+        }
         UteisDicas.mostrarDicas(
             this,
-            "Modo Clássico",
-            listOf(
-                "1x1" to "Duelo direto entre dois jogadores.",
-                "2x2" to "Quatro jogadores em duas equipas.",
-                "Todos" to "O admin observa e inicia quando há pelo menos 1 jogador na sala."
-            )
+            titulo,
+            dicas
         )
     }
 

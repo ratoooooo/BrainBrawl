@@ -33,6 +33,7 @@ class LoginActivity : AppCompatActivity() {
 
         // Configurar os botoes de login, registo e iniciar jogo sem conta
         binding.btnEntrar.setOnClickListener {
+            atualizarBotoesEntrada(false)
             // Guarda os valores inseridos nos campos
             val identificador = binding.edtNomeJogador.text.toString().trim()
             val password = binding.edtPasswordJogador.text.toString()
@@ -42,6 +43,7 @@ class LoginActivity : AppCompatActivity() {
             startActivity(Intent(this, RegistarActivity::class.java))
         }
         binding.btnIniciarJogo.setOnClickListener {
+            atualizarBotoesEntrada(false)
             val nomeJogador = binding.edtNomeJogador.text.toString().trim()
             viewModel.entrarComoConvidado(nomeJogador)
         }
@@ -55,6 +57,7 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun tratarEvento(evento: LoginEvent) {
+        atualizarBotoesEntrada(true)
         when (evento) {
             is LoginEvent.ValidacaoFalhou -> {
                 Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
@@ -112,5 +115,11 @@ class LoginActivity : AppCompatActivity() {
             InputType.TYPE_TEXT_VARIATION_PASSWORD
         }
         editText.setSelection(editText.text?.length ?: 0)
+    }
+
+    private fun atualizarBotoesEntrada(enabled: Boolean) {
+        binding.btnEntrar.isEnabled = enabled
+        binding.btnIniciarJogo.isEnabled = enabled
+        binding.btnRegisto.isEnabled = enabled
     }
 }

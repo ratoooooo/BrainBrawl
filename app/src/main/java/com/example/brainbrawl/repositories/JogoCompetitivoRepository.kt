@@ -37,7 +37,8 @@ class JogoCompetitivoRepository(
         val nomeJogador: String,
         val playerKey: String = "",
         val tipoJogador: String = "",
-        val avatar: String = ""
+        val avatar: String = "",
+        val estado: String = GameConstants.ESTADO_ON
     )
 
     data class EquipaJogador(
@@ -88,7 +89,10 @@ class JogoCompetitivoRepository(
 
                 if (entradaFechada) {
                     val chaveExistente = jogadoresSnapshot.encontrarChaveJogadorFechado(jogador)
-                    if (chaveExistente == null) {
+                    val chavePermitida = salaSnapshot.child(FirebasePaths.JOGADORES_PERMITIDOS)
+                        .encontrarChavePermitida(jogador)
+                    val chaveEntrada = chaveExistente ?: chavePermitida
+                    if (chaveEntrada == null) {
                         Log.w(
                             TAG,
                             "Entrada bloqueada em sala fechada: modo=${modo.node} " +
@@ -98,7 +102,20 @@ class JogoCompetitivoRepository(
                         result.setException(IllegalStateException("Sala fechada para jogadores selecionados."))
                         return@addOnSuccessListener
                     }
-                    result.setResult(jogadoresSnapshot.child(chaveExistente).toJogadorCompetitivo(chaveExistente, jogador))
+                    val jogadorPresente = jogadoresSnapshot.child(chaveEntrada).exists()
+                    val taskEntrada = if (jogadorPresente) {
+                        marcarJogadorPresente(modo, codigoSala, chaveEntrada)
+                    } else {
+                        escreverJogadorNaSala(modo, codigoSala, chaveEntrada, jogador).continueWithTask {
+                            marcarJogadorPresente(modo, codigoSala, chaveEntrada)
+                        }
+                    }
+                    taskEntrada
+                        .addOnSuccessListener {
+                            val snapshotJogador = jogadoresSnapshot.child(chaveEntrada)
+                            result.setResult(snapshotJogador.toJogadorCompetitivo(chaveEntrada, jogador))
+                        }
+                        .addOnFailureListener { result.setException(it) }
                     return@addOnSuccessListener
                 }
 
@@ -148,6 +165,7 @@ class JogoCompetitivoRepository(
             .child(chave)
             .setValue(jogador.toFirebaseMap(isHostOnly = false))
             .addOnSuccessListener {
+                configurarOfflineAoDesligar(modo, codigoSala, chave)
                 result.setResult(
                     JogadorCompetitivo(
                         chave = chave,
@@ -157,12 +175,43 @@ class JogoCompetitivoRepository(
                         nomeJogador = jogador.nomeJogador,
                         playerKey = jogador.playerKey.ifBlank { chave },
                         tipoJogador = jogador.tipoJogador,
-                        avatar = jogador.avatar
+                        avatar = jogador.avatar,
+                        estado = GameConstants.ESTADO_ON
                     )
                 )
             }
             .addOnFailureListener { result.setException(it) }
         return result.task
+    }
+
+    private fun marcarJogadorPresente(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        chave: String
+    ): Task<Void> {
+        val jogadorRef = salaRef(modo, codigoSala)
+            .child(FirebasePaths.JOGADORES)
+            .child(chave)
+        configurarOfflineAoDesligar(modo, codigoSala, chave)
+        return jogadorRef.updateChildren(
+            mapOf(
+                FirebasePaths.ESTADO to GameConstants.ESTADO_ON
+            )
+        )
+    }
+
+    private fun configurarOfflineAoDesligar(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        chave: String
+    ) {
+        val sala = salaRef(modo, codigoSala)
+        sala.child(FirebasePaths.JOGADORES)
+            .child(chave)
+            .onDisconnect()
+            .updateChildren(mapOf(FirebasePaths.ESTADO to GameConstants.ESTADO_OFF))
+        // Evita "pronto" fantasma após desconexão (1x1 e 2x2 usam o mesmo nó prontos).
+        sala.child(FirebasePaths.PRONTOS).child(chave).onDisconnect().removeValue()
     }
 
     private fun reservarEntradaNaSala(
@@ -355,7 +404,54 @@ class JogoCompetitivoRepository(
             .get()
             .continueWith { task ->
                 if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar jogadores prontos.")
-                task.result.children.mapNotNull { it.key }
+                task.result.children.mapNotNull { child ->
+                    if (child.getValue(Boolean::class.java) == true) child.key else null
+                }
+            }
+    }
+
+    fun escutarProntos(
+        modo: ModoCompetitivo,
+        codigoSala: String,
+        onProntosAlterados: (Set<String>) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(modo, codigoSala).child(FirebasePaths.PRONTOS)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                onProntosAlterados(snapshot.children.mapNotNull { child ->
+                    child.key?.takeIf { child.getValue(Boolean::class.java) == true }
+                }.toSet())
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
+    }
+
+    fun marcarPronto2x2(
+        codigoSala: String,
+        chaveJogador: String,
+        pronto: Boolean = true
+    ): Task<Void> {
+        return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+            .child(FirebasePaths.PRONTOS)
+            .child(chaveJogador)
+            .setValue(pronto)
+    }
+
+    fun obterProntos2x2(codigoSala: String): Task<List<String>> {
+        return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+            .child(FirebasePaths.PRONTOS)
+            .get()
+            .continueWith { task ->
+                if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar jogadores prontos 2x2.")
+                task.result.children.mapNotNull { child ->
+                    if (child.getValue(Boolean::class.java) == true) child.key else null
+                }
             }
     }
 
@@ -381,7 +477,9 @@ class JogoCompetitivoRepository(
                 tipoJogador = jogadorSnapshot?.child(FirebasePaths.TIPO_JOGADOR)?.texto()
                     ?.ifBlank { jogador.tipoJogador } ?: jogador.tipoJogador,
                 avatar = jogadorSnapshot?.child(FirebasePaths.AVATAR)?.texto()
-                    ?.ifBlank { jogador.avatar } ?: jogador.avatar
+                    ?.ifBlank { jogador.avatar } ?: jogador.avatar,
+                estado = jogadorSnapshot?.child(FirebasePaths.ESTADO)?.texto()
+                    ?.ifBlank { GameConstants.ESTADO_ON } ?: GameConstants.ESTADO_ON
             )
         }
     }
@@ -424,6 +522,7 @@ class JogoCompetitivoRepository(
             chaves.flatMap { chave ->
                 listOf(
                     "${FirebasePaths.JOGADORES}/$chave" to null,
+                    "${FirebasePaths.PRONTOS}/$chave" to null,
                     "${FirebasePaths.EQUIPA_A}/$chave" to null,
                     "${FirebasePaths.EQUIPA_B}/$chave" to null
                 )
@@ -903,6 +1002,14 @@ class JogoCompetitivoRepository(
         }?.key
     }
 
+    private fun DataSnapshot.encontrarChavePermitida(jogador: JogadorSalaIdentidade): String? {
+        val chavePrincipal = jogador.playerKey.ifBlank { jogador.uid.ifBlank { jogador.chaveSala } }
+        val chaves = (jogador.chavesCompatibilidade + chavePrincipal).filter { it.isNotBlank() }.distinct()
+        return children.firstOrNull { reserva ->
+            reserva.getValue(Boolean::class.java) == true && reserva.key.orEmpty() in chaves
+        }?.key
+    }
+
     private fun DataSnapshot.encontrarJogador(jogador: JogadorSalaIdentidade): DataSnapshot? {
         return children.firstOrNull { jogadorSnapshot ->
             val chave = jogadorSnapshot.key.orEmpty()
@@ -927,7 +1034,8 @@ class JogoCompetitivoRepository(
             nomeJogador = child(FirebasePaths.NOME_JOGADOR).texto().ifBlank { fallback.nomeJogador },
             playerKey = child(FirebasePaths.PLAYER_KEY).texto().ifBlank { fallback.playerKey.ifBlank { chave } },
             tipoJogador = child(FirebasePaths.TIPO_JOGADOR).texto().ifBlank { fallback.tipoJogador },
-            avatar = child(FirebasePaths.AVATAR).texto().ifBlank { fallback.avatar }
+            avatar = child(FirebasePaths.AVATAR).texto().ifBlank { fallback.avatar },
+            estado = child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_ON }
         )
     }
 
@@ -942,7 +1050,8 @@ class JogoCompetitivoRepository(
                 nomeJogador = jogadorSnapshot.child(FirebasePaths.NOME_JOGADOR).texto(),
                 playerKey = jogadorSnapshot.child(FirebasePaths.PLAYER_KEY).texto().ifBlank { chave },
                 tipoJogador = jogadorSnapshot.child(FirebasePaths.TIPO_JOGADOR).texto(),
-                avatar = jogadorSnapshot.child(FirebasePaths.AVATAR).texto()
+                avatar = jogadorSnapshot.child(FirebasePaths.AVATAR).texto(),
+                estado = jogadorSnapshot.child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_ON }
             )
         }
     }
@@ -972,7 +1081,9 @@ class JogoCompetitivoRepository(
             if (chave == GameConstants.JOGADOR_ADMIN || isHostOnly) {
                 null
             } else {
-                chave
+                val estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty()
+                    .ifBlank { GameConstants.ESTADO_ON }
+                if (estado == GameConstants.ESTADO_OFF) null else chave
             }
         }.toSet()
     }

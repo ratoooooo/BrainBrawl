@@ -361,72 +361,85 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Versao v1.1 TERMINADA">
-      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Versao v1.1.1 Interfaces">
       <change beforePath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deploymentTargetSelector.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" beforeDir="false" afterPath="$PROJECT_DIR$/ARCHITECTURE_PLAN.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" beforeDir="false" afterPath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/TEST_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/TEST_REPORT.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AdicionarPerguntaActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AmigosActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AvatarGridAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/AvatarGridAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConviteAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConviteAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EditarPerfilActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EditarPerfilActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/HistoricoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/HistoricoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/JogoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/LoginActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MatchmakingActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MatchmakingActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PedidoAmizadeAdapter.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PedidoAmizadeAdapter.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PerfilAmigoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/RegistarActivity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisDicas.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisDicas.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/Badge.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/Badge.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/BadgeFamily.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/BadgeFamily.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/CategoriaRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogadorRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisSala.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisSala.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/GameConstants.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/GameConstants.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/HistoricoJogo.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/models/HistoricoJogo.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/HistoricoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/HistoricoRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/routes/UteisNavegacao.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/routes/UteisNavegacao.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/BadgesService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/BadgesService.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/BadgeGridRenderer.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/BadgeGridRenderer.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/UteisConquistas.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/UteisConquistas.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/AmigosViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/EditarCategoriaViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/PerfilAmigoViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/bg_dica_card.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/bg_dica_card.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_adicionar_pergunta.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_adicionar_pergunta.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_amigos.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_amigos.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo2x2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_convidar_amigo2x2.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/AvatarUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/AvatarUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/EsperaEliminadoViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/EsperaEliminadoViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao2x2ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao2x2ViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/PontuacoesViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/PontuacoesViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/drawable/bg_button_danger.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/drawable/bg_button_danger.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_editar_perfil.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_editar_perfil.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolha_categoria_modos.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolha_categoria_modos.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_categoria.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_categoria.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_modo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_escolher_modo.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_espera_eliminado.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_espera_eliminado.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_explorar_categorias.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_explorar_categorias.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_historico.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_historico.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo1x1.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo2x2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_jogo2x2.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_login.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_main.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_matchmaking.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_matchmaking.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_meu_perfil.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_meu_perfil.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_perfil_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_registar.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao1x1.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao_multi.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_pontuacao_multi.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_ranking.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera2x2.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera2x2.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera_1x1.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_sala_de_espera_1x1.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/activity_tipo_modo_classico.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/activity_tipo_modo_classico.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/dialog_selecionar_avatar.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/dialog_selecionar_avatar.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_convidar_amigo.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_convidar_amigo.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_convite.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_convite.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/res/layout/item_pedido_amizade.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/layout/item_pedido_amizade.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/values-de-rDE/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-de-rDE/strings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/values-en-rGB/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-en-rGB/strings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/values-es/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-es/strings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/values-fr/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values-fr/strings.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/colors.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/res/values/strings.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/services/BadgesServiceTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/services/BadgesServiceTest.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/utils/UteisConquistasTest.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/test/java/com/example/brainbrawl/utils/UteisConquistasTest.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/firebase-rules.json" beforeDir="false" afterPath="$PROJECT_DIR$/firebase-rules.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -437,7 +450,7 @@
   <component name="ClangdSettings">
     <option name="formatViaClangd" value="false" />
   </component>
-  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=/Users/dinisrato/.android/avd/Medium_Phone.avd)]" />
+  <component name="ExecutionTargetManager" SELECTED_TARGET="device_and_snapshot_combo_box_target[DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=/Users/dinisrato/.android/avd/Medium_Phone.avd), DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=/Users/dinisrato/.android/avd/Pixel_9_Pro_XL.avd), DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=/Users/dinisrato/.android/avd/Pixel_9_Pro_XL_2.avd), DeviceId(pluginId=LocalEmulator, isTemplate=false, identifier=path=/Users/dinisrato/.android/avd/Pixel_9a.avd)]" />
   <component name="ExportToHTMLSettings">
     <option name="OUTPUT_DIRECTORY" value="$PROJECT_DIR$/exportToHTML" />
   </component>
@@ -1256,11 +1269,18 @@
       <option name="project" value="LOCAL" />
       <updated>1778870210617</updated>
     </task>
-    <option name="localTasksCounter" value="43" />
+    <task id="LOCAL-00043" summary="Versao v1.1.1 Interfaces">
+      <option name="closed" value="true" />
+      <created>1779106934460</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1779106934460</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Alterações feita: Agora o jogador pode ver o estados de outros jogadores ente off e on" />
     <MESSAGE value="Alterações feita: Agora o jogador pode ver as conquistas de outros jogadores" />
     <MESSAGE value="Alterações feita: Agora DURANTE O JOGO O JOGDOR HOUVE UM SOM DE CORRETO OU ERRADO A RESPONDER A PERGUNTA" />
     <MESSAGE value="Alterações feita: Agora no fim do jogo, no modo 1x1 um jogador pode pedir a desforra" />
@@ -1285,19 +1305,20 @@
     <MESSAGE value="v.1 Alterações Perfil" />
     <MESSAGE value="v1.1 Alterações Perfil / MatchMaking" />
     <MESSAGE value="Versao v1.1 TERMINADA" />
-    <option name="LAST_COMMIT_MESSAGE" value="Versao v1.1 TERMINADA" />
+    <MESSAGE value="Versao v1.1.1 Interfaces" />
+    <option name="LAST_COMMIT_MESSAGE" value="Versao v1.1.1 Interfaces" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">
       <map>
         <entry key="com.example.brainbrawl">
           <value>
-            <CheckInfo lastCheckTimestamp="1779060794073" />
+            <CheckInfo lastCheckTimestamp="1779182264815" />
           </value>
         </entry>
         <entry key="com.example.brainbrawl.test">
           <value>
-            <CheckInfo lastCheckTimestamp="1779060794074" />
+            <CheckInfo lastCheckTimestamp="1779182264812" />
           </value>
         </entry>
       </map>

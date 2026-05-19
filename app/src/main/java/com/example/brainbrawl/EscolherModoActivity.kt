@@ -2,10 +2,7 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.brainbrawl.routes.UteisNavegacao.abrirEscolherCategoriaActivity
-import com.example.brainbrawl.UteisSala.criarSalaCaoticaEEntrar
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
@@ -36,19 +33,10 @@ class EscolherModoActivity : AppCompatActivity() {
             abrirTipoModoClassico(GameConstants.MODO_CLASSICO)
         }
         binding.btnModoEliminatorias.setOnClickListener {
-            abrirEscolherCategoriaActivity(this, GameConstants.MODO_ELIMINATORIAS, nomeUtilizador, nomeJogador, true, uid)
-            finish()
+            abrirTipoModoClassico(GameConstants.MODO_ELIMINATORIAS)
         }
         binding.btnModoCaotico.setOnClickListener {
-            //Verifica se o nome Utilizador ou nomeJogador foi passado
-            if (nomeUtilizador != null) {
-                criarSalaCaoticaEEntrar(this, nomeUtilizador, null, uid)
-            } else if (nomeJogador != null) {
-                criarSalaCaoticaEEntrar(this, null, nomeJogador, uid)
-            } else {
-                Toast.makeText(this, R.string.indique_nome, Toast.LENGTH_SHORT).show()
-            }
-
+            abrirTipoModoClassico(GameConstants.MODO_CAOTICO)
         }
 
         binding.btnVoltar.setOnClickListener {

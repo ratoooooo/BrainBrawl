@@ -22,11 +22,11 @@ class BadgesServiceTest {
             permitirDesbloqueioLocal = true
         )
 
-        assertEquals(43, badges.size)
+        assertEquals(48, badges.size)
         assertEquals(9, badges.count { it.familia.codigo == "RC" })
         assertEquals(9, badges.count { it.familia.codigo == "PJ" })
         assertEquals(9, badges.count { it.familia.codigo == "VT" })
-        assertEquals(7, badges.count { it.familia.codigo == "XP" })
+        assertEquals(12, badges.count { it.familia.codigo == "XP" })
         assertEquals(9, badges.count { it.familia.codigo == "CR" })
     }
 
@@ -37,7 +37,7 @@ class BadgesServiceTest {
                 totalRespostasCertas = 10,
                 totalPartidasJogadas = 50,
                 totalVitorias = 0,
-                xpTotal = 300,
+                xpTotal = 500,
                 creditos = 25
             ),
             badgesPersistidas = emptySet(),
@@ -48,7 +48,7 @@ class BadgesServiceTest {
         assertFalse(badges.first { it.id == "RC_50" }.desbloqueada)
         assertTrue(badges.first { it.id == "PJ_50" }.desbloqueada)
         assertFalse(badges.first { it.id == "VT_1" }.desbloqueada)
-        assertTrue(badges.first { it.id == "XP_300" }.desbloqueada)
+        assertTrue(badges.first { it.id == "XP_500" }.desbloqueada)
         assertTrue(badges.first { it.id == "CR_25" }.desbloqueada)
     }
 

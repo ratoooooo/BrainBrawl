@@ -73,9 +73,6 @@ class MatchmakingActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        if (!isChangingConfigurations && !navegando && !isFinishing) {
-            viewModel.cancelarPorBackground()
-        }
         super.onStop()
     }
 

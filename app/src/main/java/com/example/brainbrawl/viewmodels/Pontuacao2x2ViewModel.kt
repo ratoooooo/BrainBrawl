@@ -108,11 +108,15 @@ class Pontuacao2x2ViewModel(
             input.identificadoresJogadorAtual().any { resultado.corresponde(it) }
         } ?: return
 
-        pontuacaoRepository.obterRecordePontuacaoJogador(input.uid)
-            .addOnSuccessListener { recordeGuardado ->
-                if (resultadoAtual.pontos > recordeGuardado) {
-                    _evento.value = Pontuacao2x2Event.MostrarMensagem("NOVO RECORD!")
-                }
+        pontuacaoRepository.salaCompetitiva(PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS, input.codigoSala)
+            .addOnSuccessListener { competitiva ->
+                if (!competitiva) return@addOnSuccessListener
+                pontuacaoRepository.obterRecordePontuacaoJogador(input.uid)
+                    .addOnSuccessListener { recordeGuardado ->
+                        if (resultadoAtual.pontos > recordeGuardado) {
+                            _evento.value = Pontuacao2x2Event.MostrarMensagem("NOVO RECORD!")
+                        }
+                    }
             }
     }
 

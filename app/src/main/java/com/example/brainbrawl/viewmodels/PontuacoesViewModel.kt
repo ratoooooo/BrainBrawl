@@ -29,10 +29,19 @@ class PontuacoesViewModel(
         estatisticasAtualizadas = false
         historicoGuardado = false
 
+        if (input.modoSolo) {
+            mostrarResultadoSolo(input)
+            return
+        }
+
         pontuacoesListener = pontuacaoRepository.escutarResultadosGrupo(
             codigoSala = input.codigoSala,
             onResultados = { resumo ->
-                val jogadores = estatisticasService.ordenarPodio(resumo.jogadores)
+                val jogadores = if (input.modoJogo == GameConstants.MODO_ELIMINATORIAS) {
+                    estatisticasService.ordenarPodioGrupoEliminatorias(resumo.jogadores)
+                } else {
+                    estatisticasService.ordenarPodio(resumo.jogadores)
+                }
                 val mensagem = when {
                     resumo.totalJogadores == 0 -> "Sem jogadores na sala."
                     !resumo.completos -> {
@@ -50,16 +59,20 @@ class PontuacoesViewModel(
 
                 if (input.podeGravarPersistente() && resumo.completos && !estatisticasAtualizadas) {
                     guardarHistoricoSeNecessario(input, jogadores)
-                    estatisticasAtualizadas = true
-                    pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
-                        tipoSala = PontuacaoRepository.TipoSala.GRUPO,
-                        codigoSala = input.codigoSala,
-                        resultados = jogadores,
-                        modo = EstatisticasService.Modo.SOLO,
-                        totalPerguntas = input.totalPerguntas,
-                        jogadoresParaAtualizar = input.identificadoresJogadorAtual().toSet()
-                    ).addOnFailureListener {
-                        estatisticasAtualizadas = false
+                    if (!input.categoriaCompetitiva) {
+                        estatisticasAtualizadas = true
+                    } else {
+                        estatisticasAtualizadas = true
+                        pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+                            tipoSala = PontuacaoRepository.TipoSala.GRUPO,
+                            codigoSala = input.codigoSala,
+                            resultados = jogadores,
+                            modo = EstatisticasService.Modo.SOLO,
+                            totalPerguntas = input.totalPerguntas,
+                            jogadoresParaAtualizar = input.identificadoresJogadorAtual().toSet()
+                        ).addOnFailureListener {
+                            estatisticasAtualizadas = false
+                        }
                     }
                 }
             },
@@ -105,6 +118,54 @@ class PontuacoesViewModel(
         }
     }
 
+    private fun mostrarResultadoSolo(input: PontuacoesInput) {
+        val resultado = ResultadoJogador(
+            nome = input.nomeUtilizador.ifBlank { input.nomeJogador.ifBlank { "Jogador" } },
+            pontos = input.totalPontos,
+            respostasCertas = input.totalRespostasCertas,
+            uid = input.uid,
+            nomeUtilizador = input.nomeUtilizador,
+            nomeJogador = input.nomeJogador
+        )
+        _uiState.value = PontuacoesUiState(
+            mensagem = if (input.categoriaCompetitiva) "" else "Categoria não competitiva: não conta para ranking, recordes ou vitórias.",
+            podio = criarPodio(listOf(resultado), completos = true)
+        )
+
+        if (!input.podeGravarPersistente() || historicoGuardado) return
+        historicoGuardado = true
+        historicoRepository.guardarHistoricoUmaVez(
+            uid = input.uid,
+            historico = HistoricoJogo(
+                historicoId = input.historicoId(),
+                modo = input.modoJogo.ifBlank { GameConstants.MODO_CLASSICO },
+                codigoSala = "",
+                nomeCategoria = input.nomeCategoria,
+                pontuacao = input.totalPontos,
+                respostasCertas = input.totalRespostasCertas,
+                totalPerguntas = input.totalPerguntas,
+                venceu = true,
+                empate = false,
+                competitivo = input.categoriaCompetitiva,
+                dataHora = System.currentTimeMillis(),
+                jogadoresDaPartida = listOf(resultado.nome)
+            )
+        ).addOnSuccessListener { guardado ->
+            if (guardado && input.categoriaCompetitiva && !estatisticasAtualizadas) {
+                estatisticasAtualizadas = true
+                pontuacaoRepository.atualizarEstatisticasSolo(
+                    resultado = resultado,
+                    venceu = true,
+                    totalPerguntas = input.totalPerguntas
+                ).addOnFailureListener {
+                    estatisticasAtualizadas = false
+                }
+            }
+        }.addOnFailureListener {
+            historicoGuardado = false
+        }
+    }
+
     private fun guardarHistoricoSeNecessario(
         input: PontuacoesInput,
         jogadores: List<ResultadoJogador>
@@ -132,6 +193,7 @@ class PontuacoesViewModel(
                 totalPerguntas = input.totalPerguntas,
                 venceu = venceu,
                 empate = empate,
+                competitivo = input.categoriaCompetitiva,
                 dataHora = System.currentTimeMillis(),
                 jogadoresDaPartida = jogadores.map { it.nome }
             )
@@ -149,6 +211,11 @@ data class PontuacoesInput(
     val nomeCategoria: String,
     val totalPerguntas: Int,
     val modoJogo: String,
+    val totalPontos: Double = 0.0,
+    val totalRespostasCertas: Int = 0,
+    val modoSolo: Boolean = false,
+    val partidaId: String = "",
+    val categoriaCompetitiva: Boolean = true,
     val tipoJogador: String = "",
     val isGuest: Boolean = false
 ) {
@@ -169,7 +236,11 @@ data class PontuacoesInput(
     }
 
     fun historicoId(): String {
-        return "${modoJogo.ifBlank { FirebasePaths.SALAS }}_$codigoSala"
+        return if (modoSolo) {
+            partidaId.ifBlank { "solo_${modoJogo}_${nomeCategoria}_${System.currentTimeMillis()}" }
+        } else {
+            "${modoJogo.ifBlank { FirebasePaths.SALAS }}_$codigoSala"
+        }
     }
 }
 

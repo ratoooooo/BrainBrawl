@@ -102,12 +102,22 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     }
 
     private fun atualizarJogadores(estado: SalaGrupoJogadoresUiState) {
-        binding.txtListaJogadores.text = if (estado.nomes.isEmpty()) {
-            getString(R.string.aguardando_jogadores)
+        binding.txtJogadores.text = getString(
+            R.string.jogadores_minimos_grupo_format,
+            estado.jogadoresMinimosAtuais,
+            estado.jogadoresMinimosNecessarios
+        )
+        val listaJogadores = estado.nomes.joinToString(separator = "\n")
+        val estadoMinimo = if (estado.podeIniciar) {
+            getString(R.string.sala_grupo_pronta)
         } else {
-            estado.nomes.joinToString(separator = "\n")
+            getString(R.string.sala_grupo_aguardar_mais_format, estado.jogadoresEmFalta)
         }
+        binding.txtListaJogadores.text = listOf(listaJogadores, estadoMinimo)
+            .filter { it.isNotBlank() }
+            .joinToString(separator = "\n\n")
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+        binding.btnIniciarJogo.alpha = if (estado.podeIniciar) 1f else 0.62f
     }
 
     private fun tratarEvento(evento: SalaGrupoEvent) {

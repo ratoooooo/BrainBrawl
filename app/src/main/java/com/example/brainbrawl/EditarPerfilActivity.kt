@@ -30,6 +30,7 @@ class EditarPerfilActivity : AppCompatActivity() {
         }
         binding.gridAvatars.adapter = AvatarGridAdapter(this, avatarResources)
         binding.imgAvatarAtual.setImageResource(avatarResources[avatarSelecionadoIndex])
+        carregarAvatarAtual(avatarResources)
         binding.gridAvatars.setOnItemClickListener { _, _, position, _ ->
             avatarSelecionadoIndex = position
             binding.imgAvatarAtual.setImageResource(avatarResources[position])
@@ -56,6 +57,18 @@ class EditarPerfilActivity : AppCompatActivity() {
             .addOnFailureListener { error ->
                 binding.btnGuardarPerfil.isEnabled = true
                 Toast.makeText(this, error.message ?: getString(R.string.erro_guardar_perfil), Toast.LENGTH_SHORT).show()
+            }
+    }
+
+    private fun carregarAvatarAtual(avatarResources: Array<Int>) {
+        val identificador = uid.ifBlank { nomeUtilizador }
+        if (identificador.isBlank()) return
+
+        jogadorRepository.obterPerfil(identificador)
+            .addOnSuccessListener { perfil ->
+                val indice = AvatarUtils.indicePorNomeAvatar(perfil?.avatar) ?: return@addOnSuccessListener
+                avatarSelecionadoIndex = indice
+                binding.imgAvatarAtual.setImageResource(avatarResources[indice])
             }
     }
 }

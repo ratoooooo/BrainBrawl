@@ -41,10 +41,19 @@ object UteisNavegacao {
     }
 
     // Função para abrir activity de categoria
-    fun abrirEscolherCategoriaActivity(context: Context, modoJogo: String, nomeUtilizador: String?, nomeJogador: String?, admin: Boolean, uid: String? = null) {
+    fun abrirEscolherCategoriaActivity(
+        context: Context,
+        modoJogo: String,
+        nomeUtilizador: String?,
+        nomeJogador: String?,
+        admin: Boolean,
+        uid: String? = null,
+        modoSolo: Boolean = false
+    ) {
         val intent = Intent(context, EscolherCategoriaActivity::class.java)
         intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
         intent.putExtra(IntentExtras.ADMIN, admin)
+        intent.putExtra(IntentExtras.MODO_SOLO, modoSolo)
         adicionarDadosJogador(intent, nomeUtilizador, nomeJogador, uid)
         context.startActivity(intent)
     }

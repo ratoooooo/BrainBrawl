@@ -41,6 +41,8 @@ class ExampleUnitTest {
 
         assertEquals(1300.0, updates[FirebasePaths.PONTUACAO])
         assertEquals(300.0, updates[FirebasePaths.RECORDE_PONTUACAO])
+        assertEquals(1, updates[FirebasePaths.TOTAL_VITORIAS])
+        assertEquals(null, updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO])
     }
 
     @Test

@@ -134,7 +134,7 @@ class BadgesService {
 
     private companion object {
         val THRESHOLDS = listOf(1, 10, 50, 100, 250, 500, 1000, 2500, 5000)
-        val XP_THRESHOLDS = listOf(100, 300, 600, 1000, 2000, 5000, 10000)
+        val XP_THRESHOLDS = listOf(100, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000)
         val CREDIT_THRESHOLDS = listOf(1, 5, 10, 25, 50, 100, 250, 500, 1000)
     }
 }

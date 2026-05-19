@@ -25,6 +25,7 @@ object FirebasePaths {
     const val AVALIACOES = "avaliacoes"
     const val AVATAR = "avatar"
     const val CODIGO_SALA = "codigoSala"
+    const val COMPETITIVO = "competitivo"
     const val DATA_HORA = "dataHora"
     const val DATA = "data"
     const val DATA_CRIACAO = "dataCriacao"

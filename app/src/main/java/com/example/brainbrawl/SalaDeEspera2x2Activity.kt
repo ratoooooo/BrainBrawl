@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.IntentExtras
@@ -38,10 +39,15 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
+    private var aNavegarParaJogo = false
+    private var saidaJaProcessada = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        onBackPressedDispatcher.addCallback(this) {
+            sairDaSala()
+        }
 
         codigoSala = CodigoSalaUtils.normalizarCodigo(intent.getStringExtra(IntentExtras.CODIGO_SALA).orEmpty())
         uid = intent.getStringExtra(IntentExtras.UID)
@@ -107,6 +113,11 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         binding.txtJogadorB2.text = estado.equipaB.getOrNull(1) ?: getString(R.string.aguardando)
         atualizarCodigoSala(estado)
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+        binding.btnIniciarJogo.text = when {
+            estado.matchmaking && estado.jogadorPronto -> getString(R.string.pronto_confirmado)
+            estado.matchmaking -> getString(R.string.pronto)
+            else -> getString(R.string.iniciar_jogo)
+        }
     }
 
     private fun atualizarCodigoSala(estado: Sala2x2UiState) {
@@ -123,6 +134,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     private fun tratarEvento(evento: Sala2x2Event) {
         when (evento) {
             Sala2x2Event.JogoIniciado -> {
+                aNavegarParaJogo = true
                 val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
 
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
@@ -159,6 +171,15 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
                 binding.btnIniciarJogo.isEnabled = viewModel.estado.value?.podeIniciar == true
             }
 
+            Sala2x2Event.JogadoresNaoProntos -> {
+                Toast.makeText(this, R.string.sala_2x2_nem_todos_prontos, Toast.LENGTH_SHORT).show()
+                binding.btnIniciarJogo.isEnabled = viewModel.estado.value?.podeIniciar == true
+            }
+
+            Sala2x2Event.OponenteSaiu -> {
+                Toast.makeText(this, R.string.sala_espera_jogador_saiu_2x2, Toast.LENGTH_LONG).show()
+            }
+
             Sala2x2Event.EntradaBloqueada -> {
                 Toast.makeText(this, R.string.sala_2x2_cheia, Toast.LENGTH_SHORT).show()
                 abrirMainActivity(
@@ -173,6 +194,8 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     }
 
     private fun sairDaSala() {
+        if (saidaJaProcessada || aNavegarParaJogo) return
+        saidaJaProcessada = true
         viewModel.sairDaSala(codigoSala)
         abrirMainActivity(this, nomeUtilizador, nomeJogador, uid.ifBlank { null })
         finish()

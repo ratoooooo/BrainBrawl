@@ -1,6 +1,7 @@
 package com.example.brainbrawl.repositories
 
 import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.HistoricoJogo
 import com.google.android.gms.tasks.Task
 import com.google.android.gms.tasks.TaskCompletionSource
@@ -22,6 +23,32 @@ class HistoricoRepository(
             return result.task
         }
 
+        limparHistoricoAntigo(uid)
+            .addOnCompleteListener {
+                resolverHistoricoCompetitivo(historico)
+                    .addOnSuccessListener { competitivo ->
+                        escreverComRecorde(uid, historico.copy(competitivo = competitivo), result)
+                    }
+                    .addOnFailureListener {
+                        escreverComRecorde(uid, historico, result)
+                    }
+            }
+        return result.task
+    }
+
+    private fun escreverComRecorde(
+        uid: String,
+        historico: HistoricoJogo,
+        result: TaskCompletionSource<Boolean>
+    ) {
+        if (!historico.competitivo) {
+            escrever(uid, historico.copy(
+                recordeFoiBatido = false,
+                dataHora = historico.dataHora.takeIf { it > 0L } ?: System.currentTimeMillis()
+            ), result)
+            return
+        }
+
         pontuacaoRepository.obterRecordePontuacaoJogador(uid)
             .addOnSuccessListener { recorde ->
                 escrever(uid, historico.copy(
@@ -34,6 +61,57 @@ class HistoricoRepository(
                     dataHora = historico.dataHora.takeIf { it > 0L } ?: System.currentTimeMillis()
                 ), result)
             }
+    }
+
+    private fun resolverHistoricoCompetitivo(historico: HistoricoJogo): Task<Boolean> {
+        val tipoSala = when (historico.modo) {
+            GameConstants.MODO_1X1 -> PontuacaoRepository.TipoSala.UM_CONTRA_UM
+            GameConstants.MODO_2X2 -> PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS
+            GameConstants.MODO_CLASSICO,
+            GameConstants.MODO_CAOTICO,
+            GameConstants.MODO_ELIMINATORIAS,
+            "grupo" -> PontuacaoRepository.TipoSala.GRUPO
+            else -> null
+        }
+        return if (tipoSala != null && historico.codigoSala.isNotBlank()) {
+            pontuacaoRepository.salaCompetitiva(tipoSala, historico.codigoSala)
+                .continueWith { task ->
+                    historico.competitivo && if (task.isSuccessful) (task.result ?: true) else true
+                }
+        } else {
+            val result = TaskCompletionSource<Boolean>()
+            result.setResult(historico.competitivo)
+            result.task
+        }
+    }
+
+    fun limparHistoricoAntigo(uid: String): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        if (uid.isBlank()) {
+            result.setResult(null)
+            return result.task
+        }
+
+        val limite = System.currentTimeMillis() - GameConstants.HISTORICO_RETENCAO_DIAS * MILLIS_POR_DIA
+        historicoRef(uid).get()
+            .addOnSuccessListener { snapshot ->
+                val updates = mutableMapOf<String, Any?>()
+                snapshot.children.forEach { child ->
+                    val dataHora = child.child(FirebasePaths.DATA_HORA).longValue()
+                    if (dataHora > 0L && dataHora < limite) {
+                        child.key?.let { updates[it] = null }
+                    }
+                }
+
+                if (updates.isEmpty()) {
+                    result.setResult(null)
+                } else {
+                    historicoRef(uid).updateChildren(updates)
+                        .addOnSuccessListener { result.setResult(null) }
+                        .addOnFailureListener { result.setException(it) }
+                }
+            }
+            .addOnFailureListener { result.setException(it) }
         return result.task
     }
 
@@ -43,11 +121,14 @@ class HistoricoRepository(
             result.setResult(emptyList())
             return result.task
         }
-        historicoRef(uid).orderByChild(FirebasePaths.DATA_HORA).limitToLast(limite).get()
-            .addOnSuccessListener { snapshot ->
-                result.setResult(snapshot.children.mapNotNull { it.toHistoricoJogo() }.sortedByDescending { it.dataHora })
+        limparHistoricoAntigo(uid)
+            .addOnCompleteListener {
+                historicoRef(uid).orderByChild(FirebasePaths.DATA_HORA).limitToLast(limite).get()
+                    .addOnSuccessListener { snapshot ->
+                        result.setResult(snapshot.children.mapNotNull { it.toHistoricoJogo() }.sortedByDescending { it.dataHora })
+                    }
+                    .addOnFailureListener { result.setException(it) }
             }
-            .addOnFailureListener { result.setException(it) }
         return result.task
     }
 
@@ -101,6 +182,7 @@ class HistoricoRepository(
             venceu = child(FirebasePaths.VENCEU).getValue(Boolean::class.java) == true,
             empate = child(FirebasePaths.EMPATE).getValue(Boolean::class.java) == true,
             equipa = child(FirebasePaths.EQUIPA).texto(),
+            competitivo = child(FirebasePaths.COMPETITIVO).getValue(Boolean::class.java) != false,
             dataHora = child(FirebasePaths.DATA_HORA).longValue(),
             jogadoresDaPartida = child(FirebasePaths.JOGADORES).children.mapNotNull { it.texto().takeIf { nome -> nome.isNotBlank() } }
         )
@@ -113,5 +195,6 @@ class HistoricoRepository(
 
     private companion object {
         const val LIMITE_HISTORICO = 50
+        const val MILLIS_POR_DIA = 24L * 60L * 60L * 1000L
     }
 }

@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.UteisJogo.definirCorBotao
@@ -66,6 +67,7 @@ class Jogo1x1Activity : AppCompatActivity() {
 
         configurarObservers()
         configurarBotoes()
+        configurarBackBloqueado()
         viewModel.iniciar(
             codigoSala = codigoSala,
             uid = uid,
@@ -77,6 +79,14 @@ class Jogo1x1Activity : AppCompatActivity() {
             categoriaPadrao = "Todas as categorias",
             categoriaTodas = getString(R.string.categoria5)
         )
+    }
+
+    private fun configurarBackBloqueado() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                Toast.makeText(this@Jogo1x1Activity, R.string.voltar_bloqueado_jogo, Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onDestroy() {

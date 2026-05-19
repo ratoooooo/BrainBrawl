@@ -13,6 +13,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.UteisSala.criarSalaComCategoriaEEntrar
 import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEscolherCategoriaBinding
@@ -43,6 +44,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         val nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
         val uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
         val admin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
+        val modoSolo = intent.getBooleanExtra(IntentExtras.MODO_SOLO, false)
 
         if (modoJogo == null) {
             finish()
@@ -64,9 +66,13 @@ class EscolherCategoriaActivity : AppCompatActivity() {
 
         // Função lambda para criar uma sala com a categoria escolhida e entrar nela
         val criarSala = { categoriaEscolhida: String ->
-            criarSalaComCategoriaEEntrar(
-                this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo, uid
-            ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
+            if (modoSolo) {
+                abrirJogoSolo(modoJogo, categoriaEscolhida, nomeUtilizador, nomeJogador, uid)
+            } else {
+                criarSalaComCategoriaEEntrar(
+                    this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo, uid
+                ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
+            }
         }
 
         // Configurar os botões de categoria
@@ -109,6 +115,25 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+    }
+
+    private fun abrirJogoSolo(
+        modoJogo: String,
+        categoria: String,
+        nomeUtilizador: String?,
+        nomeJogador: String?,
+        uid: String?
+    ) {
+        val intent = Intent(this, JogoActivity::class.java)
+        intent.putExtra(IntentExtras.MODO_SOLO, true)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, categoria)
+        intent.putExtra(IntentExtras.ORIGEM_CATEGORIA, GameConstants.ORIGEM_CATEGORIA_OFICIAL)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
+        startActivity(intent)
+        finish()
     }
 
     private fun mostrarDicasCategorias() {

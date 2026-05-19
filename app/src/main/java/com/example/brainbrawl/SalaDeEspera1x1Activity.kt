@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
+import androidx.activity.addCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
@@ -36,10 +37,15 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
+    private var aNavegarParaJogo = false
+    private var saidaJaProcessada = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
+        onBackPressedDispatcher.addCallback(this) {
+            sairDaSala()
+        }
 
         // Guardar dados passados pelo intent
         codigoSala = CodigoSalaUtils.normalizarCodigo(intent.getStringExtra(IntentExtras.CODIGO_SALA).orEmpty())
@@ -69,7 +75,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         // Listener para o clique no botão de iniciar jogo
         binding.btnIniciarJogo.setOnClickListener {
             binding.btnIniciarJogo.isEnabled = false
-            viewModel.verificarProntosEAvancar(codigoSala)
+            viewModel.acaoPrincipal(codigoSala)
         }
 
         binding.btnSairSala.setOnClickListener {
@@ -101,6 +107,11 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
         }
         atualizarCodigoSala(estado)
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
+        binding.btnIniciarJogo.text = when {
+            estado.matchmaking && estado.jogadorPronto -> getString(R.string.pronto_confirmado)
+            estado.matchmaking -> getString(R.string.pronto)
+            else -> getString(R.string.iniciar_jogo)
+        }
     }
 
     private fun atualizarCodigoSala(estado: SalaCompetitivaUiState) {
@@ -117,6 +128,7 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
     private fun tratarEvento(evento: Sala1x1Event) {
         when (evento) {
             Sala1x1Event.JogoIniciado -> {
+                aNavegarParaJogo = true
                 val intent = Intent(this@SalaDeEspera1x1Activity, Jogo1x1Activity::class.java)
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
                 uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
@@ -136,18 +148,25 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
                 Toast.makeText(this, R.string.aguardar_adversario, Toast.LENGTH_SHORT).show()
             Sala1x1Event.JogadoresNaoProntos ->
                 Toast.makeText(this@SalaDeEspera1x1Activity, R.string.ambos_jogadores_na_sala, Toast.LENGTH_SHORT).show()
+            Sala1x1Event.OponenteSaiu ->
+                Toast.makeText(this@SalaDeEspera1x1Activity, R.string.sala_espera_jogador_saiu, Toast.LENGTH_LONG).show()
             Sala1x1Event.EntradaBloqueada -> {
                 Toast.makeText(this@SalaDeEspera1x1Activity, R.string.sala_1x1_cheia, Toast.LENGTH_SHORT).show()
                 abrirMainActivity(this@SalaDeEspera1x1Activity, nomeUtilizador, nomeJogador, uid.ifBlank { null })
                 finish()
             }
         }
-        if (evento == Sala1x1Event.AguardarAdversario || evento == Sala1x1Event.JogadoresNaoProntos) {
+        if (evento == Sala1x1Event.AguardarAdversario ||
+            evento == Sala1x1Event.JogadoresNaoProntos ||
+            evento == Sala1x1Event.OponenteSaiu
+        ) {
             binding.btnIniciarJogo.isEnabled = viewModel.estado.value?.podeIniciar == true
         }
     }
 
     private fun sairDaSala() {
+        if (saidaJaProcessada || aNavegarParaJogo) return
+        saidaJaProcessada = true
         viewModel.sairDaSala(codigoSala)
         abrirMainActivity(this, nomeUtilizador, nomeJogador, uid.ifBlank { null })
         finish()

@@ -7,10 +7,12 @@ import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.tocarSom
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogoBinding
 import com.example.brainbrawl.models.Pergunta
@@ -61,9 +63,37 @@ class JogoActivity : AppCompatActivity() {
         codigoSala = intent.getStringExtra(IntentExtras.CODIGO_SALA) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR) ?: "Jogador"
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
+        val modoSolo = intent.getBooleanExtra(IntentExtras.MODO_SOLO, false) || codigoSala.isBlank()
+        val modoJogoExtra = intent.getStringExtra(IntentExtras.MODO_JOGO)
+        val origemCategoria = intent.getStringExtra(IntentExtras.ORIGEM_CATEGORIA)
+            ?: GameConstants.ORIGEM_CATEGORIA_OFICIAL
+        val categoriaPublicaId = intent.getStringExtra(IntentExtras.CATEGORIA_PUBLICA_ID).orEmpty()
+        val donoUid = intent.getStringExtra(IntentExtras.DONO_UID).orEmpty()
+        val donoCategoria = intent.getStringExtra(IntentExtras.DONO_CATEGORIA).orEmpty()
 
         configurarObservers()
-        viewModel.iniciar(codigoSala, uid, nomeUtilizador, nomeJogador, nomeCategoria)
+        configurarBackBloqueado()
+        viewModel.iniciar(
+            codigoSala = codigoSala,
+            uid = uid,
+            nomeUtilizador = nomeUtilizador,
+            nomeJogador = nomeJogador,
+            nomeCategoria = nomeCategoria,
+            modoJogoSolo = modoJogoExtra,
+            modoSolo = modoSolo,
+            origemCategoria = origemCategoria,
+            categoriaPublicaId = categoriaPublicaId,
+            donoUid = donoUid,
+            donoCategoria = donoCategoria
+        )
+    }
+
+    private fun configurarBackBloqueado() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                Toast.makeText(this@JogoActivity, R.string.voltar_bloqueado_jogo, Toast.LENGTH_SHORT).show()
+            }
+        })
     }
 
     override fun onDestroy() {
@@ -221,6 +251,14 @@ class JogoActivity : AppCompatActivity() {
                 pararSom()
                 viewModel.eliminarJogador()
             }, 1200)
+        } else if (resultado.deveAvancarSolo || resultado.deveFinalizarSolo) {
+            handler.postDelayed({
+                tempoDecorrido = false
+                progressBarAtivo = false
+                handler.removeCallbacksAndMessages(null)
+                pararSom()
+                viewModel.avancarSoloAposResposta()
+            }, 1200)
         }
     }
 
@@ -358,6 +396,9 @@ class JogoActivity : AppCompatActivity() {
             JogoEvent.MensagemFimEliminatorias -> {
                 Toast.makeText(this, getString(R.string.jogo_terminado_um_jogador), Toast.LENGTH_LONG).show()
             }
+            JogoEvent.BancoPerguntasConcluido -> {
+                Toast.makeText(this, R.string.eliminatorias_sem_mais_perguntas, Toast.LENGTH_LONG).show()
+            }
             is JogoEvent.AbrirEsperaEliminado -> {
                 Toast.makeText(this, getString(R.string.jogador_eliminado), Toast.LENGTH_LONG).show()
                 abrirEsperaEliminadoActivity(evento.dados)
@@ -377,6 +418,7 @@ class JogoActivity : AppCompatActivity() {
         viewModel.removerListeners()
         val intent = Intent(this, EsperaEliminadoActivity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, dados.codigoSala)
+        intent.putExtra(IntentExtras.PARTIDA_ID, dados.partidaId)
         intent.putExtra(IntentExtras.UID, dados.uid)
         intent.putExtra(IntentExtras.NOME_JOGADOR, dados.nomeJogador)
         intent.putExtra(IntentExtras.TOTAL_PONTOS, dados.totalPontos)
@@ -387,6 +429,8 @@ class JogoActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, dados.totalPerguntasCertas)
         intent.putExtra(IntentExtras.RESPOSTAS_CERTAS, dados.totalPerguntasCertas)
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, dados.totalPerguntas)
+        intent.putExtra(IntentExtras.MODO_SOLO, dados.modoSolo)
+        intent.putExtra(IntentExtras.CATEGORIA_COMPETITIVA, dados.categoriaCompetitiva)
         startActivity(intent)
         finish()
     }
@@ -394,6 +438,7 @@ class JogoActivity : AppCompatActivity() {
     private fun enviarPontuacaoActivity(dados: JogoResultadoDados) {
         val intent = Intent(this, PontuacoesActivity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, dados.codigoSala)
+        intent.putExtra(IntentExtras.PARTIDA_ID, dados.partidaId)
         intent.putExtra(IntentExtras.UID, dados.uid)
         intent.putExtra(IntentExtras.NOME_JOGADOR, dados.nomeJogador)
         intent.putExtra(IntentExtras.TOTAL_PONTOS, dados.totalPontos)
@@ -403,6 +448,8 @@ class JogoActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.NUMERO_PERGUNTAS_CERTAS, dados.numeroPerguntasCertas)
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, dados.totalPerguntasCertas)
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, dados.totalPerguntas)
+        intent.putExtra(IntentExtras.MODO_SOLO, dados.modoSolo)
+        intent.putExtra(IntentExtras.CATEGORIA_COMPETITIVA, dados.categoriaCompetitiva)
         startActivity(intent)
         finish()
     }

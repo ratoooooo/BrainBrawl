@@ -2,7 +2,6 @@ package com.example.brainbrawl
 
 import android.os.Bundle
 import android.content.Intent
-import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
@@ -40,7 +39,6 @@ class MeuPerfilActivity : AppCompatActivity() {
         val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
         BottomNavHelper.instalar(this, BottomNavHelper.Item.PERFIL, uid, nomeUtilizador, nomeJogador, email)
 
-        binding.btnVoltarPerfil.visibility = View.GONE
         binding.btnVoltarPerfil.setOnClickListener {
             finish()
         }

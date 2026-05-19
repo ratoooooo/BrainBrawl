@@ -13,6 +13,7 @@
     <string name="nome_utilizador">Nome de utilizador</string>
     <string name="ou">OU</string>
     <string name="voltar">Voltar</string>
+    <string name="voltar_bloqueado_jogo">Termina a partida para voltar ao menu.</string>
     <string name="guardar">Guardar</string>
     <string name="eliminar">Eliminar</string>
     <string name="cancelar">Cancelar</string>
@@ -110,6 +111,8 @@
     <string name="insira_seu_nome">Insira o seu nome</string>
     <string name="entrar_sala_jogo">Entrar</string>
     <string name="iniciar_jogo">Iniciar Jogo</string>
+    <string name="pronto">Pronto</string>
+    <string name="pronto_confirmado">Pronto</string>
     <string name="sair">Sair</string>
     <string name="sair_da_sala">Sair da Sala</string>
     <string name="c_digo_da_sala">Código da Sala:</string>
@@ -126,6 +129,7 @@
     <string name="sala_de_espera_1x1">Sala de Espera 1x1</string>
     <string name="sala_de_espera_2x2">Sala de Espera 2x2</string>
     <string name="aguardando_jogadores">Aguardando jogadores...</string>
+    <string name="a_carregar_jogadores">A carregar jogadores...</string>
     <string name="aguardando">Aguardando...</string>
     <string name="equipa_a">Equipa A</string>
     <string name="equipa_b">Equipa B</string>
@@ -138,6 +142,9 @@
     <string name="aguardar_adversario">Ainda a aguardar o adversário!</string>
     <string name="ambos_jogadores_na_sala">Ambos os jogadores têm de estar na sala!</string>
     <string name="sala_1x1_cheia">Sala 1x1 já está cheia.</string>
+    <string name="sala_espera_jogador_saiu">Um jogador saiu da sala. A aguardar novo jogador ou volta ao matchmaking.</string>
+    <string name="sala_espera_jogador_saiu_2x2">Um jogador saiu da sala. A aguardar novo jogador ou volta ao matchmaking.</string>
+    <string name="sala_2x2_nem_todos_prontos">Ainda não estão todos os jogadores presentes e prontos.</string>
     <string name="sala_2x2_cheia">Sala 2x2 já está cheia.</string>
     <string name="erro_iniciar_jogo_2x2">Erro ao iniciar jogo 2x2.</string>
     <string name="dados_sala_invalidos">Dados da sala inválidos.</string>
@@ -145,7 +152,10 @@
     <string name="erro_carregar_jogadores">Erro ao carregar jogadores.</string>
     <string name="erro_escutar_estado_sala">Erro ao escutar estado da sala.</string>
     <string name="erro_validar_jogadores">Erro ao validar jogadores.</string>
-    <string name="jogadores_insuficientes">Aguarde pelo menos 1 jogador além do admin.</string>
+    <string name="jogadores_insuficientes">Precisas de pelo menos 2 jogadores para iniciar uma sala de grupo.</string>
+    <string name="jogadores_minimos_grupo_format">%1$d/%2$d jogadores mínimos</string>
+    <string name="sala_grupo_aguardar_mais_format">Falta mais %1$d jogador(es) para iniciar.</string>
+    <string name="sala_grupo_pronta">Jogadores suficientes. Podes iniciar.</string>
     <string name="sala_privada_convite">Sala privada por convite</string>
 
     <!-- Jogo -->
@@ -162,8 +172,10 @@
     <string name="erro_verificar_jogadores">Erro ao verificar jogadores.</string>
     <string name="erro_eliminar_jogador">Erro ao eliminar jogador. Tenta novamente.</string>
     <string name="jogo_terminado_um_jogador">Jogo terminado! Só resta um jogador.</string>
+    <string name="eliminatorias_sem_mais_perguntas">Chegaste ao fim das perguntas disponíveis.</string>
     <string name="jogador_eliminado">Foste eliminado!</string>
     <string name="aguardar_fim_partida">A aguardar o fim da partida...</string>
+    <string name="aguarda_restantes_jogadores">Aguarda enquanto os restantes jogadores continuam.</string>
     <string name="erro_ler_categoria">Erro ao ler categoria.</string>
     <string name="erro_guardar_pontuacao">Erro ao guardar pontuação.</string>
     <string name="aguarde_adversario_terminar">Aguarda que o adversário termine.</string>
@@ -250,10 +262,13 @@
     <string name="modo_1x1_convite">1x1 por convite</string>
     <string name="modo_2x2_convite">2x2 por convite</string>
     <string-array name="opcoes_modo_personalizado">
+        <item>Solo clássico</item>
+        <item>Solo caótico</item>
+        <item>Solo eliminatórias</item>
         <item>Clássico/grupo</item>
         <item>1x1 por convite</item>
         <item>2x2 por convite</item>
-        <item>Eliminatórias</item>
+        <item>Eliminatórias/grupo</item>
     </string-array>
 
     <!-- Adicionar pergunta -->

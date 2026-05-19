@@ -88,25 +88,14 @@ class SalaRepository(
 
         salaRef(codigoSala).get()
             .addOnSuccessListener { salaSnapshot ->
-                val adminUid = salaSnapshot.child(FirebasePaths.ADMIN_UID).getValue(String::class.java).orEmpty()
-                val adminId = salaSnapshot.child(FirebasePaths.ADMIN_ID).getValue(String::class.java).orEmpty()
                 val adminNome = salaSnapshot.child(FirebasePaths.ADMIN).getValue(String::class.java).orEmpty()
-
-                val isRealAdmin = jogador.chavesCompatibilidade.any { chave ->
-                    chave.isNotBlank() && (
-                            chave == adminUid ||
-                                    chave == adminId ||
-                                    chave == adminNome
-                            )
-                }
 
                 val jogadoresSnapshot = salaSnapshot.child(FirebasePaths.JOGADORES)
                 val chave = jogadoresSnapshot.encontrarChaveJogador(jogador) ?: jogador.chaveSala
                 val jogadorRef = jogadorRef(codigoSala, chave)
 
-                // O Firebase é a fonte da verdade.
-                // Não usamos adminHint diretamente para evitar marcar jogadores reais como host-only.
-                val isHostOnly = isRealAdmin
+                val isPlaceholderAdmin = chave == GameConstants.JOGADOR_ADMIN && adminNome == GameConstants.JOGADOR_ADMIN
+                val isHostOnly = isPlaceholderAdmin
 
                 val dados = jogador.toFirebaseMap(isHostOnly = isHostOnly)
 

@@ -1,14 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="bb_bg_start">#F7F2E9</color>
-    <color name="bb_bg_mid">#F7F2E9</color>
-    <color name="bb_bg_end">#F7F2E9</color>
-    <color name="bb_surface">#FFFDF7</color>
-    <color name="bb_surface_strong">#FFFDF7</color>
-    <color name="bb_surface_muted">#F3E8D4</color>
-    <color name="bb_text_primary">#16120D</color>
-    <color name="bb_text_secondary">#6B5B46</color>
-    <color name="bb_primary">#16120D</color>
+    <color name="bb_bg_start">#F4F7FB</color>
+    <color name="bb_bg_mid">#F4F7FB</color>
+    <color name="bb_bg_end">#F4F7FB</color>
+    <color name="bb_surface">#FFFFFF</color>
+    <color name="bb_surface_strong">#FFFFFF</color>
+    <color name="bb_surface_muted">#EEF3F8</color>
+    <color name="bb_text_primary">#111827</color>
+    <color name="bb_text_secondary">#4B5563</color>
+    <color name="bb_primary">#0F172A</color>
     <color name="bb_primary_text">#FFFFFF</color>
     <color name="bb_secondary_text">#16120D</color>
     <color name="bb_accent">#F4B400</color>
@@ -17,10 +17,10 @@
     <color name="bb_success">#2E7D32</color>
     <color name="bb_team_a">#1976D2</color>
     <color name="bb_team_b">#D32F2F</color>
-    <color name="bb_outline">#E7D7BC</color>
+    <color name="bb_outline">#D7DEE8</color>
     <color name="bb_shadow">#22000000</color>
     <color name="bb_info_dark">#12324A</color>
-    <color name="bb_info_gold">#C89B3C</color>
+    <color name="bb_info_gold">#D6A832</color>
 
     <color name="red">#FF0000</color>
     <color name="vermelho">#F44336</color>

@@ -75,6 +75,7 @@ class RegistarActivity : AppCompatActivity() {
         }
 
         binding.btnRegistar.setOnClickListener {
+            binding.btnRegistar.isEnabled = false
             // GGuardar os dados inseridos nos campos de texto
             val nomeUtilizador = binding.edtNomeJogador.text.toString().trim()
             val email = binding.edtEmail.text.toString().trim()
@@ -171,6 +172,7 @@ class RegistarActivity : AppCompatActivity() {
     }
 
     private fun tratarEvento(evento: RegistarEvent) {
+        binding.btnRegistar.isEnabled = true
         when (evento) {
             is RegistarEvent.ValidacaoFalhou -> {
                 Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()

@@ -12,6 +12,7 @@
     <string name="nome_utilizador">Username</string>
     <string name="ou">OR</string>
     <string name="voltar">Back</string>
+    <string name="voltar_bloqueado_jogo">Finish the match to return to the menu.</string>
     <string name="guardar">Save</string>
     <string name="eliminar">Delete</string>
     <string name="cancelar">Cancel</string>
@@ -103,6 +104,8 @@
     <string name="insira_seu_nome">Enter your name</string>
     <string name="entrar_sala_jogo">Join</string>
     <string name="iniciar_jogo">Start Game</string>
+    <string name="pronto">Ready</string>
+    <string name="pronto_confirmado">Ready</string>
     <string name="sair">Exit</string>
     <string name="sair_da_sala">Leave Room</string>
     <string name="c_digo_da_sala">Room Code:</string>
@@ -119,6 +122,7 @@
     <string name="sala_de_espera_1x1">1v1 Waiting Room</string>
     <string name="sala_de_espera_2x2">2v2 Waiting Room</string>
     <string name="aguardando_jogadores">Waiting for players...</string>
+    <string name="a_carregar_jogadores">Loading players...</string>
     <string name="aguardando">Waiting...</string>
     <string name="equipa_a">Team A</string>
     <string name="equipa_b">Team B</string>
@@ -131,6 +135,9 @@
     <string name="aguardar_adversario">Still waiting for the opponent!</string>
     <string name="ambos_jogadores_na_sala">Both players must be in the room!</string>
     <string name="sala_1x1_cheia">1v1 room is already full.</string>
+    <string name="sala_espera_jogador_saiu">A player left the room. Waiting for a new player or return to matchmaking.</string>
+    <string name="sala_espera_jogador_saiu_2x2">A player left the room. Waiting for a new player or return to matchmaking.</string>
+    <string name="sala_2x2_nem_todos_prontos">Not all players are present and ready yet.</string>
     <string name="sala_2x2_cheia">2v2 room is already full.</string>
     <string name="erro_iniciar_jogo_2x2">Error starting 2v2 game.</string>
     <string name="dados_sala_invalidos">Invalid room data.</string>
@@ -138,7 +145,10 @@
     <string name="erro_carregar_jogadores">Error loading players.</string>
     <string name="erro_escutar_estado_sala">Error listening to room status.</string>
     <string name="erro_validar_jogadores">Error validating players.</string>
-    <string name="jogadores_insuficientes">Wait for at least 1 player besides the admin.</string>
+    <string name="jogadores_insuficientes">You need at least 2 players to start a group room.</string>
+    <string name="jogadores_minimos_grupo_format">%1$d/%2$d minimum players</string>
+    <string name="sala_grupo_aguardar_mais_format">%1$d more player(s) needed to start.</string>
+    <string name="sala_grupo_pronta">Enough players. You can start.</string>
     <string name="sala_privada_convite">Private invite room</string>
     <string name="progresso_pergunta">Question %1$d/%2$d</string>
     <string name="carregar_perguntas">Loading questions...</string>
@@ -153,8 +163,10 @@
     <string name="erro_verificar_jogadores">Error checking players.</string>
     <string name="erro_eliminar_jogador">Error removing player. Try again.</string>
     <string name="jogo_terminado_um_jogador">Game over! Only one player remains.</string>
+    <string name="eliminatorias_sem_mais_perguntas">You reached the end of the available questions.</string>
     <string name="jogador_eliminado">You were eliminated!</string>
     <string name="aguardar_fim_partida">Waiting for the match to finish...</string>
+    <string name="aguarda_restantes_jogadores">Wait while the remaining players continue.</string>
     <string name="erro_ler_categoria">Error reading category.</string>
     <string name="erro_guardar_pontuacao">Error saving score.</string>
     <string name="aguarde_adversario_terminar">Wait for your opponent to finish.</string>
@@ -239,10 +251,13 @@
     <string name="modo_1x1_convite">1v1 by invite</string>
     <string name="modo_2x2_convite">2v2 by invite</string>
     <string-array name="opcoes_modo_personalizado">
+        <item>Solo classic</item>
+        <item>Solo chaos</item>
+        <item>Solo elimination</item>
         <item>Classic/group</item>
         <item>1v1 by invite</item>
         <item>2v2 by invite</item>
-        <item>Elimination</item>
+        <item>Elimination/group</item>
     </string-array>
     <string name="adicionar_nova_pergunta">Add New Question</string>
     <string name="insira_nome_categoria">Enter the category name</string>

@@ -31,4 +31,10 @@ object GameConstants {
     const val ORIGEM_MATCHMAKING = "matchmaking"
     const val ORIGEM_CONVITE = "convite"
     const val ORIGEM_MANUAL = "manual"
+
+    const val ORIGEM_CATEGORIA_OFICIAL = "oficial"
+    const val ORIGEM_CATEGORIA_PERSONALIZADA = "personalizada"
+    const val ORIGEM_CATEGORIA_PUBLICA = "publica"
+
+    const val HISTORICO_RETENCAO_DIAS = 3
 }

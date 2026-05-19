@@ -1,5 +1,12 @@
 # Pergunta o Luso - Architecture Plan
 
+## Pré-beta: matchmaking, espera competitiva, pódio grupo eliminatórias, UI base
+
+- **Matchmaking + salas 1x1/2x2**: o contrato de “pronto” em Firebase (`prontos/{chaveJogador}`) passou a ser coerente com presença real: valores `false`/chaves órfãs não contam; `onDisconnect` remove o nó de pronto em paralelo com `estado=off`; a contagem de chaves reais para reserva ignora jogadores `off`. O 2x2 ganhou o mesmo nó `prontos` e verificação antes de `guardarEquipas2x2` + `estado em_jogo`.
+- **Eliminatórias grupo — fecho de resultados**: o fluxo de fim de jogo em grupo grava `terminado` + pontuação para **todos** os clientes em jogo não-solo, incluindo anfitrião com `admin=true`, para o resumo `resultadosGuardados/totalJogadores` em `PontuacaoRepository` fechar sem depender só dos eliminados (`eliminado`).
+- **Ordenação pódio eliminatórias**: `ResultadoJogador` inclui `estadoPartida`; o pódio de eliminatórias ordena sobreviventes (`terminado`) antes de empates por pontos/respostas.
+- **UI**: ecrãs principais de fluxo e pódio/histórico/perfil alinham o fundo raiz com `bg_main_premium` (mesma base visual que `MainActivity`).
+
 ## Correção ícones/badges/conquistas - 2026-05-15
 
 - `UteisConquistas` passa a centralizar os ícones de badges por família com prefixes corretos: `pj`, `vt`, `xp`, `rc` e `cr`.
@@ -823,3 +830,161 @@ UI:
 - Main remove fundos circulares estranhos nos avatares e alinha a seta do CTA principal.
 - Salas 1x1/2x2 escondem o código/card quando a sala é privada por convite; sala de grupo mantém código.
 - Dicas usam marcador azul escuro com dourado subtil, sem amarelo torrado dominante.
+
+## Solo vs Grupo - mínimo de sala - 2026-05-18
+
+Decisão de fluxo:
+
+- Solo é o fluxo individual e continua fora de salas.
+- Grupo/Sala é o fluxo multiplayer por código e exige pelo menos 2 participantes ativos presentes antes de iniciar.
+- 1x1 e 2x2 continuam com regras competitivas próprias.
+- Matchmaking continua separado e não foi alterado.
+
+Responsabilidades:
+
+- `SalaGrupoViewModel` é a fonte local da regra de início da sala grupo: observa jogadores, calcula participantes ativos, expõe estado de UI e valida de novo no Firebase antes de mudar a sala para `em_jogo`.
+- `SalaDeEsperaGrupoActivity` apenas apresenta contador/mensagem e liga o botão `Iniciar` ao estado exposto pela ViewModel.
+- `SalaRepository` permanece como camada Firebase; não houve alteração de schema nem de Firebase Rules.
+
+## Pré-beta - Solo, eliminatórias e competitividade - 2026-05-18
+
+Modo Solo:
+
+- Solo é fluxo individual local dentro de `JogoActivity`/`JogoViewModel`.
+- Solo não cria `salas/{codigo}`, não mostra código e não espera outros jogadores.
+- `partidaId` é usado apenas para histórico/idempotência local do resultado, não como código de sala.
+- Convidados podem jogar Solo, mas continuam sem histórico, XP, ranking ou badges persistentes.
+
+Grupo/Sala:
+
+- Grupo/Sala continua multiplayer por código e exige mínimo de 2 participantes.
+- 1x1, 2x2, convites e matchmaking mantêm fluxos próprios.
+
+Eliminatórias:
+
+- Eliminatórias Solo usam todas as perguntas válidas disponíveis e terminam ao primeiro erro ou quando esgotam perguntas.
+- Eliminatórias Grupo deixam de aplicar limite fixo de 8 perguntas quando a sala é criada/carregada.
+- Jogadores eliminados aguardam em `EsperaEliminadoActivity`, com ranking/estado parcial até ao pódio final.
+
+Competitividade de categorias:
+
+- Apenas categorias oficiais contam para ranking, recordes e vitórias competitivas.
+- Categorias personalizadas e públicas criadas por jogadores são não competitivas.
+- O histórico pode registar esses jogos com `competitivo=false`.
+- `PontuacaoRepository` bloqueia estatísticas competitivas para salas com metadados de categoria pública/personalizada.
+
+Histórico:
+
+- `HistoricoRepository` remove entradas antigas do próprio `historicoJogos/{uid}` com mais de `GameConstants.HISTORICO_RETENCAO_DIAS`.
+- Entradas sem timestamp válido são preservadas.
+- Retenção autoritativa futura deve ser Cloud Functions/TTL.
+
+## Ajuste final pré-beta - fluxo, presença e vitória Solo - 2026-05-18
+
+Fluxo de modos:
+
+- `EscolherModoActivity` é apenas a escolha do modo base: Clássico, Caótico ou Eliminatórias.
+- `TipoModoClassico` passou a funcionar como ecrã comum de escolha de tipo para todos os modos base.
+- 1x1/2x2 permanecem disponíveis apenas no modo Clássico para preservar os fluxos competitivos atuais; Caótico/Eliminatórias expõem Solo e Grupo.
+- Matchmaking continua na Main e não foi movido para este fluxo.
+
+Vitórias Solo:
+
+- `EstatisticasService` mantém Solo como jogo pontuável/experienciável conforme regra atual, mas Solo não incrementa `totalVitorias` nem `totalVitoriasModoSolo`.
+- Badges/Ranking baseados em `totalVitorias` ficam protegidos contra vitórias individuais artificiais.
+
+Matchmaking/presença:
+
+- Salas competitivas fechadas atualizam presença no Firebase com `jogadores/{chave}/estado = on`.
+- `onDisconnect` marca o jogador como `off`; as ViewModels de sala ignoram jogadores `off` ao calcular presença e início.
+- 1x1 mantém o nó `prontos` existente; 2x2 usa presença ativa/exatamente 4 jogadores como bloqueio simples.
+- Um ready-state manual e autoritativo por jogador fica para versão futura/backend, para evitar redesenhar convites/matchmaking nesta fase.
+
+## Correções finais pré-beta - matchmaking, eliminatórias e histórico - 2026-05-18
+
+Matchmaking e salas fechadas:
+
+- Salas vindas de matchmaking continuam em `sala_1x1`/`sala_2x2` com `origem=matchmaking`, `entradaFechada=true`, `lotacaoMaxima` e `jogadoresPermitidos`.
+- A entrada numa sala fechada passou a aceitar o jogador se a chave existir em `jogadoresPermitidos`, mesmo que o nó em `jogadores` tenha sido removido ao sair da sala de espera.
+- Ao reentrar por essa autorização, o cliente recria `jogadores/{chave}` com a mesma identidade e marca presença `estado=on`.
+- A lotação efetiva continua a ser presença real: 2 jogadores ativos no 1x1, 4 no 2x2. O fluxo de matchmaking permanece na Main.
+
+Eliminatórias grupo:
+
+- O nó `salas/{codigo}/jogadores/{chave}` passa a receber progresso parcial a cada resposta: `pontuacao`, `totalRespostasCertas`, `totalPerguntas` e `estado=em_jogo`.
+- Resultado final de grupo só é considerado final quando `estado=terminado` ou `estado=eliminado`.
+- O ecrã de eliminado usa ranking intermédio em cards com estados humanos: `Em jogo`, `Eliminado` e `Terminou`.
+- Se um jogador vivo ainda não tiver progresso parcial confirmado, a UI mostra `Em jogo` em vez de um 0 falso.
+
+Histórico:
+
+- `historicoJogos/{uid}` continua UID-first e bloqueado para convidados.
+- O bug de histórico/pódio prematuro vinha de campos iniciais `pontuacao=0` e `totalRespostasCertas=0` serem tratados como resultado final.
+- A decisão atual é preservar histórico para categorias oficiais, personalizadas e públicas; competitividade continua separada por `competitivo=false` quando a categoria não é oficial.
+- Ranking, recorde, vitórias e XP competitivo continuam bloqueados para categorias não oficiais pela camada de pontuação/estatísticas.
+
+## Refactor controlado do matchmaking - fila, sala, presença e pronto - 2026-05-19
+
+Contrato:
+
+- O matchmaking continua a partir da Main e mantém os paths atuais: `matchmaking/{modo}/fila`, `matchmaking/{modo}/matches`, `matchmaking/{modo}/resultados`, `sala_1x1/{codigo}` e `sala_2x2/{codigo}`.
+- A seleção de jogadores continua cliente-side com transação em `matchmaking/{modo}`: 2 jogadores para 1x1, 4 jogadores para 2x2.
+- A sala criada por matchmaking é fechada com `origem=matchmaking`, `entradaFechada=true`, `lotacaoMaxima` e `jogadoresPermitidos/{playerKey}=true`.
+- Os jogadores selecionados são copiados para `jogadores/{playerKey}` com `estado=off`; presença real só existe quando a Activity da sala de espera abre e marca o próprio jogador como `on`.
+- O nó `prontos/{playerKey}` não nasce no payload inicial da sala, para manter compatibilidade com as validações atuais de sala. Cada cliente cria/atualiza o próprio pronto ao entrar e ao clicar em `Pronto`.
+
+Separação de fluxos:
+
+- Salas de `origem=matchmaking` usam ready-state manual: o jogo só inicia com exatamente N jogadores presentes e N prontos.
+- Salas por convite preservam o comportamento antigo: presença/ready automático ao entrar e início pelo admin quando a sala está completa.
+- `MatchmakingActivity.onStop` já não cancela a fila por background; cancelamento acontece por ação explícita do utilizador ou por saída da sala de espera antes do jogo.
+
+Saída e inconsistência:
+
+- Se um jogador sai de uma sala de matchmaking antes de `em_jogo`, a sala é cancelada/apagada e os restantes recebem aviso de encerramento.
+- A validação de lotação considera apenas jogadores reais presentes: sem `estado=off`, sem placeholders, sem duplicados e com autorização por `jogadoresPermitidos` quando a sala é fechada.
+- A reentrada é idempotente: antes de escrever na fila, o ViewModel procura sala ativa de matchmaking onde o jogador já esteja autorizado e navega para ela.
+
+Limites:
+
+- Sem Cloud Functions, a arbitragem continua dependente de transações e limpeza client-side.
+- `onDisconnect` cobre o caso normal de perda de ligação, mas não substitui limpeza autoritativa/TTL futura.
+- 2x2 deve continuar a ser validado manualmente com 4 contas/dispositivos reais antes da beta fechada.
+
+## Resultados grupo: visual vs persistente - 2026-05-19
+
+Contrato clarificado:
+
+- Resultado visual temporário de Grupo Clássico, Caótico e Eliminatórias vive em `salas/{codigo}/jogadores/{jogadorId}`.
+- O pódio de grupo lê o mesmo path e considera resultado guardado apenas quando o jogador está `terminado` ou `eliminado` e tem pontuação/respostas.
+- Jogadores `off` antes de começar não entram no total esperado do pódio.
+- O placeholder técnico `admin` continua ignorado; o host real da sala não deve ser escondido por `isHostOnly`.
+
+Separação de responsabilidades:
+
+- Resultado visual, contador do pódio, ordenação final e feedback ao jogador nunca dependem de a categoria ser competitiva.
+- Estatísticas persistentes, XP, ranking, recordes e vitórias competitivas continuam condicionados por autenticação e competitividade da categoria.
+- Convidados podem aparecer no pódio visual da sala, mas não escrevem histórico/estatísticas persistentes.
+
+Rules:
+
+- `salas/{codigo}/jogadores/{jogadorId}` precisa aceitar os campos realmente escritos pelo jogo: `pontuacao`, `totalRespostasCertas`, `totalPerguntas` e `estado` com `on/off/em_jogo/terminado/eliminado`.
+- Esta fase mantém o schema atual e não cria Cloud Functions.
+
+## QA jogável: pódio, histórico e navegação - 2026-05-19
+
+Pódio e resultados de sala:
+
+- O fluxo de grupo mantém o contrato em que o resultado visual é escrito no próprio jogador da sala, não num nó separado de estatística persistente.
+- `perguntaAtual/respostas` é estado transitório de sincronização da pergunta atual; o admin pode limpar o nó inteiro ao avançar a pergunta.
+- O pódio de grupo não deve fechar automaticamente só porque alguns resultados ainda não chegaram; deve permanecer no estado de espera até os jogadores esperados terminarem ou serem eliminados.
+
+Histórico:
+
+- `HistoricoJogo` transporta `competitivo` para distinguir histórico visual de efeitos competitivos.
+- Categorias não oficiais podem aparecer no histórico e no pódio visual, mas não devem inflacionar ranking, recordes, vitórias competitivas ou XP competitivo.
+
+Navegação/back:
+
+- Em Activities de jogo (`JogoActivity`, `Jogo1x1Activity`, `Jogo2x2Activity`), o Back físico é uma ação bloqueada por regra de produto enquanto a partida está ativa e deve mostrar mensagem clara.
+- Em ecrãs navegacionais como Histórico, Perfil e Amigos, o botão visual de voltar deve permanecer visível e chamar `finish()`.

@@ -23,6 +23,17 @@ object AvatarUtils {
         return "avatar_${index + 1}_playstore"
     }
 
+    fun indicePorNomeAvatar(avatarFirebase: String?): Int? {
+        val normalizado = normalizarNome(avatarFirebase)
+        val numero = Regex("^avatar_(\\d+)(?:_playstore)?$")
+            .matchEntire(normalizado)
+            ?.groupValues
+            ?.getOrNull(1)
+            ?.toIntOrNull()
+            ?: return null
+        return (numero - 1).takeIf { it in 0..11 }
+    }
+
     private fun nomesCandidatos(avatarFirebase: String?): List<String> {
         val normalizado = normalizarNome(avatarFirebase)
         val base = normalizado.ifBlank { FALLBACK_NAME }

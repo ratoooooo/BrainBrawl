@@ -65,6 +65,44 @@ class MatchmakingRepository(
         return database.updateChildren(updates)
     }
 
+    fun procurarSalaAtivaDoJogador(modo: String, playerKey: String): Task<MatchmakingResult?> {
+        val result = TaskCompletionSource<MatchmakingResult?>()
+        if (playerKey.isBlank()) {
+            result.setResult(null)
+            return result.task
+        }
+
+        database.child(salaNode(modo)).get()
+            .addOnSuccessListener { salas ->
+                val sala = salas.children.firstOrNull { snapshot ->
+                    snapshot.child(FirebasePaths.ORIGEM).texto() == GameConstants.ORIGEM_MATCHMAKING &&
+                        snapshot.child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_EM_ESPERA } == GameConstants.ESTADO_EM_ESPERA &&
+                        snapshot.jogadorPertenceAoMatchmaking(playerKey)
+                }
+                if (sala == null) {
+                    result.setResult(null)
+                    return@addOnSuccessListener
+                }
+                val codigoSala = sala.key.orEmpty()
+                result.setResult(
+                    MatchmakingResult(
+                        playerKey = playerKey,
+                        uid = sala.child(FirebasePaths.JOGADORES).child(playerKey).child(FirebasePaths.UID).texto(),
+                        tipoJogador = sala.child(FirebasePaths.JOGADORES).child(playerKey).child(FirebasePaths.TIPO_JOGADOR).texto(),
+                        codigoSala = codigoSala,
+                        modo = modo,
+                        nomeCategoria = sala.child(FirebasePaths.NOME_CATEGORIA).texto(),
+                        criadorKey = sala.child(FirebasePaths.ADMIN_ID).texto(),
+                        criadorUid = sala.child(FirebasePaths.ADMIN_UID).texto(),
+                        estado = GameConstants.ESTADO_ENCONTRADO,
+                        jogadores = sala.child(FirebasePaths.JOGADORES).children.mapNotNull { MatchmakingPlayer.fromSnapshot(it) }
+                    )
+                )
+            }
+            .addOnFailureListener { result.setException(it) }
+        return result.task
+    }
+
     fun cancelar(playerKey: String, modo: String): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
         resultadoRef(modo, playerKey).get()
@@ -123,12 +161,7 @@ class MatchmakingRepository(
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar sala.")
             val sala = task.result
             if (!sala.exists() || playerKey.isBlank()) return@continueWith false
-            val jogadores = sala.child(FirebasePaths.JOGADORES)
-            jogadores.child(playerKey).exists() ||
-                jogadores.children.any { jogador ->
-                    jogador.child(FirebasePaths.PLAYER_KEY).texto() == playerKey ||
-                        jogador.child(FirebasePaths.UID).texto() == playerKey
-                }
+            sala.jogadorPertenceAoMatchmaking(playerKey)
         }
     }
 
@@ -254,96 +287,87 @@ class MatchmakingRepository(
 
     fun tentarCriarMatch(modo: String, nomeCategoria: String, criadorKey: String): Task<MatchCriado?> {
         val result = TaskCompletionSource<MatchCriado?>()
-        val modoRef = matchmakingModoRef(modo)
         val limite = limiteJogadores(modo)
         val agora = System.currentTimeMillis()
-        var jogadoresSelecionados: List<MatchmakingPlayer> = emptyList()
-        var criadorSelecionado: MatchmakingPlayer? = null
-        var codigoSala = ""
-        var matchId = ""
-
-        modoRef.runTransaction(object : Transaction.Handler {
-            override fun doTransaction(currentData: MutableData): Transaction.Result {
-                jogadoresSelecionados = emptyList()
-                criadorSelecionado = null
-                codigoSala = ""
-                matchId = ""
-                removerStaleTransaction(currentData, agora)
-
-                val fila = currentData.child(FirebasePaths.FILA).children.mapNotNull { child ->
-                    child.toMatchmakingPlayer()
-                }
+        filaRef(modo).get()
+            .addOnSuccessListener { filaSnapshot ->
+                val fila = filaSnapshot.children.mapNotNull { MatchmakingPlayer.fromSnapshot(it) }
                     .filter { it.estado == GameConstants.ESTADO_AGUARDANDO }
+                    .filter { it.timestampEntrada == 0L || agora - it.timestampEntrada <= STALE_MS }
                     .distinctBy { it.playerKey }
                     .sortedBy { it.timestampEntrada }
-
                 if (fila.size < limite) {
-                    return Transaction.abort()
+                    result.setResult(null)
+                    return@addOnSuccessListener
                 }
 
-                jogadoresSelecionados = fila.take(limite)
+                val jogadoresSelecionados = fila.take(limite)
                 if (!jogadoresSelecionados.temLimiteExato(limite)) {
                     Log.w(
                         TAG,
                         "Selecao invalida para match: modo=$modo limite=$limite " +
                             "quantidade=${jogadoresSelecionados.size} jogadores=${jogadoresSelecionados.maskedPlayerKeys()}"
                     )
-                    jogadoresSelecionados = emptyList()
-                    return Transaction.abort()
-                }
-                val criador = jogadoresSelecionados.firstOrNull { it.playerKey == criadorKey }
-                    ?: return Transaction.abort()
-                criadorSelecionado = criador
-                matchId = "match_${jogadoresSelecionados.matchIdentity().hashCode().absoluteKey()}"
-                if (currentData.child(FirebasePaths.MATCHES).child(matchId).value != null) {
-                    return Transaction.abort()
-                }
-
-                codigoSala = gerarCodigoSala()
-                Log.d(
-                    TAG,
-                    "Match claim: modo=$modo sala=${codigoSala.maskedLogId()} " +
-                        "criador=${criador.playerKey.maskedLogId()} jogadores=${jogadoresSelecionados.maskedPlayerKeys()}"
-                )
-
-                currentData.child(FirebasePaths.MATCHES).child(matchId).value = mapOf(
-                    FirebasePaths.ESTADO to GameConstants.ESTADO_CRIANDO,
-                    FirebasePaths.CODIGO_SALA to codigoSala,
-                    FirebasePaths.MODO to modo,
-                    FirebasePaths.CRIADOR_ID to criador.playerKey,
-                    FirebasePaths.CRIADOR_UID to criador.uid,
-                    FirebasePaths.TIMESTAMP_ENTRADA to agora
-                )
-                jogadoresSelecionados.forEach { jogador ->
-                    currentData.child(FirebasePaths.FILA).child(jogador.playerKey).value =
-                        jogador.toFilaReclamadaMap(criador, codigoSala, agora)
-                }
-
-                return Transaction.success(currentData)
-            }
-
-            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                if (error != null) {
-                    logErroFirebase(
-                        "Transacao matchmaking falhou: modo=$modo criador=${criadorKey.maskedLogId()}",
-                        error.toException()
-                    )
-                    result.setException(error.toException())
-                    return
-                }
-                val criador = criadorSelecionado
-                if (!committed || jogadoresSelecionados.isEmpty() || codigoSala.isBlank() || criador == null) {
                     result.setResult(null)
-                    return
+                    return@addOnSuccessListener
                 }
 
-                criarSalaEPublicarResultados(modo, nomeCategoria, codigoSala, matchId, criador, jogadoresSelecionados)
-                    .addOnSuccessListener {
-                        result.setResult(MatchCriado(codigoSala, jogadoresSelecionados))
-                    }
-                    .addOnFailureListener { result.setException(it) }
+                val criador = jogadoresSelecionados.firstOrNull { it.playerKey == criadorKey }
+                if (criador == null) {
+                    result.setResult(null)
+                    return@addOnSuccessListener
+                }
+
+                val matchId = "match_${jogadoresSelecionados.matchIdentity().hashCode().absoluteKey()}"
+                val codigoSala = gerarCodigoSala()
+                matchmakingModoRef(modo).child(FirebasePaths.MATCHES).child(matchId)
+                    .runTransaction(object : Transaction.Handler {
+                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                            val timestamp = currentData.child(FirebasePaths.TIMESTAMP_ENTRADA).getValue(Long::class.java)
+                                ?: currentData.child(FirebasePaths.TIMESTAMP_ENTRADA).getValue(Int::class.java)?.toLong()
+                                ?: 0L
+                            val stale = timestamp > 0 && agora - timestamp > MATCH_CREATION_TIMEOUT_MS
+                            if (currentData.value != null && !stale) return Transaction.abort()
+
+                            Log.d(
+                                TAG,
+                                "Match claim: modo=$modo sala=${codigoSala.maskedLogId()} " +
+                                    "criador=${criador.playerKey.maskedLogId()} jogadores=${jogadoresSelecionados.maskedPlayerKeys()}"
+                            )
+                            currentData.value = mapOf(
+                                FirebasePaths.ESTADO to GameConstants.ESTADO_CRIANDO,
+                                FirebasePaths.CODIGO_SALA to codigoSala,
+                                FirebasePaths.MODO to modo,
+                                FirebasePaths.CRIADOR_ID to criador.playerKey,
+                                FirebasePaths.CRIADOR_UID to criador.uid,
+                                FirebasePaths.TIMESTAMP_ENTRADA to agora
+                            )
+                            return Transaction.success(currentData)
+                        }
+
+                        override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                            if (error != null) {
+                                logErroFirebase(
+                                    "Transacao matchmaking falhou: modo=$modo criador=${criadorKey.maskedLogId()}",
+                                    error.toException()
+                                )
+                                result.setException(error.toException())
+                                return
+                            }
+                            if (!committed) {
+                                result.setResult(null)
+                                return
+                            }
+
+                            criarSalaEPublicarResultados(modo, nomeCategoria, codigoSala, matchId, criador, jogadoresSelecionados)
+                                .addOnSuccessListener {
+                                    result.setResult(MatchCriado(codigoSala, jogadoresSelecionados))
+                                }
+                                .addOnFailureListener { result.setException(it) }
+                        }
+                    })
             }
-        })
+            .addOnFailureListener { result.setException(it) }
 
         return result.task
     }
@@ -470,7 +494,11 @@ class MatchmakingRepository(
     ): Map<String, Any> {
         val limite = limiteJogadores(modo)
         val dados = linkedMapOf<String, Any>(
-            FirebasePaths.JOGADORES to jogadores.associate { it.playerKey to it.toSalaJogadorMap() },
+            FirebasePaths.JOGADORES to jogadores.associate { jogador ->
+                jogador.playerKey to jogador.toSalaJogadorMap().toMutableMap().apply {
+                    this[FirebasePaths.ESTADO] = GameConstants.ESTADO_OFF
+                }
+            },
             FirebasePaths.JOGADORES_PERMITIDOS to jogadores.associate { it.playerKey to true },
             FirebasePaths.ADMIN to criador.nomeDisplay,
             FirebasePaths.ADMIN_ID to criador.playerKey,
@@ -656,6 +684,18 @@ class MatchmakingRepository(
             ?: getValue(Int::class.java)?.toLong()
             ?: getValue(Double::class.java)?.toLong()
             ?: 0L
+    }
+
+    private fun DataSnapshot.jogadorPertenceAoMatchmaking(playerKey: String): Boolean {
+        if (playerKey.isBlank()) return false
+        val jogadores = child(FirebasePaths.JOGADORES)
+        val permitido = child(FirebasePaths.JOGADORES_PERMITIDOS).child(playerKey).getValue(Boolean::class.java) == true
+        return permitido ||
+            jogadores.child(playerKey).exists() ||
+            jogadores.children.any { jogador ->
+                jogador.child(FirebasePaths.PLAYER_KEY).texto() == playerKey ||
+                    jogador.child(FirebasePaths.UID).texto() == playerKey
+            }
     }
 
     private companion object {

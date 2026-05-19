@@ -40,6 +40,14 @@ class PontuacoesActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         val totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
         val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: ""
+        val totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
+        val totalRespostasCertas = intent.getIntExtra(
+            IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY,
+            intent.getIntExtra(IntentExtras.RESPOSTAS_CERTAS, 0)
+        )
+        val modoSolo = intent.getBooleanExtra(IntentExtras.MODO_SOLO, false) || codigoSala.isBlank()
+        val partidaId = intent.getStringExtra(IntentExtras.PARTIDA_ID).orEmpty()
+        val categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
         val tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         val isGuest = intent.getBooleanExtra(
             IntentExtras.IS_GUEST,
@@ -56,6 +64,11 @@ class PontuacoesActivity : AppCompatActivity() {
                 nomeCategoria = nomeCategoria,
                 totalPerguntas = totalPerguntas,
                 modoJogo = modoJogo,
+                totalPontos = totalPontos,
+                totalRespostasCertas = totalRespostasCertas,
+                modoSolo = modoSolo,
+                partidaId = partidaId,
+                categoriaCompetitiva = categoriaCompetitiva,
                 tipoJogador = tipoJogador,
                 isGuest = isGuest
             )

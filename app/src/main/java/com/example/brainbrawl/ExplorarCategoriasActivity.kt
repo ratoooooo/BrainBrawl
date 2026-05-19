@@ -4,9 +4,11 @@ import android.app.AlertDialog
 import android.graphics.Typeface
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.LinearLayout
+import android.widget.Space
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
@@ -173,11 +175,14 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             setPadding(0, dp(8), 0, dp(10))
         })
 
-        val botoes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoes.addView(criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Publica(categoria)) })
-        botoes.addView(criarBotao(getString(R.string.guardar)) { guardarCategoria(categoria) })
-        botoes.addView(criarBotao(getString(R.string.avaliar)) { mostrarAvaliacao(categoria) })
-        card.addView(botoes)
+        adicionarGrupoBotoes(
+            card,
+            listOf(
+                criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Publica(categoria)) },
+                criarBotao(getString(R.string.guardar)) { guardarCategoria(categoria) },
+                criarBotao(getString(R.string.avaliar)) { mostrarAvaliacao(categoria) }
+            )
+        )
         binding.layoutCategoriasPublicas.addView(card)
     }
 
@@ -199,22 +204,22 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             setPadding(0, dp(4), 0, dp(10))
         })
 
-        val botoes = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoes.addView(criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) })
-        botoes.addView(criarBotao(getString(R.string.editar_categoria)) { abrirEdicaoCategoria(categoria.nome) })
-        botoes.addView(criarBotao(getString(R.string.eliminar), perigo = true) { confirmarEliminarCategoria(categoria) })
-        card.addView(botoes)
-
-        val botoesPublicos = LinearLayout(this).apply { orientation = LinearLayout.HORIZONTAL }
-        botoesPublicos.addView(criarBotao(if (jaPublica) getString(R.string.atualizar_publica) else getString(R.string.tornar_publica)) {
-            viewModel.publicarCategoria(uid.orEmpty(), nomeUtilizador.orEmpty(), nomeJogador, categoria.nome)
-        })
+        val botoesCategoria = mutableListOf(
+            criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) },
+            criarBotao(getString(R.string.editar_categoria)) { abrirEdicaoCategoria(categoria.nome) },
+            criarBotao(getString(R.string.eliminar), perigo = true) { confirmarEliminarCategoria(categoria) },
+            criarBotao(if (jaPublica) getString(R.string.atualizar_publica) else getString(R.string.tornar_publica)) {
+                viewModel.publicarCategoria(uid.orEmpty(), nomeUtilizador.orEmpty(), nomeJogador, categoria.nome)
+            }
+        )
         if (jaPublica) {
-            botoesPublicos.addView(criarBotao(getString(R.string.remover_publica), perigo = true) {
-                viewModel.removerCategoriaPublica(uid.orEmpty(), nomeUtilizador.orEmpty(), categoria.nome)
-            })
+            botoesCategoria.add(
+                criarBotao(getString(R.string.remover_publica), perigo = true) {
+                    viewModel.removerCategoriaPublica(uid.orEmpty(), nomeUtilizador.orEmpty(), categoria.nome)
+                }
+            )
         }
-        card.addView(botoesPublicos)
+        adicionarGrupoBotoes(card, botoesCategoria)
         binding.layoutCategoriasPublicas.addView(card)
     }
 
@@ -249,13 +254,40 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         })
     }
 
+    private fun adicionarGrupoBotoes(card: LinearLayout, botoes: List<Button>) {
+        botoes.chunked(2).forEach { linhaBotoes ->
+            val linha = LinearLayout(this).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = Gravity.CENTER
+                layoutParams = LinearLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply { topMargin = dp(8) }
+            }
+            linhaBotoes.forEachIndexed { index, botao ->
+                botao.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                    marginEnd = if (index < linhaBotoes.lastIndex) dp(8) else 0
+                }
+                linha.addView(botao)
+            }
+            if (linhaBotoes.size == 1) {
+                linha.addView(Space(this).apply {
+                    layoutParams = LinearLayout.LayoutParams(0, 1, 1f)
+                })
+            }
+            card.addView(linha)
+        }
+    }
+
     private fun criarBotao(texto: String, destaque: Boolean = false, perigo: Boolean = false, onClick: () -> Unit): Button {
         return Button(this).apply {
             text = texto
             isAllCaps = false
             minHeight = dp(44)
+            minWidth = 0
             textSize = 13f
             typeface = Typeface.DEFAULT_BOLD
+            includeFontPadding = false
             setTextColor(getColor(if (destaque || perigo) R.color.bb_primary_text else R.color.bb_secondary_text))
             background = getDrawable(
                 when {
@@ -266,10 +298,6 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             )
             maxLines = 2
             setPadding(dp(8), 0, dp(8), 0)
-            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
-                marginEnd = dp(6)
-                topMargin = dp(6)
-            }
             setOnClickListener {
                 isEnabled = false
                 postDelayed({ isEnabled = true }, 1200)
@@ -289,10 +317,13 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             .setTitle(R.string.escolher_modo)
             .setItems(opcoes) { _, which ->
                 when (which) {
-                    0 -> iniciarCategoria(categoria, GameConstants.MODO_CLASSICO)
-                    1 -> abrirConviteCategoria(categoria, GameConstants.MODO_1X1)
-                    2 -> abrirConviteCategoria(categoria, GameConstants.MODO_2X2)
-                    3 -> iniciarCategoria(categoria, GameConstants.MODO_ELIMINATORIAS)
+                    0 -> iniciarCategoriaSolo(categoria, GameConstants.MODO_CLASSICO)
+                    1 -> iniciarCategoriaSolo(categoria, GameConstants.MODO_CAOTICO)
+                    2 -> iniciarCategoriaSolo(categoria, GameConstants.MODO_ELIMINATORIAS)
+                    3 -> iniciarCategoria(categoria, GameConstants.MODO_CLASSICO)
+                    4 -> abrirConviteCategoria(categoria, GameConstants.MODO_1X1)
+                    5 -> abrirConviteCategoria(categoria, GameConstants.MODO_2X2)
+                    6 -> iniciarCategoria(categoria, GameConstants.MODO_ELIMINATORIAS)
                 }
             }
             .setNegativeButton(R.string.cancelar, null)
@@ -322,6 +353,36 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
                 uid
             ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
         }
+    }
+
+    private fun iniciarCategoriaSolo(categoria: CategoriaExploravel, modo: String) {
+        val intent = Intent(this, JogoActivity::class.java)
+        intent.putExtra(IntentExtras.MODO_SOLO, true)
+        intent.putExtra(IntentExtras.MODO_JOGO, modo)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
+
+        when (categoria) {
+            is CategoriaExploravel.Publica -> {
+                intent.putExtra(IntentExtras.NOME_CATEGORIA, categoria.categoria.nome)
+                intent.putExtra(IntentExtras.CATEGORIA_PUBLICA_ID, categoria.categoria.id)
+                intent.putExtra(IntentExtras.ORIGEM_CATEGORIA, GameConstants.ORIGEM_CATEGORIA_PUBLICA)
+            }
+            is CategoriaExploravel.Personalizada -> {
+                intent.putExtra(IntentExtras.NOME_CATEGORIA, categoria.categoria.nome)
+                intent.putExtra(IntentExtras.ORIGEM_CATEGORIA, GameConstants.ORIGEM_CATEGORIA_PERSONALIZADA)
+                categoria.categoria.uid.takeIf { it.isNotBlank() }?.let {
+                    intent.putExtra(IntentExtras.DONO_UID, it)
+                }
+                intent.putExtra(
+                    IntentExtras.DONO_CATEGORIA,
+                    categoria.categoria.chaveDono.ifBlank { categoria.categoria.nomeUtilizador.ifBlank { nomeUtilizador.orEmpty() } }
+                )
+            }
+        }
+
+        startActivity(intent)
     }
 
     private fun abrirConviteCategoria(categoria: CategoriaExploravel, modo: String) {

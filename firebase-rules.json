@@ -430,6 +430,7 @@
         },
         "perguntaAtual": {
           "respostas": {
+            ".write": "auth == null || !newData.exists() && (auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val())",
             "$jogadorId": {
               ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('salas').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminUid').val() || auth.uid == root.child('salas').child($codigoSala).child('adminId').val()",
               ".validate": "newData.isBoolean()"
@@ -478,8 +479,11 @@
             "totalPerguntasCertas": {
               ".validate": "newData.isNumber() && newData.val() >= 0"
             },
+            "totalPerguntas": {
+              ".validate": "newData.isNumber() && newData.val() >= 0"
+            },
             "estado": {
-              ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off' || newData.val() == 'eliminado')"
+              ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off' || newData.val() == 'em_jogo' || newData.val() == 'terminado' || newData.val() == 'eliminado')"
             },
             "isHostOnly": {
               ".validate": "newData.isBoolean()"
@@ -790,6 +794,12 @@
             ".validate": "newData.isBoolean()"
           }
         },
+        "prontos": {
+          "$jogadorId": {
+            ".write": "auth == null || auth.uid == $jogadorId || auth.uid == root.child('sala_2x2').child($codigoSala).child('jogadores').child($jogadorId).child('uid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
+            ".validate": "newData.isBoolean()"
+          }
+        },
         "equipaA": {
           "$jogadorId": {
             ".write": "auth == null || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminUid').val() || auth.uid == root.child('sala_2x2').child($codigoSala).child('adminId').val()",
@@ -979,6 +989,9 @@
             ".validate": "newData.isBoolean()"
           },
           "empate": {
+            ".validate": "newData.isBoolean()"
+          },
+          "competitivo": {
             ".validate": "newData.isBoolean()"
           },
           "equipa": {

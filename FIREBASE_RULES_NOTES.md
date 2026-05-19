@@ -429,3 +429,59 @@ Limites:
 
 - Estas regras não tornam pontuação/XP/ranking autoritativos.
 - Avaliações e conquistas continuam client-side até existir backend/Cloud Functions.
+
+## Debug matchmaking real - prontos 2x2 - 2026-05-19
+
+Alteração aplicada por bug real:
+
+- `sala_2x2/{codigoSala}/prontos/{jogadorId}` passou a existir nas rules locais com validação booleana.
+- A permissão segue o mesmo padrão do 1x1: o próprio jogador, o UID gravado em `jogadores/{jogadorId}/uid`, ou o admin da sala podem escrever o pronto.
+
+Motivo:
+
+- O matchmaking 2x2 passou a exigir ready-state manual tal como o 1x1.
+- No teste real com quatro emuladores, a sala 2x2 foi criada e todos entraram, mas o Firebase remoto rejeitou `setValue` em `sala_2x2/{codigo}/prontos/{uid}` com `Permission denied`.
+
+Limite:
+
+- A correção só afeta o ficheiro local `firebase-rules.json` até as rules serem publicadas no projeto Firebase.
+
+## Correção resultados visuais de grupo - 2026-05-19
+
+Alteração aplicada por bug real:
+
+- `salas/{codigoSala}/jogadores/{jogadorId}/estado` passou a aceitar também `em_jogo` e `terminado`.
+- `salas/{codigoSala}/jogadores/{jogadorId}/totalPerguntas` passou a ser validado como número >= 0.
+
+Motivo:
+
+- O jogo grava progresso e resultado visual de grupo diretamente em `salas/{codigoSala}/jogadores/{jogadorId}`.
+- Durante a partida, `JogoRepository.registarResposta()` escreve `estado=em_jogo`, `pontuacao`, `totalRespostasCertas` e `totalPerguntas`.
+- No fim, `JogoRepository.guardarResultadoJogador()` escreve `estado=terminado`, `pontuacao` e `totalRespostasCertas`.
+- As rules antigas rejeitavam esses writes, o que deixava o pódio de grupo em `A aguardar resultados... 0/N`.
+
+Limites:
+
+- A escrita continua limitada ao próprio jogador, ao UID gravado no jogador da sala, ao admin da sala ou a convidados sem Auth no contexto já suportado pelas rules atuais.
+- A alteração não abre escrita global de resultados e não altera ranking, XP, recordes ou vitórias.
+- Resultado visual temporário de sala continua separado de estatística persistente.
+- `python3 -m json.tool firebase-rules.json` validou o JSON local.
+
+## QA total jogável - respostas por pergunta e histórico competitivo - 2026-05-19
+
+Alterações aplicadas por bugs reais observados em teste com emuladores:
+
+- `salas/{codigoSala}/perguntaAtual/respostas` passou a permitir que o admin remova o nó inteiro de respostas da pergunta atual ao avançar de pergunta.
+- `historicoJogos/{uid}/{historicoId}/competitivo` passou a ser validado como booleano.
+
+Motivo:
+
+- Durante Grupo Clássico real com 3 contas, o admin recebeu `Permission denied` ao limpar `perguntaAtual/respostas`. O cliente usa essa limpeza entre perguntas; a regra antiga só permitia escrita em filhos individuais `$jogadorId`.
+- O auth user recebeu `Permission denied` ao gravar histórico porque `HistoricoJogo.toFirebaseMap()` inclui `competitivo`, mas as rules antigas não validavam esse campo e rejeitavam o payload por `$other=false`.
+
+Limites:
+
+- A limpeza de `perguntaAtual/respostas` continua limitada ao admin da sala para utilizadores autenticados; convidados mantêm apenas o comportamento permissivo já existente nas rules de sala.
+- O campo `competitivo` não torna ranking/XP autoritativos; apenas permite persistir no histórico se a partida conta ou não para estatística competitiva.
+- A correção é local em `firebase-rules.json` até ser publicada no projeto Firebase.
+- `python3 -m json.tool firebase-rules.json` validou o JSON local.

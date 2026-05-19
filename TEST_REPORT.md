@@ -1,5 +1,68 @@
 # Pergunta o Luso - TEST_REPORT
 
+## Correção crítica — Matchmaking, fundos consistentes e pódio eliminatórias grupo (pré-beta)
+
+### Causa real — matchmaking / sala de espera
+
+- **Prontos 1x1**: `obterProntos1x1` contava todas as chaves em `prontos/`, mesmo com valor `false` ou chaves de jogadores já `off`, o que podia alinhar mal com os 2 jogadores realmente presentes.
+- **Reserva de lugares**: `chavesJogadoresReais` contava jogadores com `estado == off`, podendo bloquear entradas ou dar sensação de “sala cheia” com fantasmas em salas abertas.
+- **Desconexão**: `onDisconnect` só punha o jogador `off` em `jogadores/`, deixando entradas antigas em `prontos/` (pronto fantasma).
+- **2x2**: não existia verificação de “prontos” antes de iniciar; só se verificava o número de jogadores.
+
+### Correção aplicada — matchmaking / espera
+
+- `JogoCompetitivoRepository`: `obterProntos1x1` só devolve chaves com valor booleano `true`; `obterProntos2x2` idem; `marcarPronto2x2` adicionado; `onDisconnect` remove também `prontos/{chave}`; `removerJogador2x2` limpa `prontos/{chave}`; `chavesJogadoresReais` ignora jogadores `off`.
+- `Sala1x1ViewModel`: ao avançar, exige 2 prontos **cujas chaves pertencem aos 2 jogadores presentes**; debounce simples em `verificarProntosEAvancar`; evento `OponenteSaiu` quando a contagem de presentes desce após ter havido 2.
+- `Sala2x2ViewModel`: ao entrar marca pronto; `iniciarJogo` só prossegue com 4 prontos válidos (presentes); eventos `JogadoresNaoProntos` e `OponenteSaiu`.
+- Mensagens novas: `sala_espera_jogador_saiu`, `sala_espera_jogador_saiu_2x2`, `sala_2x2_nem_todos_prontos` (PT + EN/ES/FR/DE).
+
+### Presença / ready-state (como ficou)
+
+- **1x1**: presença = jogador `on` na sala; “pronto” = `prontos/{chave}=true` para esse jogador; o admin só inicia com 2 presentes e 2 prontos válidos; desligar/remove limpa pronto.
+- **2x2**: cada jogador marca pronto ao entrar com sucesso; o admin só inicia com 4 presentes e 4 prontos válidos.
+
+### Causa real — pódio eliminatórias grupo (sobrevivente em falta)
+
+- Em `JogoViewModel.guardarResultadoEEnviarPontuacoes`, o ramo `if (!admin)` gravava `terminado` + pontuação em Firebase para participantes, mas **o admin/anfitrião que ainda jogava saltava o `guardarResultadoJogador`**. O sobrevivente costumava ser quem criou a sala → o pódio (`temResultadoGrupoGuardado`) ficava incompleto (ex.: 2/3).
+- Eliminados já passavam por `marcarJogadorEliminado` com estado `eliminado`.
+
+### Correção — sobrevivente / vencedor
+
+- `guardarResultadoEEnviarPontuacoes`: para jogo em grupo (`!modoSolo`), **sempre** chama `guardarResultadoJogador` (inclui admin que joga), depois navega para pontuações.
+- `ResultadoJogador` ganhou `estadoPartida`; `EstatisticasService.ordenarPodioGrupoEliminatorias` ordena: `terminado` primeiro, depois pontos, depois respostas certas.
+- `PontuacoesViewModel` usa essa ordenação quando `modoJogo == eliminatorias`.
+
+### Ranking intermédio (eliminados)
+
+- `EsperaEliminadoViewModel`: “progresso fiável” considera também `pontos > 0` ou `respostasCertas > 0`, para não mostrar só “Em jogo” quando já há pontuação parcial real.
+
+### Fundos (ecrãs uniformizados)
+
+- Raiz dos layouts passou de `@drawable/bg_app_gradient` para `@drawable/bg_main_premium` (alinhado à Main) em: escolher modo/tipo/categoria, escolha categoria modos, explorar categorias, salas de espera (grupo/1x1/2x2), matchmaking, pódio (`activity_pontuacao*`), histórico, perfil/editar perfil, espera eliminado.
+
+### Ficheiros alterados (lista principal)
+
+- `JogoViewModel.kt`, `JogoCompetitivoRepository.kt`, `Sala1x1ViewModel.kt`, `SalaDeEspera1x1Activity.kt`, `Sala2x2ViewModel.kt`, `SalaDeEspera2x2Activity.kt`
+- `EstatisticasService.kt`, `PontuacaoRepository.kt`, `PontuacoesViewModel.kt`, `EsperaEliminadoViewModel.kt`
+- Layouts: `activity_escolher_modo.xml`, `activity_tipo_modo_classico.xml`, `activity_escolher_categoria.xml`, `activity_escolha_categoria_modos.xml`, `activity_explorar_categorias.xml`, `activity_sala_de_espera*.xml`, `activity_matchmaking.xml`, `activity_pontuacao.xml`, `activity_pontuacao_multi.xml`, `activity_pontuacao1x1.xml`, `activity_historico.xml`, `activity_meu_perfil.xml`, `activity_editar_perfil.xml`, `activity_espera_eliminado.xml`
+- `values/strings.xml`, `values-en-rGB/strings.xml`, `values-es/strings.xml`, `values-fr/strings.xml`, `values-de-rDE/strings.xml`
+
+### Comandos executados (validação)
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean assembleDebug testDebugUnitTest build` — **BUILD SUCCESSFUL** (debug + release compile, `testDebugUnitTest` OK).
+
+### Testes manuais recomendados
+
+- Matchmaking 1x1/2x2: fila → sala de espera → um jogador sai → todos veem estado e não iniciam sem contagem/prontos corretos; partida completa.
+- Grupo eliminatórias: 3 jogadores, 2 eliminados, 1 sobrevivente (incl. anfitrião) → pódio 3/3 e ordem com vencedor em destaque.
+- Fundos: percorrer Main vs ecrãs listados.
+- Histórico: utilizador autenticado grava; convidado não.
+
+### Riscos pendentes
+
+- Se o dispositivo do sobrevivente crashar **antes** de `guardarResultadoJogador`, o pódio pode continuar incompleto sem Cloud Function de fecho autoritativo.
+- `cancelarPorBackground` no `MatchmakingActivity.onStop` continua dependente do ciclo de vida Android; utilizador que minimiza durante a procura ainda pode sair da fila (comportamento intencional de limpeza).
+
 ## Correção ícones/badges/conquistas - 2026-05-15
 
 ### Objetivo
@@ -4870,3 +4933,690 @@ Observações:
 - Avaliação continua client-side; robustez forte exigiria backend/Cloud Functions.
 - XP/CR em badges são calculados a partir dos dados locais disponíveis (`xpTotal` e pontuação/créditos competitivos), não de um sistema económico novo.
 - Segurança profunda de pontuação/XP/ranking/histórico continua pendente para v2.0/backend.
+
+## Auditoria ficheiro-a-ficheiro + Robustez + Anti-abuso - 2026-05-18
+
+### Áreas auditadas
+
+- Config/constants: `FirebasePaths.kt`, `IntentExtras.kt`, `GameConstants.kt`.
+- Auth/sessão: `LoginActivity.kt`, `LoginViewModel.kt`, `RegistarActivity.kt`, `RegistarViewModel.kt`, `AuthService.kt`, `JogadorRepository.kt`.
+- Main/perfil/badges: `MainActivity.kt`, `MainViewModel.kt`, `MeuPerfilActivity.kt`, `MeuPerfilViewModel.kt`, `PerfilAmigoActivity.kt`, `PerfilAmigoViewModel.kt`, `ConquistasActivity.kt`, `EditarPerfilActivity.kt`, `BadgesService.kt`, `BadgesRepository.kt`, `AvatarUtils.kt`, `BadgeGridRenderer.kt`.
+- Pontuação/histórico: `PontuacaoRepository.kt`, `HistoricoRepository.kt`, `Pontuacao1x1ViewModel.kt`, `Pontuacao2x2ViewModel.kt`, `PontuacoesViewModel.kt`, `ProgressaoService.kt`, `EstatisticasService.kt`, `ScoreService.kt`, `ScoreCompetitivoService.kt`.
+- Jogo/modos: `JogoActivity.kt`, `JogoViewModel.kt`, `Jogo1x1Activity.kt`, `Jogo1x1ViewModel.kt`, `Jogo2x2Activity.kt`, `Jogo2x2ViewModel.kt`, `JogoRepository.kt`, `JogoCompetitivoRepository.kt`.
+- Categorias/social/salas/matchmaking: `CategoriaRepository.kt`, `AdicionarPerguntaActivity.kt`, `ExplorarCategoriasActivity.kt`, `ExplorarCategoriasViewModel.kt`, `AmigosRepository.kt`, `AmigosViewModel.kt`, `SalaRepository.kt`, `SalaGrupoViewModel.kt`, `Sala1x1ViewModel.kt`, `Sala2x2ViewModel.kt`, `MatchmakingRepository.kt`, `MatchmakingViewModel.kt`.
+- Firebase/documentação: `firebase-rules.json`, `FIREBASE_RULES_NOTES.md`, `ARCHITECTURE_PLAN.md`, `README.md`.
+
+### Correções aplicadas
+
+- Badges XP: `BadgesService.kt` agora usa marcos que existem como drawables reais (`xp100`, `xp500`, `xp1000`, `xp2500`, `xp5000`, `xp10000`, `xp25000`, `xp50000`, `xp100000`, `xp250000`, `xp500000`, `xp1000000`).
+- Testes de badges atualizados para 48 badges totais e 12 badges XP.
+- `AvatarUtils.kt` ganhou `indicePorNomeAvatar` para resolver nomes guardados no Firebase para índice da grelha.
+- `EditarPerfilActivity.kt` carrega o avatar atual antes de guardar, evitando sobrescrever acidentalmente com o avatar 1.
+- `LoginActivity.kt` bloqueia botões de entrada/guest/registo durante tentativa.
+- `RegistarActivity.kt` bloqueia o botão de registo durante tentativa.
+- Criado `AvatarUtilsTest.kt` para validar parsing dos nomes de avatar.
+
+### Bugs/riscos encontrados
+
+- Bug real corrigido: badges XP apontavam para IDs sem asset correspondente, causando fallback/ícone errado.
+- Bug real corrigido: editar perfil abria sempre com seleção visual no avatar 1.
+- Risco corrigido: duplo clique em login/registo.
+- Risco pendente: rating continua client-side e dependente de Auth UID-first; contas legado sem Firebase Auth podem falhar ao avaliar.
+- Risco pendente: pontuação/XP/ranking/histórico/conquistas continuam client-authoritative.
+- Risco pendente: pódios 1x1/2x2 podem aguardar indefinidamente se jogador abandonar antes de gravar resultado.
+
+### Relatório criado
+
+- `FILE_BY_FILE_AUDIT_REPORT.md` criado com resumo executivo, tabela de ficheiros analisados, bugs corrigidos, riscos pendentes, segurança/anti-abuso, multiplayer/race conditions, Firebase/rules, checklist manual e conclusão.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git status`: executado no fim da ronda.
+
+Observação: Gradle continua a emitir aviso de deprecated features para Gradle 9.0; não bloqueia beta fechada.
+
+### Testes manuais recomendados adicionais
+
+1. Login com duplo clique em `Entrar`.
+2. Entrada como convidado com duplo clique em `Jogar sem conta`.
+3. Registo novo com duplo clique em `Registar`.
+4. Editar perfil e confirmar que a grelha abre no avatar atual.
+5. Guardar outro avatar e confirmar persistência ao voltar ao perfil/Main.
+6. Abrir conquistas e verificar imagens XP 100/500/1000/2500/5000+.
+7. Avaliar categoria pública com conta Firebase e tentar segunda avaliação.
+8. Testar pódio 1x1/2x2 com um jogador a fechar a app antes de terminar.
+9. Matchmaking 1x1/2x2 com cancelamento em background.
+10. Sala grupo com um jogador real: decidir se este comportamento é aceitável para beta.
+
+## Solo vs Grupo — mínimo 2 jogadores em sala grupo - 2026-05-18
+
+### Causa da alteração
+
+- A sala de grupo ainda tinha `MINIMO_JOGADORES_GRUPO = 1` em `SalaGrupoViewModel`.
+- A dica do modo clássico também comunicava que o admin podia iniciar quando houvesse pelo menos 1 jogador na sala.
+- Isto deixava o fluxo de Grupo demasiado próximo de Solo e permitia uma sala de grupo arrancar sem o mínimo de 2 participantes presentes.
+
+### Decisão de produto
+
+- Solo continua a ser o fluxo individual.
+- Grupo/Sala é fluxo multiplayer por código e exige pelo menos 2 participantes presentes.
+- 1x1, 2x2 e matchmaking mantêm as regras próprias e não foram alterados.
+
+### Correções aplicadas
+
+- `SalaGrupoViewModel` passou a exigir 2 participantes ativos antes de permitir `salas/{codigo}/estado = em_jogo`.
+- A validação é feita em tempo real para ativar/desativar o botão e novamente antes de iniciar, lendo os jogadores atuais no Firebase.
+- Jogadores com `estado = off` e placeholder legado `admin/admin` não contam para o mínimo.
+- `SalaDeEsperaGrupoActivity` passou a mostrar contador mínimo, estado de espera e botão `Iniciar` visualmente desativado enquanto faltar jogador.
+- A mensagem de erro passou a dizer claramente que são necessários pelo menos 2 jogadores para iniciar uma sala de grupo.
+- A dica do modo Grupo foi ajustada para comunicar sala com código e mínimo de 2 jogadores presentes.
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt`
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/values-en-rGB/strings.xml`
+- `app/src/main/res/values-es/strings.xml`
+- `app/src/main/res/values-fr/strings.xml`
+- `app/src/main/res/values-de-rDE/strings.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git status`: executado no fim da ronda.
+
+### Testes manuais recomendados
+
+1. Criar sala grupo como host e confirmar que sozinho não consegue iniciar.
+2. Confirmar contador `1/2 jogadores mínimos` e mensagem de espera.
+3. Entrar com segundo participante e confirmar botão `Iniciar` ativo.
+4. Sair com o segundo participante antes de iniciar e confirmar botão volta a ficar desativado.
+5. Testar duplo clique no botão `Iniciar`.
+6. Repetir em clássico, caótico e eliminatórias.
+7. Jogar Solo sozinho e confirmar que continua independente da sala grupo.
+8. Confirmar 1x1, 2x2 e matchmaking sem alterações de fluxo.
+
+### Riscos pendentes
+
+- A validação continua client-side/Firebase Realtime Database; proteção autoritativa forte fica pendente para backend/Cloud Functions.
+- Salas antigas com dados legados podem ter representações diferentes de admin, mas a validação ignora apenas o placeholder literal `admin/admin` e conta participantes ativos reais.
+
+## Pré-beta — Modo Solo, Eliminatórias, Categorias não competitivas e Histórico 3 dias - 2026-05-18
+
+### Decisões de produto
+
+- Solo é fluxo individual: não cria sala, não mostra código e não espera jogadores.
+- Grupo/Sala continua multiplayer por código e mantém mínimo de 2 participantes.
+- 1x1, convites 1x1/2x2 e matchmaking não foram movidos nem redesenhados nesta fase.
+- Categorias oficiais são competitivas.
+- Categorias personalizadas e categorias públicas criadas por jogadores são jogáveis, mas não contam para ranking, recordes ou vitórias competitivas.
+- Histórico autenticado fica retido por 3 dias via limpeza client-side/repository enquanto não houver Cloud Functions/TTL.
+
+### Regras implementadas
+
+- `TipoModoClassico` ganhou opção explícita `Solo` para clássico.
+- `EscolherModoActivity` passou a perguntar Solo ou Grupo para caótico e eliminatórias.
+- `EscolherCategoriaActivity` abre `JogoActivity` em modo local quando recebe `MODO_SOLO=true`.
+- `ExplorarCategoriasActivity` permite jogar categorias públicas/personalizadas em Solo clássico, Solo caótico e Solo eliminatórias.
+- `JogoViewModel` suporta modo Solo local, carrega perguntas por categoria sem `salas/{codigo}` e navega para pontuação com `partidaId`.
+- Solo clássico/caótico limita a partida a 8 perguntas; Solo eliminatórias usa todas as perguntas válidas disponíveis.
+- Eliminatórias grupo deixam de truncar perguntas para 8 no carregamento da sala e no `JogoRepository`.
+- Eliminatórias terminam por erro, por fim das perguntas disponíveis ou pelas regras de fim da sala.
+- `EsperaEliminadoActivity` mostra estado/ranking parcial dos jogadores enquanto aguarda o pódio final.
+- `PontuacaoRepository` bloqueia atualizações competitivas quando a sala tem `categoriaPublica`, `categoriaPublicaId`, `categoriaPersonalizada` ou `donoUid`.
+- `PontuacoesViewModel` grava histórico de categorias não competitivas, mas não atualiza pontuação global/recorde/vitórias.
+- `HistoricoRepository` remove entradas do próprio UID com mais de 3 dias ao carregar histórico ou gravar novo histórico.
+- Entradas sem `dataHora` válida não são apagadas automaticamente.
+
+### Ficheiros alterados nesta fase
+
+- `app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt`
+- `app/src/main/java/com/example/brainbrawl/EscolherCategoriaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/JogoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EsperaEliminadoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/PontuacoesActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/PontuacoesViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/HistoricoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/UteisSala.kt`
+- `app/src/main/java/com/example/brainbrawl/config/GameConstants.kt`
+- `app/src/main/java/com/example/brainbrawl/config/IntentExtras.kt`
+- `app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt`
+- `app/src/main/res/layout/activity_tipo_modo_classico.xml`
+- `app/src/main/res/layout/activity_espera_eliminado.xml`
+- `app/src/main/res/values*/strings.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Testes feitos
+
+- `git diff --check`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git status`: executado no fim da ronda.
+
+Observação: Gradle continua a emitir aviso de deprecated features para Gradle 9.0; não bloqueia esta fase.
+
+### Testes manuais recomendados
+
+1. Jogar Solo clássico com categoria oficial e confirmar que não há sala/código.
+2. Jogar Solo caótico com categoria oficial.
+3. Jogar Solo eliminatórias, acertar várias e confirmar que só termina ao erro ou fim das perguntas.
+4. Jogar categoria personalizada em Solo e confirmar histórico marcado como não competitivo.
+5. Jogar categoria pública em Solo e confirmar que ranking/recorde/vitórias não mudam.
+6. Criar sala grupo eliminatórias com 2+ jogadores e confirmar que há mais de 8 perguntas quando disponíveis.
+7. Errar em eliminatórias grupo e confirmar estado/ranking parcial no ecrã de eliminado.
+8. Confirmar pódio final normal após fim da sala.
+9. Abrir Histórico com entradas antigas de teste e confirmar remoção apenas do próprio UID.
+10. Confirmar regressão: 1x1 por convite, 2x2 por convite e matchmaking continuam nos mesmos sítios.
+
+### Riscos pendentes
+
+- A distinção competitiva ainda é client-side; anti-farm robusto deve ir para Cloud Functions.
+- A limpeza de histórico por 3 dias é oportunista/client-side; solução futura ideal é TTL/Cloud Functions.
+- Solo usa a UI de jogo existente; uma UI/pódio solo dedicado pode melhorar clareza visual numa versão futura.
+
+## Ajuste final pré-beta — fluxo de modos, matchmaking ready-state, sala grupo e histórico visual - 2026-05-18
+
+### Inconsistência encontrada
+
+- `Clássico` abria o ecrã de escolha de tipo, mas `Caótico` e `Eliminatórias` usavam um fluxo separado/dialog ou entrada direta, criando uma experiência inconsistente.
+- No ecrã de tipo, `Solo` parecia selecionado por defeito por usar botão preenchido, enquanto 1x1/2x2/Grupo usavam estilo secundário.
+- O botão `Voltar` em escolha de modo/tipo usava o drawable castanho `bg_button_danger`, pouco coerente com o resto da UI.
+- Salas competitivas fechadas reaproveitavam jogadores já criados sem refrescar presença, permitindo que um jogador que saísse continuasse visível para o outro.
+
+### Solução aplicada
+
+- `Clássico`, `Caótico` e `Eliminatórias` passam a abrir sempre o mesmo ecrã de escolha de tipo.
+- Para `Caótico` e `Eliminatórias`, o ecrã mostra `Solo` e `Todos/Grupo`; 1x1/2x2 ficam escondidos para não alterar os fluxos competitivos atuais.
+- `Solo` passou para o mesmo estilo secundário dos restantes botões; `Voltar` também usa botão secundário claro.
+- A sala grupo removeu o texto pesado `Aguardando jogadores...` e mantém apenas contador mínimo, lista de jogadores, estado curto e botão iniciar ativo/desativo.
+- Solo continua a gravar pontuação/XP/histórico conforme regra atual, mas deixou de incrementar `totalVitorias` e `totalVitoriasModoSolo`.
+- O histórico passou a colorir resultado: vitória verde, derrota vermelha, empate dourado.
+
+### Matchmaking/presença
+
+- `JogoCompetitivoRepository` passa a marcar jogadores de salas fechadas como `estado=on` quando entram na sala de espera.
+- O mesmo repositório configura `onDisconnect` para colocar `estado=off` se a ligação Firebase cair.
+- `Sala1x1ViewModel` e `Sala2x2ViewModel` filtram jogadores `off` antes de calcular presença, botão iniciar e equipas.
+- Os ecrãs de espera 1x1/2x2 removem o jogador quando o utilizador sai pelo botão ou pelo back.
+- 1x1 continua a usar o ready-state existente em `prontos`; 2x2 ficou protegido por presença ativa/exatamente 4 jogadores. Um botão manual “Pronto” para todos fica como melhoria futura para não redesenhar o fluxo nesta fase.
+
+### Ficheiros alterados nesta fase
+
+- `app/src/main/java/com/example/brainbrawl/EscolherModoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/TipoModoClassico.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/services/EstatisticasService.kt`
+- `app/src/main/java/com/example/brainbrawl/HistoricoAdapter.kt`
+- `app/src/main/res/layout/activity_escolher_modo.xml`
+- `app/src/main/res/layout/activity_tipo_modo_classico.xml`
+- `app/src/main/res/values*/strings.xml`
+- `app/src/test/java/com/example/brainbrawl/ExampleUnitTest.kt`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git status`: executado no fim da ronda.
+
+Observação: Gradle continua a emitir aviso de deprecated features para Gradle 9.0; não bloqueia esta fase.
+
+### Testes manuais recomendados
+
+1. Abrir `Jogar Agora`, escolher Clássico, Caótico e Eliminatórias e confirmar o mesmo ecrã de tipo.
+2. Confirmar que `Solo` e `Voltar` usam o mesmo estilo dos botões secundários.
+3. Confirmar que Caótico/Eliminatórias mostram Solo e Grupo sem dialog antigo.
+4. Criar sala grupo e confirmar código visível, contador mínimo e mensagem curta sem `Aguardando jogadores...`.
+5. Jogar Solo e confirmar que pontuação/histórico continuam, mas vitórias competitivas não aumentam.
+6. Matchmaking 1x1: A e B chegam à sala, B sai pelo back, A deve ver B desaparecer e não conseguir iniciar.
+7. Repetir em 2x2 quando houver 4 testers/dispositivos.
+8. Confirmar histórico com vitória, derrota e empate.
+
+### Riscos pendentes
+
+- `onDisconnect` é best-effort client-side; limpeza totalmente autoritativa de salas fantasma continua a pertencer a backend/Cloud Functions.
+- 2x2 ainda não tem botão manual “Pronto” por jogador; nesta ronda ficou protegido por presença ativa e contagem exata.
+- Fluxos 1x1/2x2 por convite foram preservados; validar manualmente porque partilham sala de espera com partidas vindas de matchmaking.
+
+## Correções finais pré-beta — Matchmaking, Eliminatórias grupo, Histórico e Explorar Categorias - 2026-05-18
+
+### Causas reais encontradas
+
+- Matchmaking/sala cheia: salas fechadas criadas por matchmaking mantinham `jogadoresPermitidos`, mas a validação de reentrada só procurava o jogador em `jogadores`. Quando um jogador saía/removia a presença, continuava autorizado mas já não era reconhecido como selecionado; a Activity recebia falha genérica e mostrava “sala cheia”.
+- Eliminatórias grupo/0 falso: os jogadores vivos só gravavam pontuação final ao terminar/morrer. Como o payload inicial do jogador já tinha `pontuacao=0` e `totalRespostasCertas=0`, o ecrã do eliminado mostrava 0 como se fosse real.
+- Histórico grupo: o leitor de resultados considerava esses campos iniciais `pontuacao=0`/`totalRespostasCertas=0` como resultado final. Isso podia disparar pódio/histórico cedo e bloquear a gravação final idempotente.
+- Explorar Categorias: os cards juntavam 3 botões na mesma linha e o drawable de perigo ainda tinha castanho hardcoded.
+
+### Correções aplicadas
+
+- `JogoCompetitivoRepository` aceita reentrada em salas fechadas quando o jogador existe em `jogadoresPermitidos`; se já não estiver em `jogadores`, recria o nó do jogador com a mesma chave autorizada e marca `estado=on`.
+- O ready-state/presença mantém `onDisconnect` para `estado=off`; iniciar continua bloqueado por presença real: 2 jogadores no 1x1 e 4 no 2x2.
+- `JogoViewModel` publica progresso parcial a cada resposta em `salas/{codigo}/jogadores/{chave}`: pontuação, respostas certas, perguntas respondidas e estado `em_jogo`.
+- `JogoRepository.guardarResultadoJogador` marca jogadores terminados com `estado=terminado`; eliminados continuam com `estado=eliminado`.
+- `PontuacaoRepository` só conta resultado de grupo como final quando o jogador está `terminado` ou `eliminado`, evitando histórico/pódio prematuro.
+- `EsperaEliminadoActivity` passou de lista textual para cards de ranking parcial, com top 3 destacado, estado `Em jogo`/`Eliminado`/`Terminou` e sem 0 falso quando ainda não há progresso confirmado.
+- `ExplorarCategoriasActivity` agrupa botões em linhas de no máximo 2, melhora largura do botão `Criar Categoria` e usa paleta clara/azul escura com danger vermelho.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/JogoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/EsperaEliminadoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/EsperaEliminadoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/ExplorarCategoriasActivity.kt`
+- `app/src/main/res/layout/activity_espera_eliminado.xml`
+- `app/src/main/res/layout/activity_explorar_categorias.xml`
+- `app/src/main/res/drawable/bg_button_danger.xml`
+- `app/src/main/res/values/colors.xml`
+- `app/src/main/res/values*/strings.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: falhou primeiro por `android.widget.Space` em falta; corrigido.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: falhou primeiro por tradução em falta de `aguarda_restantes_jogadores`; corrigido em EN/ES/FR/DE.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git diff --check`: OK, sem whitespace errors.
+- `git status --short`: executado no fim; a working tree já tinha várias alterações pré-existentes e ficou sem commit automático.
+
+Observação: Gradle continua a emitir aviso de deprecated features para Gradle 9.0; não bloqueia esta fase.
+
+### Testes manuais recomendados
+
+1. Matchmaking 1x1: A entra, B entra, ambos chegam à sala; B sai; A vê B sair e não inicia sozinho.
+2. Matchmaking 1x1: repetir com A a sair e confirmar que B volta à Main/estado correto.
+3. Matchmaking 2x2: quatro jogadores chegam à sala, saída de um remove presença e bloqueia iniciar.
+4. Reentrar depois de sair de uma sala fechada autorizada e confirmar que não aparece “sala cheia” indevidamente.
+5. Eliminatórias grupo: um jogador erra, vê ranking parcial em cards, e vivos aparecem com progresso real ou “Em jogo”.
+6. Terminar eliminatórias grupo e confirmar pódio final e histórico do auth user.
+7. Histórico: auth em oficial, personalizada e pública cria entrada em `historicoJogos/{uid}`; convidado não cria.
+8. Confirmar que categoria personalizada/pública aparece no histórico mas não atualiza ranking/recorde/vitórias competitivas.
+9. Explorar Categorias em ecrã pequeno: Criar Categoria alinhado; Jogar/Guardar/Avaliar/Editar/Eliminar/Tornar pública sem cortes.
+10. Regressão rápida: login, main, solo, grupo, 1x1, 2x2, ranking, perfil, badges, amigos, pedidos e convites.
+
+### Riscos pendentes
+
+- Presença/offline continua best-effort do cliente via Firebase `onDisconnect`; perda de rede sem disconnect imediato ainda pode deixar estado temporário até nova ação/listener.
+- Matchmaking continua client-side, sem Cloud Functions; seleção e presença estão mais defensivas, mas autoridade total exigiria backend.
+- O ranking intermédio usa progresso parcial gravado pelo cliente; ainda não é prova antifraude.
+
+## Refactor controlado do matchmaking — fila, sala, presença e pronto - 2026-05-19
+
+### Causa real encontrada
+
+- A sala criada pelo matchmaking copiava todos os jogadores para `sala_1x1/{codigo}/jogadores` ou `sala_2x2/{codigo}/jogadores` já com `estado=on`.
+- Isto fazia a sala de espera contar jogadores como presentes antes de as respectivas Activities abrirem e confirmarem presença real.
+- Em paralelo, o `onStop` de `MatchmakingActivity` ainda podia chamar limpeza de background quando a Activity estava em transição, o que misturava cancelamento com navegação.
+- Como a lotação olhava para jogadores já copiados e/ou prontos fantasma, uma entrada legítima podia cair no caminho de erro genérico e a UI mostrava “sala cheia”.
+
+### Porque as correções pequenas anteriores não resolveram
+
+- Marcar `onDisconnect` e aceitar `jogadoresPermitidos` reduzia sintomas de reentrada, mas não separava a fase “match selecionado” da fase “jogador realmente entrou na sala”.
+- O ready-state continuava implicitamente pronto/auto-presente em alguns pontos, sobretudo 1x1.
+- A sala de matchmaking precisava de contrato próprio, não apenas validações laterais.
+
+### Novo fluxo
+
+- `matchmaking/{modo}/fila/{playerKey}` continua a ser a fila.
+- Antes de escrever na fila, o ViewModel procura uma sala ativa de matchmaking onde o jogador já esteja autorizado; se existir, navega para lá em vez de duplicar fila.
+- A formação do match continua transacional em `matchmaking/{modo}` e seleciona exatamente 2 jogadores para 1x1 ou 4 para 2x2.
+- A sala criada por matchmaking agora nasce com:
+  - `origem=matchmaking`
+  - `entradaFechada=true`
+  - `lotacaoMaxima=2/4`
+  - `jogadoresPermitidos/{playerKey}=true`
+  - `jogadores/{playerKey}/estado=off`
+- `prontos/{playerKey}` é criado/atualizado por cada cliente ao entrar e ao clicar em `Pronto`, não no payload inicial da sala.
+- Ao abrir a sala de espera, cada cliente marca `estado=on` para si e configura `onDisconnect` para `estado=off` e remoção de `prontos/{playerKey}`.
+- Em matchmaking, todos veem botão `Pronto`; o jogo só inicia com N jogadores presentes e N prontos.
+- Em convite 1x1/2x2, o fluxo antigo foi preservado: a sala continua a usar presença/ready automático e o admin inicia.
+
+### Cancelamento e saída
+
+- Cancelar na fila remove a entrada e volta à Main.
+- `MatchmakingActivity.onStop` deixou de limpar a fila agressivamente; saída real usa botão Cancelar/back, e navegação para sala não é tratada como cancelamento.
+- Se alguém sai de uma sala de matchmaking antes do jogo começar, a sala é apagada e os restantes recebem encerramento/aviso.
+- Não se tenta preencher a mesma sala com novo jogador nesta fase.
+
+### Como evita “sala cheia” indevida
+
+- Jogador já autorizado por `jogadoresPermitidos` pode entrar/reentrar.
+- Jogadores `off`, placeholders e duplicados não contam como presença real.
+- A sala só fica completa quando cada jogador abre a sala de espera e marca `estado=on`.
+- `prontos` só conta quando o valor é `true` e pertence a um jogador presente.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MatchmakingViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/MatchmakingActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/res/values*/strings.xml`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+
+### Testes feitos
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK durante validação intermédia.
+
+### Testes manuais obrigatórios
+
+1. 1x1: A entra, B entra, ambos chegam à sala, ambos clicam `Pronto`, jogo inicia.
+2. 1x1: B sai antes de pronto; A vê saída/encerramento e não aparece “sala cheia”.
+3. 1x1: cancelar e reentrar sem ficar preso em sala antiga.
+4. 2x2: quatro contas entram, todos clicam `Pronto`, jogo inicia.
+5. 2x2: um sai antes do jogo; restantes veem encerramento e jogo não inicia.
+6. Confirmar 1x1 por convite.
+7. Confirmar 2x2 por convite.
+8. Confirmar sala grupo.
+9. Confirmar que matchmaking continua acessível pela Main.
+
+### Riscos pendentes
+
+- A formação do match continua cliente-side; Cloud Functions seriam o caminho autoritativo para produção pública.
+- `onDisconnect` continua best-effort em perda de rede abrupta.
+- 2x2 precisa de validação manual real com 4 dispositivos/contas para confirmar timings de presença/pronto em rede real.
+
+## Debug real do matchmaking com contas de teste - 2026-05-19
+
+### Contas usadas
+
+- Foram usados emuladores autenticados como `jogador3` e `jogador4` para o 1x1.
+- Para 2x2 foram usados quatro emuladores autenticados como `jogador1`, `jogador2`, `jogador3` e `jogador4`.
+- Nenhuma password foi guardada em código, documentação ou comandos persistidos.
+
+### Cenário reproduzido
+
+- 1x1 com `jogador3` + `jogador4` reproduziu o bug original: a UI ficou em `Erro ao criar sala` e `Jogadores à procura: 0/2`.
+- Logcat mostrou `Permission denied` na transação de criação de `/sala_1x1/{codigo}`.
+- Depois da primeira correção, a sala já era criada, mas a entrada na sala de espera falhava com `Permission denied` em `jogadores/{uid}` ao marcar presença.
+
+### Causa real
+
+- O payload inicial da sala de matchmaking escrevia campos no nó raiz da sala que as rules atuais bloqueiam: `codigoSala`, `modo` e `dataCriacao`.
+- O payload inicial também tentava criar `prontos` dentro da sala; isso é seguro no 1x1 quando escrito pelo jogador, mas não estava permitido no payload raiz e nem existia nas rules do 2x2.
+- A presença escrevia `timestampEntrada` dentro de `sala_1x1/sala_2x2/{codigo}/jogadores/{uid}`, mas esse campo não é permitido pelas rules dos jogadores de sala.
+- A transação ampla em `matchmaking/{modo}` podia ficar presa sem `onComplete` neste cenário multi-cliente; o claim no nó inteiro era demasiado grande para o fluxo real.
+
+### Correção aplicada
+
+- `MatchmakingRepository.tentarCriarMatch()` passou a ler a fila e fazer claim transacional apenas em `matchmaking/{modo}/matches/{matchId}`.
+- O `matchId` é determinístico a partir dos jogadores selecionados, por isso dois clientes que veem o mesmo grupo disputam o mesmo claim e só um cria a sala.
+- A sala de matchmaking deixou de escrever `codigoSala`, `modo`, `dataCriacao` e `prontos` no payload inicial.
+- A presença em sala de espera passou a atualizar apenas `estado=on`; deixou de escrever `timestampEntrada` em `jogadores/{uid}`.
+- `firebase-rules.json` local ganhou `sala_2x2/{codigo}/prontos/{jogadorId}` com a mesma regra do 1x1, necessária para o pronto manual no 2x2.
+
+### Testes manuais feitos
+
+- 1x1 com `jogador3` + `jogador4`: sala criada, ambos navegaram para `SalaDeEspera1x1Activity`, ambos apareceram como presentes, ambos clicaram `Pronto`, jogo iniciou em `Jogo1x1Activity`.
+- 1x1: não voltou a aparecer `Erro ao criar sala`, `sala cheia` ou `Jogadores à procura: 0/2` após a correção.
+- 2x2 com quatro emuladores: sala criada com quatro jogadores e todos navegaram para `SalaDeEspera2x2Activity`.
+- 2x2: pronto ainda falha no Firebase remoto atual com `Permission denied` em `sala_2x2/{codigo}/prontos/{uid}` até as rules locais corrigidas serem publicadas.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+- `firebase-rules.json`
+- `TEST_REPORT.md`
+- `ARCHITECTURE_PLAN.md`
+- `FIREBASE_RULES_NOTES.md`
+
+### Comandos executados
+
+- `adb devices`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+- `adb install -r app/build/outputs/apk/debug/app-debug.apk` nos emuladores de teste.
+- `adb shell monkey -p com.example.brainbrawl 1`
+- `adb shell input tap ...`
+- `adb logcat -d -v time`
+- `curl` read-only aos nós de matchmaking para confirmar limpeza/estado.
+- `python3 -m json.tool firebase-rules.json`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+- `git diff --check`
+- `git status --short`
+
+### Riscos pendentes
+
+- A alteração em `firebase-rules.json` precisa ser publicada no Firebase antes de o `Pronto` do 2x2 funcionar contra a base remota.
+- O matchmaking continua client-side; Cloud Functions continuam recomendadas para arbitragem autoritativa futura.
+
+## Correção 2x2 matchmaking - erro ao iniciar após quatro prontos - 2026-05-19
+
+### Cenário reproduzido
+
+- Quatro emuladores entraram no matchmaking 2x2 com contas autenticadas.
+- Os quatro jogadores chegaram à `SalaDeEspera2x2Activity`.
+- Depois dos quatro `Pronto`, o admin podia cair em `Erro ao iniciar jogo` durante a tentativa de gravar equipas/iniciar sala.
+
+### Causa real
+
+- `guardarEquipas2x2()` escrevia `equipaA/{uid}` e `equipaB/{uid}` usando `JogadorCompetitivo.toFirebaseMap()`.
+- Esse mapa passou a incluir `estado`, que é válido em `jogadores/{uid}`, mas não é permitido pelas rules de `equipaA/equipaB`.
+- Resultado: o write de equipas podia ser rejeitado por Firebase Rules e o admin via erro ao iniciar.
+
+### Correção aplicada
+
+- `JogadorCompetitivo.toFirebaseMap()` deixou de incluir `estado` quando usado para gravar `equipaA/equipaB`.
+- Presença continua a viver em `jogadores/{uid}/estado`; equipas guardam apenas identidade do jogador.
+- Não foi necessária nova alteração de rules para este erro específico.
+
+### Teste real feito
+
+- Reinstalada a build debug nos quatro emuladores.
+- Quatro jogadores entraram no 2x2, apareceram na sala de espera, clicaram `Pronto` e navegaram para `Jogo2x2Activity`.
+- Não apareceu `Erro ao iniciar jogo` após a correção.
+
+### Ficheiro alterado nesta correção
+
+- `app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt`
+
+### Rules
+
+- Não foi necessária nova alteração de Firebase Rules para o erro de iniciar após quatro prontos.
+- Mantém-se a alteração local anterior em `firebase-rules.json` para permitir `sala_2x2/{codigo}/prontos/{jogadorId}`, necessária ao botão `Pronto` manual do matchmaking 2x2 caso ainda não esteja publicada no Firebase remoto.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git diff --check`: OK.
+- `git status --short`: executado no fim.
+
+## Correção crítica — resultados grupo Clássico/Caótico/Eliminatórias, pódio 0/3 e Firebase Rules - 2026-05-19
+
+### Confirmação do bug
+
+- O bug foi reportado em Grupo Clássico e Grupo Caótico: o pódio ficava em `A aguardar resultados... 0/3`.
+- A análise de código mostrou que Grupo Eliminatórias também usava o mesmo path de resultado visual e podia ficar afetado quando o resultado final/progresso era rejeitado pelas rules.
+- Não foram feitos testes reais multi-dispositivo nesta ronda sem credenciais/passwords de teste disponíveis na automação; os cenários reais abaixo ficam pendentes para execução manual após publicar as rules.
+
+### Causa real
+
+- O jogo grava o resultado visual de grupo em `salas/{codigo}/jogadores/{playerKeyOuUid}`.
+- O pódio de grupo lê o mesmo path: `salas/{codigo}/jogadores`.
+- O write de resposta/finalização escreve `pontuacao`, `totalRespostasCertas`, `totalPerguntas` e `estado`.
+- `firebase-rules.json` bloqueava esse payload em `salas/{codigo}/jogadores/{jogadorId}` porque:
+  - `estado` só aceitava `on`, `off` e `eliminado`, mas o jogo escreve `em_jogo` durante a partida e `terminado` no fim;
+  - `totalPerguntas` não estava permitido nesse nó.
+- Como o `updateChildren` era rejeitado por Firebase Rules, nenhum jogador conseguia gravar o resultado visual final; o listener do pódio via 0 resultados guardados.
+
+### Correção aplicada
+
+- `firebase-rules.json` passou a aceitar `estado=em_jogo` e `estado=terminado` em jogadores de `salas/{codigo}`.
+- `firebase-rules.json` passou a validar `totalPerguntas` em jogadores de `salas/{codigo}`.
+- `PontuacaoRepository` mantém a separação entre resultado visual e estatística persistente:
+  - resultado visual temporário continua em `salas/{codigo}/jogadores`;
+  - ranking/recordes/vitórias/XP continuam bloqueados para categorias públicas/personalizadas.
+- A contagem esperada do pódio de grupo deixou de contar jogadores com `estado=off`.
+- O pódio/espera de eliminatórias deixam de esconder o host real por `isHostOnly`; apenas o placeholder `admin` é ignorado.
+- Novas salas caóticas deixam de criar o host real com `isHostOnly=true`.
+- `SalaRepository.garantirJogadorNaSala()` deixa de marcar o criador real como host-only invisível ao pódio.
+
+### Firebase Rules
+
+- Rules verificadas para `salas/{codigo}/jogadores`, `perguntaAtual/respostas`, `estatisticasAtualizadas`, `perguntas` e `estado`.
+- O bloqueio confirmado estava em `salas/{codigo}/jogadores/{jogadorId}/estado` e ausência de `totalPerguntas`.
+- Alteração mínima e segura: só foram adicionados valores/campo que o cliente já escrevia no contexto da própria sala.
+- `python3 -m json.tool firebase-rules.json`: OK.
+- Não foi usado `childrenCount`.
+
+### Fundos corrigidos
+
+- `activity_jogo.xml`
+- `activity_jogo1x1.xml`
+- `activity_jogo2x2.xml`
+- `activity_ranking.xml`
+- `activity_perfil_amigo.xml`
+- Já estavam alinhados com `bg_main_premium` nos ecrãs prioritários: escolher categoria, escolher modo/tipo, explorar categorias, sala de espera, pódio, histórico, meu perfil e matchmaking.
+
+### Testes técnicos/comandos
+
+- `python3 -m json.tool firebase-rules.json`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `git diff --check`: OK.
+- `adb devices`: não executável nesta shell porque `adb` não está no PATH.
+- `git status --short`: executado no fim.
+
+### Testes reais pendentes
+
+- Grupo Clássico com 3 jogadores: confirmar pódio `3/3` e todos com pontuação.
+- Grupo Caótico com 3 jogadores: confirmar pódio `3/3` e todos com pontuação.
+- Grupo Eliminatórias com 3 jogadores: confirmar eliminados e sobrevivente no pódio `3/3`.
+- Auth user: confirmar histórico recente guardado.
+- Convidado: confirmar pódio visual sem histórico persistente.
+- Categoria pública/personalizada: confirmar pódio visual e ausência de ranking/recorde/vitórias competitivas.
+- Regressão: matchmaking 1x1, matchmaking 2x2, convites 1x1/2x2 e sala grupo mínimo 2.
+
+### Riscos pendentes
+
+- As Firebase Rules corrigidas precisam ser publicadas no projeto Firebase antes de o bug deixar de acontecer na base remota.
+- O admin/host real fica visível no pódio; no fluxo atual de grupo, o ecrã do admin continua a controlar o relógio/perguntas e não responde como jogador normal.
+- A validação autoritativa de resultados continua client-side; Cloud Functions/backend ficam para fase futura.
+
+## QA total jogável — pódio grupo, voltar e regressão pré-beta - 2026-05-19
+
+### Contas e dispositivos
+
+- Teste real executado em 4 emuladores Android (`emulator-5554`, `emulator-5556`, `emulator-5558`, `emulator-5560`).
+- Contas usadas sem documentar passwords: `jogador1@gmail.com`, `jogador3@gmail.com` e `jogador4@gmail.com`.
+- O emulador preparado para o segundo jogador estava autenticado como `jogador4`; não foi confirmada existência de emails com typo `ogador2@gmail.com`/`ogador4@gmail.com` nesta ronda.
+
+### Testes reais executados
+
+- Instalação do APK debug nos quatro emuladores: OK.
+- Grupo Clássico com 3 contas reais:
+  - sala criada por `jogador1`;
+  - `jogador3` e `jogador4` entraram na sala;
+  - jogo iniciado e terminado nos três clientes;
+  - `PontuacoesActivity` abriu e permaneceu aberta nos três emuladores;
+  - pódio mostrou 3/3 jogadores com pontuação (`jogador4`, `jogador3`, `jogador1`).
+- Histórico: aberto em emulador autenticado; o botão `Voltar` estava visível e regressou à Main.
+- Perfil: aberto em emulador autenticado; o botão `Voltar` estava visível e regressou à Main.
+- Solo Clássico: navegação real até `JogoActivity`; o botão Back do Android já não sai silenciosamente da partida e mantém o jogo aberto.
+
+### Pódio grupo
+
+- O bug atual descrito como "pódio entra e sai logo" não foi reproduzido no teste real de Grupo Clássico desta build: o pódio abriu e ficou estável.
+- O bug anterior de `A aguardar resultados... 0/3` continua explicado pela secção anterior: as rules locais bloqueavam os writes reais de `estado=em_jogo/terminado` e `totalPerguntas` em `salas/{codigo}/jogadores/{jogadorId}`.
+- Durante o teste real, os logs revelaram dois bloqueios adicionais de Firebase remoto:
+  - o admin não conseguia remover o nó inteiro `salas/{codigo}/perguntaAtual/respostas` ao avançar pergunta;
+  - o histórico do auth user era rejeitado porque `historicoJogos/{uid}/{historicoId}` recebia o campo `competitivo`, mas as rules não o validavam.
+- Não foi confirmado nesta ronda que Caótico e Eliminatórias reproduzem o "entra e sai logo"; ficam como teste manual obrigatório após publicar as rules locais.
+
+### Correções aplicadas
+
+- `firebase-rules.json` passou a permitir ao admin limpar/remover `salas/{codigo}/perguntaAtual/respostas` como nó inteiro, mantendo a validação booleana por resposta individual.
+- `firebase-rules.json` passou a aceitar `competitivo` booleano em `historicoJogos/{uid}/{historicoId}`.
+- `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity` passaram a bloquear o Back físico durante a partida com mensagem clara: `Termina a partida para voltar ao menu.`
+- `HistoricoActivity`, `MeuPerfilActivity` e `AmigosActivity` deixaram de esconder os botões de voltar que os layouts já tinham.
+
+### Firebase Rules
+
+- Rules verificadas/alteradas localmente para:
+  - `salas/{codigo}/jogadores/{jogadorId}`;
+  - `salas/{codigo}/perguntaAtual/respostas`;
+  - `historicoJogos/{uid}/{historicoId}`;
+  - paths de pontuação/resultados usados pelo pódio de grupo.
+- As alterações são locais no ficheiro `firebase-rules.json`; precisam ser publicadas no Firebase para remover os `Permission denied` no ambiente real.
+- Não foi usado `childrenCount`.
+
+### Fundos
+
+- Reconfirmado por inspeção de layout que os ecrãs prioritários desta fase já usam a base visual `bg_main_premium` ou tinham sido alinhados na fase anterior: jogo, pódio, escolher categoria, sala de espera, explorar categorias, histórico, perfil, ranking e matchmaking.
+- Não foi feito redesign novo.
+
+### Testes pendentes/riscos
+
+- Grupo Caótico com 3 jogadores reais: pendente.
+- Grupo Eliminatórias com 3 jogadores reais: pendente.
+- Matchmaking 1x1/2x2 e convites 1x1/2x2: pendentes nesta ronda após a correção de rules/histórico.
+- Histórico em Firebase remoto só fica validável depois de publicar as rules locais.
+- A app continua client-authoritative para resultados; sem Cloud Functions/backend por decisão desta fase.
+
+### Comandos executados nesta ronda
+
+- `$HOME/Library/Android/sdk/platform-tools/adb devices`
+- `$HOME/Library/Android/sdk/platform-tools/adb install -r app/build/outputs/apk/debug/app-debug.apk` nos emuladores disponíveis
+- `$HOME/Library/Android/sdk/platform-tools/adb shell monkey -p com.example.brainbrawl -c android.intent.category.LAUNCHER 1`
+- `$HOME/Library/Android/sdk/platform-tools/adb shell dumpsys activity activities`
+- `$HOME/Library/Android/sdk/platform-tools/adb exec-out uiautomator dump /dev/tty`
+- `python3 -m json.tool firebase-rules.json`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: falhou primeiro por `MissingTranslation` da nova string `voltar_bloqueado_jogo`; corrigidas traduções EN/ES/FR/DE e repetido com OK.
+- `git status --short`: executado no fim.

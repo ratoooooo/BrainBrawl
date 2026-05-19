@@ -20,7 +20,9 @@ class EstatisticasService {
         val uid: String = "",
         val chave: String = "",
         val nomeUtilizador: String = "",
-        val nomeJogador: String = ""
+        val nomeJogador: String = "",
+        /** Estado na sala (ex.: terminado vs eliminado) para ordenação do pódio em eliminatórias grupo. */
+        val estadoPartida: String = ""
     ) {
         val identificadorEstatisticas: String
             get() = uid.ifBlank { chave.ifBlank { nomeUtilizador.ifBlank { nomeJogador.ifBlank { nome } } } }
@@ -58,6 +60,17 @@ class EstatisticasService {
 
     fun ordenarPodio(resultados: List<ResultadoJogador>): List<ResultadoJogador> {
         return resultados.sortedByDescending { it.pontos }
+    }
+
+    /**
+     * Eliminatórias em grupo: vencedor/sobrevivente (terminado) primeiro, depois pontuação e respostas certas.
+     */
+    fun ordenarPodioGrupoEliminatorias(resultados: List<ResultadoJogador>): List<ResultadoJogador> {
+        return resultados.sortedWith(
+            compareByDescending<ResultadoJogador> { it.estadoPartida == GameConstants.ESTADO_TERMINADO }
+                .thenByDescending { it.pontos }
+                .thenByDescending { it.respostasCertas }
+        )
     }
 
     fun ordenarPodio2x2(
@@ -142,7 +155,8 @@ class EstatisticasService {
         totalPerguntas: Int
     ): Map<String, Any> {
         val novoTotalJogos = estatisticasAtuais.totalJogos + 1
-        val novoTotalVitorias = estatisticasAtuais.totalVitorias + if (venceu) 1 else 0
+        val contaVitoriaCompetitiva = venceu && modo != Modo.SOLO
+        val novoTotalVitorias = estatisticasAtuais.totalVitorias + if (contaVitoriaCompetitiva) 1 else 0
         val novaTaxa = calcularTaxaAcertos(
             taxaAcertosAnterior = estatisticasAtuais.taxaAcertos,
             totalJogosAnterior = estatisticasAtuais.totalJogos,
@@ -174,10 +188,7 @@ class EstatisticasService {
         updates[FirebasePaths.XP_NECESSARIO_PROXIMO_NIVEL] = estadoProgressao.xpNecessarioProximoNivel
 
         when (modo) {
-            Modo.SOLO -> {
-                updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO] =
-                    estatisticasAtuais.totalVitoriasModoSolo + if (venceu) 1 else 0
-            }
+            Modo.SOLO -> Unit
 
             Modo.UM_CONTRA_UM -> {
                 updates[FirebasePaths.TOTAL_VITORIAS_MODO_1X1] =

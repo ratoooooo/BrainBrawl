@@ -35,7 +35,7 @@ object UteisSala {
             val salaData = dadosSalaBase(jogadorAdmin, "Todas as categorias", GameConstants.MODO_CAOTICO, perguntasRandom) +
                 mapOf(
                     FirebasePaths.JOGADORES to mapOf(
-                        jogadorAdmin.chaveSala to jogadorAdmin.toFirebaseMap(isHostOnly = true)
+                        jogadorAdmin.chaveSala to jogadorAdmin.toFirebaseMap(isHostOnly = false)
                     )
                 )
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
@@ -72,7 +72,7 @@ object UteisSala {
         }
         // Busca as perguntas da categoria específica
         categoriaRepository.carregarPerguntasCategoriaOficial(nomeCategoria).addOnSuccessListener { perguntas ->
-            val perguntasRandom = perguntas.shuffled().take(8)
+            val perguntasRandom = perguntas.shuffled().limitarPerguntasParaModo(modoJogo)
             val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntasRandom)
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
                 abrirSalaDeEsperaGrupo(
@@ -107,7 +107,7 @@ object UteisSala {
                     return@addOnSuccessListener
                 }
 
-                val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntas.shuffled().take(8)) +
+                val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntas.shuffled().limitarPerguntasParaModo(modoJogo)) +
                     mapOf(
                         "categoriaPersonalizada" to true,
                         "donoCategoria" to nomeUtilizador,
@@ -153,7 +153,7 @@ object UteisSala {
                 return@addOnSuccessListener
             }
 
-            val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntas.shuffled().take(8)) +
+            val salaData = dadosSalaBase(jogadorAdmin, nomeCategoria, modoJogo, perguntas.shuffled().limitarPerguntasParaModo(modoJogo)) +
                 mapOf(
                     "categoriaPublica" to true,
                     "categoriaPublicaId" to categoriaPublicaId,
@@ -201,5 +201,9 @@ object UteisSala {
             dados[FirebasePaths.ADMIN_UID] = jogadorAdmin.uid
         }
         return dados
+    }
+
+    private fun <T> List<T>.limitarPerguntasParaModo(modoJogo: String): List<T> {
+        return if (modoJogo == GameConstants.MODO_ELIMINATORIAS) this else take(8)
     }
 }

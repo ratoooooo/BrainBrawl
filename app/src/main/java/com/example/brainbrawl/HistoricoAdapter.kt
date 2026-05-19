@@ -4,6 +4,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.brainbrawl.models.HistoricoJogo
 import java.text.SimpleDateFormat
@@ -42,8 +43,19 @@ class HistoricoAdapter(
             val context = itemView.context
             txtModo.text = jogo.modo.ifBlank { context.getString(R.string.modo_generico) }
             txtResultado.text = jogo.resultadoTexto
+            txtResultado.setTextColor(
+                ContextCompat.getColor(
+                    context,
+                    when {
+                        jogo.empate -> R.color.bb_accent
+                        jogo.venceu -> R.color.bb_success
+                        else -> R.color.bb_danger
+                    }
+                )
+            )
             txtPontuacao.text = context.getString(R.string.pontos_curto_format, jogo.pontuacao.toInt())
-            txtCategoria.text = jogo.nomeCategoria.ifBlank { context.getString(R.string.sem_categoria) }
+            val categoria = jogo.nomeCategoria.ifBlank { context.getString(R.string.sem_categoria) }
+            txtCategoria.text = if (jogo.competitivo) categoria else "$categoria - nao competitivo"
             txtData.text = if (jogo.dataHora > 0L) dateFormat.format(Date(jogo.dataHora)) else ""
             txtJogadores.text = jogo.jogadoresDaPartida.joinToString(", ")
                 .ifBlank { jogo.codigoSala.ifBlank { context.getString(R.string.historico_sem_jogadores) } }

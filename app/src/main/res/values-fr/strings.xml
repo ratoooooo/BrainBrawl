@@ -12,6 +12,7 @@
     <string name="nome_utilizador">Nom d’utilisateur</string>
     <string name="ou">OU</string>
     <string name="voltar">Retour</string>
+    <string name="voltar_bloqueado_jogo">Termine la partie pour revenir au menu.</string>
     <string name="guardar">Enregistrer</string>
     <string name="eliminar">Supprimer</string>
     <string name="cancelar">Annuler</string>
@@ -103,6 +104,8 @@
     <string name="insira_seu_nome">Saisis ton nom</string>
     <string name="entrar_sala_jogo">Entrer</string>
     <string name="iniciar_jogo">Démarrer le jeu</string>
+    <string name="pronto">Prêt</string>
+    <string name="pronto_confirmado">Prêt</string>
     <string name="sair">Quitter</string>
     <string name="sair_da_sala">Quitter la salle</string>
     <string name="c_digo_da_sala">Code de salle :</string>
@@ -119,6 +122,7 @@
     <string name="sala_de_espera_1x1">Salle d’attente 1v1</string>
     <string name="sala_de_espera_2x2">Salle d’attente 2v2</string>
     <string name="aguardando_jogadores">En attente de joueurs...</string>
+    <string name="a_carregar_jogadores">Chargement des joueurs...</string>
     <string name="aguardando">En attente...</string>
     <string name="equipa_a">Équipe A</string>
     <string name="equipa_b">Équipe B</string>
@@ -131,6 +135,9 @@
     <string name="aguardar_adversario">Toujours en attente de l’adversaire.</string>
     <string name="ambos_jogadores_na_sala">Les deux joueurs doivent être dans la salle.</string>
     <string name="sala_1x1_cheia">La salle 1v1 est déjà pleine.</string>
+    <string name="sala_espera_jogador_saiu">Un joueur a quitté la salle. En attente d\'un nouveau joueur ou retour au matchmaking.</string>
+    <string name="sala_espera_jogador_saiu_2x2">Un joueur a quitté la salle. En attente d\'un nouveau joueur ou retour au matchmaking.</string>
+    <string name="sala_2x2_nem_todos_prontos">Tous les joueurs ne sont pas encore présents et prêts.</string>
     <string name="sala_2x2_cheia">La salle 2v2 est déjà pleine.</string>
     <string name="erro_iniciar_jogo_2x2">Erreur lors du démarrage du jeu 2v2.</string>
     <string name="dados_sala_invalidos">Données de salle invalides.</string>
@@ -138,7 +145,10 @@
     <string name="erro_carregar_jogadores">Erreur lors du chargement des joueurs.</string>
     <string name="erro_escutar_estado_sala">Erreur lors de l’écoute de l’état de la salle.</string>
     <string name="erro_validar_jogadores">Erreur lors de la validation des joueurs.</string>
-    <string name="jogadores_insuficientes">Attends au moins 1 joueur en plus de l’admin.</string>
+    <string name="jogadores_insuficientes">Il faut au moins 2 joueurs pour démarrer une salle de groupe.</string>
+    <string name="jogadores_minimos_grupo_format">%1$d/%2$d joueurs minimum</string>
+    <string name="sala_grupo_aguardar_mais_format">Il manque %1$d joueur(s) pour démarrer.</string>
+    <string name="sala_grupo_pronta">Il y a assez de joueurs. Tu peux démarrer.</string>
     <string name="sala_privada_convite">Salle privée sur invitation</string>
     <string name="progresso_pergunta">Question %1$d/%2$d</string>
     <string name="carregar_perguntas">Chargement des questions...</string>
@@ -153,8 +163,10 @@
     <string name="erro_verificar_jogadores">Erreur lors de la vérification des joueurs.</string>
     <string name="erro_eliminar_jogador">Erreur lors de la suppression du joueur. Réessaie.</string>
     <string name="jogo_terminado_um_jogador">Partie terminée ! Il ne reste qu’un joueur.</string>
+    <string name="eliminatorias_sem_mais_perguntas">Tu as atteint la fin des questions disponibles.</string>
     <string name="jogador_eliminado">Tu as été éliminé !</string>
     <string name="aguardar_fim_partida">En attente de la fin de la partie...</string>
+    <string name="aguarda_restantes_jogadores">Attends pendant que les autres joueurs continuent.</string>
     <string name="erro_ler_categoria">Erreur lors de la lecture de la catégorie.</string>
     <string name="erro_guardar_pontuacao">Erreur lors de l’enregistrement du score.</string>
     <string name="aguarde_adversario_terminar">Attends que ton adversaire termine.</string>
@@ -239,10 +251,13 @@
     <string name="modo_1x1_convite">1v1 sur invitation</string>
     <string name="modo_2x2_convite">2v2 sur invitation</string>
     <string-array name="opcoes_modo_personalizado">
+        <item>Solo classique</item>
+        <item>Solo chaotique</item>
+        <item>Solo élimination</item>
         <item>Classique/groupe</item>
         <item>1v1 sur invitation</item>
         <item>2v2 sur invitation</item>
-        <item>Élimination</item>
+        <item>Élimination/groupe</item>
     </string-array>
     <string name="adicionar_nova_pergunta">Ajouter une nouvelle question</string>
     <string name="insira_nome_categoria">Saisis le nom de la catégorie</string>

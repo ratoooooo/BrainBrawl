@@ -6,12 +6,14 @@ import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
+import com.example.brainbrawl.repositories.CategoriaRepository
 import com.example.brainbrawl.repositories.JogoRepository
 import com.example.brainbrawl.services.GameService
 import com.example.brainbrawl.services.ScoreService
 
 class JogoViewModel(
     private val jogoRepository: JogoRepository = JogoRepository(),
+    private val categoriaRepository: CategoriaRepository = CategoriaRepository(),
     private val gameService: GameService = GameService(),
     private val scoreService: ScoreService = ScoreService()
 ) : ViewModel() {
@@ -32,13 +34,21 @@ class JogoViewModel(
     private var nomeUtilizador: String = ""
     private var nomeJogador: String = ""
     private var nomeCategoria: String = ""
+    private var origemCategoria: String = GameConstants.ORIGEM_CATEGORIA_OFICIAL
+    private var categoriaPublicaId: String = ""
+    private var donoUid: String = ""
+    private var donoCategoria: String = ""
     private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var modoJogo: String? = null
+    private var modoSolo = false
+    private var partidaId = ""
+    private var categoriaCompetitiva = true
     private var admin = false
     private var perguntaAtualIndex = 0
     private var totalPontos = 0.0
     private var numeroPerguntasCertas = 0
     private var totalPerguntascertas = 0
+    private var perguntasRespondidas = 0
     private var bonus = 50
     private var jaRespondeu = false
     private var acertouUltimaPergunta = false
@@ -55,20 +65,42 @@ class JogoViewModel(
         uid: String,
         nomeUtilizador: String,
         nomeJogador: String,
-        nomeCategoria: String
+        nomeCategoria: String,
+        modoJogoSolo: String? = null,
+        modoSolo: Boolean = false,
+        origemCategoria: String = GameConstants.ORIGEM_CATEGORIA_OFICIAL,
+        categoriaPublicaId: String = "",
+        donoUid: String = "",
+        donoCategoria: String = ""
     ) {
         this.codigoSala = codigoSala
         this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
         this.nomeCategoria = nomeCategoria
+        this.modoSolo = modoSolo || codigoSala.isBlank()
+        this.modoJogo = modoJogoSolo ?: GameConstants.MODO_CLASSICO
+        this.origemCategoria = origemCategoria.ifBlank { GameConstants.ORIGEM_CATEGORIA_OFICIAL }
+        this.categoriaPublicaId = categoriaPublicaId
+        this.donoUid = donoUid
+        this.donoCategoria = donoCategoria
+        this.partidaId = "solo_${System.currentTimeMillis()}"
+        this.categoriaCompetitiva = this.origemCategoria == GameConstants.ORIGEM_CATEGORIA_OFICIAL
         this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador)
+
+        if (this.modoSolo) {
+            admin = false
+            _sala.value = JogoSalaUiState(admin = false, modoJogo = this.modoJogo)
+            carregarPerguntasSolo()
+            return
+        }
 
         observarOffsetServidor()
         jogoRepository.obterInfoSala(codigoSala, jogadorAtual)
             .addOnSuccessListener { infoSala ->
                 admin = infoSala.admin
                 modoJogo = infoSala.modoJogo
+                categoriaCompetitiva = infoSala.categoriaCompetitiva
                 _sala.value = JogoSalaUiState(admin, modoJogo)
                 escutarFimEliminatorias()
                 carregarPerguntas()
@@ -87,6 +119,7 @@ class JogoViewModel(
         if (admin || jaRespondeu) return null
         jaRespondeu = true
         acertouUltimaPergunta = false
+        perguntasRespondidas++
 
         var bonusAplicado = 0
         if (numeroOpcao in 0..3 && opcaoEscolhida == respostaCorreta) {
@@ -105,13 +138,42 @@ class JogoViewModel(
             numeroPerguntasCertas = 0
         }
 
-        jogoRepository.registarResposta(codigoSala, jogadorAtual, acertouUltimaPergunta)
+        if (!modoSolo) {
+            jogoRepository.registarResposta(
+                codigoSala = codigoSala,
+                jogador = jogadorAtual,
+                acertou = acertouUltimaPergunta,
+                totalPontos = totalPontos,
+                totalRespostasCertas = totalPerguntascertas,
+                perguntasRespondidas = perguntasRespondidas
+            )
+        }
 
         return JogoRespostaResultado(
             acertou = acertouUltimaPergunta,
             bonusAplicado = bonusAplicado,
-            deveEliminar = modoJogo == GameConstants.MODO_ELIMINATORIAS && !admin && !acertouUltimaPergunta
+            deveEliminar = !modoSolo && modoJogo == GameConstants.MODO_ELIMINATORIAS && !admin && !acertouUltimaPergunta,
+            deveFinalizarSolo = modoSolo && modoJogo == GameConstants.MODO_ELIMINATORIAS && !acertouUltimaPergunta,
+            deveAvancarSolo = modoSolo
         )
+    }
+
+    fun avancarSoloAposResposta() {
+        if (!modoSolo || navegacaoPontuacoesIniciada) return
+        if (modoJogo == GameConstants.MODO_ELIMINATORIAS && !acertouUltimaPergunta) {
+            finalizarSolo()
+            return
+        }
+
+        perguntaAtualIndex++
+        if (perguntaAtualIndex < perguntas.size) {
+            prepararPerguntaSolo()
+        } else {
+            if (modoJogo == GameConstants.MODO_ELIMINATORIAS) {
+                _evento.value = JogoEvent.BancoPerguntasConcluido
+            }
+            finalizarSolo()
+        }
     }
 
     fun eliminarJogador() {
@@ -219,6 +281,54 @@ class JogoViewModel(
             .addOnFailureListener { erro ->
                 _evento.value = JogoEvent.ErroCarregarPerguntas(erro.message.orEmpty())
             }
+    }
+
+    private fun carregarPerguntasSolo() {
+        val task = when (origemCategoria) {
+            GameConstants.ORIGEM_CATEGORIA_PUBLICA -> categoriaRepository.carregarCategoriaPublica(categoriaPublicaId)
+            GameConstants.ORIGEM_CATEGORIA_PERSONALIZADA -> categoriaRepository.carregarPerguntasCategoriaPersonalizada(
+                uid = donoUid,
+                nomeUtilizador = donoCategoria.ifBlank { nomeUtilizador },
+                nomeCategoria = nomeCategoria,
+                minimoOpcoes = 4
+            )
+            else -> if (nomeCategoria.equals("Todas as Categorias", ignoreCase = true)) {
+                categoriaRepository.carregarTodasPerguntasOficiais()
+            } else {
+                categoriaRepository.carregarPerguntasCategoriaOficial(nomeCategoria)
+            }
+        }
+
+        task.addOnSuccessListener { resultado ->
+            val perguntasCarregadas = when (resultado) {
+                is CategoriaRepository.CategoriaPublicaDetalhe -> resultado.perguntas.mapNotNull { it.toPergunta() }
+                is List<*> -> resultado.mapNotNull { (it as? Map<*, *>)?.toPergunta() }
+                else -> emptyList()
+            }
+
+            perguntas.clear()
+            val perguntasEmJogo = perguntasCarregadas.shuffled()
+            perguntas.addAll(if (modoJogo == GameConstants.MODO_ELIMINATORIAS) perguntasEmJogo else perguntasEmJogo.take(8))
+            if (perguntas.isEmpty()) {
+                _evento.value = JogoEvent.ErroCarregarPerguntas("Sem perguntas válidas para esta categoria.")
+                return@addOnSuccessListener
+            }
+            prepararPerguntaSolo()
+        }.addOnFailureListener { erro ->
+            _evento.value = JogoEvent.ErroCarregarPerguntas(erro.message.orEmpty())
+        }
+    }
+
+    private fun prepararPerguntaSolo() {
+        if (perguntaAtualIndex >= perguntas.size) {
+            finalizarSolo()
+            return
+        }
+
+        jaRespondeu = false
+        acertouUltimaPergunta = false
+        publicarPergunta(adminPergunta = false)
+        _evento.value = JogoEvent.IniciarCronometro(tempoServidorAtual(), admin = false)
     }
 
     private fun escutarIndicePergunta() {
@@ -362,18 +472,28 @@ class JogoViewModel(
         navegacaoPontuacoesIniciada = true
         removerListeners()
 
-        if (!admin) {
-            jogoRepository.guardarResultadoJogador(
-                codigoSala,
-                jogadorAtual,
-                totalPontos,
-                totalPerguntascertas
-            ).addOnCompleteListener {
-                _evento.value = JogoEvent.AbrirPontuacoes(dadosNavegacao())
-            }
-        } else {
+        if (modoSolo) {
+            _evento.value = JogoEvent.AbrirPontuacoes(dadosNavegacao())
+            return
+        }
+
+        // Grupo (incl. eliminatórias): o anfitrião/admin que ainda joga também tem de gravar
+        // estado+pontuação em Firebase; caso contrário o pódio fica incompleto (ex.: sobrevivente admin).
+        jogoRepository.guardarResultadoJogador(
+            codigoSala,
+            jogadorAtual,
+            totalPontos,
+            totalPerguntascertas
+        ).addOnCompleteListener {
             _evento.value = JogoEvent.AbrirPontuacoes(dadosNavegacao())
         }
+    }
+
+    private fun finalizarSolo() {
+        if (navegacaoPontuacoesIniciada) return
+        navegacaoPontuacoesIniciada = true
+        removerListeners()
+        _evento.value = JogoEvent.AbrirPontuacoes(dadosNavegacao())
     }
 
     private fun dadosNavegacao(): JogoResultadoDados {
@@ -382,12 +502,15 @@ class JogoViewModel(
             uid = uid,
             nomeJogador = nomeJogador,
             totalPontos = totalPontos,
+            partidaId = partidaId,
             nomeCategoria = nomeCategoria,
             nomeUtilizador = nomeUtilizador,
             modoJogo = modoJogo,
             numeroPerguntasCertas = numeroPerguntasCertas,
             totalPerguntasCertas = totalPerguntascertas,
-            totalPerguntas = perguntas.size
+            totalPerguntas = if (modoSolo) perguntasRespondidas.coerceAtLeast(totalPerguntascertas) else perguntas.size,
+            modoSolo = modoSolo,
+            categoriaCompetitiva = categoriaCompetitiva
         )
     }
 
@@ -395,6 +518,23 @@ class JogoViewModel(
         jogoRepository.removerListener(perguntaIndexListener)
         perguntaIndexListener = null
     }
+}
+
+private fun Map<*, *>.toPergunta(): Pergunta? {
+    val texto = this["pergunta"] as? String ?: return null
+    val resposta = this["respostaCorreta"] as? String ?: return null
+    val opcoes = (this["opcoes"] as? List<*>)
+        ?.mapNotNull { it as? String }
+        ?.filter { it.isNotBlank() }
+        .orEmpty()
+    if (texto.isBlank() || resposta.isBlank() || opcoes.size < 4) return null
+    return Pergunta(
+        pergunta = texto,
+        respostaCorreta = resposta,
+        opcoes = opcoes,
+        imagem = this["imagem"] as? String,
+        dificuldade = this["dificuldade"] as? String
+    )
 }
 
 data class JogoSalaUiState(
@@ -412,7 +552,9 @@ data class JogoPerguntaUiState(
 data class JogoRespostaResultado(
     val acertou: Boolean,
     val bonusAplicado: Int,
-    val deveEliminar: Boolean
+    val deveEliminar: Boolean,
+    val deveFinalizarSolo: Boolean = false,
+    val deveAvancarSolo: Boolean = false
 )
 
 data class JogoResultadoDados(
@@ -420,12 +562,15 @@ data class JogoResultadoDados(
     val uid: String,
     val nomeJogador: String,
     val totalPontos: Double,
+    val partidaId: String,
     val nomeCategoria: String,
     val nomeUtilizador: String,
     val modoJogo: String?,
     val numeroPerguntasCertas: Int,
     val totalPerguntasCertas: Int,
-    val totalPerguntas: Int
+    val totalPerguntas: Int,
+    val modoSolo: Boolean,
+    val categoriaCompetitiva: Boolean
 )
 
 sealed class JogoEvent {
@@ -437,6 +582,7 @@ sealed class JogoEvent {
     data object ErroEliminarJogador : JogoEvent()
     data object FinalizarJogo : JogoEvent()
     data object MensagemFimEliminatorias : JogoEvent()
+    data object BancoPerguntasConcluido : JogoEvent()
     data class AbrirEsperaEliminado(val dados: JogoResultadoDados) : JogoEvent()
     data class AbrirPontuacoes(val dados: JogoResultadoDados) : JogoEvent()
 }

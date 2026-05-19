@@ -14,6 +14,7 @@ data class HistoricoJogo(
     val venceu: Boolean = false,
     val empate: Boolean = false,
     val equipa: String = "",
+    val competitivo: Boolean = true,
     val dataHora: Long = 0L,
     val jogadoresDaPartida: List<String> = emptyList()
 ) {
@@ -35,6 +36,7 @@ data class HistoricoJogo(
             FirebasePaths.TOTAL_PERGUNTAS to totalPerguntas,
             FirebasePaths.VENCEU to venceu,
             FirebasePaths.EMPATE to empate,
+            FirebasePaths.COMPETITIVO to competitivo,
             FirebasePaths.DATA_HORA to dataHora,
             FirebasePaths.JOGADORES to jogadoresDaPartida
         )

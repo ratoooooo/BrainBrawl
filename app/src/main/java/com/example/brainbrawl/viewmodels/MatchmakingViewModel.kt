@@ -274,6 +274,28 @@ class MatchmakingViewModel(
             podeCancelar = true
         )
 
+        matchmakingRepository.procurarSalaAtivaDoJogador(modo, jogador.playerKey)
+            .addOnSuccessListener { salaAtiva ->
+                if (salaAtiva != null && !aCancelar && !navegacaoIniciada) {
+                    _estado.value = _estado.value?.copy(
+                        status = MatchmakingStatus.MATCH_FOUND,
+                        estadoTexto = "Partida encontrada. A entrar na sala...",
+                        podeCancelar = false
+                    )
+                    matchmakingRepository.cancelar(jogador.playerKey, modo)
+                    matchmakingRepository.cancelarOnDisconnect(jogador.playerKey, modo)
+                    abrirSala(salaAtiva)
+                    return@addOnSuccessListener
+                }
+
+                escreverFila(jogador)
+            }
+            .addOnFailureListener {
+                escreverFila(jogador)
+            }
+    }
+
+    private fun escreverFila(jogador: MatchmakingPlayer) {
         matchmakingRepository.entrarNaFila(jogador, modo)
             .addOnSuccessListener {
                 Log.d(TAG, "Entrou na fila: modo=$modo player=${jogador.playerKey.maskedLogId()} tipo=${jogador.tipoJogador}")

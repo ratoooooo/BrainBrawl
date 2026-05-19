@@ -99,9 +99,16 @@ class SalaGrupoViewModel(
             codigoSala,
             onJogadoresAlterados = { jogadoresSala ->
                 val nomes = jogadoresSala.map { it.nome }
-                val jogadoresInfo = jogadoresSala.associate { it.nome to it.isHostOnly }
-                val podeIniciar = admin && jogadoresReais(nomes, jogadoresInfo).size >= MINIMO_JOGADORES_GRUPO
-                _jogadores.value = SalaGrupoJogadoresUiState(nomes, podeIniciar)
+                val participantes = participantesAtivos(jogadoresSala)
+                val emFalta = (MINIMO_JOGADORES_GRUPO - participantes.size).coerceAtLeast(0)
+                val podeIniciar = admin && emFalta == 0
+                _jogadores.value = SalaGrupoJogadoresUiState(
+                    nomes = nomes,
+                    podeIniciar = podeIniciar,
+                    jogadoresMinimosAtuais = participantes.size,
+                    jogadoresMinimosNecessarios = MINIMO_JOGADORES_GRUPO,
+                    jogadoresEmFalta = emFalta
+                )
             },
             onErro = {
                 _evento.value = SalaGrupoEvent.ErroCarregarJogadores
@@ -141,7 +148,7 @@ class SalaGrupoViewModel(
     fun validarEIniciarJogo(codigoSala: String) {
         salaRepository.obterJogadoresDaSala(codigoSala)
             .addOnSuccessListener { jogadores ->
-                if (jogadoresReais(jogadores.map { it.nome }, jogadores.associate { it.nome to it.isHostOnly }).size < MINIMO_JOGADORES_GRUPO) {
+                if (participantesAtivos(jogadores).size < MINIMO_JOGADORES_GRUPO) {
                     _evento.value = SalaGrupoEvent.JogadoresInsuficientes
                     return@addOnSuccessListener
                 }
@@ -196,10 +203,19 @@ class SalaGrupoViewModel(
         )
     }
 
-    private fun jogadoresReais(nomes: List<String>, jogadoresInfo: Map<String, Boolean>): List<String> {
-        return nomes.filter { jogador ->
-            jogador != nomeAtual && jogador != GameConstants.JOGADOR_ADMIN && jogadoresInfo[jogador] != true
-        }
+    private fun participantesAtivos(jogadores: List<SalaRepository.JogadorSala>): List<SalaRepository.JogadorSala> {
+        return jogadores
+            .filter { jogador ->
+                val ePlaceholderAdmin = jogador.chave == GameConstants.JOGADOR_ADMIN &&
+                    jogador.nome == GameConstants.JOGADOR_ADMIN
+                !ePlaceholderAdmin && jogador.estado != GameConstants.ESTADO_OFF
+            }
+            .distinctBy { jogador ->
+                jogador.uid
+                    .ifBlank { jogador.nomeUtilizador }
+                    .ifBlank { jogador.nomeJogador }
+                    .ifBlank { jogador.chave }
+            }
     }
 
     private fun removerJogadoresListener() {
@@ -219,13 +235,16 @@ class SalaGrupoViewModel(
 
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
-        const val MINIMO_JOGADORES_GRUPO = 1
+        const val MINIMO_JOGADORES_GRUPO = 2
     }
 }
 
 data class SalaGrupoJogadoresUiState(
     val nomes: List<String>,
-    val podeIniciar: Boolean
+    val podeIniciar: Boolean,
+    val jogadoresMinimosAtuais: Int = 0,
+    val jogadoresMinimosNecessarios: Int = 2,
+    val jogadoresEmFalta: Int = 2
 )
 
 sealed class SalaEntradaEvent {
