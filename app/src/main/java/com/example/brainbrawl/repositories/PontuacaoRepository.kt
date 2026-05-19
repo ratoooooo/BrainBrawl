@@ -585,7 +585,11 @@ class PontuacaoRepository(
         val jogadoresReais = children.filter { jogadorSnapshot ->
             val nome = jogadorSnapshot.key.orEmpty()
             val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
-            !deveIgnorarJogador(nome) && !isHostOnly
+            val estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty()
+            val temResultado = jogadorSnapshot.temResultadoGrupoGuardado()
+            val participou = temResultado || estado == GameConstants.ESTADO_TERMINADO || estado == GameConstants.ESTADO_ELIMINADO || estado == GameConstants.ESTADO_EM_JOGO
+
+            !deveIgnorarJogador(nome) && !isHostOnly && participou
         }
 
         val resultados = jogadoresReais.mapNotNull { jogadorSnapshot ->
