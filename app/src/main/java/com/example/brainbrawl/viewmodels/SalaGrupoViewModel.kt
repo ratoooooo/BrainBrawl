@@ -208,7 +208,7 @@ class SalaGrupoViewModel(
             .filter { jogador ->
                 val ePlaceholderAdmin = jogador.chave == GameConstants.JOGADOR_ADMIN &&
                     jogador.nome == GameConstants.JOGADOR_ADMIN
-                !ePlaceholderAdmin && jogador.estado != GameConstants.ESTADO_OFF
+                !ePlaceholderAdmin && jogador.estado != GameConstants.ESTADO_OFF && !jogador.isHostOnly
             }
             .distinctBy { jogador ->
                 jogador.uid

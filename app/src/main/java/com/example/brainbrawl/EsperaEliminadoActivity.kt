@@ -38,6 +38,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
     private var totalPerguntascertas = 0
     private var totalPerguntas = 1
     private var categoriaCompetitiva = true
+    private var isAdmin = false
     private var podioAberto = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +56,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         totalPerguntascertas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY, 0)
         totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
         categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
+        isAdmin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
 
         binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
         configurarObservers()
@@ -178,6 +180,7 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.RESPOSTAS_CERTAS, totalPerguntascertas)
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, totalPerguntas)
         intent.putExtra(IntentExtras.CATEGORIA_COMPETITIVA, categoriaCompetitiva)
+        intent.putExtra(IntentExtras.ADMIN, isAdmin)
         startActivity(intent)
         finish()
     }

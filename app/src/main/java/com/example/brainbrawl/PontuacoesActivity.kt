@@ -48,6 +48,7 @@ class PontuacoesActivity : AppCompatActivity() {
         val modoSolo = intent.getBooleanExtra(IntentExtras.MODO_SOLO, false) || codigoSala.isBlank()
         val partidaId = intent.getStringExtra(IntentExtras.PARTIDA_ID).orEmpty()
         val categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
+        val isAdmin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
         val tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         val isGuest = intent.getBooleanExtra(
             IntentExtras.IS_GUEST,
@@ -70,7 +71,8 @@ class PontuacoesActivity : AppCompatActivity() {
                 partidaId = partidaId,
                 categoriaCompetitiva = categoriaCompetitiva,
                 tipoJogador = tipoJogador,
-                isGuest = isGuest
+                isGuest = isGuest,
+                isHostOnly = isAdmin
             )
         )
 

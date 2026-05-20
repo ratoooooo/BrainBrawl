@@ -431,6 +431,7 @@ class JogoActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, dados.totalPerguntas)
         intent.putExtra(IntentExtras.MODO_SOLO, dados.modoSolo)
         intent.putExtra(IntentExtras.CATEGORIA_COMPETITIVA, dados.categoriaCompetitiva)
+        intent.putExtra(IntentExtras.ADMIN, dados.admin)
         startActivity(intent)
         finish()
     }
@@ -450,6 +451,7 @@ class JogoActivity : AppCompatActivity() {
         intent.putExtra(IntentExtras.TOTAL_PERGUNTAS, dados.totalPerguntas)
         intent.putExtra(IntentExtras.MODO_SOLO, dados.modoSolo)
         intent.putExtra(IntentExtras.CATEGORIA_COMPETITIVA, dados.categoriaCompetitiva)
+        intent.putExtra(IntentExtras.ADMIN, dados.admin)
         startActivity(intent)
         finish()
     }

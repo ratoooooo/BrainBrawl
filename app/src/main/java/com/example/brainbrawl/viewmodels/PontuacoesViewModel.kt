@@ -217,13 +217,15 @@ data class PontuacoesInput(
     val partidaId: String = "",
     val categoriaCompetitiva: Boolean = true,
     val tipoJogador: String = "",
-    val isGuest: Boolean = false
+    val isGuest: Boolean = false,
+    val isHostOnly: Boolean = false
 ) {
     fun podeGravarPersistente(): Boolean {
         return uid.isNotBlank() &&
             !uid.startsWith("guest_") &&
             !isGuest &&
-            tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
+            tipoJogador != GameConstants.TIPO_JOGADOR_GUEST &&
+            !isHostOnly
     }
 
     fun identificadoresJogadorAtual(): List<String> {

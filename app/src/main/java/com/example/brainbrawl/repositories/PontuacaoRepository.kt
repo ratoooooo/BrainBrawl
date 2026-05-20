@@ -637,7 +637,8 @@ class PontuacaoRepository(
         val jogadoresReais = children.filter { jogadorSnapshot ->
             val nome = jogadorSnapshot.key.orEmpty()
             val estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty()
-            !deveIgnorarJogador(nome) && estado != GameConstants.ESTADO_OFF
+            val isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
+            !deveIgnorarJogador(nome) && estado != GameConstants.ESTADO_OFF && !isHostOnly
         }
 
         val resultados = jogadoresReais.mapNotNull { jogadorSnapshot ->

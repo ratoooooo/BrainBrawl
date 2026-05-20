@@ -95,7 +95,7 @@ class SalaRepository(
                 val jogadorRef = jogadorRef(codigoSala, chave)
 
                 val isPlaceholderAdmin = chave == GameConstants.JOGADOR_ADMIN && adminNome == GameConstants.JOGADOR_ADMIN
-                val isHostOnly = isPlaceholderAdmin
+                val isHostOnly = isPlaceholderAdmin || adminHint
 
                 val dados = jogador.toFirebaseMap(isHostOnly = isHostOnly)
 

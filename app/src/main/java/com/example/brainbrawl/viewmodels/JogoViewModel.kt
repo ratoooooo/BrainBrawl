@@ -472,7 +472,7 @@ class JogoViewModel(
         navegacaoPontuacoesIniciada = true
         removerListeners()
 
-        if (modoSolo) {
+        if (modoSolo || admin) {
             _evento.value = JogoEvent.AbrirPontuacoes(dadosNavegacao())
             return
         }
@@ -510,7 +510,8 @@ class JogoViewModel(
             totalPerguntasCertas = totalPerguntascertas,
             totalPerguntas = if (modoSolo) perguntasRespondidas.coerceAtLeast(totalPerguntascertas) else perguntas.size,
             modoSolo = modoSolo,
-            categoriaCompetitiva = categoriaCompetitiva
+            categoriaCompetitiva = categoriaCompetitiva,
+            admin = admin
         )
     }
 
@@ -570,7 +571,8 @@ data class JogoResultadoDados(
     val totalPerguntasCertas: Int,
     val totalPerguntas: Int,
     val modoSolo: Boolean,
-    val categoriaCompetitiva: Boolean
+    val categoriaCompetitiva: Boolean,
+    val admin: Boolean = false
 )
 
 sealed class JogoEvent {
