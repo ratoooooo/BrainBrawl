@@ -39,3 +39,4 @@ replay_pid*
 
 # APK/AAB artifacts
 *.apk
+local.properties
