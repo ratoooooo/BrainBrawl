@@ -5859,3 +5859,25 @@ Observação: Gradle continua a emitir aviso de deprecated features para Gradle 
 
 - Não foi feito teste manual visual em emulador nesta ronda; falta confirmar no dispositivo que o espaçamento agrada em tamanhos de ecrã diferentes.
 - A alteração é apenas visual; se o próximo teste UX quiser o mesmo tratamento em `TipoModoClassico`, isso deve ser feito numa tarefa separada para manter o escopo limpo.
+
+## Análise e Melhorias de Arquitetura e Estrutura - 2026-05-20
+
+### Análise Efetuada
+- **Código Analisado**: `MainActivity.kt`, `MainViewModel.kt`, `JogadorRepository.kt` e Gradle Scripts.
+- **Relatório Completo**: Os detalhes e as sugestões aprofundadas foram escritos em `PROJECT_ANALYSIS.md`.
+
+### Pontos Identificados
+- **MVVM e ViewBinding**: Bem implementados e com arquitetura em camadas clara.
+- **Acoplamento**: Identificado forte acoplamento entre os ViewModels e os Repositórios (instanciação direta sem Injeção de Dependências).
+- **Assincronismo**: Uso excessivo de `Task<T>` e listeners de callbacks em detrimento das Kotlin Coroutines e Flow, que melhorariam consideravelmente a fluidez do código assíncrono e gestão do ciclo de vida.
+- **Segurança e Regras do Cliente**: O projeto encontra-se bastante "Client-Authoritative" (Android manda no estado), o que constitui um risco em produção (como apontado no README).
+
+### Sugestões
+- Introduzir Injeção de Dependências com **Koin** ou **Hilt**.
+- Migração progressiva para **Kotlin Coroutines e Flow**.
+- Reforço da segurança com **Firebase Cloud Functions** para validar pontos e xp.
+- Novas funcionalidades: **Missões Diárias**, **Chat via Emojis** e **Pódios Sazonais**.
+
+### Validação Local
+- Nenhuma alteração de código ou funcionalidade foi feita. Apenas geração de documentação de análise e sugestões arquiteturais.
+- Arquivo `PROJECT_ANALYSIS.md` guardado com sucesso.
