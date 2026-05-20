@@ -361,24 +361,11 @@
     <option name="autoReloadType" value="NONE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Problemas Resolvidos">
-      <change afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/utils/UteisEstatisticas.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/appInsightsSettings.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/appInsightsSettings.xml" afterDir="false" />
+    <list default="true" id="1f8099d1-0428-43d3-8293-4776263e46e8" name="Changes" comment="Corrige elegibilidade competitiva das categorias">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao1x1Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/Pontuacao2x2Activity.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisSala.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/UteisSala.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/config/FirebasePaths.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoCompetitivoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/JogoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/MatchmakingRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/repositories/PontuacaoRepository.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Jogo1x1ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Jogo1x1ViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao1x1ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao1x1ViewModel.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao2x2ViewModel.kt" beforeDir="false" afterPath="$PROJECT_DIR$/app/src/main/java/com/example/brainbrawl/viewmodels/Pontuacao2x2ViewModel.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" beforeDir="false" afterPath="$PROJECT_DIR$/FIREBASE_RULES_NOTES.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/TEST_REPORT.md" beforeDir="false" afterPath="$PROJECT_DIR$/TEST_REPORT.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/firebase-rules.json" beforeDir="false" afterPath="$PROJECT_DIR$/firebase-rules.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -1200,11 +1187,18 @@
       <option name="project" value="LOCAL" />
       <updated>1779273517393</updated>
     </task>
-    <option name="localTasksCounter" value="45" />
+    <task id="LOCAL-00045" summary="Corrige elegibilidade competitiva das categorias">
+      <option name="closed" value="true" />
+      <created>1779276485115</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1779276485115</updated>
+    </task>
+    <option name="localTasksCounter" value="46" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Alterações feita: Agora DURANTE O JOGO O JOGDOR HOUVE UM SOM DE CORRETO OU ERRADO A RESPONDER A PERGUNTA" />
     <MESSAGE value="Alterações feita: Agora no fim do jogo, no modo 1x1 um jogador pode pedir a desforra" />
     <MESSAGE value="Alterações feita: Agora ha uma sala de espera para os jogadores antes do jogo começat" />
     <MESSAGE value="Alterações feita: Agora ha uma sala de espera para os jogadores antes do jogo começar" />
@@ -1229,7 +1223,8 @@
     <MESSAGE value="Versao v1.1 TERMINADA" />
     <MESSAGE value="Versao v1.1.1 Interfaces" />
     <MESSAGE value="Problemas Resolvidos" />
-    <option name="LAST_COMMIT_MESSAGE" value="Problemas Resolvidos" />
+    <MESSAGE value="Corrige elegibilidade competitiva das categorias" />
+    <option name="LAST_COMMIT_MESSAGE" value="Corrige elegibilidade competitiva das categorias" />
   </component>
   <component name="play_dynamic_filters_status">
     <option name="appIdToCheckInfo">

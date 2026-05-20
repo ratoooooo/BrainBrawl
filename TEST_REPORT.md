@@ -1,5 +1,62 @@
 # Pergunta o Luso - TEST_REPORT
 
+## Fix — Main Jogar Agora permission denied
+
+### Path negado
+
+- Operacao: **write**.
+- Path efetivo: `salas/{codigoSala}` durante `setValue(...)` de criacao da sala de grupo.
+- Campo que fazia a validacao falhar: `salas/{codigoSala}/categoriaOrigem`.
+- O read de perguntas oficiais esta correto no codigo: `categorias/{selectedCategory}/perguntas`.
+
+### Causa raiz
+
+- O fluxo Main -> Jogar Agora -> categoria oficial chama `UteisSala.criarSalaComCategoriaEEntrar`.
+- `CategoriaRepository.carregarPerguntasCategoriaOficial(nomeCategoria)` le `categorias/{nomeCategoria}/perguntas`, alinhado com a base real.
+- A sala criada inclui `categoriaOrigem = "oficial"` para preservar a regra de competitividade.
+- `firebase-rules.json` bloqueava campos desconhecidos em `salas/{codigoSala}` com `$other.validate=false`, mas ainda nao validava `categoriaOrigem`.
+- Resultado: o write da sala era recusado pelas rules e surgia `Firebase Database error: Permission denied`.
+
+### Alteracao aplicada
+
+- `firebase-rules.json` passou a aceitar `categoriaOrigem` apenas com valores conhecidos:
+  `oficial`, `personalizada`, `publica`.
+- A validacao foi adicionada a:
+  `salas/{codigoSala}/categoriaOrigem`,
+  `sala_1x1/{codigoSala}/categoriaOrigem`,
+  `sala_2x2/{codigoSala}/categoriaOrigem`.
+- Nao foi aberta escrita em `categorias`; categorias oficiais continuam read-only para clientes normais.
+- Nao houve alteracao no codigo Android, porque os paths do app ja estavam corretos para categorias oficiais.
+- Nao foi adicionado nenhum JSON exportado da Firebase ao app.
+
+### Competitividade e podium
+
+- `categoriaOrigem == "oficial"` continua competitivo.
+- `categoriaOrigem == "personalizada"` e `categoriaOrigem == "publica"` continuam nao competitivos.
+- `categoriaOrigem` ausente, vazio ou desconhecido continua nao competitivo no Kotlin.
+- O fix de podium de grupo nao foi alterado.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+
+### Validacao manual recomendada
+
+1. Publicar/deploy das rules atualizadas no projeto Firebase correto.
+2. Entrar com utilizador autenticado.
+3. Main -> Jogar Agora -> Grupo -> categoria oficial.
+4. Confirmar que a sala e criada e o jogo inicia sem `Permission denied`.
+5. Confirmar no Realtime Database que a sala contem `categoriaOrigem: "oficial"` e `perguntas` carregadas da categoria oficial.
+
+### Riscos restantes
+
+- A correcao so afeta producao depois de as rules atualizadas serem publicadas no Firebase.
+- Salas continuam com fallbacks legados/convidados em rules existentes; este fix nao amplia writes sensiveis, mas tambem nao resolve a seguranca client-authoritative de estatisticas/XP.
+
 ## Correção crítica — Matchmaking, fundos consistentes e pódio eliminatórias grupo (pré-beta)
 
 ### Causa real — matchmaking / sala de espera

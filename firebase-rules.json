@@ -399,6 +399,9 @@
         "nomeCategoria": {
           ".validate": "newData.isString()"
         },
+        "categoriaOrigem": {
+          ".validate": "newData.isString() && (newData.val() == 'oficial' || newData.val() == 'personalizada' || newData.val() == 'publica')"
+        },
         "categoriaPersonalizada": {
           ".validate": "newData.isBoolean()"
         },
@@ -549,6 +552,9 @@
         },
         "nomeCategoria": {
           ".validate": "newData.isString()"
+        },
+        "categoriaOrigem": {
+          ".validate": "newData.isString() && (newData.val() == 'oficial' || newData.val() == 'personalizada' || newData.val() == 'publica')"
         },
         "origem": {
           ".validate": "newData.isString() && (newData.val() == 'matchmaking' || newData.val() == 'convite' || newData.val() == 'manual')"
@@ -738,6 +744,9 @@
         },
         "categoriaPublicaId": {
           ".validate": "newData.isString()"
+        },
+        "categoriaOrigem": {
+          ".validate": "newData.isString() && (newData.val() == 'oficial' || newData.val() == 'personalizada' || newData.val() == 'publica')"
         },
         "jogadores": {
           "$jogadorId": {

@@ -2,6 +2,23 @@
 
 Este ficheiro acompanha `firebase-rules.json` e documenta o estado atual de seguranca do BrainBrawl.
 
+## Fix categoriaOrigem em salas - 2026-05-20
+
+- Causa do `Permission denied` no fluxo Main -> Jogar Agora -> categoria oficial:
+  o cliente criava `salas/{codigoSala}` com `categoriaOrigem = "oficial"`, mas as rules de `salas/{codigoSala}` bloqueavam esse campo por nao existir validacao explicita e por manterem `$other.validate=false`.
+- O read oficial continuava correto e permitido em `categorias/{nomeCategoria}/perguntas`.
+- Alteracao minima aplicada:
+  - `salas/{codigoSala}/categoriaOrigem`
+  - `sala_1x1/{codigoSala}/categoriaOrigem`
+  - `sala_2x2/{codigoSala}/categoriaOrigem`
+- Valores permitidos: `oficial`, `personalizada`, `publica`.
+- Nao foram abertas writes globais.
+- `categorias` continua `.read=true` e `.write=false`; utilizadores normais continuam sem permissao para editar categorias oficiais.
+- Estatisticas, XP, ranking, records, badges e historico nao receberam permissoes novas.
+- A regra UID-first existente foi preservada.
+- Nao foi usado `childrenCount` nem `childrenCount()`.
+- `python3 -m json.tool firebase-rules.json` executado com sucesso.
+
 ## Badges v1 / conquistas - 2026-05-14
 
 - Foi criado o node `conquistas/{uid}/{badgeId}` para conquistas UID-first.
