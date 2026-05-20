@@ -37,6 +37,7 @@ class Jogo2x2ViewModel(
     private var totalPerguntascertas = 0
     private var bonus = 50
     private var serverTimeOffset: Long = 0L
+    private var categoriaCompetitiva: Boolean = false
 
     private var offsetListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var podioListener: JogoCompetitivoRepository.ListenerHandle? = null
@@ -157,13 +158,25 @@ class Jogo2x2ViewModel(
                 equipaDoJogador = equipaJogador.equipa
                 chaveJogador = equipaJogador.chaveJogador
                 if (equipaDoJogador == GameConstants.EQUIPA_A || equipaDoJogador == GameConstants.EQUIPA_B) {
-                    carregarOuCriarPerguntas(categoriaTodas)
+                    verificarCompetitividadeECarregarPerguntas(categoriaTodas)
                 } else {
                     _evento.value = Jogo2x2Event.ErroCarregarEquipa
                 }
             }
             .addOnFailureListener {
                 _evento.value = Jogo2x2Event.ErroCarregarEquipa
+            }
+    }
+
+    private fun verificarCompetitividadeECarregarPerguntas(categoriaTodas: String) {
+        jogoCompetitivoRepository.verificarCompetitividade(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+            .addOnSuccessListener { competitiva ->
+                categoriaCompetitiva = competitiva
+                carregarOuCriarPerguntas(categoriaTodas)
+            }
+            .addOnFailureListener {
+                categoriaCompetitiva = false
+                carregarOuCriarPerguntas(categoriaTodas)
             }
     }
 
@@ -255,7 +268,8 @@ class Jogo2x2ViewModel(
             totalPerguntasCertas = totalPerguntascertas,
             numeroPerguntasCertas = numeroPerguntasCertas,
             totalPerguntas = perguntas.size,
-            equipa = equipaDoJogador
+            equipa = equipaDoJogador,
+            categoriaCompetitiva = categoriaCompetitiva
         )
     }
 }
@@ -285,7 +299,8 @@ data class JogoCompetitivoPontuacaoDados(
     val totalPerguntasCertas: Int,
     val numeroPerguntasCertas: Int,
     val totalPerguntas: Int,
-    val equipa: String?
+    val equipa: String?,
+    val categoriaCompetitiva: Boolean = true
 )
 
 sealed class Jogo2x2Event {

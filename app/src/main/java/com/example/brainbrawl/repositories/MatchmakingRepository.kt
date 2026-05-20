@@ -504,6 +504,7 @@ class MatchmakingRepository(
             FirebasePaths.ADMIN_ID to criador.playerKey,
             FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
             FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+            FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_OFICIAL,
             FirebasePaths.ORIGEM to GameConstants.ORIGEM_MATCHMAKING,
             FirebasePaths.LOTACAO_MAXIMA to limite,
             FirebasePaths.ENTRADA_FECHADA to true

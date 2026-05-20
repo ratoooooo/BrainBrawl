@@ -36,6 +36,7 @@ class Jogo1x1ViewModel(
     private var totalPerguntascertas = 0
     private var bonus = 50
     private var serverTimeOffset: Long = 0L
+    private var categoriaCompetitiva: Boolean = false
 
     private var offsetListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var podioListener: JogoCompetitivoRepository.ListenerHandle? = null
@@ -161,10 +162,22 @@ class Jogo1x1ViewModel(
             categoriaPadrao
         ).addOnSuccessListener { nomeCategoria ->
             categoria = nomeCategoria
-            carregarOuCriarPerguntas(categoriaTodas)
+            verificarCompetitividadeECarregarPerguntas(categoriaTodas)
         }.addOnFailureListener {
             _evento.value = Jogo1x1Event.ErroLerCategoria
         }
+    }
+
+    private fun verificarCompetitividadeECarregarPerguntas(categoriaTodas: String) {
+        jogoCompetitivoRepository.verificarCompetitividade(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+            .addOnSuccessListener { competitiva ->
+                categoriaCompetitiva = competitiva
+                carregarOuCriarPerguntas(categoriaTodas)
+            }
+            .addOnFailureListener {
+                categoriaCompetitiva = false
+                carregarOuCriarPerguntas(categoriaTodas)
+            }
     }
 
     private fun prepararPerguntaAtual() {
@@ -233,7 +246,8 @@ class Jogo1x1ViewModel(
             totalPerguntasCertas = totalPerguntascertas,
             numeroPerguntasCertas = numeroPerguntasCertas,
             totalPerguntas = perguntas.size,
-            equipa = null
+            equipa = null,
+            categoriaCompetitiva = categoriaCompetitiva
         )
     }
 }

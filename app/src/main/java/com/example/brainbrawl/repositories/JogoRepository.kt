@@ -66,7 +66,7 @@ class JogoRepository(
                 admin = isAdmin,
                 modoJogo = sala.child(FirebasePaths.MODO_JOGO).getValue(String::class.java)
                     ?: GameConstants.MODO_CLASSICO,
-                categoriaCompetitiva = sala.eSalaCompetitiva()
+                categoriaCompetitiva = com.example.brainbrawl.utils.UteisEstatisticas.isSalaCompetitiva(sala)
             )
         }
     }
@@ -363,13 +363,6 @@ class JogoRepository(
         }
     }
 
-    private fun DataSnapshot.eSalaCompetitiva(): Boolean {
-        val ePublica = child("categoriaPublica").getValue(Boolean::class.java) == true ||
-            child(FirebasePaths.CATEGORIA_PUBLICA_ID).texto().isNotBlank()
-        val ePersonalizada = child("categoriaPersonalizada").getValue(Boolean::class.java) == true ||
-            child(FirebasePaths.DONO_UID).texto().isNotBlank()
-        return !ePublica && !ePersonalizada
-    }
 
     private fun DataSnapshot.intValue(): Int {
         return getValue(Int::class.java)

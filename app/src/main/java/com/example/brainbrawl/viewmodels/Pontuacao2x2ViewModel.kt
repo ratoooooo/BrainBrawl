@@ -67,16 +67,20 @@ class Pontuacao2x2ViewModel(
 
                 if (input.podeGravarPersistente() && completo && !estatisticasAtualizadas) {
                     guardarHistoricoSeNecessario(input, resultados, podio2x2.totalA, podio2x2.totalB)
-                    estatisticasAtualizadas = true
-                    pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
-                        tipoSala = PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS,
-                        codigoSala = input.codigoSala,
-                        resultados = resultados,
-                        modo = EstatisticasService.Modo.DOIS_CONTRA_DOIS,
-                        totalPerguntas = input.totalPerguntas,
-                        jogadoresParaAtualizar = input.identificadoresJogadorAtual().toSet()
-                    ).addOnFailureListener {
-                        estatisticasAtualizadas = false
+                    if (!input.categoriaCompetitiva) {
+                        estatisticasAtualizadas = true
+                    } else {
+                        estatisticasAtualizadas = true
+                        pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
+                            tipoSala = PontuacaoRepository.TipoSala.DOIS_CONTRA_DOIS,
+                            codigoSala = input.codigoSala,
+                            resultados = resultados,
+                            modo = EstatisticasService.Modo.DOIS_CONTRA_DOIS,
+                            totalPerguntas = input.totalPerguntas,
+                            jogadoresParaAtualizar = input.identificadoresJogadorAtual().toSet()
+                        ).addOnFailureListener {
+                            estatisticasAtualizadas = false
+                        }
                     }
                 }
             },
@@ -152,6 +156,7 @@ class Pontuacao2x2ViewModel(
                 totalPerguntas = input.totalPerguntas,
                 venceu = venceu,
                 empate = empate,
+                competitivo = input.categoriaCompetitiva,
                 equipa = equipaAtual,
                 dataHora = System.currentTimeMillis(),
                 jogadoresDaPartida = resultados.map { jogador ->
@@ -179,7 +184,8 @@ data class Pontuacao2x2Input(
     val totalPerguntas: Int,
     val playerKey: String,
     val tipoJogador: String,
-    val isGuest: Boolean
+    val isGuest: Boolean,
+    val categoriaCompetitiva: Boolean = true
 ) {
     fun podeGravarPersistente(): Boolean {
         return uid.isNotBlank() && !isGuest && tipoJogador != GameConstants.TIPO_JOGADOR_GUEST

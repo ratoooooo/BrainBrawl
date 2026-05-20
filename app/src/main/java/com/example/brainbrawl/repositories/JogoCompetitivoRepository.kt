@@ -552,6 +552,16 @@ class JogoCompetitivoRepository(
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(updates)
     }
 
+    fun verificarCompetitividade(
+        modo: ModoCompetitivo,
+        codigoSala: String
+    ): Task<Boolean> {
+        return salaRef(modo, codigoSala).get().continueWith { task ->
+            if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar competitividade.")
+            com.example.brainbrawl.utils.UteisEstatisticas.isSalaCompetitiva(task.result)
+        }
+    }
+
     fun carregarNomeCategoria(
         modo: ModoCompetitivo,
         codigoSala: String,

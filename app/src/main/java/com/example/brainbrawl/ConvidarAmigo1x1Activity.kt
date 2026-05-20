@@ -6,13 +6,14 @@ import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.config.FirebasePaths
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityConvidarAmigoBinding
 import com.example.brainbrawl.models.UtilizadorSocial
 import com.example.brainbrawl.repositories.AmigosRepository
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 
 class ConvidarAmigo1x1Activity : AppCompatActivity() {
     private val binding by lazy {
@@ -110,7 +111,8 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
         categoriaPublicaId?.takeIf { it.isNotBlank() }?.let { id ->
             return mapOf(
                 "categoriaPublica" to true,
-                FirebasePaths.CATEGORIA_PUBLICA_ID to id
+                FirebasePaths.CATEGORIA_PUBLICA_ID to id,
+                FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_PUBLICA
             )
         }
 
@@ -119,12 +121,13 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
         return if (donoUidExplicito.isNotBlank() || donoLegadoExplicito.isNotBlank()) {
             val dados = linkedMapOf<String, Any>(
                 "categoriaPersonalizada" to true,
-                "donoCategoria" to donoLegadoExplicito.ifBlank { nomeUtilizador }
+                "donoCategoria" to donoLegadoExplicito.ifBlank { nomeUtilizador },
+                FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_PERSONALIZADA
             )
             donoUidExplicito.takeIf { it.isNotBlank() }?.let { dados[FirebasePaths.DONO_UID] = it }
             dados
         } else {
-            emptyMap()
+            mapOf(FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_OFICIAL)
         }
     }
 }

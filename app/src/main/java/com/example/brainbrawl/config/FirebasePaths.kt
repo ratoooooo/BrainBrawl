@@ -92,6 +92,7 @@ object FirebasePaths {
     const val XP_NO_NIVEL_ATUAL = "xpNoNivelAtual"
     const val XP_NECESSARIO_PROXIMO_NIVEL = "xpNecessarioProximoNivel"
 
+    const val CATEGORIA_ORIGEM = "categoriaOrigem"
     const val CATEGORIA_PUBLICA_ID = "categoriaPublicaId"
     const val CRIADOR = "criador"
     const val CRIADOR_ID = "criadorId"

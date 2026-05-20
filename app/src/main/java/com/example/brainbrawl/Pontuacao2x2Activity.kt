@@ -41,6 +41,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         val totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 8)
         val playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         val tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
+        val categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
         val isGuest = intent.getBooleanExtra(IntentExtras.IS_GUEST, false) ||
             tipoJogador == GameConstants.TIPO_JOGADOR_GUEST ||
             uid.isBlank()
@@ -58,7 +59,8 @@ class Pontuacao2x2Activity : AppCompatActivity() {
                 totalPerguntas = totalPerguntas,
                 playerKey = playerKey,
                 tipoJogador = tipoJogador,
-                isGuest = isGuest
+                isGuest = isGuest,
+                categoriaCompetitiva = categoriaCompetitiva
             )
         )
 

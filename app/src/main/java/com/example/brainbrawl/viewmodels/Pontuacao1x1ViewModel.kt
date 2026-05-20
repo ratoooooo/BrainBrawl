@@ -141,8 +141,15 @@ class Pontuacao1x1ViewModel(
     ) {
         if (aCriarDesforra || navegacaoEmitida) return
         aCriarDesforra = true
+        val origem = if (inputPontuacao?.categoriaCompetitiva == true) {
+            GameConstants.ORIGEM_CATEGORIA_OFICIAL
+        } else {
+            // Se não for competitivo, assumimos que é pública ou personalizada.
+            // Para simplificar, usamos pública se não soubermos.
+            GameConstants.ORIGEM_CATEGORIA_PUBLICA 
+        }
         _estadoDesforra.value = Pontuacao1x1DesforraUiState("Desforra aceite. A criar nova sala...", desforraPedida = true)
-        pontuacaoRepository.criarOuObterSalaDesforra1x1(codigoSala, jogador, adversario, nomeCategoria)
+        pontuacaoRepository.criarOuObterSalaDesforra1x1(codigoSala, jogador, adversario, nomeCategoria, origem)
             .addOnSuccessListener { novaSala ->
                 aCriarDesforra = false
                 emitirAbrirSala(novaSala)
@@ -193,6 +200,11 @@ class Pontuacao1x1ViewModel(
         }
 
         guardarHistoricoSeNecessario(input, jogadores)
+        if (!input.categoriaCompetitiva) {
+            estatisticasAtualizadas = true
+            return
+        }
+
         estatisticasAtualizadas = true
         pontuacaoRepository.atualizarEstatisticasSalaUmaVez(
             tipoSala = PontuacaoRepository.TipoSala.UM_CONTRA_UM,
@@ -224,6 +236,7 @@ class Pontuacao1x1ViewModel(
                 totalPerguntas = input.totalPerguntas,
                 venceu = atual.pontos > outro.pontos,
                 empate = atual.pontos == outro.pontos,
+                competitivo = input.categoriaCompetitiva,
                 dataHora = System.currentTimeMillis(),
                 jogadoresDaPartida = jogadores.map { it.nome }
             )
@@ -244,7 +257,8 @@ data class Pontuacao1x1Input(
     val playerKey: String,
     val tipoJogador: String,
     val avatar: String,
-    val isGuest: Boolean
+    val isGuest: Boolean,
+    val categoriaCompetitiva: Boolean = true
 ) {
     fun podeGravarPersistente(): Boolean {
         return uid.isNotBlank() && !isGuest && tipoJogador != GameConstants.TIPO_JOGADOR_GUEST

@@ -272,7 +272,7 @@ class PontuacaoRepository(
     fun salaCompetitiva(tipoSala: TipoSala, codigoSala: String): Task<Boolean> {
         return salaRef(tipoSala, codigoSala).get().continueWith { task ->
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao verificar categoria da sala.")
-            task.result.eSalaCompetitiva()
+            com.example.brainbrawl.utils.UteisEstatisticas.isSalaCompetitiva(task.result)
         }
     }
 
@@ -348,7 +348,8 @@ class PontuacaoRepository(
         codigoSalaAtual: String,
         jogadorAtual: JogadorDesforra,
         adversario: JogadorDesforra,
-        nomeCategoria: String
+        nomeCategoria: String,
+        categoriaOrigem: String = GameConstants.ORIGEM_CATEGORIA_OFICIAL
     ): Task<String> {
         val result = TaskCompletionSource<String>()
         val novaSalaRef = salaRef(TipoSala.UM_CONTRA_UM, codigoSalaAtual).child(FirebasePaths.NOVA_SALA_DESFORRA)
@@ -382,7 +383,7 @@ class PontuacaoRepository(
                     return
                 }
 
-                criarSalaDesforraSeNecessario(codigoFinal, jogadorAtual, adversario, nomeCategoria)
+                criarSalaDesforraSeNecessario(codigoFinal, jogadorAtual, adversario, nomeCategoria, categoriaOrigem)
                     .addOnSuccessListener {
                         limparFlagsDesforra1x1(codigoSalaAtual, jogadorAtual.chave, adversario.chave)
                         result.setResult(codigoFinal)
@@ -398,7 +399,8 @@ class PontuacaoRepository(
         codigoNovaSala: String,
         jogadorAtual: JogadorDesforra,
         adversario: JogadorDesforra,
-        nomeCategoria: String
+        nomeCategoria: String,
+        categoriaOrigem: String
     ): Task<Void> {
         val result = TaskCompletionSource<Void>()
         val salaRef = salaRef(TipoSala.UM_CONTRA_UM, codigoNovaSala)
@@ -416,6 +418,7 @@ class PontuacaoRepository(
                     FirebasePaths.ADMIN_ID to jogadorAtual.chave,
                     FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
                     FirebasePaths.NOME_CATEGORIA to nomeCategoria,
+                    FirebasePaths.CATEGORIA_ORIGEM to categoriaOrigem,
                     FirebasePaths.PRONTOS to mapOf(
                         jogadorAtual.chave to true,
                         adversario.chave to false
@@ -733,13 +736,6 @@ class PontuacaoRepository(
         )
     }
 
-    private fun DataSnapshot.eSalaCompetitiva(): Boolean {
-        val ePublica = child("categoriaPublica").getValue(Boolean::class.java) == true ||
-            child(FirebasePaths.CATEGORIA_PUBLICA_ID).texto().isNotBlank()
-        val ePersonalizada = child("categoriaPersonalizada").getValue(Boolean::class.java) == true ||
-            child(FirebasePaths.DONO_UID).texto().isNotBlank()
-        return !ePublica && !ePersonalizada
-    }
 
     private fun DataSnapshot.toJogadorDesforra(): JogadorDesforra {
         val chave = key.orEmpty()

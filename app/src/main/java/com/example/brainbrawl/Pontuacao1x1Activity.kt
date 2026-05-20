@@ -49,6 +49,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
+        val categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
         isGuest = intent.getBooleanExtra(IntentExtras.IS_GUEST, false) ||
             tipoJogador == GameConstants.TIPO_JOGADOR_GUEST ||
             uid.isBlank()
@@ -66,7 +67,8 @@ class Pontuacao1x1Activity : AppCompatActivity() {
                 playerKey = playerKey,
                 tipoJogador = tipoJogador,
                 avatar = avatar,
-                isGuest = isGuest
+                isGuest = isGuest,
+                categoriaCompetitiva = categoriaCompetitiva
             )
         )
 

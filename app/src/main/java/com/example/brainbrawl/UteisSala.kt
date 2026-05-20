@@ -4,9 +4,9 @@ import android.content.Context
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.JogadorSalaIdentidade
-import com.example.brainbrawl.routes.UteisNavegacao.abrirSalaDeEsperaGrupo
 import com.example.brainbrawl.repositories.CategoriaRepository
 import com.example.brainbrawl.repositories.SalaRepository
+import com.example.brainbrawl.routes.UteisNavegacao.abrirSalaDeEsperaGrupo
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 
@@ -111,7 +111,8 @@ object UteisSala {
                     mapOf(
                         "categoriaPersonalizada" to true,
                         "donoCategoria" to nomeUtilizador,
-                        FirebasePaths.DONO_UID to jogadorAdmin.uid
+                        FirebasePaths.DONO_UID to jogadorAdmin.uid,
+                        FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_PERSONALIZADA
                     )
 
                 salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
@@ -158,7 +159,8 @@ object UteisSala {
                     "categoriaPublica" to true,
                     "categoriaPublicaId" to categoriaPublicaId,
                     "criadorCategoriaPublica" to criador,
-                    "criadorCategoriaPublicaId" to criadorId
+                    "criadorCategoriaPublicaId" to criadorId,
+                    FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_PUBLICA
                 )
 
             salaRepository.criarSala(codigoSala, salaData).addOnSuccessListener {
@@ -194,7 +196,8 @@ object UteisSala {
             FirebasePaths.JOGADORES to mapOf<String, Any>(),
             "categoria" to nomeCategoria,
             FirebasePaths.NOME_CATEGORIA to nomeCategoria,
-            FirebasePaths.PERGUNTAS to perguntas
+            FirebasePaths.PERGUNTAS to perguntas,
+            FirebasePaths.CATEGORIA_ORIGEM to GameConstants.ORIGEM_CATEGORIA_OFICIAL
         )
         if (jogadorAdmin.uid.isNotBlank()) {
             dados[FirebasePaths.ADMIN_ID] = jogadorAdmin.uid
