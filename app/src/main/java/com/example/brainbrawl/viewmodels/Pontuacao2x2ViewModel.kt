@@ -1,5 +1,6 @@
 package com.example.brainbrawl.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -65,8 +66,11 @@ class Pontuacao2x2ViewModel(
                     mostrarNovoRecordSeAplicavel(input, resultados)
                 }
 
-                if (input.podeGravarPersistente() && completo && !estatisticasAtualizadas) {
+                if (completo && !historicoGuardado) {
                     guardarHistoricoSeNecessario(input, resultados, podio2x2.totalA, podio2x2.totalB)
+                }
+
+                if (input.podeGravarPersistente() && completo && !estatisticasAtualizadas) {
                     if (!input.categoriaCompetitiva) {
                         estatisticasAtualizadas = true
                     } else {
@@ -130,10 +134,31 @@ class Pontuacao2x2ViewModel(
         totalA: Double,
         totalB: Double
     ) {
-        if (historicoGuardado || !input.podeGravarPersistente() || resultados.size < 4) return
+        if (historicoGuardado) return
+        if (!input.podeGravarHistorico()) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip 2x2 history: invalid persistent identity uid=${input.uid} playerKey=${input.playerKey} " +
+                    "isGuest=${input.isGuest} tipo=${input.tipoJogador} room=${input.codigoSala}"
+            )
+            return
+        }
+        if (resultados.size < 4) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip 2x2 history: waiting for complete results uid=${input.uid} room=${input.codigoSala} players=${resultados.size}"
+            )
+            return
+        }
         val resultadoAtual = resultados.firstOrNull { resultado ->
             input.identificadoresJogadorAtual().any { resultado.corresponde(it) }
-        } ?: return
+        } ?: run {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip 2x2 history: current player not in results uid=${input.uid} playerKey=${input.playerKey} room=${input.codigoSala}"
+            )
+            return
+        }
 
         val equipaAtual = resultadoAtual.equipa ?: input.equipa.orEmpty()
         val empate = totalA == totalB
@@ -144,6 +169,11 @@ class Pontuacao2x2ViewModel(
         }
 
         historicoGuardado = true
+        Log.d(
+            HISTORY_DEBUG_TAG,
+            "saving 2x2 history uid=${input.uid} playerKey=${input.playerKey} category=${input.nomeCategoria} " +
+                "competitivo=${input.categoriaCompetitiva} room=${input.codigoSala}"
+        )
         historicoRepository.guardarHistoricoUmaVez(
             uid = input.uid,
             historico = HistoricoJogo(
@@ -188,7 +218,14 @@ data class Pontuacao2x2Input(
     val categoriaCompetitiva: Boolean = true
 ) {
     fun podeGravarPersistente(): Boolean {
-        return uid.isNotBlank() && !isGuest && tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
+        return podeGravarHistorico()
+    }
+
+    fun podeGravarHistorico(): Boolean {
+        return uid.isNotBlank() &&
+            !uid.startsWith("guest_") &&
+            !isGuest &&
+            tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
     }
 
     fun identificadoresJogadorAtual(): List<String> {
@@ -211,3 +248,5 @@ data class Pontuacao2x2UiState(
 sealed class Pontuacao2x2Event {
     data class MostrarMensagem(val mensagem: String) : Pontuacao2x2Event()
 }
+
+private const val HISTORY_DEBUG_TAG = "HISTORY_DEBUG"

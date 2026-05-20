@@ -1,5 +1,6 @@
 package com.example.brainbrawl.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -189,7 +190,13 @@ class Pontuacao1x1ViewModel(
     }
 
     private fun atualizarPersistencia(input: Pontuacao1x1Input, jogadores: List<ResultadoJogador>) {
-        if (!input.podeGravarPersistente() || jogadores.size < 2 || estatisticasAtualizadas) return
+        if (jogadores.size < 2) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip 1x1 persistence: waiting for opponent uid=${input.uid} room=${input.codigoSala} players=${jogadores.size}"
+            )
+            return
+        }
 
         val resultadosComRespostas = jogadores.map { jogador ->
             if (input.correspondeAoJogadorAtual(jogador, jogadorAtualResultado)) {
@@ -200,6 +207,7 @@ class Pontuacao1x1ViewModel(
         }
 
         guardarHistoricoSeNecessario(input, jogadores)
+        if (!input.podeGravarPersistente() || estatisticasAtualizadas) return
         if (!input.categoriaCompetitiva) {
             estatisticasAtualizadas = true
             return
@@ -219,11 +227,31 @@ class Pontuacao1x1ViewModel(
     }
 
     private fun guardarHistoricoSeNecessario(input: Pontuacao1x1Input, jogadores: List<ResultadoJogador>) {
-        if (historicoGuardado || !input.podeGravarPersistente() || jogadores.size < 2) return
-        val atual = jogadores.firstOrNull { input.correspondeAoJogadorAtual(it, jogadorAtualResultado) } ?: return
+        if (historicoGuardado) return
+        if (!input.podeGravarHistorico()) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip 1x1 history: invalid persistent identity uid=${input.uid} playerKey=${input.playerKey} " +
+                    "isGuest=${input.isGuest} tipo=${input.tipoJogador} room=${input.codigoSala}"
+            )
+            return
+        }
+        if (jogadores.size < 2) return
+        val atual = jogadores.firstOrNull { input.correspondeAoJogadorAtual(it, jogadorAtualResultado) } ?: run {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip 1x1 history: current player not in results uid=${input.uid} playerKey=${input.playerKey} room=${input.codigoSala}"
+            )
+            return
+        }
         val outro = jogadores.firstOrNull { !input.correspondeAoJogadorAtual(it, jogadorAtualResultado) } ?: return
 
         historicoGuardado = true
+        Log.d(
+            HISTORY_DEBUG_TAG,
+            "saving 1x1 history uid=${input.uid} playerKey=${input.playerKey} category=${input.nomeCategoria} " +
+                "competitivo=${input.categoriaCompetitiva} room=${input.codigoSala}"
+        )
         historicoRepository.guardarHistoricoUmaVez(
             uid = input.uid,
             historico = HistoricoJogo(
@@ -261,7 +289,14 @@ data class Pontuacao1x1Input(
     val categoriaCompetitiva: Boolean = true
 ) {
     fun podeGravarPersistente(): Boolean {
-        return uid.isNotBlank() && !isGuest && tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
+        return podeGravarHistorico()
+    }
+
+    fun podeGravarHistorico(): Boolean {
+        return uid.isNotBlank() &&
+            !uid.startsWith("guest_") &&
+            !isGuest &&
+            tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
     }
 
     fun correspondeAoJogadorAtual(jogador: ResultadoJogador, resultadoAtual: ResultadoJogador?): Boolean {
@@ -323,3 +358,5 @@ sealed class Pontuacao1x1Event {
     data class AbrirNovaSalaDesforra(val codigoSala: String) : Pontuacao1x1Event()
     data class MostrarMensagem(val mensagem: String) : Pontuacao1x1Event()
 }
+
+private const val HISTORY_DEBUG_TAG = "HISTORY_DEBUG"

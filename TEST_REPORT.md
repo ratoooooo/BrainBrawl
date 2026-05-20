@@ -5743,3 +5743,49 @@ Observação: Gradle continua a emitir aviso de deprecated features para Gradle 
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: falhou primeiro por `MissingTranslation` da nova string `voltar_bloqueado_jogo`; corrigidas traduções EN/ES/FR/DE e repetido com OK.
 - `git status --short`: executado no fim.
+
+## Fix — History not saving - 2026-05-20
+
+### Root cause
+
+- O histórico era guardado no mesmo bloco de decisão usado para estatísticas competitivas. Em grupo/solo, `PontuacoesViewModel` só tentava guardar histórico quando `podeGravarPersistente()` passava; esse método também bloqueia jogadores `isHostOnly`, usado pelo fluxo de admin/host. Na prática, um host real que terminava a partida podia chegar ao pódio sem tentativa de escrita no histórico.
+- Em 1x1 e 2x2, a gravação de histórico também ficava dentro do bloco `!estatisticasAtualizadas`. Se as estatísticas já estivessem marcadas como atualizadas, ou se a categoria fosse tratada como não elegível para estatísticas, o histórico podia nunca ser tentado.
+- No fluxo 1x1/2x2, a navegação para as atividades de pontuação não propagava `categoriaCompetitiva`, deixando o destino usar `true` por defeito. Isso podia marcar histórico de categorias públicas/personalizadas como competitivo e manter estatísticas competitivas ativas indevidamente.
+
+### Paths
+
+- Escrita de histórico: `historicoJogos/{uid}/{historicoId}`.
+- Leitura de histórico: `historicoJogos/{uid}`, ordenado por `dataHora` e limitado aos últimos 50 jogos.
+- As Firebase Rules atuais permitem `.read` e `.write` apenas quando `auth != null && auth.uid == $uid`, e aceitam o campo booleano `competitivo`.
+
+### Changes
+
+- `PontuacoesViewModel` separa agora elegibilidade de histórico (`podeGravarHistorico`) da elegibilidade de estatísticas competitivas (`podeGravarPersistente`). Histórico é tentado para participantes autenticados reais; XP/ranking/recordes continuam bloqueados para convidados, host-only e categorias não competitivas.
+- `Pontuacao1x1ViewModel` e `Pontuacao2x2ViewModel` tentam guardar histórico assim que os resultados estão completos, independentemente do estado de atualização de estatísticas. Convidados e ids `guest_` continuam bloqueados.
+- `UteisNavegacao`, `Jogo1x1Activity` e `Jogo2x2Activity` passam `categoriaCompetitiva` até aos ecrãs de pontuação, permitindo salvar histórico de categorias públicas/personalizadas com `competitivo = false`.
+- `HistoricoRepository` recebeu logs direcionados `HISTORY_DEBUG` com uid, modo, categoria, competitividade, path de escrita e erro Firebase em caso de falha.
+
+### Behavior
+
+- Categoria oficial autenticada: guarda histórico com `competitivo = true` quando a sala/categoria é competitiva.
+- Categoria pública/personalizada autenticada: guarda histórico com `competitivo = false`; não desbloqueia XP, ranking, recordes, vitórias competitivas ou badges.
+- Convidados: continuam sem escrita persistente de histórico.
+- Admin/host/fake admin: jogadores que não aparecem como participantes reais nos resultados não recebem histórico; o filtro de resultados existente continua a excluir `admin`, `off` e `isHostOnly`.
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado nesta correção.
+- Não foi necessário atualizar `FIREBASE_RULES_NOTES.md`.
+
+### Commands
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Remaining risks
+
+- Não foi executado teste manual em dispositivo/emulador contra Firebase remoto nesta ronda; a validação feita foi por inspeção de paths/rules e build/test local.
+- O histórico mantém a retenção existente de 3 dias (`HISTORICO_RETENCAO_DIAS`), por isso jogos antigos continuam a ser removidos pela limpeza normal.
+- Os logs `HISTORY_DEBUG` são úteis para confirmar o próximo teste manual e devem ser removidos ou reduzidos depois de validar o fluxo em Firebase real.

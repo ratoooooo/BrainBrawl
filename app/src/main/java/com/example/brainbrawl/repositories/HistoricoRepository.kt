@@ -1,5 +1,6 @@
 package com.example.brainbrawl.repositories
 
+import android.util.Log
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.HistoricoJogo
@@ -19,10 +20,19 @@ class HistoricoRepository(
     fun guardarHistoricoUmaVez(uid: String, historico: HistoricoJogo): Task<Boolean> {
         val result = TaskCompletionSource<Boolean>()
         if (uid.isBlank() || historico.historicoId.isBlank()) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip save: invalid identity uid=$uid historicoId=${historico.historicoId} mode=${historico.modo}"
+            )
             result.setResult(false)
             return result.task
         }
 
+        Log.d(
+            HISTORY_DEBUG_TAG,
+            "save requested uid=$uid mode=${historico.modo} category=${historico.nomeCategoria} " +
+                "competitivo=${historico.competitivo} path=${historicoPath(uid, historico.historicoId)}"
+        )
         limparHistoricoAntigo(uid)
             .addOnCompleteListener {
                 resolverHistoricoCompetitivo(historico)
@@ -142,8 +152,17 @@ class HistoricoRepository(
 
             override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
                 if (error != null) {
+                    Log.e(
+                        HISTORY_DEBUG_TAG,
+                        "write failed path=${historicoPath(uid, historico.historicoId)} error=${error.message}",
+                        error.toException()
+                    )
                     result.setException(error.toException())
                 } else {
+                    Log.d(
+                        HISTORY_DEBUG_TAG,
+                        "write complete path=${historicoPath(uid, historico.historicoId)} committed=$committed"
+                    )
                     if (committed) limitarHistorico(uid)
                     result.setResult(committed)
                 }
@@ -165,6 +184,10 @@ class HistoricoRepository(
 
     private fun historicoRef(uid: String): DatabaseReference {
         return database.child(FirebasePaths.HISTORICO_JOGOS).child(uid)
+    }
+
+    private fun historicoPath(uid: String, historicoId: String): String {
+        return "${FirebasePaths.HISTORICO_JOGOS}/$uid/$historicoId"
     }
 
     private fun DataSnapshot.toHistoricoJogo(): HistoricoJogo? {
@@ -194,6 +217,7 @@ class HistoricoRepository(
     private fun DataSnapshot.doubleValue() = getValue(Double::class.java) ?: getValue(Long::class.java)?.toDouble() ?: 0.0
 
     private companion object {
+        const val HISTORY_DEBUG_TAG = "HISTORY_DEBUG"
         const val LIMITE_HISTORICO = 50
         const val MILLIS_POR_DIA = 24L * 60L * 60L * 1000L
     }

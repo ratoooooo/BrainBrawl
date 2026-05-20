@@ -306,7 +306,8 @@ class Jogo1x1Activity : AppCompatActivity() {
             uid = dados.uid,
             playerKey = dados.playerKey,
             tipoJogador = dados.tipoJogador,
-            avatar = dados.avatar
+            avatar = dados.avatar,
+            categoriaCompetitiva = dados.categoriaCompetitiva
         )
     }
 

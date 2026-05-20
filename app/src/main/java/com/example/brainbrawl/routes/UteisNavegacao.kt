@@ -74,7 +74,8 @@ object UteisNavegacao {
         uid: String? = null,
         playerKey: String? = null,
         tipoJogador: String? = null,
-        avatar: String? = null
+        avatar: String? = null,
+        categoriaCompetitiva: Boolean? = null
     ) {
         val destino = when (modoJogo) {
             GameConstants.MODO_1X1 -> Pontuacao1x1Activity::class.java
@@ -100,6 +101,7 @@ object UteisNavegacao {
         playerKey?.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.PLAYER_KEY, it) }
         tipoJogador?.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.TIPO_JOGADOR, it) }
         avatar?.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.AVATAR, it) }
+        categoriaCompetitiva?.let { intent.putExtra(IntentExtras.CATEGORIA_COMPETITIVA, it) }
         if (!tipoJogador.isNullOrBlank()) {
             intent.putExtra(IntentExtras.IS_GUEST, tipoJogador == GameConstants.TIPO_JOGADOR_GUEST)
         }

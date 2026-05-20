@@ -1,5 +1,6 @@
 package com.example.brainbrawl.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -57,8 +58,11 @@ class PontuacoesViewModel(
                     podio = criarPodio(jogadores, resumo.completos)
                 )
 
-                if (input.podeGravarPersistente() && resumo.completos && !estatisticasAtualizadas) {
+                if (resumo.completos && !historicoGuardado) {
                     guardarHistoricoSeNecessario(input, jogadores)
+                }
+
+                if (input.podeGravarPersistente() && resumo.completos && !estatisticasAtualizadas) {
                     if (!input.categoriaCompetitiva) {
                         estatisticasAtualizadas = true
                     } else {
@@ -132,7 +136,16 @@ class PontuacoesViewModel(
             podio = criarPodio(listOf(resultado), completos = true)
         )
 
-        if (!input.podeGravarPersistente() || historicoGuardado) return
+        if (!input.podeGravarHistorico() || historicoGuardado) {
+            if (!historicoGuardado) {
+                Log.d(
+                    HISTORY_DEBUG_TAG,
+                    "skip solo history uid=${input.uid} isGuest=${input.isGuest} tipo=${input.tipoJogador} " +
+                        "mode=${input.modoJogo} category=${input.nomeCategoria}"
+                )
+            }
+            return
+        }
         historicoGuardado = true
         historicoRepository.guardarHistoricoUmaVez(
             uid = input.uid,
@@ -150,19 +163,19 @@ class PontuacoesViewModel(
                 dataHora = System.currentTimeMillis(),
                 jogadoresDaPartida = listOf(resultado.nome)
             )
-        ).addOnSuccessListener { guardado ->
-            if (guardado && input.categoriaCompetitiva && !estatisticasAtualizadas) {
-                estatisticasAtualizadas = true
-                pontuacaoRepository.atualizarEstatisticasSolo(
-                    resultado = resultado,
-                    venceu = true,
-                    totalPerguntas = input.totalPerguntas
-                ).addOnFailureListener {
-                    estatisticasAtualizadas = false
-                }
-            }
-        }.addOnFailureListener {
+        ).addOnFailureListener {
             historicoGuardado = false
+        }
+
+        if (input.podeGravarPersistente() && input.categoriaCompetitiva && !estatisticasAtualizadas) {
+            estatisticasAtualizadas = true
+            pontuacaoRepository.atualizarEstatisticasSolo(
+                resultado = resultado,
+                venceu = true,
+                totalPerguntas = input.totalPerguntas
+            ).addOnFailureListener {
+                estatisticasAtualizadas = false
+            }
         }
     }
 
@@ -170,12 +183,39 @@ class PontuacoesViewModel(
         input: PontuacoesInput,
         jogadores: List<ResultadoJogador>
     ) {
-        if (historicoGuardado || !input.podeGravarPersistente() || jogadores.isEmpty()) return
+        if (historicoGuardado) return
+        if (!input.podeGravarHistorico()) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip group history: invalid persistent identity uid=${input.uid} isGuest=${input.isGuest} " +
+                    "tipo=${input.tipoJogador} mode=${input.modoJogo} room=${input.codigoSala}"
+            )
+            return
+        }
+        if (jogadores.isEmpty()) {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip group history: no playable results uid=${input.uid} mode=${input.modoJogo} room=${input.codigoSala}"
+            )
+            return
+        }
         val resultadoAtual = jogadores.firstOrNull { jogador ->
             input.identificadoresJogadorAtual().any { jogador.corresponde(it) }
-        } ?: return
+        } ?: run {
+            Log.d(
+                HISTORY_DEBUG_TAG,
+                "skip group history: current player not in results uid=${input.uid} player=${input.nomeJogador} " +
+                    "user=${input.nomeUtilizador} mode=${input.modoJogo} room=${input.codigoSala}"
+            )
+            return
+        }
 
         historicoGuardado = true
+        Log.d(
+            HISTORY_DEBUG_TAG,
+            "saving group history uid=${input.uid} mode=${input.modoJogo} category=${input.nomeCategoria} " +
+                "competitivo=${input.categoriaCompetitiva} room=${input.codigoSala}"
+        )
         val maxPontos = jogadores.maxOfOrNull { it.pontos } ?: resultadoAtual.pontos
         val empatadosNoTopo = jogadores.count { it.pontos == maxPontos }
         val empate = resultadoAtual.pontos == maxPontos && empatadosNoTopo > 1
@@ -228,6 +268,13 @@ data class PontuacoesInput(
             !isHostOnly
     }
 
+    fun podeGravarHistorico(): Boolean {
+        return uid.isNotBlank() &&
+            !uid.startsWith("guest_") &&
+            !isGuest &&
+            tipoJogador != GameConstants.TIPO_JOGADOR_GUEST
+    }
+
     fun identificadoresJogadorAtual(): List<String> {
         return listOf(
             uid,
@@ -257,3 +304,5 @@ data class PontuacoesPodioItemUi(
     val nome: String,
     val pontos: String
 )
+
+private const val HISTORY_DEBUG_TAG = "HISTORY_DEBUG"
