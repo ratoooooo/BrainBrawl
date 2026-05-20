@@ -1,295 +1,271 @@
 # Pergunta o Luso
 
-**Pergunta o Luso** é uma aplicação Android multiplayer de perguntas e respostas, desenvolvida em Kotlin, onde os jogadores competem em tempo real através de salas, categorias e diferentes modos de jogo.
+**Pergunta o Luso** é um jogo de perguntas para Android focado em cultura portuguesa, competição, categorias, rankings, conquistas e modos multiplayer.
 
-`BrainBrawl` continua a ser o nome técnico do repositório/package durante a v1.
+O projeto ainda está em fase **pre-beta / closed beta**. Não deve ser tratado como produção final sem uma revisão adicional de segurança, regras Firebase, antifraude e qualidade.
 
-O objetivo é simples: criar ou entrar numa sala, escolher uma categoria, responder rápido e tentar terminar no topo da pontuação. A aplicação inclui contas de jogador, avatares, amigos, convites, estatísticas, perfis e categorias personalizadas.
-
----
-
-## Funcionalidades principais
-
-### Autenticação e perfil
-
-- Registo e login de jogadores.
-- Entrada como convidado para jogar sem conta.
-- Escolha de avatar no registo.
-- Perfil do jogador com:
-  - pontuação;
-  - total de jogos;
-  - total de vitórias;
-  - taxa de acertos;
-  - vitórias por modo;
-  - conquistas/badges.
-
-### Modos de jogo
-
-- **Clássico**: jogo por categoria, com perguntas da categoria escolhida.
-- **1x1 por convite**: duelo entre dois jogadores registados.
-- **2x2**: jogo por equipas, com convite de amigos.
-- **Grupo / Todos contra todos**: sala multiplayer onde vários jogadores competem pela melhor pontuação.
-- **Caótico**: perguntas misturadas de várias categorias, criando uma partida mais imprevisível.
-- **Eliminatórias**: modo disponível na navegação da app, preparado para partidas onde os jogadores podem ser eliminados.
-
-O matchmaking aleatório 1x1/2x2 está desativado na v1. Os fluxos competitivos ativos são salas, entrada por código e convites.
-
-### Multiplayer em tempo real
-
-- Criação de salas com código.
-- Entrada em salas através de código.
-- Salas separadas para jogos em grupo, 1x1 e 2x2.
-- Sincronização do estado da sala através do Firebase Realtime Database.
-- Sala de espera antes do início do jogo.
-- Convites para amigos em modos competitivos.
-
-### Categorias
-
-- Categorias fixas como História, Geografia, Desporto, Cultura Geral e Gentílicos.
-- Criação de categorias personalizadas por jogadores registados.
-- Adição, edição e remoção de perguntas em categorias pessoais.
-- Jogar com categorias personalizadas.
-- Exploração de categorias públicas/partilhadas.
-- Possibilidade de guardar uma categoria pública como cópia editável nas categorias pessoais.
-
-### Pontuação e rankings
-
-- Pontuação calculada com base no tempo de resposta.
-- Bónus por sequência de respostas corretas.
-- Ecrã final com pódio da sala.
-- Estatísticas persistidas por jogador:
-  - melhor pontuação;
-  - jogos realizados;
-  - vitórias;
-  - respostas certas;
-  - taxa média de acertos.
-
-### Amigos e convites
-
-- Sistema de amigos.
-- Pedidos de amizade.
-- Convites recebidos e enviados.
-- Estado online/offline dos jogadores.
-- Acesso ao perfil de amigos.
+> `BrainBrawl` continua a ser o nome técnico do repositório/package Android durante esta fase.
 
 ---
 
-## Tecnologias usadas
+## Funcionalidades
 
-- **Kotlin**: linguagem principal da aplicação Android.
-- **Android SDK**: aplicação nativa Android.
-- **Firebase Realtime Database**: sincronização de salas, jogadores, perguntas, pontuações e convites.
-- **Firebase Google Services**: integração Firebase através do `google-services.json`.
-- **ViewBinding**: acesso seguro às views dos layouts XML.
-- **ConstraintLayout**: construção das interfaces principais.
-- **Material Components**: componentes visuais Android.
-- **Glide**: suporte para carregamento de imagens.
-- **Gradle Kotlin DSL**: configuração de build.
+- Registo e login de utilizadores.
+- Modo convidado, quando permitido pelo fluxo.
+- Perfil de jogador.
+- Edição de avatar.
+- XP, níveis e progressão.
+- Conquistas/badges.
+- Rankings.
+- Histórico de partidas para utilizadores autenticados.
+- Categorias oficiais.
+- Categorias personalizadas.
+- Categorias públicas criadas por utilizadores.
+- Criação de categorias e edição de perguntas.
+- Modo Solo.
+- Modo Grupo / Todos contra Todos.
+- Modo 1v1 por convite.
+- Modo 2v2 por convite.
+- Matchmaking 1v1/2v2, quando disponível no fluxo atual.
+- Modo Clássico.
+- Modo Caótico.
+- Modo Eliminatórias.
+- Pódios visuais no fim das partidas.
+- Regras anti-farming para separar categorias competitivas e não competitivas.
 
 ---
 
-## Build e execução
+## Regras importantes do produto
 
-### Requisitos
+- Categorias oficiais são competitivas.
+- Categorias personalizadas e públicas podem ser jogadas, mas são não competitivas.
+- Categorias não competitivas não atualizam:
+  - XP;
+  - ranking;
+  - recordes;
+  - vitórias/derrotas competitivas;
+  - badges competitivos.
+- Pódios visuais, resultados e feedback da partida continuam a funcionar em todas as categorias.
+- Convidados não devem guardar dados persistentes como XP, histórico, ranking ou badges.
 
-- Android Studio instalado.
-- JDK compatível com o projeto, preferencialmente o JBR incluído no Android Studio.
-- Android SDK com suporte a:
-  - `compileSdk 34`;
-  - `minSdk 26`.
-- Dispositivo físico ou emulador Android.
-- Projeto Firebase configurado com Realtime Database.
+Estas regras são importantes para evitar farming de XP/ranking com perguntas criadas pelo próprio utilizador.
 
-### Passos
+---
 
-1. Clonar ou abrir a pasta do projeto no Android Studio.
+## Stack técnica
 
-2. Confirmar que o ficheiro Firebase existe em:
+- Android Kotlin.
+- XML layouts.
+- ViewBinding.
+- Arquitetura em estilo MVVM.
+- Firebase Realtime Database.
+- Firebase Authentication.
+- Gradle Kotlin DSL.
+
+---
+
+## Arquitetura
+
+A aplicação está organizada de forma progressiva em camadas:
+
+- **Activities**: gerem UI, eventos do ecrã e navegação.
+- **ViewModels**: coordenam estado de ecrã, fluxos assíncronos e decisões de apresentação.
+- **Repositories**: concentram acesso ao Firebase Realtime Database.
+- **Services**: contêm lógica de pontuação, progressão, estatísticas e badges.
+- **FirebasePaths**: centraliza nomes de paths/nós usados na base de dados.
+- **GameConstants**: centraliza constantes de jogo, modos, estados e origens de categoria.
+
+O projeto ainda contém algum código legado e compatibilidade com fluxos antigos. Antes de uma release pública, deve haver uma revisão técnica focada em segurança e autoridade de dados.
+
+---
+
+## Firebase
+
+O Firebase Realtime Database é usado para:
+
+- utilizadores;
+- salas;
+- jogadores em sala;
+- perguntas;
+- categorias oficiais;
+- categorias personalizadas;
+- categorias públicas;
+- pontuações;
+- pódios;
+- histórico;
+- amigos e convites;
+- matchmaking.
+
+O Firebase Authentication identifica utilizadores reais e deve ser usado para separar jogadores autenticados de convidados.
+
+### Regras Firebase
+
+O ficheiro `firebase-rules.json` contém as regras da Realtime Database e deve ser publicado antes de testar fluxos reais:
+
+```bash
+firebase deploy --only database
+```
+
+As regras devem ser revistas antes de qualquer beta público. O projeto ainda pode ter validações client-side em áreas sensíveis, por isso Cloud Functions ou outro backend autoritativo são recomendados para produção.
+
+### Dados privados
+
+Não commits:
+
+- exports da Realtime Database;
+- ficheiros `google-services.json` reais de projetos privados;
+- service accounts;
+- chaves privadas;
+- keystores;
+- passwords;
+- tokens;
+- ficheiros locais do Android Studio.
+
+---
+
+## Setup local
+
+1. Clonar o repositório:
+
+   ```bash
+   git clone https://github.com/ratoooooo/BrainBrawl.git
+   cd BrainBrawl
+   ```
+
+2. Abrir o projeto no Android Studio.
+
+3. Criar ou selecionar um projeto Firebase.
+
+4. Ativar Firebase Authentication e Firebase Realtime Database.
+
+5. Adicionar o ficheiro `google-services.json` localmente em:
 
    ```text
    app/google-services.json
    ```
 
-3. Abrir o projeto no Android Studio e aguardar a sincronização do Gradle.
+   Este ficheiro deve ficar fora do Git se contiver credenciais reais de um projeto privado.
 
-4. Executar o build:
-
-   ```bash
-   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug
-   ```
-
-5. Para correr os testes unitários:
+6. Publicar as regras Firebase:
 
    ```bash
-   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest
+   firebase deploy --only database
    ```
 
-6. Para validar a build completa:
+7. Sincronizar Gradle no Android Studio.
 
-   ```bash
-   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build
-   ```
-
-7. Para gerar APK release local:
-
-   ```bash
-   JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleRelease
-   ```
-
-No Android Studio, selecionar um emulador ou dispositivo físico e carregar em **Run**.
-
-### Nota sobre Firebase
-
-A aplicação usa o Firebase Realtime Database para guardar dados como jogadores, salas, perguntas, categorias, amigos e pontuações. Para correr o projeto fora do ambiente original, é necessário configurar um projeto Firebase compatível e garantir que as regras da base de dados permitem os fluxos esperados durante testes.
-
-### Notas de segurança v1
-
-- A arquitetura nova é UID-first, mas mantém compatibilidade legado por `nomeUtilizador`.
-- O login legado e campos password/hash antigos ainda existem para compatibilidade e devem ser migrados/removidos antes de beta público.
-- Pontuação, XP, ranking e histórico ainda são client-authoritative; a versão robusta deve usar Cloud Functions.
-- Convidados podem jogar fluxos permitidos, mas não devem gravar XP, estatísticas, histórico, ranking ou conquistas.
-- O matchmaking aleatório continua desativado e só deve voltar numa branch/fase própria.
+8. Compilar e executar num emulador ou dispositivo Android.
 
 ---
 
-## Estrutura do projeto
+## Comandos úteis
 
-```text
-BrainBrawl/
-├── app/
-│   ├── build.gradle.kts
-│   ├── google-services.json
-│   └── src/main/
-│       ├── AndroidManifest.xml
-│       ├── java/com/example/brainbrawl/
-│       │   ├── LoginActivity.kt
-│       │   ├── RegistarActivity.kt
-│       │   ├── MainActivity.kt
-│       │   ├── EscolherModoActivity.kt
-│       │   ├── TipoModoClassico.kt
-│       │   ├── EscolherCategoriaActivity.kt
-│       │   ├── AdicionarPerguntaActivity.kt
-│       │   ├── ExplorarCategoriasActivity.kt
-│       │   ├── SalaDeEsperaActivity.kt
-│       │   ├── SalaDeEspera1x1Activity.kt
-│       │   ├── SalaDeEspera2x2Activity.kt
-│       │   ├── SalaDeEsperaGrupoActivity.kt
-│       │   ├── JogoActivity.kt
-│       │   ├── Jogo1x1Activity.kt
-│       │   ├── Jogo2x2Activity.kt
-│       │   ├── PontuacoesActivity.kt
-│       │   ├── Pontuacao1x1Activity.kt
-│       │   ├── Pontuacao2x2Activity.kt
-│       │   ├── AmigosActivity.kt
-│       │   ├── MeuPerfilActivity.kt
-│       │   ├── PerfilAmigoActivity.kt
-│       │   └── Uteis*.kt
-│       └── res/
-│           ├── drawable/
-│           ├── layout/
-│           ├── raw/
-│           └── values/
-├── build.gradle.kts
-├── settings.gradle.kts
-└── README.md
+```bash
+./gradlew clean
+./gradlew assembleDebug
+./gradlew testDebugUnitTest
+./gradlew build
 ```
 
-### Pastas e ficheiros principais
+Se estiveres a usar o JBR incluído no Android Studio no macOS:
 
-- `app/src/main/java/com/example/brainbrawl/`: código Kotlin da aplicação.
-- `app/src/main/res/layout/`: interfaces XML dos ecrãs.
-- `app/src/main/res/drawable/`: avatares, ícones, fundos e estilos visuais.
-- `app/src/main/res/raw/`: sons usados durante o jogo.
-- `app/src/main/res/values/`: strings, cores e temas.
-- `UteisSala.kt`: criação de salas e carregamento de perguntas.
-- `UteisJogo.kt`: lógica auxiliar de pontuação, opções e sons.
-- `UteisNavegacao.kt`: navegação entre ecrãs.
-- `UteisValidacao.kt`: validação e hash de palavras-passe.
-- `UteisConquistas.kt`: regras para badges/conquistas.
+```bash
+JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build
+```
 
 ---
 
-## Como jogar
+## Checklist de testes manuais
 
-### 1. Entrar na aplicação
+Antes de considerar uma build pronta para testes externos, validar:
 
-O jogador pode:
-
-- criar uma conta;
-- iniciar sessão;
-- jogar como convidado, indicando apenas um nome.
-
-Jogadores registados têm acesso a mais funcionalidades, como amigos, convites, estatísticas, perfil e categorias personalizadas.
-
-### 2. Criar uma sala
-
-1. No menu principal, escolher **Criar Sala**.
-2. Selecionar o modo de jogo.
-3. Escolher a categoria.
-4. A app cria uma sala e gera um código.
-5. Outros jogadores podem entrar usando esse código ou através de convite, dependendo do modo.
-
-### 3. Entrar numa sala por código
-
-1. No menu principal, escolher **Entrar Sala**.
-2. Inserir o código da sala.
-3. Aguardar na sala de espera.
-4. Quando o jogo começar, todos respondem às mesmas perguntas.
-
-### 4. Jogar
-
-- Cada pergunta apresenta quatro opções.
-- Quanto mais rápido o jogador responder corretamente, maior será a pontuação.
-- Sequências de respostas certas dão bónus.
-- No fim da partida, a app mostra o pódio e atualiza as estatísticas dos jogadores registados.
+- Registo.
+- Login.
+- Entrada como convidado.
+- Perfil.
+- Edição de avatar.
+- Modo Solo Clássico.
+- Modo Solo Caótico.
+- Modo Solo Eliminatórias.
+- Grupo Clássico.
+- Grupo Caótico.
+- Grupo Eliminatórias.
+- Convite 1v1.
+- Convite 2v2.
+- Matchmaking 1v1.
+- Matchmaking 2v2.
+- Criação de categoria personalizada.
+- Adição e edição de perguntas.
+- Publicação/uso de categoria pública.
+- Histórico.
+- Ranking.
+- Badges/conquistas.
+- Verificações de permissões Firebase.
+- Confirmação de que categorias não competitivas não atualizam XP/ranking/recordes.
+- Confirmação de que convidados não guardam dados persistentes indevidos.
 
 ---
 
-## Funcionalidades futuras e melhorias possíveis
+## Screenshots
 
-- Reforçar regras de segurança no Firebase Realtime Database.
-- Melhorar o sistema de categorias públicas com filtros, pesquisa e moderação.
-- Adicionar mais perguntas e categorias oficiais.
-- Melhorar o modo Eliminatórias.
-- Criar histórico de partidas.
+Adicionar aqui capturas reais quando houver uma build visualmente estável:
+
+```text
+docs/screenshots/main.png
+docs/screenshots/game.png
+docs/screenshots/podium.png
+docs/screenshots/categories.png
+```
+
+---
+
+## Roadmap
+
+- Reforçar segurança com Cloud Functions ou backend autoritativo.
+- Tornar score, XP e ranking server-authoritative.
+- Aumentar cobertura de testes automatizados.
 - Adicionar testes instrumentados para fluxos multiplayer.
-- Melhorar a adaptação visual a tablets e diferentes tamanhos de ecrã.
-- Adicionar capturas de ecrã reais ao README.
+- Continuar polimento visual e acessibilidade.
+- Melhorar moderação/qualidade de categorias públicas.
+- Preparar pipeline de release.
+- Rever suporte futuro para iOS/TestFlight como projeto separado.
 
 ---
 
-## Imagens
+## Limitações conhecidas
 
-Sugestão de organização para screenshots:
-
-```text
-docs/
-└── screenshots/
-    ├── login.png
-    ├── menu-principal.png
-    ├── escolher-modo.png
-    ├── sala-espera.png
-    ├── jogo.png
-    └── pontuacao.png
-```
-
-Quando existirem imagens, podem ser adicionadas assim:
-
-```markdown
-![Menu principal](docs/screenshots/menu-principal.png)
-![Ecrã de jogo](docs/screenshots/jogo.png)
-```
+- A validação de resultados ainda depende muito do cliente.
+- Mais testes automatizados são necessários.
+- Fluxos multiplayer precisam de validação manual em múltiplos dispositivos/emuladores.
+- Regras Firebase devem ser revistas antes de abertura pública.
+- A app ainda está em pre-beta/closed beta.
 
 ---
 
-## Autor
+## Segurança
 
-**Dinis Rato**
-
-Projeto académico desenvolvido no contexto de aprendizagem de desenvolvimento Android, Kotlin e Firebase Realtime Database.
+- Não expor credenciais em commits.
+- Não commitar exports da base de dados.
+- Não commitar keystores ou ficheiros de signing.
+- Rever `firebase-rules.json` antes de publicar qualquer ambiente aberto.
+- Considerar que a fase atual ainda pode depender de validação client-side.
 
 ---
 
 ## Estado do projeto
 
-Pergunta o Luso está preparado como v1 Android para teste interno. A base principal de autenticação, salas multiplayer, modos de jogo, categorias, pontuação, amigos, perfil e conquistas já está implementada, com riscos de segurança conhecidos documentados para resolver antes de beta público.
+Pre-beta / closed beta.
+
+O projeto está funcional para desenvolvimento e testes controlados, mas ainda não deve ser considerado production-ready.
+
+---
+
+## Licença
+
+Licença a definir.
+
+---
+
+## Autor
+
+Autor a definir.

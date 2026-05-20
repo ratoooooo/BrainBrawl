@@ -1,5 +1,41 @@
+# Gradle / Android build outputs
+.gradle/
+build/
+*/build/
 
-# Project exclude paths
-/.gradle/
-/app/build/
-/app/build/intermediates/javac/debug/compileDebugJavaWithJavac/classes/
+# Local Android Studio / IntelliJ files
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/shelf/
+.idea/caches/
+*.iml
+
+# Local machine configuration
+# Signing keys and release secrets
+*.jks
+*.keystore
+*.p12
+*.pem
+*.key
+keystore.properties
+signing.properties
+
+# Database exports and local debug bundles
+*default-rtdb-export*.json
+*firebase*export*.json
+firebase-export*.json
+database-export*.json
+brainbrawl_debug_files/
+*.zip
+
+# OS/editor noise
+.DS_Store
+Thumbs.db
+
+# Logs and crash dumps
+*.log
+hs_err_pid*
+replay_pid*
+
+# APK/AAB artifacts
+*.apk
