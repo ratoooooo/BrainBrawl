@@ -5789,3 +5789,39 @@ Observação: Gradle continua a emitir aviso de deprecated features para Gradle 
 - Não foi executado teste manual em dispositivo/emulador contra Firebase remoto nesta ronda; a validação feita foi por inspeção de paths/rules e build/test local.
 - O histórico mantém a retenção existente de 3 dias (`HISTORICO_RETENCAO_DIAS`), por isso jogos antigos continuam a ser removidos pela limpeza normal.
 - Os logs `HISTORY_DEBUG` são úteis para confirmar o próximo teste manual e devem ser removidos ou reduzidos depois de validar o fluxo em Firebase real.
+
+## UX — Custom category question editor - 2026-05-20
+
+### Antes
+
+- O ecrã `AdicionarPerguntaActivity` mostrava um botão `Nova pergunta` junto ao formulário, mas a ação real apenas limpava os campos. Isto podia levar o utilizador a pensar que a pergunta atual seria guardada antes de abrir uma nova.
+- A ação principal estava escrita como `Enviar Pergunta`, menos clara do que uma ação explícita de guardar.
+- O ecrã também tinha `Começar jogo`, que iniciava fluxos de jogo/convite diretamente a partir da edição de perguntas.
+
+### Alterações
+
+- `Enviar Pergunta` passou a `Guardar pergunta` e continua a ser a ação principal.
+- `Nova pergunta` passou a `Limpar campos`, mantendo o mesmo papel de ação secundária.
+- `Começar jogo` foi removido do layout e o código de arranque de jogo/convite foi retirado de `AdicionarPerguntaActivity`.
+- O total/lista de perguntas guardadas foi movido para junto do nome da categoria, antes do formulário da pergunta atual.
+- Foram adicionados avisos de descarte quando há alterações por guardar e o utilizador tenta voltar, limpar campos ou abrir outra pergunta existente.
+
+### Comportamento de dados
+
+- A criação de categoria e a gravação de perguntas continuam a usar `EditarCategoriaViewModel` e `CategoriaRepository`; os paths/writes Firebase não foram alterados.
+- Regras Firebase não foram alteradas.
+- As regras de categoria pública/personalizada, competitividade, jogo, histórico, matchmaking e pódio de grupo não foram tocadas.
+
+### Validação
+
+- Verificado por código que `layout_btn_comecar` já não existe no layout do editor e que não há handler `layoutBtnComecar` em `AdicionarPerguntaActivity`.
+- Verificado por build que ViewBinding continua a gerar/compilar para o layout alterado.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Não foi feito teste manual com Firebase remoto nesta ronda; a confirmação final deve percorrer criação de categoria, guardar duas perguntas, editar uma pergunta e tentar limpar/voltar com campos por guardar.
+- O nome técnico `btn_nova_pergunta` foi mantido para preservar ViewBinding/localização de código, embora o texto visível agora seja `Limpar campos`.

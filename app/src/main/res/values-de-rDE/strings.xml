@@ -291,9 +291,9 @@
     <string name="dificuldade_facil">Easy</string>
     <string name="dificuldade_media">Medium</string>
     <string name="dificuldade_dificil">Hard</string>
-    <string name="nova_pergunta">New question</string>
+    <string name="nova_pergunta">Felder leeren</string>
     <string name="eliminar_atual">Delete current</string>
-    <string name="enviar_pergunta">Frage senden</string>
+    <string name="enviar_pergunta">Frage speichern</string>
     <string name="comecar_jogo">Spiel starten</string>
     <string name="total_perguntas_inicial">Total questions: 0</string>
     <string name="total_perguntas_format">Total questions: %1$d</string>
@@ -305,6 +305,9 @@
     <string name="escolhe_pergunta_eliminar">Choose a question to delete.</string>
     <string name="eliminar_pergunta">Delete question</string>
     <string name="confirmar_eliminar_pergunta">Do you want to delete the current question?</string>
+    <string name="pergunta_por_guardar_titulo">Nicht gespeicherte Frage</string>
+    <string name="confirmar_descartar_pergunta">Du hast eine nicht gespeicherte Frage. Möchtest du sie verwerfen?</string>
+    <string name="descartar_pergunta">Verwerfen</string>
     <string name="convites_precisam_conta">1v1 and 2v2 require an account to invite friends.</string>
     <string name="procurar_utilizador">Search user...</string>
     <string name="pesquisar">Search</string>

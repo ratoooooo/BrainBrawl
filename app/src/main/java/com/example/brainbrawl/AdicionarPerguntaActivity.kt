@@ -11,9 +11,6 @@ import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
-import com.example.brainbrawl.UteisSala.criarSalaPersonalizadaEEntrar
-import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
-import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityAdicionarPerguntaBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
@@ -33,10 +30,9 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
     private var nomeUtilizador: String = ""
     private var nomeJogador: String? = null
     private var uid: String? = null
-    private var modoJogo: String = GameConstants.MODO_CLASSICO
-    private var admin: Boolean = true
     private var perguntaEmEdicaoId: String? = null
     private var categoriaEmEdicao: String? = null
+    private var formularioBase = FormularioPergunta()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,7 +42,9 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    voltarParaCategorias()
+                    confirmarDescartarSeNecessario {
+                        voltarParaCategorias()
+                    }
                 }
             }
         )
@@ -54,8 +52,6 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
         uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
-        modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_CLASSICO
-        admin = intent.getBooleanExtra(IntentExtras.ADMIN, true)
         val categoriaInicial = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
 
         if (uid.isNullOrBlank() && nomeUtilizador.isBlank()) {
@@ -113,23 +109,17 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             )
         }
 
-        // Configurar o botão para voltar ao MainActivity
-        binding.layoutBtnComecar.setOnClickListener {
-            val nomeCategoria = categoriaSelecionada()
-            if (nomeCategoria.isBlank()) {
-                Toast.makeText(this, R.string.indica_categoria_personalizada, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            mostrarEscolhaModo(nomeCategoria)
-        }
-
         binding.layoutBtnVoltar.setOnClickListener {
-            voltarParaCategorias()
+            confirmarDescartarSeNecessario {
+                voltarParaCategorias()
+            }
         }
 
         binding.btnNovaPergunta.setOnClickListener {
-            perguntaEmEdicaoId = null
-            limparCampos()
+            confirmarDescartarSeNecessario {
+                perguntaEmEdicaoId = null
+                limparCampos()
+            }
         }
 
         binding.btnEliminarPerguntaAtual.setOnClickListener {
@@ -207,9 +197,11 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
                 }
             }
             botao.setOnClickListener {
-                perguntaEmEdicaoId = perguntaId
-                atualizarSelecaoPerguntas(linhaNumeros, perguntaId)
-                preencherFormulario(perguntaCategoria)
+                confirmarDescartarSeNecessario {
+                    perguntaEmEdicaoId = perguntaId
+                    atualizarSelecaoPerguntas(linhaNumeros, perguntaId)
+                    preencherFormulario(perguntaCategoria)
+                }
             }
             linhaNumeros.addView(botao)
         }
@@ -234,6 +226,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             opcoes.getOrNull(3) -> binding.rbOpcaoD.isChecked = true
         }
         binding.btnEliminarPerguntaAtual.isEnabled = true
+        formularioBase = formularioAtual()
     }
 
     //Limpar os campos
@@ -248,6 +241,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         binding.rgOpcoes.clearCheck()
         aplicarDificuldade("media")
         binding.btnEliminarPerguntaAtual.isEnabled = false
+        formularioBase = formularioAtual()
     }
 
     private fun voltarParaCategorias() {
@@ -289,58 +283,6 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             .show()
     }
 
-    private fun mostrarEscolhaModo(nomeCategoria: String) {
-        val opcoes = resources.getStringArray(R.array.opcoes_modo_personalizado)
-        AlertDialog.Builder(this)
-            .setTitle(R.string.escolher_modo)
-            .setItems(opcoes) { _, which ->
-                when (which) {
-                    0 -> iniciarCategoriaPersonalizada(nomeCategoria, GameConstants.MODO_CLASSICO)
-                    1 -> abrirConviteCategoria(nomeCategoria, GameConstants.MODO_1X1)
-                    2 -> abrirConviteCategoria(nomeCategoria, GameConstants.MODO_2X2)
-                    3 -> iniciarCategoriaPersonalizada(nomeCategoria, GameConstants.MODO_ELIMINATORIAS)
-                }
-            }
-            .setNegativeButton(R.string.cancelar, null)
-            .show()
-    }
-
-    private fun iniciarCategoriaPersonalizada(nomeCategoria: String, modo: String) {
-        criarSalaPersonalizadaEEntrar(
-            this,
-            gerarCodigoSala(),
-            nomeUtilizador,
-            nomeCategoria,
-            true,
-            modo,
-            uid
-        ) { msg -> Toast.makeText(this, msg, Toast.LENGTH_SHORT).show() }
-    }
-
-    private fun abrirConviteCategoria(nomeCategoria: String, modo: String) {
-        if (nomeUtilizador.isBlank()) {
-            Toast.makeText(this, R.string.convites_precisam_conta, Toast.LENGTH_SHORT).show()
-            return
-        }
-        val destino = if (modo == GameConstants.MODO_2X2) {
-            ConvidarAmigo2x2Activity::class.java
-        } else {
-            ConvidarAmigo1x1Activity::class.java
-        }
-        val intent = Intent(this, destino)
-        intent.putExtra(IntentExtras.MODO_JOGO, modo)
-        intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
-        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
-        uid?.let {
-            intent.putExtra(IntentExtras.UID, it)
-            intent.putExtra(IntentExtras.DONO_UID, it)
-        }
-        intent.putExtra(IntentExtras.DONO_CATEGORIA, nomeUtilizador)
-        intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
-        intent.putExtra(IntentExtras.ADMIN, true)
-        startActivity(intent)
-    }
-
     private fun dificuldadeSelecionada(): String? {
         return when (binding.rgDificuldade.checkedRadioButtonId) {
             binding.rbDificuldadeFacil.id -> "facil"
@@ -368,6 +310,47 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         }
     }
 
+    private fun confirmarDescartarSeNecessario(continuar: () -> Unit) {
+        if (!temAlteracoesPorGuardar()) {
+            continuar()
+            return
+        }
+
+        AlertDialog.Builder(this)
+            .setTitle(R.string.pergunta_por_guardar_titulo)
+            .setMessage(R.string.confirmar_descartar_pergunta)
+            .setNegativeButton(R.string.cancelar, null)
+            .setPositiveButton(R.string.descartar_pergunta) { _, _ -> continuar() }
+            .show()
+    }
+
+    private fun temAlteracoesPorGuardar(): Boolean {
+        return formularioAtual() != formularioBase
+    }
+
+    private fun formularioAtual(): FormularioPergunta {
+        return FormularioPergunta(
+            pergunta = binding.edtPergunta.text.toString(),
+            opcaoA = binding.edtOpcaoA.text.toString(),
+            opcaoB = binding.edtOpcaoB.text.toString(),
+            opcaoC = binding.edtOpcaoC.text.toString(),
+            opcaoD = binding.edtOpcaoD.text.toString(),
+            imagem = binding.edtImagem.text.toString(),
+            respostaSelecionadaId = binding.rgOpcoes.checkedRadioButtonId,
+            dificuldade = dificuldadeSelecionada()
+        )
+    }
+
     private fun dp(valor: Int): Int = (valor * resources.displayMetrics.density).toInt()
 
+    private data class FormularioPergunta(
+        val pergunta: String = "",
+        val opcaoA: String = "",
+        val opcaoB: String = "",
+        val opcaoC: String = "",
+        val opcaoD: String = "",
+        val imagem: String = "",
+        val respostaSelecionadaId: Int = -1,
+        val dificuldade: String? = "media"
+    )
 }

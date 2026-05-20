@@ -292,9 +292,9 @@
     <string name="dificuldade_facil">Fácil</string>
     <string name="dificuldade_media">Média</string>
     <string name="dificuldade_dificil">Difícil</string>
-    <string name="nova_pergunta">Nova pergunta</string>
+    <string name="nova_pergunta">Limpar campos</string>
     <string name="eliminar_atual">Eliminar atual</string>
-    <string name="enviar_pergunta">Enviar Pergunta</string>
+    <string name="enviar_pergunta">Guardar pergunta</string>
     <string name="comecar_jogo">Começar jogo</string>
     <string name="total_perguntas_inicial">Total de perguntas: 0</string>
     <string name="total_perguntas_format">Total de perguntas: %1$d</string>
@@ -306,6 +306,9 @@
     <string name="escolhe_pergunta_eliminar">Escolhe uma pergunta para eliminar.</string>
     <string name="eliminar_pergunta">Eliminar pergunta</string>
     <string name="confirmar_eliminar_pergunta">Queres eliminar a pergunta atual?</string>
+    <string name="pergunta_por_guardar_titulo">Pergunta por guardar</string>
+    <string name="confirmar_descartar_pergunta">Tens uma pergunta por guardar. Queres descartar?</string>
+    <string name="descartar_pergunta">Descartar</string>
     <string name="convites_precisam_conta">1x1 e 2x2 precisam de conta para convidar amigos.</string>
 
     <!-- Amigos e convites -->

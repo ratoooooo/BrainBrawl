@@ -279,9 +279,9 @@
     <string name="dificuldade_facil">Facile</string>
     <string name="dificuldade_media">Moyenne</string>
     <string name="dificuldade_dificil">Difficile</string>
-    <string name="nova_pergunta">Nouvelle question</string>
+    <string name="nova_pergunta">Vider les champs</string>
     <string name="eliminar_atual">Supprimer actuelle</string>
-    <string name="enviar_pergunta">Envoyer la question</string>
+    <string name="enviar_pergunta">Enregistrer la question</string>
     <string name="comecar_jogo">Commencer le jeu</string>
     <string name="total_perguntas_inicial">Total de questions : 0</string>
     <string name="total_perguntas_format">Total de questions : %1$d</string>
@@ -293,6 +293,9 @@
     <string name="escolhe_pergunta_eliminar">Choisis une question à supprimer.</string>
     <string name="eliminar_pergunta">Supprimer la question</string>
     <string name="confirmar_eliminar_pergunta">Veux-tu supprimer la question actuelle ?</string>
+    <string name="pergunta_por_guardar_titulo">Question non enregistrée</string>
+    <string name="confirmar_descartar_pergunta">Tu as une question non enregistrée. Veux-tu l’ignorer ?</string>
+    <string name="descartar_pergunta">Ignorer</string>
     <string name="convites_precisam_conta">1v1 et 2v2 nécessitent un compte pour inviter des amis.</string>
     <string name="procurar_utilizador">Rechercher un utilisateur...</string>
     <string name="pesquisar">Rechercher</string>
