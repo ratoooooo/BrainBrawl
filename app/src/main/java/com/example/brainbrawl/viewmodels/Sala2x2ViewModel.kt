@@ -1,5 +1,6 @@
 package com.example.brainbrawl.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -46,6 +47,11 @@ class Sala2x2ViewModel(
     ) {
         jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         chaveJogador = jogadorAtual.chaveSala
+        Log.d(
+            TAG,
+            "Sala2x2 iniciar: codigo=$codigoSala uid=$uid playerKey=$playerKey " +
+                "chaveInicial=$chaveJogador tipo=$tipoJogador"
+        )
         saidaManual = false
         aIniciarJogo = false
         salaConfirmada = false
@@ -92,13 +98,22 @@ class Sala2x2ViewModel(
             codigoSala,
             onJogadoresAlterados = { jogadores ->
                 val presentes = jogadoresUnicosDeLista(jogadores)
+                Log.d(
+                    TAG,
+                    "Sala2x2 jogadores: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                        "todos=${jogadores.resumoEstados()} presentes=${presentes.map { it.chave }} " +
+                        "pico=$picoJogadoresPresentes"
+                )
                 if (presentes.size > picoJogadoresPresentes) {
                     picoJogadoresPresentes = presentes.size
                 }
                 if (picoJogadoresPresentes >= 4 && presentes.size < picoJogadoresPresentes) {
-                    if (salaMatchmaking) {
-                        jogoCompetitivoRepository.apagarSala(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
-                    }
+                    Log.d(
+                        TAG,
+                        "Sala2x2 queda de presenca: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                            "presentes=${presentes.size} pico=$picoJogadoresPresentes " +
+                            "cleanupIntentional=false"
+                    )
                     _evento.value = Sala2x2Event.OponenteSaiu
                     picoJogadoresPresentes = presentes.size
                 }
@@ -114,6 +129,7 @@ class Sala2x2ViewModel(
             ModoCompetitivo.DOIS_CONTRA_DOIS,
             codigoSala,
             onProntosAlterados = { prontosAtualizados ->
+                Log.d(TAG, "Sala2x2 prontos: codigo=$codigoSala valores=$prontosAtualizados")
                 prontos = prontosAtualizados
                 publicarEstado()
                 tentarIniciarMatchmakingSePronto(codigoSala)
@@ -247,6 +263,11 @@ class Sala2x2ViewModel(
 
     fun sairDaSala(codigoSala: String) {
         saidaManual = true
+        Log.d(
+            TAG,
+            "Sala2x2 sairDaSala: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                "admin=$admin chave=$chaveJogador cleanupIntentional=true"
+        )
         if (salaMatchmaking) {
             jogoCompetitivoRepository.apagarSala(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
         } else if (admin) {
@@ -361,6 +382,10 @@ class Sala2x2ViewModel(
             .distinct()
     }
 
+    private fun List<JogoCompetitivoRepository.JogadorCompetitivo>.resumoEstados(): List<String> {
+        return map { "${it.chave}:${it.estado.ifBlank { GameConstants.ESTADO_ON }}" }
+    }
+
     private fun removerJogadoresListener() {
         jogoCompetitivoRepository.removerListener(jogadoresListener)
         jogadoresListener = null
@@ -379,6 +404,10 @@ class Sala2x2ViewModel(
     private fun removerSalaListener() {
         jogoCompetitivoRepository.removerListener(salaListener)
         salaListener = null
+    }
+
+    private companion object {
+        const val TAG = "MATCHMAKING_DEBUG"
     }
 }
 

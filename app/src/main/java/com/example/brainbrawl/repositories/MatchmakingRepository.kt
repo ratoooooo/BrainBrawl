@@ -700,7 +700,7 @@ class MatchmakingRepository(
     }
 
     private companion object {
-        const val TAG = "MatchmakingRepo"
+        const val TAG = "MATCHMAKING_DEBUG"
         const val STALE_MS = 2 * 60 * 1000L
         const val MATCH_CREATION_TIMEOUT_MS = 15 * 1000L
     }

@@ -1,5 +1,6 @@
 package com.example.brainbrawl.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -46,6 +47,11 @@ class Sala1x1ViewModel(
     ) {
         jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         chaveJogador = jogadorAtual.chaveSala
+        Log.d(
+            TAG,
+            "Sala1x1 iniciar: codigo=$codigoSala uid=$uid playerKey=$playerKey " +
+                "chaveInicial=$chaveJogador tipo=$tipoJogador"
+        )
         saidaManual = false
         picoJogadoresPresentes = 0
         salaConfirmada = false
@@ -96,14 +102,23 @@ class Sala1x1ViewModel(
             codigoSala,
             onJogadoresAlterados = { jogadores ->
                 val presentes = jogadores.jogadoresPresentes()
+                Log.d(
+                    TAG,
+                    "Sala1x1 jogadores: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                        "todos=${jogadores.resumoEstados()} presentes=${presentes.map { it.chave }} " +
+                        "pico=$picoJogadoresPresentes"
+                )
                 jogadoresNaSala = presentes
                 if (presentes.size > picoJogadoresPresentes) {
                     picoJogadoresPresentes = presentes.size
                 }
                 if (picoJogadoresPresentes >= 2 && presentes.size < picoJogadoresPresentes) {
-                    if (salaMatchmaking) {
-                        jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-                    }
+                    Log.d(
+                        TAG,
+                        "Sala1x1 queda de presenca: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                            "presentes=${presentes.size} pico=$picoJogadoresPresentes " +
+                            "cleanupIntentional=false"
+                    )
                     _evento.value = Sala1x1Event.OponenteSaiu
                     picoJogadoresPresentes = presentes.size
                 }
@@ -119,6 +134,7 @@ class Sala1x1ViewModel(
             ModoCompetitivo.UM_CONTRA_UM,
             codigoSala,
             onProntosAlterados = { prontosAtualizados ->
+                Log.d(TAG, "Sala1x1 prontos: codigo=$codigoSala valores=$prontosAtualizados")
                 prontos = prontosAtualizados
                 publicarEstado()
                 tentarIniciarMatchmakingSePronto(codigoSala)
@@ -218,6 +234,11 @@ class Sala1x1ViewModel(
 
     fun sairDaSala(codigoSala: String) {
         saidaManual = true
+        Log.d(
+            TAG,
+            "Sala1x1 sairDaSala: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                "admin=$admin chave=$chaveJogador cleanupIntentional=true"
+        )
         if (salaMatchmaking) {
             jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
         } else if (admin) {
@@ -273,6 +294,10 @@ class Sala1x1ViewModel(
         }
     }
 
+    private fun List<JogoCompetitivoRepository.JogadorCompetitivo>.resumoEstados(): List<String> {
+        return map { "${it.chave}:${it.estado.ifBlank { GameConstants.ESTADO_ON }}" }
+    }
+
     private fun atualizarAdmin(codigoSala: String) {
         jogoCompetitivoRepository.obterChavesAdmin(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
             .addOnSuccessListener { chavesAdmin ->
@@ -305,6 +330,10 @@ class Sala1x1ViewModel(
     private fun removerSalaListener() {
         jogoCompetitivoRepository.removerListener(salaListener)
         salaListener = null
+    }
+
+    private companion object {
+        const val TAG = "MATCHMAKING_DEBUG"
     }
 }
 

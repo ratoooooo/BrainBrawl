@@ -5,6 +5,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.addCallback
@@ -64,6 +65,10 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
+        Log.d(
+            TAG,
+            "SalaDeEspera2x2 onCreate: codigo=$codigoSala uid=$uid playerKey=$playerKey tipo=$tipoJogador"
+        )
 
         binding.txtCodigoSala.text = getString(R.string.a_carregar_sala)
         binding.btnCopiarCodigoSala.visibility = View.GONE
@@ -91,6 +96,11 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        Log.d(
+            TAG,
+            "SalaDeEspera2x2 onDestroy: codigo=$codigoSala uid=$uid playerKey=$playerKey " +
+                "aNavegarParaJogo=$aNavegarParaJogo saidaJaProcessada=$saidaJaProcessada"
+        )
         viewModel.removerListeners()
         super.onDestroy()
     }
@@ -135,6 +145,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         when (evento) {
             Sala2x2Event.JogoIniciado -> {
                 aNavegarParaJogo = true
+                Log.d(TAG, "SalaDeEspera2x2 navegar jogo: codigo=$codigoSala uid=$uid playerKey=$playerKey")
                 val intent = Intent(this@SalaDeEspera2x2Activity, Jogo2x2Activity::class.java)
 
                 intent.putExtra(IntentExtras.CODIGO_SALA, codigoSala)
@@ -196,6 +207,7 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
     private fun sairDaSala() {
         if (saidaJaProcessada || aNavegarParaJogo) return
         saidaJaProcessada = true
+        Log.d(TAG, "SalaDeEspera2x2 sairDaSala: codigo=$codigoSala uid=$uid playerKey=$playerKey cleanupIntentional=true")
         viewModel.sairDaSala(codigoSala)
         abrirMainActivity(this, nomeUtilizador, nomeJogador, uid.ifBlank { null })
         finish()
@@ -212,5 +224,9 @@ class SalaDeEspera2x2Activity : AppCompatActivity() {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         clipboard.setPrimaryClip(ClipData.newPlainText(getString(R.string.clipboard_codigo_sala), codigoSala))
         Toast.makeText(this, R.string.codigo_copiado, Toast.LENGTH_SHORT).show()
+    }
+
+    private companion object {
+        const val TAG = "MATCHMAKING_DEBUG"
     }
 }

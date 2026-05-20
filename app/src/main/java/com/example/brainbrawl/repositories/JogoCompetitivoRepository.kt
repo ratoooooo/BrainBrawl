@@ -103,6 +103,12 @@ class JogoCompetitivoRepository(
                         return@addOnSuccessListener
                     }
                     val jogadorPresente = jogadoresSnapshot.child(chaveEntrada).exists()
+                    Log.d(
+                        TAG,
+                        "Entrada sala fechada: modo=${modo.node} codigo=${codigoSala.maskedLogId()} " +
+                            "player=${jogador.playerKey.ifBlank { jogador.uid }.maskedLogId()} " +
+                            "chaveEntrada=${chaveEntrada.maskedLogId()} existente=$jogadorPresente"
+                    )
                     val taskEntrada = if (jogadorPresente) {
                         marcarJogadorPresente(modo, codigoSala, chaveEntrada)
                     } else {
@@ -193,6 +199,11 @@ class JogoCompetitivoRepository(
             .child(FirebasePaths.JOGADORES)
             .child(chave)
         configurarOfflineAoDesligar(modo, codigoSala, chave)
+        Log.d(
+            TAG,
+            "A marcar jogador presente: modo=${modo.node} codigo=${codigoSala.maskedLogId()} " +
+                "chave=${chave.maskedLogId()} path=${modo.node}/$codigoSala/${FirebasePaths.JOGADORES}/$chave/${FirebasePaths.ESTADO}"
+        )
         return jogadorRef.updateChildren(
             mapOf(
                 FirebasePaths.ESTADO to GameConstants.ESTADO_ON
@@ -212,6 +223,11 @@ class JogoCompetitivoRepository(
             .updateChildren(mapOf(FirebasePaths.ESTADO to GameConstants.ESTADO_OFF))
         // Evita "pronto" fantasma após desconexão (1x1 e 2x2 usam o mesmo nó prontos).
         sala.child(FirebasePaths.PRONTOS).child(chave).onDisconnect().removeValue()
+        Log.d(
+            TAG,
+            "onDisconnect configurado: modo=${modo.node} codigo=${codigoSala.maskedLogId()} " +
+                "chave=${chave.maskedLogId()} removePronto=true"
+        )
     }
 
     private fun reservarEntradaNaSala(
@@ -493,6 +509,7 @@ class JogoCompetitivoRepository(
     }
 
     fun apagarSala(modo: ModoCompetitivo, codigoSala: String): Task<Void> {
+        Log.d(TAG, "A apagar sala: modo=${modo.node} codigo=${codigoSala.maskedLogId()}")
         return salaRef(modo, codigoSala).removeValue()
     }
 
@@ -502,6 +519,11 @@ class JogoCompetitivoRepository(
         chaveJogador: String
     ): Task<Void> {
         val chaves = (jogador.chavesCompatibilidade + chaveJogador).filter { it.isNotBlank() }.distinct()
+        Log.d(
+            TAG,
+            "A remover jogador 1x1: codigo=${codigoSala.maskedLogId()} " +
+                "chaves=${chaves.map { it.maskedLogId() }}"
+        )
         return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala).updateChildren(
             chaves.flatMap { chave ->
                 listOf(
@@ -518,6 +540,11 @@ class JogoCompetitivoRepository(
         chaveJogador: String
     ): Task<Void> {
         val chaves = (jogador.chavesCompatibilidade + chaveJogador).filter { it.isNotBlank() }.distinct()
+        Log.d(
+            TAG,
+            "A remover jogador 2x2: codigo=${codigoSala.maskedLogId()} " +
+                "chaves=${chaves.map { it.maskedLogId() }}"
+        )
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
             chaves.flatMap { chave ->
                 listOf(
@@ -1162,7 +1189,7 @@ class JogoCompetitivoRepository(
     }
 
     private companion object {
-        const val TAG = "JogoCompetitivoRepo"
+        const val TAG = "MATCHMAKING_DEBUG"
         val DIFICULDADES_VALIDAS = setOf("facil", "media", "dificil")
     }
 }

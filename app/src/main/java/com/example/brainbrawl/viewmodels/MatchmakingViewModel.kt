@@ -579,7 +579,7 @@ class MatchmakingViewModel(
 
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
-        const val TAG = "MatchmakingVM"
+        const val TAG = "MATCHMAKING_DEBUG"
         const val TIMER_INTERVAL_MS = 1000L
         const val TIMEOUT_PROCURA_SEGUNDOS = 90
         const val EVENTO_VOLTA_DELAY_MS = 250L

@@ -1,6 +1,7 @@
 package com.example.brainbrawl
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
@@ -42,6 +43,11 @@ class MatchmakingActivity : AppCompatActivity() {
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
         modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: GameConstants.MODO_1X1
         nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: getString(R.string.categoria5)
+        Log.d(
+            TAG,
+            "MatchmakingActivity onCreate: uid=$uid modo=$modoJogo playerKey=$uid " +
+                "categoria=$nomeCategoria"
+        )
 
         binding.txtTituloMatchmaking.text = when (modoJogo) {
             GameConstants.MODO_2X2 -> getString(R.string.matchmaking_2x2_titulo)
@@ -66,6 +72,11 @@ class MatchmakingActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
+        Log.d(
+            TAG,
+            "MatchmakingActivity onDestroy: navegando=$navegando changing=$isChangingConfigurations " +
+                "uid=$uid modo=$modoJogo"
+        )
         if (!isChangingConfigurations) {
             viewModel.removerListeners()
         }
@@ -73,6 +84,7 @@ class MatchmakingActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
+        Log.d(TAG, "MatchmakingActivity onStop: navegando=$navegando uid=$uid modo=$modoJogo cleanupIntentional=false")
         super.onStop()
     }
 
@@ -134,6 +146,11 @@ class MatchmakingActivity : AppCompatActivity() {
     private fun abrirSala(destino: Class<*>, dados: MatchmakingNavegacaoDados) {
         if (navegando) return
         navegando = true
+        Log.d(
+            TAG,
+            "MatchmakingActivity abrirSala: modo=${dados.modo} codigo=${dados.codigoSala} " +
+                "uid=${dados.uid} playerKey=${dados.playerKey}"
+        )
         val intent = android.content.Intent(this, destino)
         intent.putExtra(IntentExtras.CODIGO_SALA, dados.codigoSala)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, dados.nomeCategoria)
@@ -145,6 +162,7 @@ class MatchmakingActivity : AppCompatActivity() {
     private fun voltarMain(dados: MatchmakingNavegacaoDados) {
         if (navegando) return
         navegando = true
+        Log.d(TAG, "MatchmakingActivity voltarMain: uid=${dados.uid.ifBlank { uid }} modo=$modoJogo")
         abrirMainActivity(
             this,
             dados.nomeUtilizador.ifBlank { nomeUtilizador },
@@ -168,5 +186,9 @@ class MatchmakingActivity : AppCompatActivity() {
         val minutos = segundosTotais / 60
         val segundos = segundosTotais % 60
         return "%d:%02d".format(minutos, segundos)
+    }
+
+    private companion object {
+        const val TAG = "MATCHMAKING_DEBUG"
     }
 }

@@ -1,5 +1,71 @@
 # Pergunta o Luso - TEST_REPORT
 
+## Fix — Matchmaking 1v1/2v2 player removal
+
+### Bug manual
+
+- 1v1: jogador A entrava na procura, jogador B entrava, a sala parecia ser criada/associada e depois os jogadores desapareciam/eram removidos do fluxo.
+- 2v2: comportamento equivalente quando a lotacao necessaria era atingida.
+
+### Causa raiz
+
+- A sala de matchmaking e criada com jogadores reservados e estado inicial `off` ate cada cliente confirmar presenca ao entrar na sala de espera.
+- `Sala1x1ViewModel` e `Sala2x2ViewModel` tinham uma limpeza demasiado agressiva: se a contagem de jogadores presentes chegasse ao limite e depois descesse, apagavam a sala de matchmaking inteira a partir do listener de jogadores.
+- Em transicoes normais de navegacao/reconnect/onDisconnect, um snapshot temporario com um jogador `off` podia parecer uma saida real. O listener apagava a sala e ambos os clientes perdiam a partida.
+- Nao foi encontrado problema de path de categoria, competitividade, podium de grupo, perfil, historico, categorias ou amigos nesta correcao.
+
+### Alteracao aplicada
+
+- Removida a destruicao automatica da sala quando o listener observa uma queda de presenca em salas de matchmaking.
+- A queda de presenca agora gera apenas `OponenteSaiu` e logs; a limpeza destrutiva fica reservada para saida manual/intentional cleanup.
+- `sairDaSala` continua a fechar a sala de matchmaking quando o jogador sai explicitamente antes do jogo.
+- Logs focados foram adicionados com tag `MATCHMAKING_DEBUG` para:
+  - lifecycle de `MatchmakingActivity` e salas de espera;
+  - uid/playerKey/modo/codigoSala;
+  - jogadores e estados `on/off`;
+  - valores de `prontos`;
+  - paths de escrita de presenca;
+  - onDisconnect configurado;
+  - motivo/intentionalidade de cleanup.
+
+### Firebase Rules
+
+- Nao houve alteracao em `firebase-rules.json` nesta correcao.
+- Nenhuma permissao de escrita global, estatisticas, XP, ranking, historico ou categorias foi aberta.
+
+### Ficheiros alterados
+
+- `MatchmakingActivity.kt`
+- `SalaDeEspera1x1Activity.kt`
+- `SalaDeEspera2x2Activity.kt`
+- `MatchmakingRepository.kt`
+- `JogoCompetitivoRepository.kt`
+- `MatchmakingViewModel.kt`
+- `Sala1x1ViewModel.kt`
+- `Sala2x2ViewModel.kt`
+- `TEST_REPORT.md`
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest` - OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build` - OK.
+
+### Validacao manual recomendada
+
+1. Abrir dois utilizadores autenticados em 1v1 matchmaking.
+2. Confirmar que ambos recebem a mesma sala, permanecem na sala de espera e conseguem marcar `Pronto`.
+3. Confirmar que o estado passa a `em_jogo` quando ambos estao prontos.
+4. Repetir com quatro utilizadores em 2v2.
+5. Confirmar logs `MATCHMAKING_DEBUG` para estados `on/off`, `prontos` e ausencia de cleanup nao-intencional.
+6. Fazer um jogador sair manualmente depois de match formado e confirmar que o outro recebe mensagem/encerramento claro.
+
+### Riscos restantes
+
+- Se um jogador perder ligacao de verdade depois do match estar formado, o outro recebe aviso de saida; a app ainda nao rematcha automaticamente a partir da sala parcialmente formada.
+- Os logs `MATCHMAKING_DEBUG` sao temporarios e devem ser reduzidos antes de release publica.
+
 ## Fix — Main Jogar Agora permission denied
 
 ### Path negado
