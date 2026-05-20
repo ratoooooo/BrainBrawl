@@ -5825,3 +5825,37 @@ Observação: Gradle continua a emitir aviso de deprecated features para Gradle 
 
 - Não foi feito teste manual com Firebase remoto nesta ronda; a confirmação final deve percorrer criação de categoria, guardar duas perguntas, editar uma pergunta e tentar limpar/voltar com campos por guardar.
 - O nome técnico `btn_nova_pergunta` foi mantido para preservar ViewBinding/localização de código, embora o texto visível agora seja `Limpar campos`.
+
+## UI polish — Escolher Modo - 2026-05-20
+
+### Antes
+
+- `activity_escolher_modo.xml` usava o fundo premium, mas as opções eram linhas simples com botão secundário, pouco próximas dos cards e superfícies usados nos ecrãs mais polidos.
+- As opções mostravam apenas título e ícone, sem explicar rapidamente a diferença entre Clássico, Caótico e Eliminatórias.
+
+### Alterações
+
+- O ecrã `EscolherModoActivity` manteve os mesmos ids e handlers (`btnModoClassico`, `btnModoCaotico`, `btnModoEliminatorias`, `btnVoltar`, `infoTodos`), mas o layout passou a usar cards de modo com `bg_main_mode_card`.
+- Cada opção mostra ícone, título e descrição curta, usando as strings de dicas já existentes.
+- O botão de explicação (`infoTodos`) passou de ícone flutuante para uma ação secundária textual com ícone, mais clara e consistente.
+- O botão `Voltar` continua no mesmo ecrã e mantém a navegação para a Main.
+- O layout passou a estar dentro de `ScrollView` para manter legibilidade em ecrãs mais pequenos.
+
+### Ficheiros alterados
+
+- `app/src/main/res/layout/activity_escolher_modo.xml`
+- `TEST_REPORT.md`
+
+### Validação
+
+- Verificado por inspeção que os ids usados por `EscolherModoActivity` foram preservados, mantendo a navegação existente.
+- Não houve alterações em Activities, ViewModels, repositories, Firebase Rules, competitividade, matchmaking, histórico, pódio ou lógica de jogo.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Não foi feito teste manual visual em emulador nesta ronda; falta confirmar no dispositivo que o espaçamento agrada em tamanhos de ecrã diferentes.
+- A alteração é apenas visual; se o próximo teste UX quiser o mesmo tratamento em `TipoModoClassico`, isso deve ser feito numa tarefa separada para manter o escopo limpo.
