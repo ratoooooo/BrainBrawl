@@ -23,7 +23,8 @@ class ExampleUnitTest {
             totalVitoriasModo1x1 = 1,
             totalVitoriasModo2x2 = 0,
             totalVitoriasModoSolo = 0,
-            xpTotal = 120
+            xpTotal = 120,
+            totalPontosSomados = 1000.0
         )
         val resultado = EstatisticasService.ResultadoJogador(
             nome = "Jogador",
@@ -40,9 +41,99 @@ class ExampleUnitTest {
         )
 
         assertEquals(1300.0, updates[FirebasePaths.PONTUACAO])
+        assertEquals(1300.0, updates[FirebasePaths.TOTAL_PONTOS_SOMADOS])
         assertEquals(300.0, updates[FirebasePaths.RECORDE_PONTUACAO])
         assertEquals(1, updates[FirebasePaths.TOTAL_VITORIAS])
         assertEquals(null, updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO])
+    }
+
+    @Test
+    fun recordePontuacaoNaoDesceQuandoSoloFazMenosPontos() {
+        val atuais = EstatisticasService.EstatisticasAtuais(
+            pontuacao = 1535.0,
+            recordePontuacao = 1535.0,
+            taxaAcertos = 70.0,
+            totalJogos = 2,
+            totalVitorias = 0,
+            totalRespostasCertas = 10,
+            totalVitoriasModo1x1 = 0,
+            totalVitoriasModo2x2 = 0,
+            totalVitoriasModoSolo = 0,
+            xpTotal = 200,
+            totalPontosSomados = 1535.0
+        )
+        val resultado = EstatisticasService.ResultadoJogador(
+            nome = "Jogador",
+            pontos = 900.0,
+            respostasCertas = 3
+        )
+
+        val updates = estatisticasService.calcularAtualizacao(
+            estatisticasAtuais = atuais,
+            resultado = resultado,
+            modo = EstatisticasService.Modo.SOLO,
+            venceu = true,
+            totalPerguntas = 5
+        )
+
+        assertEquals(2435.0, updates[FirebasePaths.TOTAL_PONTOS_SOMADOS])
+        assertEquals(1535.0, updates[FirebasePaths.RECORDE_PONTUACAO])
+        assertEquals(0, updates[FirebasePaths.TOTAL_VITORIAS])
+        assertEquals(null, updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO])
+    }
+
+    @Test
+    fun vitoriaGrupoUsaContadorLegadoDeGrupo() {
+        val atuais = EstatisticasService.EstatisticasAtuais(
+            pontuacao = 500.0,
+            recordePontuacao = 500.0,
+            taxaAcertos = 60.0,
+            totalJogos = 1,
+            totalVitorias = 0,
+            totalRespostasCertas = 5,
+            totalVitoriasModo1x1 = 0,
+            totalVitoriasModo2x2 = 0,
+            totalVitoriasModoSolo = 2,
+            xpTotal = 100,
+            totalPontosSomados = 500.0
+        )
+        val resultado = EstatisticasService.ResultadoJogador(
+            nome = "Jogador",
+            pontos = 800.0,
+            respostasCertas = 5
+        )
+
+        val updates = estatisticasService.calcularAtualizacao(
+            estatisticasAtuais = atuais,
+            resultado = resultado,
+            modo = EstatisticasService.Modo.GRUPO,
+            venceu = true,
+            totalPerguntas = 5
+        )
+
+        assertEquals(1, updates[FirebasePaths.TOTAL_VITORIAS])
+        assertEquals(3, updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO])
+    }
+
+    @Test
+    fun vencedorGrupoRespeitaOrdemFinalRecebida() {
+        val resultados = listOf(
+            EstatisticasService.ResultadoJogador(
+                nome = "Sobrevivente",
+                pontos = 100.0,
+                uid = "survivor"
+            ),
+            EstatisticasService.ResultadoJogador(
+                nome = "MaisPontosEliminado",
+                pontos = 500.0,
+                uid = "eliminated"
+            )
+        )
+
+        assertEquals(
+            setOf("survivor"),
+            estatisticasService.vencedores(resultados, EstatisticasService.Modo.GRUPO)
+        )
     }
 
     @Test

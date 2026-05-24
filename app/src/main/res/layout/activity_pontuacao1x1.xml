@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -11,172 +12,326 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="vertical">
-
-    <!-- Título do Pódio -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/p_dio"
-        android:textStyle="bold"
-        android:textSize="26sp"
-        android:textColor="@color/bb_text_primary"
-        android:fontFamily="sans-serif-black"
-        android:layout_marginBottom="32dp"/>
-
-    <!-- Lista fixa de jogadores do pódio (apenas 2 lugares para 1x1) -->
-    <LinearLayout
-        android:id="@+id/layoutPodio"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:layout_marginBottom="32dp">
+        android:paddingBottom="@dimen/bb_space_lg">
 
-        <!-- 1º Lugar -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:text="@string/p_dio"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="40sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:layout_width="128dp"
+            android:layout_height="22dp"
+            android:gravity="center"
+            android:text="@string/luso_accent_line"
+            android:textColor="@color/bb_luso_gold"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/txtSubtituloPodio1x1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:fontFamily="serif"
+            android:text="@string/podio_grande_duelo"
+            android:textColor="@color/bb_luso_gold"
+            android:textSize="19sp"
+            android:textStyle="bold" />
+
         <LinearLayout
+            android:id="@+id/layoutDuelPodium"
             android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_card_surface"
-            android:elevation="4dp"
-            android:layout_marginBottom="10dp"
-            android:paddingStart="18dp"
-            android:paddingEnd="18dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
+            android:layout_height="wrap_content"
+            android:layout_marginTop="22dp"
+            android:baselineAligned="false"
+            android:gravity="bottom|center_horizontal"
+            android:orientation="horizontal">
 
-            <TextView
-                android:id="@+id/txt_medalha_1"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:gravity="center"
-                android:text="@string/primeiro_lugar"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black"
-                android:textColor="@color/bb_accent"
-                android:background="@android:color/transparent" />
-
-            <TextView
-                android:id="@+id/txt_nome_jogador_1"
+            <LinearLayout
+                android:id="@+id/cardSegundoDuel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:text="@string/nome_jogador_1"
-                android:textSize="20sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:maxLines="1"
-                android:ellipsize="end"/>
+                android:gravity="center_horizontal"
+                android:orientation="vertical"
+                android:paddingTop="44dp">
 
-            <TextView
-                android:id="@+id/txt_pontos_1"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="999"
-                android:textStyle="bold"
-                android:textColor="@color/bb_text_primary"
-                android:textSize="20sp"
-                android:fontFamily="sans-serif-black"/>
-        </LinearLayout>
+                <FrameLayout
+                    android:layout_width="112dp"
+                    android:layout_height="132dp">
 
-        <!-- 2º Lugar -->
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical"
-            android:background="@drawable/bg_card_surface"
-            android:elevation="2dp"
-            android:layout_marginBottom="10dp"
-            android:paddingStart="18dp"
-            android:paddingEnd="18dp"
-            android:paddingTop="4dp"
-            android:paddingBottom="4dp">
+                    <ImageView
+                        android:id="@+id/imgAvatarSegundoDuel"
+                        android:layout_width="104dp"
+                        android:layout_height="104dp"
+                        android:layout_gravity="top|center_horizontal"
+                        android:background="@drawable/bg_ranking_avatar"
+                        android:contentDescription="@string/avatar_do_jogador"
+                        android:padding="4dp"
+                        tools:src="@drawable/avatar_2_playstore" />
 
-            <TextView
-                android:id="@+id/txt_medalha_2"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
-                android:gravity="center"
-                android:text="@string/segundo_lugar"
-                android:textSize="28sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black"
-                android:textColor="#9B9386"
-                android:background="@android:color/transparent" />
+                    <TextView
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:background="@drawable/bg_ranking_rank_silver"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:text="@string/medalha_segundo"
+                        android:textColor="@color/bb_primary_text"
+                        android:textSize="21sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
 
-            <TextView
-                android:id="@+id/txt_nome_jogador_2"
+                <TextView
+                    android:id="@+id/txtNomeSegundoDuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="40dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:ellipsize="end"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    tools:text="Lusitana" />
+
+                <TextView
+                    android:id="@+id/txtPontosSegundoDuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="27sp"
+                    android:textStyle="bold"
+                    tools:text="2.180" />
+
+                <TextView
+                    android:id="@+id/txtResultadoSegundoDuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="@string/podio_derrota"
+                    android:textColor="@color/bb_danger"
+                    android:textSize="17sp"
+                    tools:text="Derrota" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cardPrimeiroDuel"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"
-                android:text="@string/nome_jogador_2"
-                android:textSize="20sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:maxLines="1"
-                android:ellipsize="end"/>
+                android:layout_weight="1.15"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/txt_pontos_2"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="888"
-                android:textStyle="bold"
-                android:textColor="@color/bb_text_primary"
-                android:textSize="20sp"
-                android:fontFamily="sans-serif-black"/>
+                <FrameLayout
+                    android:layout_width="152dp"
+                    android:layout_height="180dp">
+
+                    <TextView
+                        android:layout_width="54dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="top|center_horizontal"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:text="@string/medalha_primeiro"
+                        android:textColor="@color/bb_luso_gold"
+                        android:textSize="32sp" />
+
+                    <ImageView
+                        android:id="@+id/imgAvatarPrimeiroDuel"
+                        android:layout_width="132dp"
+                        android:layout_height="132dp"
+                        android:layout_gravity="top|center_horizontal"
+                        android:layout_marginTop="30dp"
+                        android:background="@drawable/bg_ranking_avatar"
+                        android:contentDescription="@string/avatar_do_jogador"
+                        android:padding="4dp"
+                        tools:src="@drawable/avatar_1_playstore" />
+
+                    <TextView
+                        android:layout_width="56dp"
+                        android:layout_height="56dp"
+                        android:layout_gravity="bottom|center_horizontal"
+                        android:background="@drawable/bg_ranking_rank_gold"
+                        android:fontFamily="sans-serif-black"
+                        android:gravity="center"
+                        android:text="@string/medalha_primeiro"
+                        android:textColor="@color/bb_primary_text"
+                        android:textSize="27sp"
+                        android:textStyle="bold" />
+                </FrameLayout>
+
+                <TextView
+                    android:id="@+id/txtNomePrimeiroDuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="44dp"
+                    android:layout_marginTop="6dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:ellipsize="end"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:paddingHorizontal="8dp"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="19sp"
+                    android:textStyle="bold"
+                    tools:text="jogador1" />
+
+                <TextView
+                    android:id="@+id/txtPontosPrimeiroDuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="8dp"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:textColor="@color/bb_luso_gold"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    tools:text="3.450" />
+
+                <TextView
+                    android:id="@+id/txtResultadoPrimeiroDuel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:gravity="center"
+                    android:text="@string/podio_vitoria"
+                    android:textColor="@color/bb_success"
+                    android:textSize="18sp"
+                    tools:text="Vitória" />
+            </LinearLayout>
         </LinearLayout>
-    </LinearLayout>
 
-    <TextView
-        android:id="@+id/txt_estado_desforra"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="14dp"
-        android:gravity="center"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="15sp"
-        android:fontFamily="sans-serif-medium"
-        android:visibility="gone" />
+        <LinearLayout
+            android:id="@+id/layoutStatsDuel"
+            android:layout_width="match_parent"
+            android:layout_height="116dp"
+            android:layout_marginTop="28dp"
+            android:background="@drawable/bg_card_surface"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:padding="14dp">
 
-    <!-- Botão Pedir Desforra (com ícone de espada à esquerda) -->
-    <Button
-        android:id="@+id/btn_desforra"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/bb_button_height"
-        android:background="@drawable/bg_button_secondary"
-        android:text="@string/pedir_desforra"
-        android:textColor="@color/bb_secondary_text"
-        android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"
-        android:padding="12dp"
-        android:layout_gravity="center_horizontal"
-        android:drawableLeft="@drawable/ic_sword"
-        android:layout_marginBottom="20dp"/>
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
 
-    <!-- Botão Voltar (com ícone à esquerda) -->
-    <Button
-        android:id="@+id/btn_voltar"
-        android:layout_width="match_parent"
-        android:layout_height="@dimen/bb_button_height"
-        android:background="@drawable/bg_button_primary"
-        android:text="@string/voltar"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"
-        android:padding="12dp"
-        android:layout_gravity="center_horizontal"
-        android:drawableLeft="@drawable/ic_back" />
+                <TextView
+                    android:id="@+id/txtPodioStatPerguntas"
+                    style="@style/Widget_BrainBrawl_PodioStat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:paddingBottom="2dp"
+                    tools:text="20" />
 
+                <TextView
+                    style="@style/Widget_BrainBrawl_PodioStatLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/podio_perguntas" />
+            </LinearLayout>
+
+            <View style="@style/Widget_BrainBrawl_PodioDivider" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtPodioStatPrecisao"
+                    style="@style/Widget_BrainBrawl_PodioStat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:paddingBottom="2dp"
+                    tools:text="85%" />
+
+                <TextView
+                    style="@style/Widget_BrainBrawl_PodioStatLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/precisao" />
+            </LinearLayout>
+
+            <View style="@style/Widget_BrainBrawl_PodioDivider" />
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtPodioStatAcertos"
+                    style="@style/Widget_BrainBrawl_PodioStat"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:paddingBottom="2dp"
+                    tools:text="7" />
+
+                <TextView
+                    style="@style/Widget_BrainBrawl_PodioStatLabel"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/acertos" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txt_estado_desforra"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:fontFamily="sans-serif-medium"
+            android:gravity="center"
+            android:textColor="@color/bb_text_secondary"
+            android:textSize="15sp"
+            android:visibility="gone" />
+
+        <Button
+            android:id="@+id/btn_desforra"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bb_button_height"
+            android:layout_marginTop="14dp"
+            android:background="@drawable/bg_button_primary"
+            android:text="@string/jogar_novamente"
+            android:textColor="@color/bb_primary_text" />
+
+        <Button
+            android:id="@+id/btn_voltar"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/bb_button_height"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_button_secondary"
+            android:text="@string/voltar"
+            android:textColor="@color/bb_secondary_text" />
     </LinearLayout>
 </ScrollView>

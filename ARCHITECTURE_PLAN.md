@@ -988,3 +988,125 @@ Navegação/back:
 
 - Em Activities de jogo (`JogoActivity`, `Jogo1x1Activity`, `Jogo2x2Activity`), o Back físico é uma ação bloqueada por regra de produto enquanto a partida está ativa e deve mostrar mensagem clara.
 - Em ecrãs navegacionais como Histórico, Perfil e Amigos, o botão visual de voltar deve permanecer visível e chamar `finish()`.
+
+## Fluxo de convite após seleção de categoria - 2026-05-23
+
+Contrato:
+
+- O fluxo `Clássico -> 1x1 -> categoria -> Convidar amigo` chega ao convite com `IntentExtras.MODO_JOGO=MODO_1X1` e `IntentExtras.NOME_CATEGORIA` já definidos.
+- O fluxo `Clássico -> 2x2 -> categoria -> Convidar amigos` chega ao convite com `IntentExtras.MODO_JOGO=MODO_2X2` e `IntentExtras.NOME_CATEGORIA` já definidos.
+- Os ecrãs de convite são pós-seleção: não mostram seletor de categoria, não mostram seletor 1x1/2x2 e não permitem alterar esse contexto.
+- `ConvidarAmigo1x1Activity` seleciona exatamente 1 amigo online e encaminha para `SalaDeEspera1x1Activity` com código de sala, utilizador, modo e categoria preservados.
+- `ConvidarAmigo2x2Activity` seleciona 3 amigos online, mantendo o utilizador atual como quarto jogador, e encaminha para `SalaDeEspera2x2Activity` com código de sala, utilizador, modo e categoria preservados.
+
+Limites:
+
+- A atribuição de equipas 2x2 continua automática e dependente da lógica existente de criação/entrada na sala; não existe seleção manual de equipas neste fluxo.
+- Categorias públicas/personalizadas continuam a transportar os extras atuais (`CATEGORIA_PUBLICA_ID`, `DONO_UID`, `DONO_CATEGORIA`) para manter a origem da categoria sem alterar regras de competitividade.
+
+## Arranque 1x1/2x2 por convite e contexto partilhado - 2026-05-23
+
+Contrato:
+
+- Salas competitivas por convite continuam a iniciar por alteração de estado em `sala_1x1/{codigo}/estado` ou `sala_2x2/{codigo}/estado` para `em_jogo`.
+- O estado `em_jogo` é o último sinal de arranque para os clientes: antes dele, o repositório competitivo deve garantir que `nomeCategoria` e `perguntas` existem; no 2x2, `equipaA` e `equipaB` também devem ser escritos no mesmo `updateChildren` que publica o estado.
+- A sala de espera resolve a chave real do jogador ao entrar e passa essa chave para `Jogo1x1Activity`/`Jogo2x2Activity` através de `IntentExtras.PLAYER_KEY`.
+- `NOME_CATEGORIA` deixa de depender apenas do Intent local do admin; as salas de espera e os jogos competitivos leem o nome partilhado em `sala_1x1/{codigo}/nomeCategoria` ou `sala_2x2/{codigo}/nomeCategoria`.
+- A UI de jogo pode mostrar uma categoria inicial recebida por Intent, mas deve substituir pelo valor carregado da sala assim que o ViewModel publica a primeira pergunta.
+- Dados de avatar em convites passam a ser escritos no snapshot inicial da sala, para que waiting rooms e placares usem cada jogador real em vez de repetir fallback/local host.
+- Iniciar jogo e navegar para `Jogo1x1Activity`/`Jogo2x2Activity` nunca deve ser tratado como saída da sala. Cleanup/remocao de jogador fica reservado para `Sair da Sala`, Back antes do start ou cancelamento explícito.
+- O start privado só deve escrever campos aceites pelo schema/rules de `sala_1x1` e `sala_2x2`; `modoJogo` continua a ser contexto de Intent/origem de fluxo, não metadata escrita no nó privado enquanto as rules não o aceitarem.
+- A distinção de tipo de sala é sempre explícita por `origem`: `convite` para salas privadas por convite e `matchmaking` para salas automáticas. A ausência de `origem` não deve ser interpretada como matchmaking.
+- Mensagens e fallback de matchmaking só podem aparecer quando `origem=matchmaking`; salas `origem=convite` usam comportamento privado e não entram em fallback para fila automática.
+- Quedas de presença observadas durante `inicioJogoEmCurso`/`aIniciarJogo` ou depois de `estado=em_jogo` são ignoradas pela sala de espera, porque já pertencem à navegação para jogo e não a uma saída manual.
+- `RoomFlowType` é o adaptador interno para o contrato Firebase existente: `MATCHMAKING` lê `origem=matchmaking`, `INVITE` lê `origem=convite`, e `PRIVATE` cobre `origem=manual` ou origem ausente para compatibilidade legado.
+- Os ViewModels competitivos podem partilhar a Activity/layout, mas a semântica de start/cleanup/mensagens deve ramificar por `RoomFlowType`. Não é permitido chamar cleanup ou fallback de matchmaking a partir de `INVITE`/`PRIVATE`.
+- `MatchmakingActivity` e ecrãs de convite propagam `IntentExtras.ORIGEM_SALA` para reduzir ambiguidade entre navegação local e metadata Firebase; a metadata Firebase continua autoritativa.
+
+Limites:
+
+- A identificação continua compatível com UID, `playerKey`, nome de utilizador e nome legado. A chave resolvida pela sala é a preferida para reduzir falhas ao carregar equipas 2x2.
+- O retry de identificação de equipa no jogo 2x2 é deliberadamente curto e único; falhas persistentes continuam a ser erros reais de estado da sala.
+- Não foram alteradas regras de limpeza de matchmaking, pódio de grupo, histórico, ranking ou competitividade de categorias.
+
+## UI polish pódio/histórico/jogo - 2026-05-24
+
+Contrato mantido:
+
+- Pódio continua UID-first/compatível: a ordenação final permanece nos serviços/viewmodels existentes (`ordenarPodio`, `ordenarPodioGrupoEliminatorias`, `ordenarPodio2x2`). A UI apenas renderiza a lista já ordenada.
+- `ResultadoJogador.avatar` é um campo de apresentação opcional lido dos snapshots já existentes; ausência de avatar usa fallback local via `AvatarUtils`.
+- Pódio top 3 e continuação usam `PodioUiRenderer`/`PodioContinuationAdapter` para evitar lógica duplicada nas Activities.
+- Histórico mantém a carga por `HistoricoRepository`; filtros são locais e baseados no campo existente `competitivo`.
+- Gameplay mantém timers, submissão imediata da resposta e validação no ViewModel/serviços. A alteração remove só o botão visual de voltar e reequilibra XML.
+
+Limites:
+
+- Não foi introduzido novo schema Firebase, Cloud Function, regra de segurança ou ranking alternativo.
+- `Jogar novamente` permanece ligado ao fluxo existente de desforra no 1x1; outros pódios preservam apenas o voltar quando não há fluxo de rematch seguro.
+- A precisão no resumo usa os dados de respostas/perguntas já passados no fluxo atual, sem recalcular resultados globais da sala.
+
+## Logic polish ranking/timers/records - 2026-05-24
+
+Contrato:
+
+- O ranking visível deixa de tratar Solo como ranking de vitórias. O separador é `Grupo` e usa o campo legado `totalVitoriasModoSolo` como contador de vitórias de grupo para não introduzir schema novo.
+- `RankingTipo.GRUPO`, `RankingTipo.MODO_1X1`, `RankingTipo.MODO_2X2` e `RankingTipo.RECORDE` são a fonte única de ordenação da UI de ranking: grupo/1x1/2x2 por vitórias, recorde por `recordePontuacao`.
+- `EstatisticasService.Modo.SOLO` continua a atualizar pontos totais, recorde, jogos, acertos e progressão, mas não vitórias.
+- `EstatisticasService.Modo.GRUPO` incrementa `totalVitorias` e o contador legado `totalVitoriasModoSolo` quando o jogador vence.
+- O vencedor de `Modo.GRUPO` respeita a ordem final recebida do fluxo de pontuações, para preservar a regra de eliminatórias já aplicada antes da escrita estatística.
+- `recordePontuacao` é sempre monotónico por jogador: só sobe quando a pontuação de uma partida supera o valor anterior.
+- Timers clássicos de solo/grupo/categorias usam constantes centrais de 15s; caótico usa 10s; eliminatórias usam 15s; matchmaking competitivo mantém 20s.
+- A pontuação ao vivo 2x2 é escrita no nó canónico vivo `sala_2x2/{codigo}/jogadores/{playerKey}/pontuacao`; `equipaA` e `equipaB` ficam como membership/identidade da equipa, e o placar junta esses jogadores com a pontuação atual de `jogadores`.
+
+Limites:
+
+- Não foi adicionada migração para dados históricos de grupo que já possam ter sido gravados sem contador específico.
+- O nome Firebase `totalVitoriasModoSolo` permanece por compatibilidade, apesar de a UI passar a apresentá-lo como Grupo.
+- Edição de nome de perfil ficou deferida até haver contrato de atualização canónica/fan-out e validação de unicidade.
+- Firebase Rules não foram alteradas.
+
+## Fix pontuação ao vivo 2x2 matchmaking - 2026-05-24
+
+Contrato:
+
+- 2x2 escreve pontuação incremental em `sala_2x2/{codigo}/jogadores/{playerKey}/pontuacao`, alinhado com o padrão 1x1.
+- `equipaA` e `equipaB` continuam a definir composição visual da equipa e compatibilidade com salas privadas/matchmaking.
+- O listener de placar 2x2 observa `sala_2x2/{codigo}`, lê membership de `equipaA`/`equipaB`, lê pontuação viva de `jogadores` e faz merge por `chave`, `uid`, `playerKey` ou nomes legados.
+- A pontuação exibida da equipa é sempre a soma das pontuações vivas dos membros dessa equipa.
+- Resultado final/pódio mantém os nós finais existentes; esta correção não muda ranking, timers, regras Firebase nem layout.
+
+Limites:
+
+- Validado em runtime que o caminho antigo de equipa falhava por permissão e que o caminho `jogadores/{playerKey}/pontuacao` escreve sem `Permission denied`.
+- A confirmação visual positiva em todos os clientes deve ser repetida manualmente porque a automação por `uiautomator` falhou intermitentemente durante a janela de resposta.
+
+## UI dedicada para pódios 1x1/2x2 - 2026-05-24
+
+Contrato:
+
+- `Pontuacao1x1Activity` e `Pontuacao2x2Activity` passam a renderizar layouts dedicados ao tipo de resultado, sem reutilizar a composição visual de pódio de grupo.
+- O pódio 1x1 continua alimentado pela ordenação final de `Pontuacao1x1ViewModel`; a Activity apenas faz binding de vencedor/segundo jogador, avatares, pontuação e estado visual.
+- O pódio 2x2 continua alimentado por `EstatisticasService.ordenarPodio2x2`; `Pontuacao2x2ViewModel` expõe uma estrutura de apresentação por equipa para evitar lógica de layout dentro do XML.
+- `PodioUiRenderer` permanece disponível para o pódio de grupo e outros ecrãs que ainda usam top 3/continuação.
+- Não há alteração de schema Firebase, regras, ranking, histórico, matchmaking, salas privadas ou cálculo de pontuação.
+
+Limites:
+
+- A desforra real continua implementada apenas no fluxo 1x1 existente.
+- O 2x2 apresenta o CTA visual de novo jogo, mas usa retorno seguro ao início para não inventar um fluxo de revanche.
+
+## Desforra mode-aware 1x1/2x2 - 2026-05-24
+
+Contrato:
+
+- A entrada genérica `SalaDeEsperaActivity` continua a representar entrada em sala de grupo; fluxos 1x1/2x2 não devem usá-la como fallback de desforra.
+- Desforra 1x1 permanece em `sala_1x1`: os dois jogadores aceitam, uma nova sala 1x1 é criada/reutilizada por `novaSalaDesforra`, e a Activity abre explicitamente `SalaDeEspera1x1Activity`.
+- Desforra 2x2 passa a existir em `sala_2x2`: cada jogador marca `jogadores/{playerKey}/desforra=true`; quando os quatro jogadores reais aceitam, é criada/reutilizada uma nova sala 2x2.
+- A nova sala 2x2 copia jogadores e composição de `equipaA`/`equipaB`, preserva categoria, fecha entrada por `jogadoresPermitidos`, reinicia prontos/pontuações e abre `SalaDeEspera2x2Activity`.
+- Matchmaking concluído não volta automaticamente à fila; a desforra cria uma sala privada com os mesmos participantes, preservando UID/playerKey e equipas.
+- Não há alteração de ranking, histórico, regras Firebase, pontuação, XP, timers ou limpeza de matchmaking.
+
+Limites:
+
+- O fluxo 2x2 exige aceitação dos quatro jogadores para criar a revanche.
+- Não foi adicionada UI dedicada para gerir rejeição/cancelamento de desforra 2x2; erros reativam o botão e mantêm o jogador no pódio.

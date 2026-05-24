@@ -1,5 +1,6 @@
 package com.example.brainbrawl.repositories
 
+import android.util.Log
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.Convite
@@ -12,6 +13,11 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
+}
 
 class AmigosRepository(
     private val database: DatabaseReference = FirebaseDatabase.getInstance().reference
@@ -328,6 +334,12 @@ class AmigosRepository(
             FirebasePaths.LOTACAO_MAXIMA to 2,
             FirebasePaths.ENTRADA_FECHADA to true
         ) + dadosCategoria
+        Log.d(
+            FLOW_TAG,
+            "flow=${GameConstants.ORIGEM_CONVITE} mode=${GameConstants.MODO_1X1} room=$codigoSala " +
+                "repository=AmigosRepository event=writeInviteRoom path=${FirebasePaths.SALA_1X1}/$codigoSala " +
+                "players=${jogadores.keys.map { it.maskedLogId() }} category=$nomeCategoria"
+        )
         return database.updateChildren(
             mapOf(
                 "${FirebasePaths.SALA_1X1}/$codigoSala" to dadosSala,
@@ -365,6 +377,12 @@ class AmigosRepository(
             ) + dadosCategoria
         val updates = hashMapOf<String, Any>(
             "${FirebasePaths.SALA_2X2}/$codigoSala" to dadosSala
+        )
+        Log.d(
+            FLOW_TAG,
+            "flow=${GameConstants.ORIGEM_CONVITE} mode=${GameConstants.MODO_2X2} room=$codigoSala " +
+                "repository=AmigosRepository event=writeInviteRoom path=${FirebasePaths.SALA_2X2}/$codigoSala " +
+                "players=${jogadores.keys.map { it.maskedLogId() }} category=$nomeCategoria"
         )
         amigosSelecionados.forEach { amigo ->
             val conviteData = conviteData(utilizador, amigo, codigoSala, GameConstants.MODO_2X2, nomeCategoria)
@@ -663,7 +681,18 @@ class AmigosRepository(
         )
         if (uid.isNotBlank()) dados[FirebasePaths.UID] = uid
         if (nomeUtilizador.isNotBlank()) dados[FirebasePaths.NOME_UTILIZADOR] = nomeUtilizador
+        if (avatar.isNotBlank()) dados[FirebasePaths.AVATAR] = avatar
+        dados[FirebasePaths.ESTADO] = GameConstants.ESTADO_ON
+        dados[FirebasePaths.TIPO_JOGADOR] = if (uid.isBlank()) {
+            GameConstants.TIPO_JOGADOR_GUEST
+        } else {
+            GameConstants.TIPO_JOGADOR_AUTH
+        }
         return dados
+    }
+
+    private companion object {
+        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
     }
 
     private fun conviteData(
@@ -757,7 +786,9 @@ class AmigosRepository(
             uid = uid,
             nomeUtilizador = nomeUtilizador,
             chavePerfil = chavePerfil,
-            chaveOrigem = chaveOrigem.ifBlank { chavePerfil }
+            chaveOrigem = chaveOrigem.ifBlank { chavePerfil },
+            avatar = child(FirebasePaths.AVATAR).getValue(String::class.java).orEmpty(),
+            estado = child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty()
         )
     }
 }

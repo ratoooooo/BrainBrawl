@@ -44,7 +44,6 @@
     <string name="senha_incorreta">Senha incorreta</string>
     <string name="email_senha_incorretos">Email ou senha incorretos</string>
     <string name="conta_sem_perfil">Conta autenticada sem perfil de jogador</string>
-    <string name="jogador_nao_encontrado">Jogador não encontrado</string>
     <string name="erro_banco_dados">Erro ao aceder à base de dados</string>
     <string name="insira_nome_jogador">Insira um nome de jogador!</string>
     <string name="insere_email">Insere o e-mail</string>
@@ -78,6 +77,7 @@
     <string name="historico">Histórico</string>
     <string name="terminar_sessao">Terminar sessão</string>
     <string name="explorar_categorias">Explorar Categorias</string>
+    <string name="explorar_categorias_caps" translatable="false">EXPLORAR CATEGORIAS</string>
     <string name="explorar_categorias_duas_linhas">Explorar\nCategorias</string>
     <string name="temas">Temas</string>
     <string name="modo_1x1_aleatorio">1x1\nAleatório</string>
@@ -88,9 +88,21 @@
     <string name="matchmaking_estado_default">À procura de jogadores...</string>
     <string name="matchmaking_contador_inicial">Jogadores à procura: 0/2</string>
     <string name="matchmaking_contador_format">Jogadores à procura: %1$d/%2$d</string>
+    <string name="matchmaking_contador_curto_inicial" translatable="false">0 / 2</string>
+    <string name="matchmaking_contador_curto_format" translatable="false">%1$d / %2$d</string>
     <string name="matchmaking_tempo_format">Tempo de espera: %1$s</string>
     <string name="matchmaking_tempo_inicial">Tempo de espera: 0:00</string>
+    <string name="matchmaking_tempo_curto_inicial" translatable="false">00:00</string>
     <string name="matchmaking_aguardando">Aguardando jogadores...</string>
+    <string name="matchmaking_jogadores_encontrados" translatable="false">Jogadores encontrados</string>
+    <string name="matchmaking_equipa" translatable="false">Equipa</string>
+    <string name="matchmaking_voce" translatable="false">Você</string>
+    <string name="matchmaking_encontrado" translatable="false">Encontrado</string>
+    <string name="matchmaking_ready_status" translatable="false">•  Pronto</string>
+    <string name="matchmaking_waiting_dots" translatable="false">•••</string>
+    <string name="matchmaking_footer_1x1" translatable="false">O jogo começa quando ambos os jogadores estiverem prontos.</string>
+    <string name="matchmaking_footer_2x2" translatable="false">Encontraremos adversários com um nível e habilidade semelhantes à tua equipa.</string>
+    <string name="a_procurar" translatable="false">À procura...</string>
     <string name="matchmaking_jogador_linha">• %1$s (%2$s)</string>
     <string name="matchmaking_tipo_convidado">Convidado</string>
     <string name="matchmaking_tipo_conta">Conta</string>
@@ -106,7 +118,7 @@
     <string name="codigo_sala_nenhum">Código da Sala: N/A</string>
     <string name="criar_sala">Criar Sala</string>
     <string name="entrar_sala">Entrar numa Sala</string>
-    <string name="entrar_numa_sala">Entrar numa Sala</string>
+    <string name="entrar_numa_sala">Entrar numa sala</string>
     <string name="insira_codigo_sala">Insira o código da sala</string>
     <string name="insira_seu_nome">Insira o seu nome</string>
     <string name="entrar_sala_jogo">Entrar</string>
@@ -143,12 +155,45 @@
     <string name="ambos_jogadores_na_sala">Ambos os jogadores têm de estar na sala!</string>
     <string name="sala_1x1_cheia">Sala 1x1 já está cheia.</string>
     <string name="sala_espera_jogador_saiu">Um jogador saiu da sala. A aguardar novo jogador ou volta ao matchmaking.</string>
+    <string name="sala_espera_jogador_saiu_convite">Um jogador saiu da sala.</string>
     <string name="sala_espera_jogador_saiu_2x2">Um jogador saiu da sala. A aguardar novo jogador ou volta ao matchmaking.</string>
+    <string name="sala_espera_jogador_saiu_2x2_convite">Um jogador saiu da sala.</string>
     <string name="sala_2x2_nem_todos_prontos">Ainda não estão todos os jogadores presentes e prontos.</string>
     <string name="sala_2x2_cheia">Sala 2x2 já está cheia.</string>
     <string name="erro_iniciar_jogo_2x2">Erro ao iniciar jogo 2x2.</string>
     <string name="dados_sala_invalidos">Dados da sala inválidos.</string>
     <string name="so_criador_sala_iniciar">Só o criador da sala pode iniciar.</string>
+    <string name="matchmaking_1x1_header" translatable="false">Matchmaking 1x1</string>
+    <string name="matchmaking_2x2_header" translatable="false">Matchmaking 2x2</string>
+    <string name="matchmaking_status_procurar_adversario" translatable="false">À procura de adversário...</string>
+    <string name="matchmaking_status_procurar_jogadores" translatable="false">À procura de jogadores...</string>
+    <string name="matchmaking_status_suporte_1x1" translatable="false">Estamos a encontrar um adversário equilibrado para ti.</string>
+    <string name="matchmaking_status_suporte_2x2" translatable="false">Estamos a formar duas equipas para uma partida equilibrada.</string>
+    <string name="matchmaking_jogador_atual" translatable="false">Tu</string>
+    <string name="matchmaking_adversario" translatable="false">Adversário</string>
+    <string name="matchmaking_equipa_a" translatable="false">Equipa A</string>
+    <string name="matchmaking_equipa_b" translatable="false">Equipa B</string>
+    <string name="cancelar_procura" translatable="false">Cancelar procura</string>
+    <string name="sala_status_aguardar_adversario" translatable="false">À espera do adversário</string>
+    <string name="sala_status_aguardar_adversario_desc" translatable="false">Envia o código da sala para alguém entrar.</string>
+    <string name="sala_status_matchmaking_1x1" translatable="false">Adversário encontrado</string>
+    <string name="sala_status_matchmaking_1x1_desc" translatable="false">O jogo começa quando ambos estiverem prontos.</string>
+    <string name="sala_status_2x2_invite" translatable="false">A aguardar jogadores</string>
+    <string name="sala_status_2x2_invite_desc" translatable="false">Convide a sua equipa e aguarde os adversários.</string>
+    <string name="sala_status_2x2_matchmaking" translatable="false">A aguardar equipas</string>
+    <string name="sala_status_2x2_matchmaking_desc" translatable="false">O jogo começa quando os 4 jogadores estiverem prontos.</string>
+    <string name="codigo_da_sala_label" translatable="false">Código da sala</string>
+    <string name="copiar" translatable="false">Copiar</string>
+    <string name="pronto_estado" translatable="false">Pronto</string>
+    <string name="aguardando_estado" translatable="false">A aguardar...</string>
+    <string name="aguardando_adversario_curto" translatable="false">Aguardando adversário</string>
+    <string name="aguardando_jogador_curto" translatable="false">Aguardando jogador...</string>
+    <string name="o_jogo_comeca_ambos_prontos" translatable="false">O jogo começa quando ambos estiverem prontos.</string>
+    <string name="o_jogo_comeca_quatro_prontos" translatable="false">O jogo começa quando os 4 jogadores estiverem prontos.</string>
+    <string name="o_jogo_comeca_todos_prontos" translatable="false">O jogo começa quando todos estiverem prontos.</string>
+    <string name="apenas_anfitriao_iniciar" translatable="false">Apenas o anfitrião pode iniciar o jogo.</string>
+    <string name="regras_modo_classico" translatable="false">Regras do modo Clássico</string>
+    <string name="regras_modo_classico_desc" translatable="false">Responde corretamente e mais rápido que os outros para ganhar pontos. Vence quem fizer mais pontos no final!</string>
     <string name="erro_carregar_jogadores">Erro ao carregar jogadores.</string>
     <string name="erro_escutar_estado_sala">Erro ao escutar estado da sala.</string>
     <string name="erro_validar_jogadores">Erro ao validar jogadores.</string>
@@ -164,6 +209,7 @@
     <string name="cronometro_inicial">20.00</string>
     <string name="jogar_novamente">Jogar Novamente</string>
     <string name="admin_label">Admin</string>
+    <string name="anfitriao" translatable="false">Anfitrião</string>
     <string name="bonus_sequencia_format">Bónus de sequência! +%1$d pontos</string>
     <string name="admin_observar_respostas">Como admin, só podes observar as respostas.</string>
     <string name="erro_carregar_sala_format">Erro ao carregar sala: %1$s</string>
@@ -184,7 +230,7 @@
     <string name="erro_carregar_equipa">Erro ao carregar equipa.</string>
 
     <!-- Categorias e modos -->
-    <string name="escolha_categoria">Escolher uma Categoria</string>
+    <string name="escolha_categoria">Escolher uma categoria</string>
     <string name="categoria_historia">História</string>
     <string name="categoria_geografia">Geografia</string>
     <string name="categoria_desporto">Desporto</string>
@@ -199,6 +245,20 @@
     <string name="categorias_publicas">Categorias públicas</string>
     <string name="sem_categorias_publicas">Ainda não há categorias públicas.</string>
     <string name="minhas_categorias">Minhas categorias</string>
+    <string name="abrir_minhas_categorias" translatable="false">Minhas categorias</string>
+    <string name="criar_categoria_curto" translatable="false">+ Criar categoria</string>
+    <string name="section_title_diamond_format" translatable="false">◆ %1$s</string>
+    <string name="ver_todas_chevron" translatable="false">Ver todas ›</string>
+    <string name="login_minhas_categorias" translatable="false">Inicia sessão para criar e editar as tuas categorias.</string>
+    <string name="criada_por_ti" translatable="false">Criada por ti</string>
+    <string name="sem_descricao_curta" translatable="false">Sem descrição.</string>
+    <string name="categoria_minha_metricas_format" translatable="false">%1$d perguntas · %2$d jogadas</string>
+    <string name="categoria_jogadas_atualizada_format" translatable="false">%1$d jogadas · %2$s</string>
+    <string name="perguntas_count_format" translatable="false">%1$d perguntas</string>
+    <string name="sem_categorias_aguardando" translatable="false">Não tens categorias a aguardar publicação.</string>
+    <string name="aguardando_publicacao" translatable="false">Aguardando publicação</string>
+    <string name="atualizada_recentemente" translatable="false">Atualizada recentemente</string>
+    <string name="atualizada_em_format" translatable="false">Atualizada em %1$s</string>
     <string name="login_guardar_categorias">Inicia sessão para guardar categorias.</string>
     <string name="login_avaliar_categorias">Inicia sessão para avaliar categorias.</string>
     <string name="login_gerir_categorias">Inicia sessão para gerir categorias.</string>
@@ -238,11 +298,14 @@
     <string name="dica_todas_texto">Mistura perguntas de várias áreas.</string>
     <string name="dica_explorar_titulo">Explorar</string>
     <string name="dica_explorar_texto">Vê categorias públicas ou cria as tuas próprias perguntas.</string>
-    <string name="escolher_modo_jogo">Escolher Modo</string>
+    <string name="escolher_modo_jogo">Escolher tipo de jogo</string>
     <string name="escolher_modo">Escolher modo</string>
     <string name="modo_classico">Clássico</string>
     <string name="modo_eliminatorias">Eliminatórias</string>
     <string name="modo_solo">Solo</string>
+    <string name="modo_classico_subtitulo" translatable="false">Responde a perguntas e conquista o maior número de pontos.</string>
+    <string name="modo_caotico_subtitulo" translatable="false">Responde rapidamente e sobrevive ao caos. Tempo é tudo!</string>
+    <string name="modo_eliminatorias_subtitulo" translatable="false">Compete em rondas eliminatórias até chegares à final.</string>
     <string name="selecionar_modo_classico">Selecionar modo Clássico</string>
     <string name="selecionar_modo_eliminatorias">Selecionar modo Eliminatórias</string>
     <string name="voltar_para_main_activity">Voltar para a tela principal</string>
@@ -253,14 +316,40 @@
     <string name="dica_modo_caotico_texto">Perguntas misturadas de todas as categorias, com menos tempo.</string>
     <string name="dica_modo_eliminatorias_texto">Quem falha pode sair da partida. O último resistente vence.</string>
     <string name="info_todos_modos">• &lt;b&gt;Modo Clássico:&lt;/b&gt; Responde a perguntas da categoria escolhida. Joga com outros jogadores e vence quem tiver mais pontos!\n\n• &lt;b&gt;Modo Caótico:&lt;/b&gt; Perguntas de todas as categorias aparecem de forma aleatória. Desafia-te e aos teus amigos numa experiência imprevisível!\n\n• &lt;b&gt;Modo Eliminatórias:&lt;/b&gt; Erraste? És eliminado logo! O último sobrevivente vence. Sê rápido e preciso.</string>
-    <string name="escolher_tipo_modo_classico">Escolher Modo de Jogo</string>
+    <string name="escolher_tipo_modo_classico">Escolher modo</string>
     <string name="modo_1x1">Modo 1x1</string>
     <string name="modo_2x2">Modo 2x2</string>
-    <string name="modo_todos">Todos</string>
+    <string name="modo_todos">Grupo</string>
+    <string name="modo_grupo" translatable="false">Grupo</string>
+    <string name="modo_classico_subtitulo_curto" translatable="false">Modo clássico</string>
+    <string name="modo_caotico_subtitulo_curto" translatable="false">Modo caótico</string>
+    <string name="modo_eliminatorias_subtitulo_curto" translatable="false">Modo eliminatórias</string>
+    <string name="modo_solo_subtitulo" translatable="false">Joga sozinho e desafia o teu conhecimento.</string>
+    <string name="modo_1x1_subtitulo" translatable="false">Encontra um adversário e joga cara a cara.</string>
+    <string name="modo_2x2_subtitulo" translatable="false">Forma equipa e enfrenta outra dupla.</string>
+    <string name="modo_todos_subtitulo" translatable="false">Compete com vários jogadores no mesmo formato.</string>
+    <string name="modo_solo_caotico_subtitulo" translatable="false">Joga sozinho em modo caótico.</string>
+    <string name="modo_grupo_caotico_subtitulo" translatable="false">Compete em grupo num ritmo acelerado.</string>
+    <string name="modo_solo_eliminatorias_subtitulo" translatable="false">Sobrevive sozinho até ao fim.</string>
+    <string name="modo_grupo_eliminatorias_subtitulo" translatable="false">Compete em grupo até restarem os melhores.</string>
+    <string name="voltar_para_inicio" translatable="false">Voltar ao início</string>
     <string name="info_todos_modos_classico">• &lt;b&gt;Modo 1x1:&lt;/b&gt; Duelo direto entre dois jogadores! Responde às mesmas perguntas que o teu adversário e vence quem somar mais pontos.\n\n• &lt;b&gt;Modo 2x2:&lt;/b&gt; Joga em equipa! Duas duplas competem entre si, somando pontos em conjunto. Coopera com o teu parceiro e desafia outra dupla!\n\n• &lt;b&gt;Modo Todos contra Todos:&lt;/b&gt; Todos jogam contra todos numa competição clássica. Mostra quem sabe mais e conquista o topo da tabela!</string>
     <string name="modo_classico_grupo">Clássico/grupo</string>
     <string name="modo_1x1_convite">1x1 por convite</string>
     <string name="modo_2x2_convite">2x2 por convite</string>
+    <string name="modo_eliminatorias_grupo" translatable="false">Eliminatórias/grupo</string>
+    <string name="fechar_simbolo" translatable="false">×</string>
+    <string name="como_jogar_categoria" translatable="false">Como queres jogar esta categoria?</string>
+    <string name="modo_solo_classico" translatable="false">Solo clássico</string>
+    <string name="modo_solo_classico_descricao" translatable="false">Responde perguntas ao teu ritmo e bate o teu melhor.</string>
+    <string name="modo_solo_caotico" translatable="false">Solo caótico</string>
+    <string name="modo_solo_caotico_descricao" translatable="false">Tempo reduzido, mais pontos. Só para corajosos.</string>
+    <string name="modo_solo_eliminatorias" translatable="false">Solo eliminatórias</string>
+    <string name="modo_solo_eliminatorias_descricao" translatable="false">Resposta errada, estás fora. Chega o mais longe possível.</string>
+    <string name="modo_classico_grupo_descricao" translatable="false">Compete com amigos ou jogadores aleatórios em grupo.</string>
+    <string name="modo_1x1_convite_descricao" translatable="false">Desafia um amigo para um duelo cara a cara.</string>
+    <string name="modo_2x2_convite_descricao" translatable="false">Forma equipa com um amigo e desafia outra dupla.</string>
+    <string name="modo_eliminatorias_grupo_descricao" translatable="false">Modo eliminatórias num grupo. Só os melhores avançam.</string>
     <string-array name="opcoes_modo_personalizado">
         <item>Solo clássico</item>
         <item>Solo caótico</item>
@@ -292,9 +381,18 @@
     <string name="dificuldade_facil">Fácil</string>
     <string name="dificuldade_media">Média</string>
     <string name="dificuldade_dificil">Difícil</string>
-    <string name="nova_pergunta">Limpar campos</string>
+    <string name="nova_pergunta">Nova pergunta</string>
     <string name="eliminar_atual">Eliminar atual</string>
     <string name="enviar_pergunta">Guardar pergunta</string>
+    <string name="descricao_categoria" translatable="false">Descrição da categoria</string>
+    <string name="hint_descricao_categoria" translatable="false">Descreve brevemente a categoria</string>
+    <string name="icone_categoria" translatable="false">Símbolo da categoria</string>
+    <string name="icone_padrao" translatable="false">Padrão</string>
+    <string name="icone_historia" translatable="false">História</string>
+    <string name="icone_geografia" translatable="false">Geo</string>
+    <string name="icone_matematica" translatable="false">Mat.</string>
+    <string name="icone_cultura" translatable="false">Cultura</string>
+    <string name="icone_ciencia" translatable="false">Ciência</string>
     <string name="comecar_jogo">Começar jogo</string>
     <string name="total_perguntas_inicial">Total de perguntas: 0</string>
     <string name="total_perguntas_format">Total de perguntas: %1$d</string>
@@ -314,7 +412,22 @@
     <!-- Amigos e convites -->
     <string name="procurar_utilizador">Procurar utilizador...</string>
     <string name="pesquisar">Pesquisar</string>
-    <string name="adicionar_amigo">Adicionar Amigo</string>
+    <string name="adicionar_amigo">Adicionar amigo</string>
+    <string name="adicionar" translatable="false">Adicionar</string>
+    <string name="procurar_jogador" translatable="false">Procurar jogador</string>
+    <string name="digite_nome_utilizador" translatable="false">Digite um nome de utilizador</string>
+    <string name="jogador_encontrado" translatable="false">Jogador encontrado</string>
+    <string name="jogador_nao_encontrado">Jogador não encontrado</string>
+    <string name="amigos_online_count" translatable="false">Amigos online (%1$d)</string>
+    <string name="amigos_offline_count" translatable="false">Amigos offline (%1$d)</string>
+    <string name="amigos_online_zero" translatable="false">Amigos online (0)</string>
+    <string name="amigos_offline_zero" translatable="false">Amigos offline (0)</string>
+    <string name="pedidos" translatable="false">Pedidos</string>
+    <string name="convites" translatable="false">Convites</string>
+    <string name="online_status" translatable="false">Online</string>
+    <string name="offline_status" translatable="false">Offline</string>
+    <string name="modo_1x1_curto" translatable="false">1x1</string>
+    <string name="modo_2x2_curto" translatable="false">2x2</string>
     <string name="adicionar_nome_format">Adicionar %1$s</string>
     <string name="ja_e_teu_amigo_format">%1$s já é teu amigo!</string>
     <string name="utilizador_nao_encontrado">Utilizador não encontrado</string>
@@ -330,6 +443,23 @@
     <string name="convites_recebidos">Convites Recebidos:</string>
     <string name="teus_amigos">Os Teus Amigos:</string>
     <string name="convidar_amigo">Convidar amigo</string>
+    <string name="convidar_amigos" translatable="false">Convidar amigos</string>
+    <string name="amigo_selecionado" translatable="false">Amigo selecionado</string>
+    <string name="alterar" translatable="false">Alterar</string>
+    <string name="escolher_formato_jogo" translatable="false">Escolher formato de jogo</string>
+    <string name="duelo_individual" translatable="false">Duelo individual</string>
+    <string name="dupla_contra_dupla" translatable="false">Dupla contra dupla</string>
+    <string name="escolher_categoria_label" translatable="false">Escolher categoria</string>
+    <string name="convite_hint_brainbrawler" translatable="false">Desafie seu amigo e mostre quem é o verdadeiro BrainBrawler!</string>
+    <string name="enviar_convite" translatable="false">Enviar convite</string>
+    <string name="enviar_convites" translatable="false">Enviar convites</string>
+    <string name="modo_resumo_format" translatable="false">Modo: %1$s</string>
+    <string name="categoria_resumo_format" translatable="false">Categoria: %1$s</string>
+    <string name="escolher_amigo" translatable="false">Escolher amigo</string>
+    <string name="escolher_amigos" translatable="false">Escolher amigos</string>
+    <string name="selecionados_2x2_format" translatable="false">Selecionados: %1$d/3</string>
+    <string name="categoria_convite_em_falta" translatable="false">Escolhe uma categoria antes de convidar amigos.</string>
+    <string name="fluxo_convite_invalido" translatable="false">Fluxo de convite inválido. Volta a escolher o modo.</string>
     <string name="convidar_equipa">Convidar equipa</string>
     <string name="convidar_para_2x2">Convidar para 2x2</string>
     <string name="nome_amigo">Nome do amigo</string>
@@ -360,19 +490,20 @@
 
     <!-- Ranking e perfil -->
     <string name="top_10_arena">Top 10 da arena</string>
-    <string name="ranking_solo">Solo</string>
+    <string name="ranking_solo">Grupo</string>
     <string name="ranking_1x1">1x1</string>
     <string name="ranking_2x2">2x2</string>
     <string name="ranking_recorde">Recorde</string>
     <string name="ranking_global">Global</string>
     <string name="ranking_global_titulo">Ranking Global</string>
     <string name="ranking_recordes_titulo">Ranking de Recordes</string>
-    <string name="ranking_solo_titulo">Ranking Solo</string>
+    <string name="ranking_solo_titulo">Ranking Grupo</string>
     <string name="ranking_1x1_titulo">Ranking 1x1</string>
     <string name="ranking_2x2_titulo">Ranking 2x2</string>
     <string name="pontos_totais">Pontos Totais</string>
     <string name="melhor_jogo">Melhor Jogo</string>
-    <string name="vitorias_solo">Vitórias Solo</string>
+    <string name="vitorias_solo">Vitórias Grupo</string>
+    <string name="vitorias_grupo">Vitórias Grupo</string>
     <string name="vitorias_1x1">Vitórias 1x1</string>
     <string name="vitorias_2x2">Vitórias 2x2</string>
     <string name="ainda_sem_ranking">Ainda não há jogadores no ranking.</string>
@@ -387,6 +518,7 @@
     <string name="amigos_lista_vazia">Ainda não tens amigos adicionados.</string>
     <string name="posicao_ranking_format">#%1$d</string>
     <string name="nome_nivel_format">%1$s • Nv %2$d</string>
+    <string name="nivel_curto_format" translatable="false">Nv %1$d</string>
     <string name="jogos_format">Jogos: %1$d</string>
     <string name="vitorias_format">Vitórias: %1$d</string>
     <string name="acertos_format">Acertos: %1$s%%</string>
@@ -394,6 +526,26 @@
     <string name="vitorias_curto_format">V: %1$d</string>
     <string name="acertos_curto_format">%1$s%%</string>
     <string name="p_dio">Pódio</string>
+    <string name="excelente_batalha">Excelente batalha!</string>
+    <string name="rodadas">Rodadas</string>
+    <string name="precisao">Precisão</string>
+    <string name="acertos">Acertos</string>
+    <string name="podio_resultado_final" translatable="false">Resultado final</string>
+    <string name="podio_grande_duelo" translatable="false">Grande duelo!</string>
+    <string name="podio_batalha_concluida" translatable="false">Batalha concluída</string>
+    <string name="podio_vitoria" translatable="false">Vitória</string>
+    <string name="podio_derrota" translatable="false">Derrota</string>
+    <string name="podio_empate" translatable="false">Empate</string>
+    <string name="podio_perguntas" translatable="false">Perguntas</string>
+    <string name="podio_aguardando_resultado" translatable="false">A aguardar resultado...</string>
+    <string name="restantes_jogadores">Classificação completa</string>
+    <string name="sem_restantes_podio">Sem jogadores além do pódio.</string>
+    <string name="historico_todos">Todos</string>
+    <string name="historico_oficial">Oficial</string>
+    <string name="historico_personalizadas">Personalizadas</string>
+    <string name="historico_sem_resultados_filtro">Sem partidas neste filtro.</string>
+    <string name="competitivo">Competitivo</string>
+    <string name="nao_competitivo">Não competitivo</string>
     <string name="medalha_primeiro">1</string>
     <string name="medalha_segundo">2</string>
     <string name="medalha_terceiro">3</string>
@@ -437,7 +589,46 @@
     <string name="melhores_conquistas_publicas">Melhores conquistas calculadas pelas estatísticas públicas.</string>
     <string name="ver_conquistas">Ver conquistas</string>
     <string name="editar_perfil">Editar perfil</string>
+    <string name="perfil_titulo_jogador" translatable="false">Explorador</string>
+    <string name="perfil_nivel_titulo_format" translatable="false">Nível %1$d · Explorador</string>
+    <string name="vitorias_label" translatable="false">Vitórias</string>
+    <string name="jogos_label" translatable="false">Jogos</string>
+    <string name="melhor_pontuacao_label" translatable="false">Melhor pontuação</string>
+    <string name="ranking_global_label" translatable="false">Ranking global</string>
+    <string name="ranking_global_indisponivel" translatable="false">—</string>
+    <string name="ranking_global_posicao_format" translatable="false">#%1$d</string>
+    <string name="editar_avatar" translatable="false">Editar avatar</string>
+    <string name="perfil_conquistas_subtitulo" translatable="false">Veja todas as suas medalhas</string>
+    <string name="perfil_editar_avatar_subtitulo" translatable="false">Personalize seu guerreiro</string>
+    <string name="perfil_historico_subtitulo" translatable="false">Veja seu desempenho</string>
     <string name="conquistas_todas_subtitulo">Todas as famílias, desbloqueadas e bloqueadas, com progresso.</string>
+    <string name="conquistas_desbloqueadas" translatable="false">Desbloqueadas</string>
+    <string name="conquistas_bloqueadas" translatable="false">Bloqueadas</string>
+    <string name="conquistas_todas" translatable="false">Todas</string>
+    <string name="conquistas_combate" translatable="false">Combate</string>
+    <string name="conquistas_exploracao" translatable="false">Exploração</string>
+    <string name="conquistas_social" translatable="false">Social</string>
+    <string name="conquistas_progress_format" translatable="false">%1$d / %2$d</string>
+    <string name="conquistas_desbloqueadas_subtitulo" translatable="false">conquistas desbloqueadas</string>
+    <string name="conquistas_footer_hint" translatable="false">Complete conquistas para ganhar XP e subir de nível!</string>
+    <string name="categoria" translatable="false">Categoria</string>
+    <string name="zero" translatable="false">0</string>
+    <string name="versus_short" translatable="false">VS</string>
+    <string name="equipa_lusa" translatable="false">Equipa Lusa</string>
+    <string name="os_descobridores" translatable="false">Os Descobridores</string>
+    <string name="luso_accent_line" translatable="false">◆ ─ ◆</string>
+    <string name="jogador_generico" translatable="false">Jogador</string>
+    <string name="acompanhar_partida" translatable="false">Acompanhar partida</string>
+    <string name="grupo_eliminacao_contexto" translatable="false">Grupo • Eliminação</string>
+    <string name="fora_desta_ronda" translatable="false">Estás fora desta ronda</string>
+    <string name="acompanha_torce_amigos" translatable="false">Acompanha o jogo e torce pelos teus amigos!</string>
+    <string name="ainda_a_jogar_count" translatable="false">Ainda a jogar (%1$d)</string>
+    <string name="eliminados_count" translatable="false">Eliminados (%1$d)</string>
+    <string name="sem_jogadores_ativos" translatable="false">Não há jogadores ativos neste momento.</string>
+    <string name="sem_eliminados_ainda" translatable="false">Ainda não há jogadores eliminados.</string>
+    <string name="ainda_a_jogar_estado" translatable="false">● Ainda a jogar</string>
+    <string name="jogador_tu_format" translatable="false">%1$s (Tu)</string>
+    <string name="classificacao_final_hint" translatable="false">A classificação final será revelada no fim da partida.</string>
     <string name="escolher_avatar">Escolher avatar</string>
     <string name="perfil_guardado">Perfil guardado.</string>
     <string name="erro_guardar_perfil">Não foi possível guardar o perfil.</string>

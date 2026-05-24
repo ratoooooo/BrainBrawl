@@ -25,19 +25,10 @@ class RankingRepository(
         val result = TaskCompletionSource<List<RankingJogador>>()
 
         jogadoresRef()
-            .orderByChild(tipo.firebaseField)
-            .limitToLast(limite.coerceAtLeast(1))
             .get()
             .addOnSuccessListener { snapshot ->
-                val jogadores = snapshot.children
-                    .mapNotNull { it.toRankingJogador() }
-                    .deduplicarPerfis(tipo)
-                    .sortedWith(
-                        compareByDescending<RankingJogador> { tipo.valorOrdenacao(it) }
-                            .thenBy { it.nomeDisplay.lowercase(Locale.ROOT) }
-                    )
-                    .take(limite)
-                    .mapIndexed { index, jogador -> jogador.copy(posicao = index + 1) }
+                val jogadores = snapshot.rankingOrdenado(tipo)
+                    .take(limite.coerceAtLeast(1))
 
                 result.setResult(jogadores)
             }
@@ -48,8 +39,45 @@ class RankingRepository(
         return result.task
     }
 
+    fun obterPosicaoGlobal(
+        uid: String,
+        nomeUtilizador: String
+    ): Task<Int?> {
+        val result = TaskCompletionSource<Int?>()
+        jogadoresRef()
+            .get()
+            .addOnSuccessListener { snapshot ->
+                val uidNormalizado = uid.trim()
+                val nomeNormalizado = nomeUtilizador.lowercase(Locale.ROOT).trim()
+                val posicao = snapshot.rankingOrdenado(RankingTipo.GLOBAL)
+                    .firstOrNull { jogador ->
+                        (uidNormalizado.isNotBlank() &&
+                            (jogador.uid == uidNormalizado || jogador.chavePerfil == uidNormalizado)) ||
+                            (nomeNormalizado.isNotBlank() &&
+                                jogador.nomeDisplay.lowercase(Locale.ROOT).trim() == nomeNormalizado)
+                    }
+                    ?.posicao
+                result.setResult(posicao)
+            }
+            .addOnFailureListener { exception ->
+                result.setException(exception)
+            }
+        return result.task
+    }
+
     private fun jogadoresRef(): DatabaseReference {
         return database.child(FirebasePaths.JOGADORES)
+    }
+
+    private fun DataSnapshot.rankingOrdenado(tipo: RankingTipo): List<RankingJogador> {
+        return children
+            .mapNotNull { it.toRankingJogador() }
+            .deduplicarPerfis(tipo)
+            .sortedWith(
+                compareByDescending<RankingJogador> { tipo.valorOrdenacao(it) }
+                    .thenBy { it.nomeDisplay.lowercase(Locale.ROOT) }
+            )
+            .mapIndexed { index, jogador -> jogador.copy(posicao = index + 1) }
     }
 
     private fun DataSnapshot.toRankingJogador(): RankingJogador? {
@@ -71,11 +99,17 @@ class RankingRepository(
             .ifBlank { chavePerfil.takeUnless { uid.isNotBlank() && it == uid }.orEmpty() }
 
         if (nomeDisplay.isBlank()) return null
+        val pontuacaoLegada = child(FirebasePaths.PONTUACAO).doubleValue()
+        val totalPontosSomados = child(FirebasePaths.TOTAL_PONTOS_SOMADOS).doubleValue()
+            .takeIf { it > 0.0 }
+            ?: pontuacaoLegada
         return RankingJogador(
             chavePerfil = chavePerfil,
             uid = uid,
             nomeDisplay = nomeDisplay,
-            pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
+            avatar = child(FirebasePaths.AVATAR).texto(),
+            pontuacao = pontuacaoLegada,
+            totalPontosSomados = totalPontosSomados,
             recordePontuacao = child(FirebasePaths.RECORDE_PONTUACAO).doubleValue(),
             totalJogos = child(FirebasePaths.TOTAL_JOGOS).intValue(),
             totalVitorias = child(FirebasePaths.TOTAL_VITORIAS).intValue(),
@@ -114,11 +148,15 @@ class RankingRepository(
     }
 
     private fun DataSnapshot.intValue(): Int {
-        return (value as? Number)?.toInt() ?: 0
+        return (value as? Number)?.toInt()
+            ?: getValue(String::class.java)?.toIntOrNull()
+            ?: 0
     }
 
     private fun DataSnapshot.doubleValue(): Double {
-        return (value as? Number)?.toDouble() ?: 0.0
+        return (value as? Number)?.toDouble()
+            ?: getValue(String::class.java)?.replace(',', '.')?.toDoubleOrNull()
+            ?: 0.0
     }
 
     private companion object {

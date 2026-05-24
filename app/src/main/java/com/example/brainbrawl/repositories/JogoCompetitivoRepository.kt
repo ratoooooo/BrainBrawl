@@ -38,7 +38,8 @@ class JogoCompetitivoRepository(
         val playerKey: String = "",
         val tipoJogador: String = "",
         val avatar: String = "",
-        val estado: String = GameConstants.ESTADO_ON
+        val estado: String = GameConstants.ESTADO_ON,
+        val pontuacao: Double = 0.0
     )
 
     data class EquipaJogador(
@@ -224,9 +225,9 @@ class JogoCompetitivoRepository(
         // Evita "pronto" fantasma após desconexão (1x1 e 2x2 usam o mesmo nó prontos).
         sala.child(FirebasePaths.PRONTOS).child(chave).onDisconnect().removeValue()
         Log.d(
-            TAG,
+            HOST_REMOVAL_TAG,
             "onDisconnect configurado: modo=${modo.node} codigo=${codigoSala.maskedLogId()} " +
-                "chave=${chave.maskedLogId()} removePronto=true"
+                "chave=${chave.maskedLogId()} removePlayer=false markOffOnly=true removePronto=true"
         )
     }
 
@@ -347,6 +348,12 @@ class JogoCompetitivoRepository(
             if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao carregar privacidade da sala.")
             val snapshot = task.result
             val origem = snapshot.child(FirebasePaths.ORIGEM).texto()
+            Log.d(
+                FLOW_TAG,
+                "roomInfo path=${modo.node}/$codigoSala origem=${origem.ifBlank { "<empty>" }} " +
+                    "entradaFechada=${snapshot.entradaFechada()} estado=${snapshot.child(FirebasePaths.ESTADO).texto()} " +
+                    "players=${snapshot.child(FirebasePaths.JOGADORES).children.mapNotNull { it.key?.maskedLogId() }}"
+            )
             CodigoSalaInfo(
                 origem = origem,
                 entradaFechada = snapshot.entradaFechada()
@@ -495,7 +502,8 @@ class JogoCompetitivoRepository(
                 avatar = jogadorSnapshot?.child(FirebasePaths.AVATAR)?.texto()
                     ?.ifBlank { jogador.avatar } ?: jogador.avatar,
                 estado = jogadorSnapshot?.child(FirebasePaths.ESTADO)?.texto()
-                    ?.ifBlank { GameConstants.ESTADO_ON } ?: GameConstants.ESTADO_ON
+                    ?.ifBlank { GameConstants.ESTADO_ON } ?: GameConstants.ESTADO_ON,
+                pontuacao = jogadorSnapshot?.child(FirebasePaths.PONTUACAO)?.doubleValue() ?: 0.0
             )
         }
     }
@@ -508,8 +516,125 @@ class JogoCompetitivoRepository(
         return salaRef(modo, codigoSala).child(FirebasePaths.ESTADO).setValue(estado)
     }
 
+    fun iniciarJogo1x1(
+        codigoSala: String,
+        categoriaFallback: String,
+        categoriaTodas: String
+    ): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        val sala = salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+        sala.get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.exists()) {
+                    result.setException(IllegalStateException("Sala 1x1 nao existe."))
+                    return@addOnSuccessListener
+                }
+
+                val categoria = snapshot.child(FirebasePaths.NOME_CATEGORIA).texto()
+                    .ifBlank { categoriaFallback }
+                    .ifBlank { categoriaTodas }
+                Log.d(
+                    HOST_REMOVAL_TAG,
+                    "mode=1x1 room=$codigoSala startAtomic prepare category=$categoria " +
+                        "statusBefore=${snapshot.child(FirebasePaths.ESTADO).texto()} " +
+                        "players=${snapshot.child(FirebasePaths.JOGADORES).children.mapNotNull { it.key?.maskedLogId() }}"
+                )
+                carregarOuCriarPerguntas(
+                    ModoCompetitivo.UM_CONTRA_UM,
+                    codigoSala,
+                    categoria,
+                    categoriaTodas
+                ).addOnSuccessListener {
+                    val updates = mapOf<String, Any>(
+                        FirebasePaths.ESTADO to GameConstants.ESTADO_EM_JOGO
+                    )
+                    Log.d(
+                        HOST_REMOVAL_TAG,
+                        "mode=1x1 room=$codigoSala startAtomic writePaths=${updates.keys} " +
+                            "category=$categoria questions=${it.size} removesPlayer=false"
+                    )
+                    sala.updateChildren(updates)
+                        .addOnSuccessListener {
+                            Log.d(START_TAG, "mode=1x1 room=$codigoSala statusAfter=${GameConstants.ESTADO_EM_JOGO}")
+                            result.setResult(null)
+                        }
+                        .addOnFailureListener { error -> result.setException(error) }
+                }.addOnFailureListener { error ->
+                    Log.w(HOST_REMOVAL_TAG, "mode=1x1 room=$codigoSala startAtomic failedQuestions=${error.message}")
+                    result.setException(error)
+                }
+            }
+            .addOnFailureListener { error -> result.setException(error) }
+        return result.task
+    }
+
+    fun iniciarJogo2x2(
+        codigoSala: String,
+        equipaA: List<JogadorCompetitivo>,
+        equipaB: List<JogadorCompetitivo>,
+        categoriaFallback: String,
+        categoriaTodas: String
+    ): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        val sala = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+        sala.get()
+            .addOnSuccessListener { snapshot ->
+                if (!snapshot.exists()) {
+                    result.setException(IllegalStateException("Sala 2x2 nao existe."))
+                    return@addOnSuccessListener
+                }
+
+                val categoria = snapshot.child(FirebasePaths.NOME_CATEGORIA).texto()
+                    .ifBlank { categoriaFallback }
+                    .ifBlank { categoriaTodas }
+                Log.d(
+                    HOST_REMOVAL_TAG,
+                    "mode=2x2 room=$codigoSala startAtomic prepare category=$categoria " +
+                        "statusBefore=${snapshot.child(FirebasePaths.ESTADO).texto()} " +
+                        "teamA=${equipaA.map { it.chave.maskedLogId() }} teamB=${equipaB.map { it.chave.maskedLogId() }}"
+                )
+                carregarOuCriarPerguntas(
+                    ModoCompetitivo.DOIS_CONTRA_DOIS,
+                    codigoSala,
+                    categoria,
+                    categoriaTodas
+                ).addOnSuccessListener { perguntas ->
+                    val updates = linkedMapOf<String, Any?>(
+                        FirebasePaths.ESTADO to GameConstants.ESTADO_EM_JOGO
+                    )
+                    val jogadores = (equipaA + equipaB).distinctBy { it.chave }
+                    jogadores.forEach { jogador ->
+                        updates["${FirebasePaths.EQUIPA_A}/${jogador.chave}"] = null
+                        updates["${FirebasePaths.EQUIPA_B}/${jogador.chave}"] = null
+                    }
+                    equipaA.forEach { jogador ->
+                        updates["${FirebasePaths.EQUIPA_A}/${jogador.chave}"] = jogador.toFirebaseMap()
+                    }
+                    equipaB.forEach { jogador ->
+                        updates["${FirebasePaths.EQUIPA_B}/${jogador.chave}"] = jogador.toFirebaseMap()
+                    }
+                    Log.d(
+                        HOST_REMOVAL_TAG,
+                        "mode=2x2 room=$codigoSala startAtomic writePaths=${updates.keys} " +
+                            "category=$categoria questions=${perguntas.size} removesPlayer=false"
+                    )
+                    sala.updateChildren(updates)
+                        .addOnSuccessListener {
+                            Log.d(START_TAG, "mode=2x2 room=$codigoSala statusAfter=${GameConstants.ESTADO_EM_JOGO}")
+                            result.setResult(null)
+                        }
+                        .addOnFailureListener { error -> result.setException(error) }
+                }.addOnFailureListener { error ->
+                    Log.w(HOST_REMOVAL_TAG, "mode=2x2 room=$codigoSala startAtomic failedQuestions=${error.message}")
+                    result.setException(error)
+                }
+            }
+            .addOnFailureListener { error -> result.setException(error) }
+        return result.task
+    }
+
     fun apagarSala(modo: ModoCompetitivo, codigoSala: String): Task<Void> {
-        Log.d(TAG, "A apagar sala: modo=${modo.node} codigo=${codigoSala.maskedLogId()}")
+        Log.d(HOST_REMOVAL_TAG, "removeRoom method=apagarSala modo=${modo.node} codigo=${codigoSala.maskedLogId()}")
         return salaRef(modo, codigoSala).removeValue()
     }
 
@@ -520,9 +645,9 @@ class JogoCompetitivoRepository(
     ): Task<Void> {
         val chaves = (jogador.chavesCompatibilidade + chaveJogador).filter { it.isNotBlank() }.distinct()
         Log.d(
-            TAG,
+            HOST_REMOVAL_TAG,
             "A remover jogador 1x1: codigo=${codigoSala.maskedLogId()} " +
-                "chaves=${chaves.map { it.maskedLogId() }}"
+                "method=removerJogador1x1 chaves=${chaves.map { it.maskedLogId() }}"
         )
         return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala).updateChildren(
             chaves.flatMap { chave ->
@@ -541,9 +666,9 @@ class JogoCompetitivoRepository(
     ): Task<Void> {
         val chaves = (jogador.chavesCompatibilidade + chaveJogador).filter { it.isNotBlank() }.distinct()
         Log.d(
-            TAG,
+            HOST_REMOVAL_TAG,
             "A remover jogador 2x2: codigo=${codigoSala.maskedLogId()} " +
-                "chaves=${chaves.map { it.maskedLogId() }}"
+                "method=removerJogador2x2 chaves=${chaves.map { it.maskedLogId() }}"
         )
         return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala).updateChildren(
             chaves.flatMap { chave ->
@@ -737,6 +862,18 @@ class JogoCompetitivoRepository(
             .setValue(totalPontos)
     }
 
+    fun atualizarPontuacaoAoVivo1x1(
+        codigoSala: String,
+        chaveJogador: String,
+        totalPontos: Double
+    ): Task<Void> {
+        return salaRef(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+            .child(FirebasePaths.JOGADORES)
+            .child(chaveJogador)
+            .child(FirebasePaths.PONTUACAO)
+            .setValue(totalPontos)
+    }
+
     fun escutarPodio1x1(
         codigoSala: String,
         totalJogadoresEsperados: Long = 2,
@@ -800,6 +937,53 @@ class JogoCompetitivoRepository(
                 "$totalCertasPath/$chaveJogador" to totalPerguntasCertas
             )
         )
+    }
+
+    fun atualizarPontuacaoAoVivo2x2(
+        codigoSala: String,
+        equipa: String,
+        chaveJogador: String,
+        totalPontos: Double
+    ): Task<Void> {
+        if (equipa != GameConstants.EQUIPA_A && equipa != GameConstants.EQUIPA_B) {
+            val result = TaskCompletionSource<Void>()
+            result.setException(IllegalStateException("Equipa 2x2 inválida para atualizar pontuação ao vivo."))
+            return result.task
+        }
+        return salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+            .child(FirebasePaths.JOGADORES)
+            .child(chaveJogador)
+            .child(FirebasePaths.PONTUACAO)
+            .setValue(totalPontos)
+    }
+
+    fun escutarEquipas2x2(
+        codigoSala: String,
+        onEquipasAlteradas: (List<JogadorCompetitivo>, List<JogadorCompetitivo>) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(ModoCompetitivo.DOIS_CONTRA_DOIS, codigoSala)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val jogadoresAoVivo = snapshot.child(FirebasePaths.JOGADORES).toJogadoresCompetitivos()
+                val equipaA = snapshot.child(FirebasePaths.EQUIPA_A)
+                    .toJogadoresCompetitivos()
+                    .comPontuacoesAoVivo(jogadoresAoVivo)
+                val equipaB = snapshot.child(FirebasePaths.EQUIPA_B)
+                    .toJogadoresCompetitivos()
+                    .comPontuacoesAoVivo(jogadoresAoVivo)
+                onEquipasAlteradas(
+                    equipaA,
+                    equipaB
+                )
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
     }
 
     fun escutarPodio2x2(
@@ -935,7 +1119,7 @@ class JogoCompetitivoRepository(
 
     private fun buscarPerguntasOficiais(categoria: String, categoriaTodas: String): Task<List<Pergunta>> {
         val categoriasRef = database.child(FirebasePaths.CATEGORIAS)
-        return if (categoria == categoriaTodas || categoria.isEmpty()) {
+        return if (categoria.equals(categoriaTodas, ignoreCase = true) || categoria.isEmpty()) {
             categoriasRef.get().continueWith { taskSnapshot ->
                 if (!taskSnapshot.isSuccessful) throw taskSnapshot.exception ?: IllegalStateException("Erro ao buscar perguntas.")
                 val perguntas = taskSnapshot.result.children
@@ -1071,10 +1255,11 @@ class JogoCompetitivoRepository(
             nomeJogador = child(FirebasePaths.NOME_JOGADOR).texto().ifBlank { fallback.nomeJogador },
             playerKey = child(FirebasePaths.PLAYER_KEY).texto().ifBlank { fallback.playerKey.ifBlank { chave } },
             tipoJogador = child(FirebasePaths.TIPO_JOGADOR).texto().ifBlank { fallback.tipoJogador },
-            avatar = child(FirebasePaths.AVATAR).texto().ifBlank { fallback.avatar },
-            estado = child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_ON }
-        )
-    }
+                avatar = child(FirebasePaths.AVATAR).texto().ifBlank { fallback.avatar },
+                estado = child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_ON },
+                pontuacao = child(FirebasePaths.PONTUACAO).doubleValue()
+            )
+        }
 
     private fun DataSnapshot.toJogadoresCompetitivos(): List<JogadorCompetitivo> {
         return children.mapNotNull { jogadorSnapshot ->
@@ -1088,7 +1273,23 @@ class JogoCompetitivoRepository(
                 playerKey = jogadorSnapshot.child(FirebasePaths.PLAYER_KEY).texto().ifBlank { chave },
                 tipoJogador = jogadorSnapshot.child(FirebasePaths.TIPO_JOGADOR).texto(),
                 avatar = jogadorSnapshot.child(FirebasePaths.AVATAR).texto(),
-                estado = jogadorSnapshot.child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_ON }
+                estado = jogadorSnapshot.child(FirebasePaths.ESTADO).texto().ifBlank { GameConstants.ESTADO_ON },
+                pontuacao = jogadorSnapshot.child(FirebasePaths.PONTUACAO).doubleValue()
+            )
+        }
+    }
+
+    private fun List<JogadorCompetitivo>.comPontuacoesAoVivo(
+        jogadoresAoVivo: List<JogadorCompetitivo>
+    ): List<JogadorCompetitivo> {
+        return map { jogadorEquipa ->
+            val jogadorSala = jogadoresAoVivo.firstOrNull { jogadorSala ->
+                val idsSala = jogadorSala.identificadores()
+                jogadorEquipa.identificadores().any { it in idsSala }
+            }
+            jogadorEquipa.copy(
+                estado = jogadorSala?.estado ?: jogadorEquipa.estado,
+                pontuacao = jogadorSala?.pontuacao ?: jogadorEquipa.pontuacao
             )
         }
     }
@@ -1158,6 +1359,13 @@ class JogoCompetitivoRepository(
             ?: 0
     }
 
+    private fun DataSnapshot.doubleValue(): Double {
+        return getValue(Double::class.java)
+            ?: getValue(Long::class.java)?.toDouble()
+            ?: getValue(Int::class.java)?.toDouble()
+            ?: 0.0
+    }
+
     private fun DataSnapshot.toPerguntas(): List<Pergunta> {
         return children.mapNotNull { perguntaSnapshot ->
             perguntaSnapshot.toPerguntaValida()
@@ -1190,6 +1398,9 @@ class JogoCompetitivoRepository(
 
     private companion object {
         const val TAG = "MATCHMAKING_DEBUG"
+        const val START_TAG = "INVITE_START_ROOT_CAUSE"
+        const val HOST_REMOVAL_TAG = "HOST_REMOVAL_DEBUG"
+        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
         val DIFICULDADES_VALIDAS = setOf("facil", "media", "dificil")
     }
 }

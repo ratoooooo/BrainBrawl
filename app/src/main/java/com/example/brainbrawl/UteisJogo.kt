@@ -3,6 +3,7 @@ package com.example.brainbrawl
 import android.content.Context
 import android.media.MediaPlayer
 import android.widget.Toast
+import com.example.brainbrawl.config.GameConstants
 
 object UteisJogo {
 
@@ -15,8 +16,9 @@ object UteisJogo {
 
     // Função para atualizar a pontuação dos jogadores
     fun atualizarPontuacao(context: Context, tempoRestante: Double, numeroPerguntasCertas: Int, bonus: Int): Int {
-        val tempoUsado = (15 - tempoRestante).toInt()
-        var pontuacao = (15 - tempoUsado) * 10
+        val tempoTotal = GameConstants.CLASSIC_QUESTION_TIME_SECONDS.toInt()
+        val tempoUsado = (tempoTotal - tempoRestante).toInt()
+        var pontuacao = (tempoTotal - tempoUsado) * 10
 
         // Bonus por sequência de respostas corretas
         if (numeroPerguntasCertas == 2) {

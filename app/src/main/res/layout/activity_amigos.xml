@@ -1,180 +1,385 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/layoutAmigos"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="@drawable/bg_register_screen"
-    android:padding="20dp">
+    android:background="@drawable/bg_main_premium"
+    tools:context=".AmigosActivity">
 
-    <TextView
-        android:id="@+id/txtTitulo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/amigos"
-        android:textSize="31sp"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-black"
-        android:textColor="@color/bb_text_primary"
-        android:layout_gravity="center_horizontal"
-        android:paddingBottom="20dp" />
+    <ScrollView
+        android:id="@+id/scrollAmigos"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingTop="36dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="18dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical">
-
-        <FrameLayout
-            android:layout_width="0dp"
-            android:layout_height="58dp"
-            android:layout_weight="1">
-
-            <EditText
-                android:id="@+id/edtPesquisar"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:hint="@string/procurar_utilizador"
-                android:padding="12dp"
-                android:paddingEnd="44dp"
-                android:background="@drawable/bg_register_input"
-                android:textColor="@color/bb_text_primary"
-                android:textColorHint="@color/bb_text_secondary"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-black" />
-
-            <ImageView
-                android:id="@+id/btnPesquisar"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
-                android:src="@drawable/ic_search"
-                android:layout_gravity="end|center_vertical"
-                android:layout_marginEnd="8dp"
-                android:contentDescription="@string/pesquisar"
-                app:tint="@color/bb_text_primary" />
-        </FrameLayout>
-    </LinearLayout>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_marginTop="8dp"
-        android:visibility="gone"
-        android:id="@+id/layoutAddAmigo">
-
-        <Button
-            android:id="@+id/btnAdicionarAmigo"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="48dp"
-            android:text="@string/adicionar_amigo"
-            android:background="@drawable/bg_button_secondary"
-            android:textColor="@color/bb_secondary_text"
-            android:textStyle="bold"
-            android:fontFamily="sans-serif-black"/>
-    </LinearLayout>
-
-    <!-- Pedidos de amizade recebidos -->
-    <TextView
-        android:id="@+id/txtPedidosAmizade"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/pedidos_amizade_recebidos"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-black"
-        android:textColor="@color/bb_text_primary"
-        android:layout_marginTop="20dp"
-        android:visibility="gone" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerPedidosAmizade"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:clipToPadding="false"
-        android:paddingTop="6dp"
-        android:layout_marginBottom="16dp"/>
-
-    <!-- Lista de convites recebidos -->
-    <TextView
-        android:id="@+id/txtConvites"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/convites_recebidos"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-black"
-        android:textColor="@color/bb_text_primary"
-        android:layout_marginTop="20dp"
-        android:visibility="gone" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerConvites"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:visibility="gone"
-        android:clipToPadding="false"
-        android:paddingTop="6dp"
-        android:layout_marginBottom="16dp"/>
-
-    <TextView
-        android:id="@+id/txtSeusAmigos"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/teus_amigos"
-        android:textStyle="bold"
-        android:fontFamily="sans-serif-black"
-        android:textColor="@color/bb_text_primary"
-        android:layout_marginTop="20dp"/>
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerAmigos"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:clipToPadding="false"
-        android:paddingTop="6dp"/>
-
-    <TextView
-        android:id="@+id/txtAmigosVazio"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="@drawable/bg_empty_state_card"
-        android:fontFamily="sans-serif-black"
-        android:gravity="center"
-        android:padding="@dimen/bb_space_lg"
-        android:text="@string/amigos_lista_vazia"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="15sp"
-        android:visibility="gone" />
-
-    <!-- Botão Voltar -->
-    <LinearLayout
-        android:id="@+id/btn_voltar"
-        android:layout_width="match_parent"
-        android:layout_height="56dp"
-        android:layout_marginHorizontal="8dp"
-        android:background="@drawable/bg_register_primary_button"
-        android:clickable="true"
-        android:focusable="true"
-        android:gravity="center"
-        android:orientation="horizontal">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:layout_marginEnd="12dp"
-            android:src="@drawable/ic_back" />
-
-        <TextView
-            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:fontFamily="sans-serif-black"
-            android:text="@string/voltar"
-            android:textColor="#FFFFFF"
-            android:textSize="18sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+            android:orientation="vertical">
 
-</LinearLayout>
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="54dp">
+
+                <TextView
+                    android:id="@+id/txtTitulo"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:text="@string/amigos"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="34sp"
+                    android:textStyle="bold"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent" />
+
+                <ImageView
+                    android:id="@+id/btnPesquisar"
+                    android:layout_width="42dp"
+                    android:layout_height="42dp"
+                    android:contentDescription="@string/pesquisar"
+                    android:padding="8dp"
+                    android:src="@drawable/ic_search"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:tint="@color/bb_luso_navy" />
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <LinearLayout
+                android:id="@+id/segmentTabs"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_luso_segment_container"
+                android:baselineAligned="false"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <LinearLayout
+                    android:id="@+id/tabAmigos"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_luso_segment_selected"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/iconTabAmigos"
+                        android:layout_width="18dp"
+                        android:layout_height="18dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/ic_group"
+                        app:tint="@color/bb_luso_gold" />
+
+                    <TextView
+                        android:id="@+id/txtTabAmigos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/amigos"
+                        android:textColor="@color/bb_primary_text"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tabPedidos"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_luso_segment_unselected"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/iconTabPedidos"
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/ic_person"
+                        app:tint="@color/bb_luso_navy" />
+
+                    <TextView
+                        android:id="@+id/txtTabPedidos"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/pedidos"
+                        android:textColor="@color/bb_luso_navy"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/tabConvites"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:background="@drawable/bg_luso_segment_unselected"
+                    android:clickable="true"
+                    android:focusable="true"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/iconTabConvites"
+                        android:layout_width="17dp"
+                        android:layout_height="17dp"
+                        android:layout_marginEnd="8dp"
+                        android:src="@drawable/ic_solo"
+                        app:tint="@color/bb_luso_navy" />
+
+                    <TextView
+                        android:id="@+id/txtTabConvites"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/convites"
+                        android:textColor="@color/bb_luso_navy"
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/layoutPesquisa"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="14dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="54dp"
+                    android:background="@drawable/bg_button_secondary"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="8dp">
+
+                    <EditText
+                        android:id="@+id/edtPesquisar"
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        android:background="@android:color/transparent"
+                        android:fontFamily="sans-serif"
+                        android:hint="@string/procurar_jogador"
+                        android:imeOptions="actionSearch"
+                        android:inputType="text"
+                        android:singleLine="true"
+                        android:textColor="@color/bb_luso_navy"
+                        android:textColorHint="@color/bb_text_secondary"
+                        android:textSize="15sp" />
+
+                    <ImageView
+                        android:id="@+id/btnExecutarPesquisa"
+                        android:layout_width="42dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_choose_back_button"
+                        android:contentDescription="@string/pesquisar"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_search"
+                        app:tint="@color/bb_luso_navy" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:id="@+id/layoutAddAmigo"
+                    android:layout_width="match_parent"
+                    android:layout_height="82dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_main_mode_card"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="14dp"
+                    android:visibility="gone">
+
+                    <FrameLayout
+                        android:layout_width="52dp"
+                        android:layout_height="52dp">
+
+                        <ImageView
+                            android:id="@+id/imgResultadoPesquisa"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/avatar_1_playstore" />
+                    </FrameLayout>
+
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/txtResultadoPesquisaNome"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="serif"
+                            android:maxLines="1"
+                            android:text="@string/nome_amigo"
+                            android:textColor="@color/bb_luso_navy"
+                            android:textSize="18sp"
+                            android:textStyle="bold" />
+
+                        <TextView
+                            android:id="@+id/txtResultadoPesquisaEstado"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="5dp"
+                            android:fontFamily="sans-serif"
+                            android:text="@string/jogador_encontrado"
+                            android:textColor="@color/bb_text_secondary"
+                            android:textSize="13sp" />
+                    </LinearLayout>
+
+                    <Button
+                        android:id="@+id/btnAdicionarAmigo"
+                        android:layout_width="104dp"
+                        android:layout_height="42dp"
+                        android:background="@drawable/bg_button_secondary"
+                        android:fontFamily="sans-serif-black"
+                        android:text="@string/adicionar"
+                        android:textAllCaps="false"
+                        android:textColor="@color/bb_luso_navy"
+                        android:textSize="13sp"
+                        android:textStyle="bold" />
+                </LinearLayout>
+
+                <TextView
+                    android:id="@+id/txtPesquisaEstado"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/bg_hint_luso"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:padding="14dp"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="14sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/containerAmigos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtAmigosOnline"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/amigos_online_zero"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="15sp"
+                    android:textStyle="bold"
+                    tools:text="Amigos online (4)" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerAmigosOnline"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingTop="8dp" />
+
+                <TextView
+                    android:id="@+id/txtAmigosVazio"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:layout_marginTop="12dp"
+                    android:background="@drawable/bg_main_mode_card"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:padding="@dimen/bb_space_lg"
+                    android:text="@string/amigos_lista_vazia"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="15sp"
+                    android:visibility="gone" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/containerPedidos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/txtPedidosAmizade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/pedidos_amizade_recebidos"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerPedidosAmizade"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingTop="8dp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/containerConvites"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:id="@+id/txtConvites"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="22dp"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/convites_recebidos"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerConvites"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingTop="8dp" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

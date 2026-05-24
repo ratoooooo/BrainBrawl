@@ -61,6 +61,7 @@ class EsperaEliminadoViewModel(
                         RankingParcialEliminadoUi(
                             posicao = index + 1,
                             nome = jogador.nome,
+                            avatar = jogador.avatar,
                             estado = estadoTexto,
                             detalhe = if (temProgresso) {
                                 "${jogador.pontos.toInt()} pts • ${jogador.respostasCertas} certas"
@@ -105,6 +106,7 @@ sealed class EsperaEliminadoEvent {
 data class RankingParcialEliminadoUi(
     val posicao: Int,
     val nome: String,
+    val avatar: String,
     val estado: String,
     val detalhe: String,
     val ativo: Boolean,

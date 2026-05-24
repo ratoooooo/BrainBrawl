@@ -8,6 +8,7 @@ class EstatisticasService {
 
     enum class Modo {
         SOLO,
+        GRUPO,
         UM_CONTRA_UM,
         DOIS_CONTRA_DOIS
     }
@@ -21,6 +22,7 @@ class EstatisticasService {
         val chave: String = "",
         val nomeUtilizador: String = "",
         val nomeJogador: String = "",
+        val avatar: String = "",
         /** Estado na sala (ex.: terminado vs eliminado) para ordenação do pódio em eliminatórias grupo. */
         val estadoPartida: String = ""
     ) {
@@ -47,7 +49,8 @@ class EstatisticasService {
         val totalVitoriasModo1x1: Int,
         val totalVitoriasModo2x2: Int,
         val totalVitoriasModoSolo: Int,
-        val xpTotal: Int
+        val xpTotal: Int,
+        val totalPontosSomados: Double
     )
 
     data class Podio2x2(
@@ -111,6 +114,8 @@ class EstatisticasService {
             Modo.SOLO,
             Modo.UM_CONTRA_UM -> setOfNotNull(ordenarPodio(resultados).firstOrNull()?.identificadorEstatisticas)
 
+            Modo.GRUPO -> setOfNotNull(resultados.firstOrNull()?.identificadorEstatisticas)
+
             Modo.DOIS_CONTRA_DOIS -> {
                 val totalA = resultados.filter { it.equipa == GameConstants.EQUIPA_A }.sumOf { it.pontos }
                 val totalB = resultados.filter { it.equipa == GameConstants.EQUIPA_B }.sumOf { it.pontos }
@@ -166,8 +171,10 @@ class EstatisticasService {
 
         val novoRecorde = maxOf(estatisticasAtuais.recordePontuacao, resultado.pontos)
 
+        val novoTotalPontosSomados = estatisticasAtuais.totalPontosSomados + resultado.pontos
         val updates = mutableMapOf<String, Any>(
-            FirebasePaths.PONTUACAO to (estatisticasAtuais.pontuacao + resultado.pontos),
+            FirebasePaths.PONTUACAO to novoTotalPontosSomados,
+            FirebasePaths.TOTAL_PONTOS_SOMADOS to novoTotalPontosSomados,
             FirebasePaths.RECORDE_PONTUACAO to novoRecorde,
             FirebasePaths.TOTAL_JOGOS to novoTotalJogos,
             FirebasePaths.TOTAL_VITORIAS to novoTotalVitorias,
@@ -189,6 +196,11 @@ class EstatisticasService {
 
         when (modo) {
             Modo.SOLO -> Unit
+
+            Modo.GRUPO -> {
+                updates[FirebasePaths.TOTAL_VITORIAS_MODO_SOLO] =
+                    estatisticasAtuais.totalVitoriasModoSolo + if (venceu) 1 else 0
+            }
 
             Modo.UM_CONTRA_UM -> {
                 updates[FirebasePaths.TOTAL_VITORIAS_MODO_1X1] =

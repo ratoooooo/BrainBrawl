@@ -5859,3 +5859,884 @@ Observação: Gradle continua a emitir aviso de deprecated features para Gradle 
 
 - Não foi feito teste manual visual em emulador nesta ronda; falta confirmar no dispositivo que o espaçamento agrada em tamanhos de ecrã diferentes.
 - A alteração é apenas visual; se o próximo teste UX quiser o mesmo tratamento em `TipoModoClassico`, isso deve ser feito numa tarefa separada para manter o escopo limpo.
+
+## UI/Fix — Matchmaking search screens and player avatars - 2026-05-20
+
+### Alterações visuais
+
+- `MatchmakingActivity` passou a usar um ecrã de procura dedicado para 1x1 e 2x2 aleatório, alinhado com o mockup: fundo creme, botão circular de voltar, ícone de espadas, título centrado, divisor dourado, loading circular, contador curto, timer, card de jogadores encontrados e botão vermelho `Cancelar`.
+- O 1x1 mostra dois slots e o texto `Jogadores encontrados`.
+- O 2x2 mostra quatro slots e o texto `Equipa`.
+- Slots vazios mostram avatar placeholder, `À procura...` e pontos dourados de espera.
+
+### Comportamento 1x1 e 2x2
+
+- A contagem usa os jogadores reais presentes na fila observada pelo ViewModel: `1 / 2`, `3 / 4`, etc.
+- O timer continua a vir de `MatchmakingViewModel`.
+- O botão `Cancelar` e o back button continuam a chamar `viewModel.cancelar()`, preservando a limpeza da fila/resultado já existente.
+- O ecrã visual novo é usado apenas na procura automática (`MatchmakingActivity`), não nas salas por convite nem na sala de grupo.
+
+### Root cause do problema de avatars
+
+- Os dados de matchmaking já carregavam e guardavam `avatar` por jogador em `MatchmakingPlayer`, na fila, nos resultados e na sala criada.
+- O problema principal estava na renderização: os layouts das salas 1x1/2x2 tinham `ImageView`s com `avatar_1_playstore` hardcoded no primeiro slot e placeholders nos restantes, sem IDs nem binding para aplicar o avatar real de cada jogador.
+- Assim, a UI parecia reutilizar o avatar do criador/host, mesmo quando o snapshot Firebase continha dados de avatar por jogador.
+
+### Correção de avatar
+
+- `MatchmakingActivity` agora renderiza cada slot com `AvatarUtils.resolverAvatar(this, jogador.avatar)`.
+- `Sala1x1ViewModel` e `Sala2x2ViewModel` passaram a expor detalhes dos jogadores presentes, incluindo `chave`, `uid`, `playerKey`, `tipoJogador`, `avatar`, `estado` e `pronto`.
+- `SalaDeEspera1x1Activity` e `SalaDeEspera2x2Activity` ligam cada `ImageView` ao jogador correspondente, em vez de depender de imagens estáticas no XML.
+- Slots vazios continuam a usar placeholder visual com `ic_person`.
+- Foram adicionados logs mínimos `MATCHMAKING_AVATAR_DEBUG` para confirmar modo, sala, slot, chave/playerKey/uid mascarados, username, avatar e path fonte.
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado.
+- Não houve alterações em rules, pódio de grupo, histórico, competitividade de categorias, editor de categorias, amigos ou permissões do `Jogar Agora`.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK após corrigir lint `MissingTranslation` marcando copy portuguesa fixa como `translatable="false"`.
+
+### Riscos restantes
+
+- Não foi feito teste manual com quatro dispositivos/sessões Firebase reais nesta ronda; falta confirmar visualmente 1x1 com dois utilizadores e 2x2 com quatro utilizadores reais.
+- Os logs `MATCHMAKING_AVATAR_DEBUG` são úteis para validação manual, mas devem ser reduzidos/removidos depois da confirmação em Firebase remoto.
+- A UI usa slots estáticos até ao limite do modo; se no futuro a fila suportar espectadores/reservas, o filtro visual deve continuar a mostrar apenas jogadores reais.
+
+## UI — Profile and Achievements + matchmaking timer - 2026-05-21
+
+### Perfil
+
+- `activity_meu_perfil.xml` foi redesenhado no estilo premium aprovado: fundo creme, título centrado, divisor dourado, card principal com avatar/nome/nível, barra de XP, grelha 2x2 de estatísticas e cards de navegação.
+- `MeuPerfilActivity` continua a usar `MeuPerfilViewModel` e `JogadorRepository`; não houve mudança de carregamento de dados.
+- A grelha mostra vitórias, jogos, melhor pontuação e ranking global indisponível (`#--`) enquanto não existir ranking calculado para este ecrã.
+- Os cards `Conquistas`, `Editar avatar` e `Histórico` preservam os fluxos existentes para `ConquistasActivity`, `EditarPerfilActivity` e `HistoricoActivity`.
+- Bottom navigation continua instalada com `BottomNavHelper` e `Perfil` selecionado.
+
+### Conquistas
+
+- `activity_conquistas.xml` foi redesenhado com header premium, botão circular de voltar, tabs `Todas`, `Combate`, `Exploração`, `Social`, card de progresso, secções `Desbloqueadas` e `Bloqueadas`, e hint final.
+- `ConquistasActivity` continua a carregar badges reais através de `MeuPerfilViewModel`/`PerfilAmigoViewModel`.
+- As tabs são visuais/locais e filtram as famílias existentes: `Combate` = vitórias, `Exploração` = partidas/respostas certas, `Social` = XP/créditos. Não foram criadas conquistas falsas.
+- `BadgeGridRenderer` ganhou renderização plana para cards em grelha sem cabeçalhos por família, mantendo a lógica real de desbloqueio/bloqueio.
+
+### Timer matchmaking
+
+- A origem do timer competitivo estava hardcoded em `Jogo1x1Activity` e `Jogo2x2Activity`: `15.0` segundos para o cronómetro e `15000ms` para avançar à próxima pergunta.
+- O score competitivo também assumia `15` segundos em `ScoreCompetitivoService`.
+- Foram adicionadas constantes centralizadas em `GameConstants`:
+  - `MATCHMAKING_QUESTION_TIME_SECONDS = 20.0`
+  - `MATCHMAKING_QUESTION_TIME_MS = 20_000L`
+  - `COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS = 15.0`
+  - `COMPETITIVE_DEFAULT_QUESTION_TIME_MS = 15_000L`
+- As salas de espera 1x1/2x2 passam `IntentExtras.ORIGEM_SALA = matchmaking` apenas quando a sala vem de matchmaking.
+- `Jogo1x1Activity` e `Jogo2x2Activity` usam 20s apenas quando recebem essa origem de matchmaking; convites competitivos mantêm o default existente de 15s.
+- `ScoreCompetitivoService` passou a receber o tempo total da pergunta para pontuar corretamente quando o modo matchmaking usa 20s.
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado.
+- Não houve alteração em cleanup de salas de matchmaking, pódio de grupo, histórico ou competitividade de categorias.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Não foi feito teste manual visual em emulador/dispositivo nesta ronda; falta confirmar densidade/scroll em telefones pequenos.
+- O ranking global no Perfil ainda não tem fonte real neste ecrã, por isso fica como `#--`.
+- A confirmação final do timer deve ser feita em Firebase real, criando 1x1 e 2x2 aleatórios e validando o cronómetro de 20s em jogo.
+
+## UI/Fix — Profile, Achievements and Ranking total score - 2026-05-21
+
+### Perfil
+
+- `activity_meu_perfil.xml` foi ajustado para ficar mais próximo do mockup preferido: estatísticas em cards horizontais com ícone grande à esquerda, valores fortes, labels compactas e novos ícones de alvo/pódio.
+- `MeuPerfilActivity` passou a mostrar a posição real no ranking global quando disponível, em formato `#N`.
+- O fallback do ranking global deixou de ser `#--` e passou a ser `—`, para não parecer um valor quebrado enquanto a posição ainda está a carregar ou não existe.
+- `MeuPerfilViewModel` passou a pedir a posição global ao `RankingRepository`, preservando o carregamento existente de avatar, XP, nível, estatísticas, conquistas e navegação.
+
+### Conquistas
+
+- `activity_conquistas.xml` recebeu ajuste visual no card de progresso, com ícone de baú e botão de voltar com elevação para corresponder melhor ao estilo premium da referência.
+- `ConquistasActivity` chama `bringToFront()` no botão de voltar e mantém `finish()` como navegação correta para regressar ao Perfil sem criar outra instância.
+- A navegação por Android system back continua a seguir o comportamento padrão da Activity, também regressando ao ecrã anterior.
+
+### Ranking total score
+
+- O total acumulado correto já é gravado em `jogadores/{playerKey}/pontuacao` por `EstatisticasService.calcularAtualizacao`.
+- O Ranking global agora normaliza esse campo em cliente e ordena por `RankingTipo.GLOBAL.valorOrdenacao`, que usa `RankingJogador.pontuacao`.
+- `RankingRepository.carregarRankingPorTipo` deixou de fazer `orderByChild(...).limitToLast(...)` antes da normalização, evitando rankings incorretos quando valores legados/mistos são excluídos antes do sort final.
+- `RankingRepository` passou a aceitar `pontuacao` e outros campos numéricos como `Number` ou `String`, reduzindo risco com perfis antigos.
+- A aba `Recorde` continua separada e usa `jogadores/{playerKey}/recordePontuacao`.
+
+### Ficheiros alterados nesta ronda
+
+- `app/src/main/java/com/example/brainbrawl/ConquistasActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/MeuPerfilActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/RankingRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/MeuPerfilViewModel.kt`
+- `app/src/main/res/layout/activity_conquistas.xml`
+- `app/src/main/res/layout/activity_meu_perfil.xml`
+- `app/src/main/res/values/strings.xml`
+- `app/src/main/res/values/themes.xml`
+- `app/src/main/res/drawable/ic_chest_clean.xml`
+- `app/src/main/res/drawable/ic_podium_clean.xml`
+- `app/src/main/res/drawable/ic_target_clean.xml`
+- `TEST_REPORT.md`
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado.
+- Não houve alterações em pódio de grupo, cleanup de matchmaking, histórico, competitividade de categorias, amigos, editor de categorias ou fluxo `Jogar Agora`.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Não foi feito teste manual num emulador/dispositivo nesta ronda; falta confirmar visualmente a densidade dos cards de estatística em ecrãs pequenos.
+- `RankingRepository` agora ordena os candidatos em cliente para garantir a normalização numérica correta; se a base de utilizadores crescer muito, pode valer a pena criar um índice/campo numérico limpo específico para leaderboard.
+- A posição global no Perfil depende da leitura completa dos perfis ordenáveis; se um utilizador ainda não tiver `pontuacao` persistida, fica com o fallback `—`.
+
+## UI — Explore Categories and My Categories - 2026-05-21
+
+### Explorar Categorias
+
+- `activity_explorar_categorias.xml` foi redesenhado para o estilo premium aprovado: fundo creme, título forte, ação `+ Criar categoria`, divisor dourado, card/link claro para `Minhas categorias` e conteúdo em cards arredondados.
+- `ExplorarCategoriasActivity` agora instala a bottom navigation consistente com o resto da app e mostra uma prévia separada de `Categorias públicas` e `Minhas categorias`.
+- As categorias públicas mantêm as ações existentes: `Jogar`, `Guardar` e `Avaliar`.
+- A prévia de categorias do utilizador mantém ações existentes: `Jogar`, `Editar`, `Eliminar` e `Tornar pública` quando aplicável.
+- O botão `Minhas categorias` abre o novo ecrã completo `MinhasCategoriasActivity` com os extras atuais de utilizador.
+
+### Minhas categorias
+
+- Foi criado `MinhasCategoriasActivity` e `activity_minhas_categorias.xml`.
+- O ecrã mostra header com back button, título centrado, divisor dourado, tabs `Minhas categorias` e `Aguardando publicação`, e cards de categorias pessoais.
+- Cada card mostra símbolo/ícone, nome, número de perguntas, jogadas, data/fallback de atualização, badge de estado e ações de gestão.
+- O back button usa `finish()`, regressando naturalmente a `Explorar Categorias` quando foi aberto a partir daí, sem duplicar stack.
+
+### Símbolos/ícones
+
+- A UI ficou preparada para símbolos por categoria com fallback visual.
+- Nesta ronda não foi implementado o picker de ícones na criação; os ecrãs usam heurística por nome da categoria e ícone default quando não existe símbolo específico.
+- `CategoriaRepository.CategoriaPersonalizada` passou a expor `totalPerguntas`, `usos` e `dataAtualizacao` lidos dos snapshots existentes, sem mudar a estrutura de escrita.
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado.
+- Não houve alterações em pódio de grupo, matchmaking, histórico, competitividade de categorias, XP, ranking, records ou badges.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Não foi feito teste manual com Firebase real nesta ronda; falta validar visualmente categorias públicas/pessoais com dados reais e diferentes nomes.
+- O estado `Aguardando publicação` só aparece se os dados tiverem `estadoPublicacao = aguardando`; o fluxo atual publica diretamente quando permitido.
+- A data de atualização usa os campos existentes `dataPublicacao`/`dataCriacao`; não foi criado um campo novo de última edição.
+
+## UI/Fix — Categories, icon selection and ranking total points - 2026-05-21
+
+### Ranking totalPontosSomados
+
+- `RankingRepository` agora lê `jogadores/{playerKey}/totalPontosSomados` para preencher `RankingJogador.totalPontosSomados`.
+- Se `totalPontosSomados` ainda não existir em perfis legados, usa `jogadores/{playerKey}/pontuacao` como fallback seguro.
+- `RankingTipo` usa `totalPontosSomados` nas abas `Solo`, `1x1`, `2x2` e global; `Recorde` continua a usar `recordePontuacao`.
+- `RankingAdapter` mostra `Pontos Totais` nessas abas para refletir o valor acumulado real.
+- `EstatisticasService`/`PontuacaoRepository` já gravam `totalPontosSomados` no mesmo cálculo persistente que atualiza `pontuacao`.
+
+### Explorar Categorias
+
+- Os cards públicos ficaram mais compactos: padding menor, ícone reduzido, título ligeiramente menor e ações `Jogar`/`Guardar`/`Avaliar` numa linha quando cabem.
+- `ExplorarCategorias` mantém a ligação visível para `Minhas categorias` e mostra uma prévia da primeira categoria do utilizador.
+- Os cards mostram `iconeCategoria` quando existe; categorias antigas continuam com fallback por nome ou estrela.
+
+### Criar Categoria / Adicionar Perguntas
+
+- `activity_adicionar_pergunta.xml` foi redesenhado no estilo premium: fundo creme, título centrado, divisor dourado, cartão principal, inputs arredondados e botões escuros/outlined.
+- O formulário passou a incluir descrição da categoria e seletor de símbolo.
+- `Guardar pergunta` é a ação primária; `Nova pergunta` limpa o formulário apenas depois de confirmação quando há alterações por guardar.
+- O ecrã não mostra `Começar jogo`.
+
+### Ícones de categoria
+
+- O picker foi implementado com chaves predefinidas locais, guardadas como `iconeCategoria`.
+- As chaves ficam em Firebase como string estável, por exemplo `history_ship`, `geography_globe`, `math_board`, `culture_masks`, `science_atom` e `default_star`.
+- Categorias públicas e pessoais copiam/exibem `iconeCategoria`; categorias antigas sem campo usam fallback visual.
+
+### Fluxos Classic 1x1/2x2
+
+- `TipoModoClassico` deixou de abrir `EscolhaCategoriaModosActivity` para Classic 1x1/2x2.
+- Classic 1x1 e Classic 2x2 agora abrem `EscolherCategoriaActivity`, usando o design novo de seleção de categoria.
+- Depois da categoria oficial escolhida, `EscolherCategoriaActivity` encaminha para `ConvidarAmigo1x1Activity` ou `ConvidarAmigo2x2Activity` com a categoria e origem oficial preservadas.
+
+### Firebase Rules
+
+- `firebase-rules.json` foi alterado minimamente para aceitar `totalPontosSomados` e `iconeCategoria` com chaves predefinidas.
+- Não houve alteração em pódio de grupo, cleanup de matchmaking, histórico ou regras de competitividade de categorias.
+- `python3 -m json.tool firebase-rules.json`: OK.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- `python3 -m json.tool firebase-rules.json`: OK.
+
+### Riscos restantes
+
+- Falta teste manual com Firebase real para confirmar writes de `iconeCategoria` após publicar as rules.
+- As abas `Solo`, `1x1` e `2x2` usam o total global acumulado porque o schema atual não tem totais separados por modo; se forem criados campos por modo, o ranking pode passar a usá-los.
+- O seletor de ícone é deliberadamente simples e local; não há upload nem picker gráfico avançado nesta ronda.
+
+## UX/Fix — Invite friend flow after category selection - 2026-05-23
+
+### Problema corrigido
+
+- O ecrã de convite 1x1 ainda se comportava como um ecrã genérico: mostrava amigo selecionado, seletor 1x1/2x2 e seletor de categoria mesmo depois de o utilizador já ter escolhido modo e categoria.
+- Isto duplicava decisões do fluxo `Clássico -> 1x1/2x2 -> categoria` e permitia criar convites com contexto inconsistente.
+
+### Convite 1x1
+
+- `ConvidarAmigo1x1Activity` agora exige `MODO_1X1` e categoria no `Intent`; se faltarem, mostra erro e fecha em segurança.
+- A UI mostra apenas resumo do convite (`Modo: 1x1`, `Categoria: ...`), lista de amigos e botão `Enviar convite`.
+- O botão fica desativado até existir exatamente 1 amigo online selecionado.
+- Ao enviar, cria a sala por convite e abre `SalaDeEspera1x1Activity` com código, utilizador, categoria e modo preservados.
+
+### Convite 2x2
+
+- `ConvidarAmigo2x2Activity` agora exige `MODO_2X2` e categoria no `Intent`; se faltarem, mostra erro e fecha em segurança.
+- A UI mostra resumo do convite (`Modo: 2x2`, `Categoria: ...`), contador `Selecionados: 0/3`, lista de amigos e botão `Enviar convites`.
+- A seleção é múltipla até 3 amigos online; o utilizador atual entra automaticamente como quarto jogador.
+- A atribuição de equipas permanece automática pela lógica existente de sala 2x2; não foi adicionado controlo manual de equipas.
+- Ao enviar, cria a sala por convite e abre `SalaDeEspera2x2Activity` com código, utilizador, categoria e modo preservados.
+
+### UI e dados
+
+- `activity_convidar_amigo.xml` e `activity_convidar_amigo2x2.xml` foram redesenhados no estilo premium atual: fundo creme, título centrado, divisor dourado, cards arredondados e botão primário navy.
+- `lista_multi_jogadores.xml` passou a ser uma linha compacta reutilizável com avatar, estado online/offline e check de seleção.
+- `AmigosRepository`/`UtilizadorSocial` agora expõem `avatar` e `estado` para que as linhas de convite possam mostrar avatar e bloquear amigos offline visualmente.
+- Categorias oficiais, públicas e personalizadas continuam a transportar a origem através dos extras existentes; não houve alteração em competitividade, ranking, histórico, matchmaking ou pódio.
+
+### Ficheiros alterados
+
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/ConvidarAmigo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Convidar1x1AmigoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/Convidar2x2AmigoAdapter.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/models/UtilizadorSocial.kt`
+- `app/src/main/res/layout/activity_convidar_amigo.xml`
+- `app/src/main/res/layout/activity_convidar_amigo2x2.xml`
+- `app/src/main/res/layout/lista_multi_jogadores.xml`
+- `app/src/main/res/values/strings.xml`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado nesta correção.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta validação manual com contas/amigos reais no Firebase para confirmar presença online/offline e convites recebidos.
+- O 2x2 foi mantido como seleção completa de 3 amigos; se o produto quiser salas parciais com preenchimento posterior, isso deve ser tratado numa tarefa própria.
+- A UI bloqueia amigos apenas quando `estado=off`; perfis legados sem esse campo continuam disponíveis até a presença marcar explicitamente offline.
+
+## UI — Gameplay and elimination spectator polish - 2026-05-23
+
+### Gameplay
+
+- `activity_jogo.xml`, `activity_jogo1x1.xml` e `activity_jogo2x2.xml` foram redesenhados no estilo visual aprovado: fundo creme, header navy, timer em pill clara, progresso de pergunta junto ao topo, card de pergunta arredondado e opções compactas.
+- Não foi adicionado botão grande `Responder`; a resposta continua a ser submetida imediatamente no toque da opção.
+- O header mostra back button, categoria, progresso da pergunta e timer. Pontuação não aparece no header.
+- Modo grupo/solo usa apresentação simples, sem faixa de duelo, mantendo o foco em pergunta e respostas.
+
+### 1x1
+
+- O 1x1 ganhou faixa compacta de duelo com dois jogadores, avatars reais, nomes e pontuação atual.
+- `Jogo1x1ViewModel` observa os jogadores reais em `sala_1x1/{codigo}/jogadores` e publica `Jogo1x1PlacarUiState`.
+- A pontuação ao vivo é escrita em `sala_1x1/{codigo}/jogadores/{chave}/pontuacao`, sem alterar o nó final `pontuacoes` usado pelo pódio.
+
+### 2x2
+
+- O 2x2 ganhou faixa de equipas com dois avatars por equipa e pontuação somada da dupla.
+- `Jogo2x2ViewModel` observa `sala_2x2/{codigo}/equipaA` e `equipaB`, montando `Jogo2x2PlacarUiState`.
+- A pontuação ao vivo é escrita na entrada da equipa do jogador, mantendo `pontuacoes_A`/`pontuacoes_B` reservados para resultado final.
+- A UI deixa de depender do avatar do criador/host para slots de equipa; cada avatar vem do jogador real lido da equipa.
+
+### Eliminação / espectador
+
+- `activity_espera_eliminado.xml` foi redesenhado como ecrã `Acompanhar partida`: header navy, contexto `Grupo • Eliminação`, card “Estás fora desta ronda”, lista de jogadores ainda ativos e lista de eliminados.
+- `EsperaEliminadoActivity` separa jogadores ativos e eliminados, mostra contagens, estados humanos e avatars reais.
+- `JogoRepository.JogadorEliminatorias` passou a expor `avatar`, lido de `salas/{codigo}/jogadores/{chave}/avatar`.
+
+### Firebase e lógica preservada
+
+- Não houve alteração em Firebase Rules.
+- Não houve alteração em matchmaking cleanup, pódio de grupo, histórico, ranking, perfil ou competitividade de categorias.
+- Os writes novos de pontuação ao vivo usam campos de sala já compatíveis com o padrão existente de progresso visual de grupo; os caminhos finais de pódio continuam separados.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK antes da sequência completa.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK na sequência completa.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta teste manual com Firebase real para confirmar placar ao vivo em dois dispositivos 1x1 e quatro dispositivos 2x2.
+- Se as rules remotas estiverem mais restritivas que o schema local, os writes de `pontuacao` ao vivo em salas competitivas podem precisar de validação adicional.
+- Os nomes de equipa 2x2 ainda são labels fixas de apresentação; se houver nomes de equipa reais no futuro, podem ser ligados ao mesmo estado visual.
+
+## Fix — 1x1/2x2 start flow, avatars, category label and gameplay UI - 2026-05-23
+
+### Problema corrigido
+
+- Nos fluxos privados/por convite 1x1 e 2x2, a sala de espera arrancava o jogo ao mudar `estado` para `em_jogo`, mas o ecrã de jogo recebia contexto incompleto em alguns clientes.
+- O caso mais crítico era o 2x2: o jogo podia falhar a identificação da equipa (`ErroCarregarEquipa`) quando não recebia a chave real resolvida na sala, terminava a Activity e o utilizador voltava ao ecrã anterior/Main.
+- O label da categoria no jogo vinha do Intent local. Non-admins podiam entrar com fallback `Todas as Categorias`, embora as perguntas estivessem corretas porque o ViewModel já lia a categoria real da sala.
+
+### Arranque 1x1/2x2
+
+- `Sala1x1ViewModel` e `Sala2x2ViewModel` agora publicam a chave real do jogador na sala (`chaveJogadorAtual`) e a categoria partilhada lida de `sala_1x1/{codigo}/nomeCategoria` ou `sala_2x2/{codigo}/nomeCategoria`.
+- `SalaDeEspera1x1Activity` e `SalaDeEspera2x2Activity` passam `IntentExtras.PLAYER_KEY` usando a chave resolvida, além de `MODO_JOGO` e categoria.
+- Foram adicionados logs focados com tag `START_GAME_DEBUG` para entrada, bloqueios de start, estado da sala, navegação para jogo e motivos de retorno à Main.
+
+### Avatars nas salas
+
+- As salas por convite agora gravam `avatar`, `estado` e `tipoJogador` no snapshot inicial dos jogadores através de `AmigosRepository`.
+- 1x1/2x2 continuam a renderizar avatar por jogador real a partir da sala; os logs `WAITING_ROOM_AVATAR_DEBUG` mostram room code, chave, uid, username, avatar usado e path de origem.
+- A sala de grupo recebeu lista visual com avatar/estado para participantes reais, sem alterar o arranque/pódio do grupo.
+
+### Categoria no jogo
+
+- `JogoCompetitivoPerguntaUiState` passou a incluir `categoria`.
+- `Jogo1x1Activity` e `Jogo2x2Activity` atualizam o header com a categoria carregada pelo ViewModel a partir da sala, corrigindo o fallback `Todas as Categorias` em non-admins.
+- Foram adicionados logs `GAME_CATEGORY_DEBUG` para comparar categoria do Intent, categoria Firebase e categoria mostrada.
+
+### Gameplay UI
+
+- Header azul de solo/grupo, 1x1 e 2x2 ficou mais compacto.
+- O progresso da pergunta continua integrado no header, sem pontos no topo.
+- O card de pergunta/opções ganhou altura mínima maior e opções de 50dp para usar melhor a área inferior.
+- O botão `Responder` permanece removido; a resposta continua imediata no toque da opção.
+
+### Entrar numa sala
+
+- `activity_sala_de_espera.xml` foi redesenhado no visual premium: fundo creme, título centrado, divisor dourado, card de inputs, botão principal navy e botão secundário.
+- A lógica de entrada em salas de grupo foi preservada.
+- Validações agora também aparecem no texto de estado do ecrã, além do Toast.
+
+### Ficheiros alterados nesta correção
+
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEspera2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/SalaDeEsperaGrupoActivity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo1x1Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/Jogo2x2Activity.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Sala2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/SalaGrupoViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo1x1ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/viewmodels/Jogo2x2ViewModel.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/AmigosRepository.kt`
+- `app/src/main/java/com/example/brainbrawl/repositories/SalaRepository.kt`
+- `app/src/main/res/layout/activity_sala_de_espera.xml`
+- `app/src/main/res/layout/activity_sala_de_espera_grupo.xml`
+- `app/src/main/res/layout/activity_jogo.xml`
+- `app/src/main/res/layout/activity_jogo1x1.xml`
+- `app/src/main/res/layout/activity_jogo2x2.xml`
+- `app/src/main/res/layout/layout_game_question_answers.xml`
+- `app/src/main/res/values/strings.xml`
+- `ARCHITECTURE_PLAN.md`
+- `TEST_REPORT.md`
+
+### Firebase Rules
+
+- `firebase-rules.json` não foi alterado nesta correção.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta teste manual com 2/4 dispositivos reais para confirmar a transição simultânea após o host iniciar.
+- Salas antigas já criadas antes desta correção podem continuar sem avatar gravado no snapshot inicial; novas salas por convite passam a gravar.
+- Os logs de diagnóstico são úteis para QA, mas podem ser reduzidos antes de uma build pública se ficarem demasiado verbosos.
+
+## Fix — 1x1/2x2 invite start flow root cause - 2026-05-23
+
+### Root cause
+
+- O gatilho que mandava os jogadores de volta era o próprio ecrã de jogo: `Jogo1x1Activity` chama `finish()` em `ErroLerCategoria`, `ErroPerguntas` ou `ErroGuardarPontuacao`; `Jogo2x2Activity` chama `finish()` em `ErroLerCategoria`, `ErroPerguntas` ou `ErroCarregarEquipa`.
+- No 2x2 por convite, `Sala2x2ViewModel` gravava `equipaA/equipaB` e só depois `estado=em_jogo`, em writes separados. Como a navegação dos clientes escuta apenas `estado`, o jogo podia abrir e `Jogo2x2ViewModel.identificarEquipaECarregarPerguntas()` ler a sala antes de a equipa estar visível, emitindo `ErroCarregarEquipa`.
+- No 1x1, o valor crítico era a categoria/perguntas. O jogo criava/carregava perguntas só depois da navegação; se a categoria partilhada ainda não estivesse disponível ou caísse no fallback, a comparação case-sensitive de `Todas as Categorias` podia procurar um nó de categoria inexistente e emitir `ErroPerguntas`.
+- A teoria de race condition estava correta, mas a correção segura era localizada: preparar perguntas/categoria/equipas antes de publicar `estado=em_jogo`, não reescrever todo o fluxo.
+
+### Fix
+
+- `JogoCompetitivoRepository.iniciarJogo1x1()` agora carrega/cria perguntas da categoria partilhada e só depois escreve `estado=em_jogo`, `nomeCategoria` e `modoJogo` juntos.
+- `JogoCompetitivoRepository.iniciarJogo2x2()` agora carrega/cria perguntas e escreve `estado=em_jogo`, `nomeCategoria`, `modoJogo`, `equipaA` e `equipaB` num único `updateChildren`.
+- `Sala1x1ViewModel` e `Sala2x2ViewModel` chamam estes métodos atómicos tanto no convite privado como no auto-start de matchmaking.
+- `Jogo2x2ViewModel` mantém a identificação por UID/`playerKey`/nome contra o snapshot da sala e faz apenas um retry curto quando a primeira leitura ainda não tem equipa.
+- `Jogo1x1Activity` passou a usar o mesmo label de categoria local (`R.string.categoria5`) que o resto do app; a query de “todas as categorias” no repositório passou a comparar ignorando maiúsculas/minúsculas.
+- Logs temporários de root cause usam `INVITE_START_ROOT_CAUSE`.
+
+### Comparação com grupo
+
+- Grupo já evitava esta falha porque `UteisSala` grava `perguntas` e `nomeCategoria` na sala antes de `SalaGrupoViewModel` mudar `salas/{codigo}/estado` para `em_jogo`.
+- O fix aproxima 1x1/2x2 desse contrato: clientes só navegam quando a sala competitiva já tem categoria/perguntas e, no 2x2, equipas.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta validação manual com 2 contas autenticadas no 1x1 e 4 contas autenticadas no 2x2 para confirmar transição simultânea, categoria apresentada e perguntas reais.
+- Firebase Rules não foram alteradas.
+- Matchmaking foi preservado no mesmo caminho de start, mas deve ser regressado manualmente porque agora também beneficia da preparação de perguntas antes do estado `em_jogo`.
+
+## Fix — Host removed when starting 1x1/2x2 invite room - 2026-05-23
+
+### Root cause
+
+- O caminho capaz de remover o host/admin não era `onDisconnect`: `JogoCompetitivoRepository.configurarOfflineAoDesligar()` apenas marca `jogadores/{chave}/estado=off` e remove `prontos/{chave}`.
+- Também não foi encontrada remoção por listener de jogadores. A remoção real passa por `SalaDeEspera1x1Activity.sairDaSala()` ou `SalaDeEspera2x2Activity.sairDaSala()`, que chamam `Sala1x1ViewModel.sairDaSala()`/`Sala2x2ViewModel.sairDaSala()` e depois `JogoCompetitivoRepository.removerJogador1x1()`/`removerJogador2x2()`; no caso do admin, o mesmo caminho podia chegar a `apagarSala()`.
+- O start não tinha uma guarda explícita de "início/navegação para jogo" antes da limpeza da sala. Assim, qualquer saída/lifecycle/back/drop de navegação durante o arranque podia ser tratado como saída intencional e remover o jogador atual.
+- A verificação de rules mostrou outro risco no mesmo ponto: as salas `sala_1x1` e `sala_2x2` não aceitam o filho `modoJogo`. A tentativa de escrever esse campo no start privado podia ser rejeitada pelas rules, deixar o start em falha e aumentar a janela para cleanup/navegação incorreta. As rules não foram alteradas; o write inválido foi removido.
+
+### Fix
+
+- `SalaDeEspera1x1Activity` e `SalaDeEspera2x2Activity` agora marcam `inicioJogoEmCurso` quando o admin toca em `Iniciar Jogo` em sala privada.
+- `sairDaSala()` nas Activities ignora cleanup quando já existe navegação para jogo ou start em curso; a saída manual antes do start continua a remover o jogador.
+- `Sala1x1ViewModel.sairDaSala()` e `Sala2x2ViewModel.sairDaSala()` têm a mesma proteção no ViewModel, para que uma chamada tardia da Activity não apague jogadores depois de o start começar.
+- `JogoCompetitivoRepository.iniciarJogo1x1()` e `iniciarJogo2x2()` deixaram de escrever `modoJogo` dentro de `sala_1x1/{codigo}`/`sala_2x2/{codigo}`; o start escreve apenas os campos permitidos e necessários para o jogo privado.
+- Logs focados `HOST_REMOVAL_DEBUG` foram adicionados no botão de start, lifecycle das salas, cleanup explícito/ignorado, remoções de jogador/sala, `onDisconnect` e writes de start.
+
+### Comparação com grupo
+
+- O grupo já não passava por esta falha porque a transição para jogo não chama a limpeza privada de `sala_1x1`/`sala_2x2`; a sala de grupo preserva jogadores enquanto o estado muda para `em_jogo`.
+- O comportamento competitivo agora segue o mesmo princípio: iniciar/navegar para o jogo não é interpretado como sair da sala.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta teste manual multi-conta em Firebase real: 2 utilizadores no 1x1 e 4 utilizadores no 2x2, observando se o nó do host permanece durante o start.
+- Confirmar manualmente que `Sair da Sala` e Back antes do start continuam a remover/cancelar conforme o comportamento atual.
+- Confirmar regressão de grupo, pódio de grupo e matchmaking automático depois do teste multi-dispositivo.
+
+## Fix — Invite rooms incorrectly using matchmaking fallback - 2026-05-23
+
+### Root cause
+
+- A mensagem “Um jogador saiu da sala. A aguardar novo jogador ou volta ao matchmaking.” vem de `R.string.sala_espera_jogador_saiu` e `R.string.sala_espera_jogador_saiu_2x2`.
+- Essas strings eram mostradas em `SalaDeEspera1x1Activity.tratarEvento(Sala1x1Event.OponenteSaiu)` e `SalaDeEspera2x2Activity.tratarEvento(Sala2x2Event.OponenteSaiu)`.
+- O evento `OponenteSaiu` era emitido em `Sala1x1ViewModel.observarJogadores()` e `Sala2x2ViewModel.observarJogadores()` quando a contagem de jogadores presentes descia depois de a sala ter estado completa.
+- Esse detector nasceu para proteger matchmaking/presença, mas estava ativo também em salas privadas por convite. Assim, uma sala `origem=convite` podia cair no mesmo evento e mostrar texto de matchmaking.
+- A sala por convite não estava marcada como matchmaking: `AmigosRepository.enviarConvite1x1()` e `enviarConvite2x2()` criam as salas com `origem=convite`, `entradaFechada=true` e `lotacaoMaxima` correta.
+- O host/admin era removido pelo caminho de cleanup explícito (`sairDaSala` -> ViewModel `sairDaSala` -> `removerJogador*` ou `apagarSala` para admin), não por `onDisconnect`. Durante arranque/navegação, esse cleanup agora fica bloqueado na Activity e no ViewModel.
+
+### Fix
+
+- As salas 1x1/2x2 agora preservam `origemSala` no estado da ViewModel e nunca inferem matchmaking por ausência de metadados; só é matchmaking quando `origem == matchmaking`.
+- `OponenteSaiu` continua permitido para uma saída real antes do start, mas o texto é escolhido pelo tipo de sala:
+  - `origem=matchmaking`: mantém a mensagem com “volta ao matchmaking”.
+  - `origem=convite`/privada: mostra apenas “Um jogador saiu da sala.”.
+- A detecção de queda de presença ignora mudanças enquanto `inicioJogoEmCurso`/`aIniciarJogo` ou `jogoIniciado` estiverem ativos. Assim, a transição para `Jogo1x1Activity`/`Jogo2x2Activity` não é tratada como abandono.
+- `Sala1x1ViewModel` passa a marcar `inicioJogoEmCurso` antes de ler `prontos`, fechando a janela entre o toque em `Iniciar Jogo` e o write de start.
+- `observadorSalaApagada` também ignora remoção/fecho percebido quando o start ou o jogo já começou.
+- Logs `ROOM_TYPE_FLOW_DEBUG` foram adicionados para abertura da sala, extras recebidos, metadata Firebase (`origem`, `entradaFechada`, `estado`, jogadores), queda de presença, mensagem exibida e cleanup/start.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta teste manual com Firebase real para confirmar, em 1x1 convite, que `origem=convite`, o host não sai, a mensagem de matchmaking não aparece e ambos entram no jogo.
+- Falta repetir o mesmo fluxo em 2x2 convite com 4 contas.
+- Matchmaking aleatório deve ser regressado no estado em que estiver ativo no build usado para QA; o texto com “volta ao matchmaking” ficou preservado apenas para salas `origem=matchmaking`.
+
+## Fix — Separate matchmaking from classic invite/private 1x1/2x2 flows - 2026-05-23
+
+### Mapa de fluxos
+
+- 1x1/2x2 aleatório: `MainActivity` abre `MatchmakingActivity`; `MatchmakingViewModel` usa `MatchmakingRepository`; a sala criada em `sala_1x1`/`sala_2x2` recebe `origem=matchmaking`.
+- 1x1 clássico por convite: `ConvidarAmigo1x1Activity` chama `AmigosRepository.enviarConvite1x1()`; a sala criada recebe `origem=convite`.
+- 2x2 clássico por convite: `ConvidarAmigo2x2Activity` chama `AmigosRepository.enviarConvite2x2()`; a sala criada recebe `origem=convite`.
+- As salas competitivas continuam a partilhar `SalaDeEspera1x1Activity`/`Sala1x1ViewModel` e `SalaDeEspera2x2Activity`/`Sala2x2ViewModel`, mas agora esses ViewModels ramificam por `RoomFlowType`, não por inferência solta.
+
+### O que estava misturado
+
+- A origem da sala já existia em Firebase, mas os ViewModels ainda tinham lógica partilhada baseada em `salaMatchmaking` e o evento genérico `OponenteSaiu`.
+- A mensagem de matchmaking vinha de `SalaDeEspera1x1Activity` e `SalaDeEspera2x2Activity` ao tratar `OponenteSaiu`; como o detector de queda de presença corria para todos os fluxos, salas `convite` podiam mostrar texto de matchmaking.
+- O cleanup manual também estava num único método com ramos internos pouco explícitos. Agora existem caminhos separados para `matchmaking` e `invite_private`.
+
+### Separação aplicada
+
+- Foi criado `RoomFlowType`, que traduz o campo existente `origem` para `MATCHMAKING`, `INVITE` ou `PRIVATE`.
+- `origem=matchmaking` é o único caso que ativa ready/start de matchmaking, mensagem com “volta ao matchmaking” e cleanup de sala de matchmaking.
+- `origem=convite` e fallback legado blank/`manual` entram no caminho privado: host inicia, convidados não veem fallback de matchmaking, e cleanup manual remove/cancela apenas como sala privada.
+- `MatchmakingActivity` passa `IntentExtras.ORIGEM_SALA=matchmaking` ao abrir a sala; os ecrãs de convite passam `IntentExtras.ORIGEM_SALA=convite`.
+- `Jogo1x1Activity`/`Jogo2x2Activity` continuam a receber `ORIGEM_SALA`, preservando o tempo especial de matchmaking só para partidas automáticas.
+- Logs `FLOW_SEPARATION_DEBUG` cobrem criação de sala, entrada na fila, navegação para sala/jogo, metadata da sala, queda de presença, mensagem exibida e cleanup.
+
+### Cleanup e start
+
+- Matchmaking: `sairDaSalaMatchmaking()` fecha a sala automática quando a saída é intencional antes do jogo.
+- Convite/privada: `sairDaSalaPrivada()` mantém o comportamento privado: admin cancela/apaga sala, convidado remove apenas o próprio jogador.
+- Start/navegação não é cleanup: `inicioJogoEmCurso`, `aIniciarJogo`, `jogoIniciado` e `aNavegarParaJogo` bloqueiam remoções durante a transição para `Jogo1x1Activity`/`Jogo2x2Activity`.
+- Quedas de presença observadas durante start ou depois de `estado=em_jogo` são ignoradas pela sala de espera.
+
+### Validação
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Riscos restantes
+
+- Falta teste manual multi-conta em Firebase real para 1x1 matchmaking, 2x2 matchmaking, 1x1 convite e 2x2 convite.
+- O fallback para origem ausente foi mantido como `PRIVATE` para compatibilidade com salas antigas; se houver salas antigas que eram de matchmaking sem `origem`, elas não devem receber comportamento automático.
+- Firebase Rules não foram alteradas porque `origem` já era permitido/validado nas salas competitivas.
+
+## Runtime Debug — Classic 1x1 invite still entering matchmaking branch - 2026-05-23
+
+### Dispositivos usados
+
+- Device A: `emulator-5558`, utilizador `jogador4`, uid `tf0gJEtTQMbht5phdO9dnio1TgB2`.
+- Device B: `emulator-5560`, utilizador `jogador3`, uid `d2h8iW8w51XSzH7knIWrlufHC2l2`.
+
+### Reprodução antes do fix
+
+- Fluxo executado no Device A: Clássico -> 1x1 -> categoria `Desporto` -> convite para `jogador3`.
+- O Device B aceitou o convite e ambos chegaram à sala `TE1A25`.
+- Logs relevantes:
+  - `FLOW_SEPARATION_DEBUG: flow=convite mode=1x1 room=TE1A25 repository=AmigosRepository event=writeInviteRoom ... category=Desporto`
+  - `ROOM_TYPE_FLOW_DEBUG: roomInfo path=sala_1x1/TE1A25 origem=convite entradaFechada=true estado=em_espera`
+  - `ROOM_TYPE_FLOW_DEBUG: roomInfo origem=convite flow=convite matchmaking=false`
+  - `HOST_REMOVAL_DEBUG: startPressed ... matchmaking=false cleanupBlocked=true method=acaoPrincipal`
+  - `HOST_REMOVAL_DEBUG: startGame admin=true ... flow=convite roomType=convite matchmaking=false category=Desporto`
+  - `HOST_REMOVAL_DEBUG: startAtomic writePaths=[estado, nomeCategoria] category=Desporto questions=8 removesPlayer=false`
+  - `RepoOperation: updateChildren at /sala_1x1/TE1A25 failed: DatabaseError: Permission denied`
+  - `FATAL EXCEPTION: main ... Unable to start activity ... Jogo1x1Activity ... NullPointerException: Missing required view with ID: com.example.brainbrawl:id/questionAnswers`
+  - No Device B, depois da queda do processo do Device A: `presenceDrop origem=convite flow=convite matchmaking=false presentes=1 pico=2 startInProgress=false gameStarted=false eventEmitted=true`.
+
+### Root cause real
+
+- A sala clássica por convite não estava marcada como matchmaking. O valor bruto em Firebase era `origem=convite` e o `RoomFlowType` parseado era `convite` (`matchmaking=false`).
+- O start 1x1 tentava atualizar `estado` e regravar `nomeCategoria` num único `updateChildren`. As rules atuais permitem ao admin mudar `estado`, mas não permitem atualizar `nomeCategoria` numa sala já existente; por isso o servidor devolvia `Permission denied`.
+- Por latência local do Realtime Database, o cliente via `estado=em_jogo` de forma otimista e navegava antes da rejeição do servidor.
+- Ao abrir `Jogo1x1Activity`, o binding crashava porque `layout_game_question_answers.xml` usava `<merge>` e o include `questionAnswers` não existia como view real para o `ActivityJogo1x1Binding`.
+- Com o processo do host morto, o `onDisconnect`/presença configurado em `JogoCompetitivoRepository.configurarOfflineAoDesligar()` marcava o host offline/removia pronto; o Device B filtrava a presença e ficava sozinho. Não houve log de `removerJogador1x1()` nem remoção explícita por `sairDaSala`.
+- A mensagem de jogador saiu é tratada em `SalaDeEspera1x1Activity` no evento de saída do oponente. Nesta execução já não entrou como matchmaking: o log mostrou `roomType=convite matchmaking=false`. A string antiga com "volta ao matchmaking" pertence ao mesmo handler quando a sala é tratada como matchmaking.
+
+### Fix aplicado
+
+- `JogoCompetitivoRepository.iniciarJogo1x1()` deixou de regravar `nomeCategoria` no start. A categoria é lida da sala e usada para preparar perguntas; o write final passa a ser apenas `estado=em_jogo`.
+- `JogoCompetitivoRepository.iniciarJogo2x2()` recebeu a mesma proteção para não regravar `nomeCategoria`; escreve o estado e os dados de equipa necessários.
+- `layout_game_question_answers.xml` passou a ter um root `LinearLayout` real, permitindo que o include `@+id/questionAnswers` exista para ViewBinding em `Jogo1x1Activity`/`Jogo2x2Activity`.
+- Firebase Rules não foram alteradas; o fix evita o write não permitido em vez de alargar permissões.
+
+### Reteste runtime
+
+- Reinstalei o APK debug nos dois emuladores e repeti o fluxo Classic 1x1 convite na sala `K8YE2B`.
+- Logs de sucesso:
+  - `ROOM_TYPE_FLOW_DEBUG: roomInfo origem=convite flow=convite matchmaking=false`
+  - `HOST_REMOVAL_DEBUG: startAtomic writePaths=[estado] category=Desporto questions=8 removesPlayer=false`
+  - `INVITE_START_ROOT_CAUSE: stateChanged=em_jogo ... category=Desporto`
+  - `INVITE_START_ROOT_CAUSE: navigateGame ... cleanupSkipped=true origin=convite`
+  - `INVITE_START_ROOT_CAUSE: categoryFromFirebase=Desporto`
+  - `INVITE_START_ROOT_CAUSE: categoryDisplayed=Desporto`
+- Resultado visual nos dois emuladores: ambos entraram em `Jogo1x1Activity`, categoria `Desporto`, `Pergunta 1/8`, pergunta "Onde se realizou a final do Euro 2004 em Portugal?" e respostas visíveis.
+- Não apareceram `Permission denied`, `FATAL EXCEPTION`, `showPlayerLeftMessage` nem texto com "volta ao matchmaking" no reteste.
+
+### Comandos executados
+
+- `python3 -m json.tool firebase-rules.json`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`
+- `adb -s emulator-5558 install -r app/build/outputs/apk/debug/app-debug.apk`
+- `adb -s emulator-5560 install -r app/build/outputs/apk/debug/app-debug.apk`
+- `adb logcat -c` e recolha de `logcat` com os tags `FLOW_SEPARATION_DEBUG`, `HOST_REMOVAL_DEBUG`, `INVITE_START_ROOT_CAUSE` e `ROOM_TYPE_FLOW_DEBUG`.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`
+
+### Riscos restantes
+
+- Smoke iniciado para 1x1 matchmaking com os mesmos dois emuladores: ambos abriram `MatchmakingActivity` com `flow=matchmaking mode=1x1 room=<search>`, mas ficaram em "A preparar matchmaking..." / `0 / 2` durante a janela observada. Não houve `Permission denied` nem crash; os logs do sistema dos emuladores mostraram falhas de validação/DNS (`UnknownHostException`/`ETIMEDOUT`) nessa janela. Este teste não confirmou partida matchmaking completa.
+- Validar manualmente o 2x2 convite com 4 contas; o start 2x2 recebeu a mesma proteção contra regravar categoria, mas ainda não foi repetido em runtime multi-dispositivo nesta ronda.
+- Repetir 1x1 matchmaking e 2x2 matchmaking para confirmar que a separação continua a funcionar com salas `origem=matchmaking`.
+- Repetir grupo e pódio de grupo; este fix não tocou no fluxo de grupo, mas o teste manual de regressão ainda falta.
+- Reconfirmar `Sair da Sala` antes do start para garantir que a limpeza privada intencional continua a remover o jogador.
+
+## UI polish: pódio, histórico e ecrã de pergunta - 2026-05-24
+
+### Alterações verificadas
+
+- Pódio redesenhado com top 3 em destaque, avatar/nome/pontos e lista scrollável para jogadores a partir do 4.º lugar.
+- Histórico redesenhado com título premium, filtros visuais `Todos`/`Oficial`/`Personalizadas`, cartões compactos, resultado colorido e badge competitivo.
+- Ecrãs de jogo sem botão visual de voltar; o bloqueio do Back físico permanece nos handlers existentes.
+- Área de pergunta/respostas aumentada e opções mais altas, mantendo submissão imediata ao toque.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: falhou inicialmente em lint por um `TextView` oculto sem constraints e strings novas sem traduções; corrigido no mesmo ciclo.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK após correção.
+
+### Riscos restantes
+
+- Validação visual em dispositivos físicos pequenos ainda recomendada para perguntas/respostas muito longas.
+- Filtro `Oficial`/`Personalizadas` no histórico usa o sinal existente `competitivo`; não foi criada nova origem persistida para categorias.
+- A lista extra do pódio depende dos resultados já disponíveis no estado ordenado existente; não altera desempates nem sincronização Firebase.
+
+## Logic polish — Ranking semantics, timers, records, 2x2 live score and profile name edit - 2026-05-24
+
+### Ranking tabs
+
+Antes:
+
+- `Solo` aparecia como ranking separado, mas usava pontos totais/semântica ambígua.
+- `1x1` e `2x2` podiam apresentar pontos totais em vez de vitórias do modo.
+- `Recorde` usava `recordePontuacao`, mas a interface não deixava claro que era melhor jogo individual.
+
+Depois:
+
+- `Grupo` substitui o separador visual `Solo`.
+- `Grupo` ordena por vitórias de grupo usando o campo legado `totalVitoriasModoSolo`, preservado por compatibilidade Firebase.
+- `1x1` ordena por `totalVitoriasModo1x1`.
+- `2x2` ordena por `totalVitoriasModo2x2`.
+- `Recorde` ordena por `recordePontuacao`.
+- `Global`, quando usado internamente para perfil, continua a ordenar por `totalPontosSomados`.
+
+### Solo score/record
+
+- Solo continua a gravar pontuação em `pontuacao` e `totalPontosSomados`.
+- `recordePontuacao` é atualizado com `max(recordePontuacao atual, pontuação do jogo)`.
+- Uma pontuação solo inferior ao recorde não sobrescreve o recorde.
+- Solo não incrementa `totalVitorias`, `totalVitoriasModo1x1`, `totalVitoriasModo2x2` nem o contador legado usado para Grupo.
+
+### 2x2 live score
+
+- A pontuação ao vivo 2x2 escreve em `sala_2x2/{codigo}/jogadores/{jogador}/pontuacao`.
+- O placar observado em jogo lê `sala_2x2/{codigo}`, usa `equipaA`/`equipaB` como membership e junta a pontuação ao vivo vinda de `jogadores`.
+- A pontuação da equipa é a soma dos dois jogadores reais depois dessa junção.
+- Equipa inválida deixa de cair implicitamente em `equipaB`, evitando atualização no lado errado em estados incompletos.
+- Sem alteração às regras finais de pódio/resultados.
+
+### Timer matrix
+
+- Solo clássico: 15s.
+- 1x1 clássico por convite/amigo: 15s.
+- 2x2 clássico por convite/amigos: 15s.
+- Grupo clássico: 15s.
+- Categorias personalizadas/públicas em estilo clássico: 15s.
+- Caótico: 10s.
+- Eliminatórias: 15s.
+- Matchmaking 1x1/2x2: 20s, preservando a constante existente `MATCHMAKING_QUESTION_TIME_SECONDS`.
+
+### Profile name edit
+
+- Edição de nome foi deferida.
+- Motivo: `nomeUtilizador`/`nomeDisplay` aparece em perfil, amigos, convites, salas, categorias, histórico e rankings/cache de sala. Atualizar só o perfil canónico deixaria snapshots antigos inconsistentes e uma atualização fan-out exigiria regras/contrato de dados dedicados.
+- Avatar continua no fluxo existente, sem alteração.
+
+### Firebase Rules
+
+- Nenhuma alteração feita nas Firebase Rules nesta tarefa.
+
+### Comandos executados
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Manual tests
+
+- Não foram executados testes manuais em emulador nesta ronda.
+- Validação feita por leitura de fluxo e testes/build: ranking usa `RankingTipo.valorOrdenacao`, solo usa `EstatisticasService.calcularAtualizacao`, grupo passa a usar `Modo.GRUPO`, 2x2 observa `escutarEquipas2x2` e soma `JogadorCompetitivo.pontuacao`.
+- `Modo.GRUPO` respeita a ordem final já calculada pelo fluxo de resultados, incluindo eliminatórias, em vez de recalcular o vencedor apenas por pontos.
+
+### Riscos restantes
+
+- Dados antigos de vitórias de grupo anteriores a esta correção podem estar ausentes porque o grupo estava a gravar estatísticas como `Modo.SOLO`; a correção passa a preencher o campo legado a partir de agora.
+- `totalVitoriasModoSolo` mantém nome legado no Firebase, mas passa a representar vitórias de Grupo na UI por compatibilidade.
+- A correção 2x2 foi retestada em runtime com 4 emuladores para confirmar permissão/caminho de escrita; a automação de toque em respostas corretas ficou instável e deve ser repetida manualmente para validar pontuação positiva visível no placar.
+- Edição de nome precisa de plano próprio para unicidade, fan-out seguro e compatibilidade UID-first.
+
+## Fix — 2x2 matchmaking live score update - 2026-05-24
+
+### Reproduced bug
+
+- Runtime com 4 emuladores: `emulator-5554`, `emulator-5556`, `emulator-5558`, `emulator-5560`.
+- Sala matchmaking 2x2 reproduzida: `WCTCFX`.
+- Ao submeter resposta durante o jogo, a escrita multi-path que incluía `sala_2x2/{codigo}/equipaA|equipaB/{playerKey}/pontuacao` falhava com `DatabaseError: Permission denied`.
+- Como a escrita era abortada, o listener continuava a carregar `0` para todos os jogadores e o placar em jogo permanecia `0 x 0`.
+
+### Comparison with 1x1
+
+- 1x1 escreve a pontuação ao vivo em `sala_1x1/{codigo}/jogadores/{playerKey}/pontuacao`.
+- 1x1 escuta `sala_1x1/{codigo}/jogadores`, ou seja, escrita e leitura usam a mesma fonte.
+- 2x2 matchmaking estava a tentar escrever em nós de equipa e o placar dependia desses nós para pontuação, apesar de o nó `jogadores` ser o ponto compatível para estado vivo do jogador.
+
+### Fix
+
+- Escrita 2x2 ao vivo: `sala_2x2/{codigo}/jogadores/{playerKey}/pontuacao`.
+- Listener 2x2: `sala_2x2/{codigo}`.
+- O listener lê `equipaA` e `equipaB` para membership/avatares e lê `jogadores` para pontuação/estado ao vivo.
+- A pontuação de cada equipa é calculada por `sumOf { jogador.pontuacao }` depois de juntar cada jogador da equipa ao snapshot vivo em `jogadores`.
+- Não houve alteração às Firebase Rules.
+- O fluxo de resultado/pódio final continua a usar a gravação final existente (`pontuacoes_A`/`pontuacoes_B`).
+
+### Runtime validation
+
+- Depois da alteração, a escrita em `sala_2x2/{codigo}/jogadores/{playerKey}/pontuacao` deixou de produzir `Permission denied` e retornou sucesso nos emuladores testados.
+- A tentativa de automatizar respostas corretas positivas com `uiautomator` ficou instável: alguns dumps bloquearam, um emulador entrou em ANR e várias respostas automáticas foram submetidas depois do timeout, gerando escritas válidas mas com `0` pontos.
+- Por isso, a validação runtime concluída cobre reprodução do bug, root cause, permissão/caminho de escrita corrigido e ausência de regressão de arranque 2x2 matchmaking até `Jogo2x2Activity`; a confirmação visual de pontuação positiva em todos os clientes deve ser repetida manualmente.
+
+### Commands executed
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK durante o ciclo de runtime.
+- `adb install -r app/build/outputs/apk/debug/app-debug.apk` nos 4 emuladores; um emulador precisou de `pm trim-caches` antes de instalar.
+- `adb logcat -c` e recolha de `logcat` para reprodução/validação.
+- `curl -X DELETE` para limpar `matchmaking/2x2` e salas de teste específicas.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Remaining risks
+
+- Repetir manualmente a validação de resposta correta em 2x2 matchmaking: jogador A pontua, equipa A atualiza; colega pontua, equipa A soma; equipa adversária pontua, equipa B atualiza; todos os clientes veem o mesmo placar.
+- Repetir 2x2 convite/privado em runtime para confirmar o mesmo listener com salas privadas.
+
+## UI — Dedicated 1x1 and 2x2 podium screens - 2026-05-24
+
+### What changed
+
+- `activity_pontuacao1x1.xml` passou a ser um pódio de duelo: mostra apenas os dois jogadores da partida, com vencedor em destaque, segundo jogador legível, avatares, nomes, pontuações e rótulos `Vitória`/`Derrota`/`Empate`.
+- `activity_pontuacao_multi.xml` passou a ser um pódio de equipa contra equipa: equipa vencedora em destaque, segunda equipa abaixo, dois avatares por equipa, nomes dos jogadores, pontuação total da equipa e rótulos de resultado.
+- Foram removidos da apresentação de 1x1/2x2 os rótulos literais de fluxo como `por convite`, `aleatório` e `matchmaking`; o topo usa texto natural de resultado.
+- Amigos/convite e matchmaking usam a mesma estrutura visual, baseada nos dados finais já existentes.
+- O pódio de grupo continua separado no layout/renderer partilhado existente e não foi redesenhado nesta tarefa.
+
+### Data and display contract
+
+- 1x1 continua a usar a lista final ordenada já publicada por `Pontuacao1x1ViewModel`; a UI só apresenta os dois primeiros jogadores.
+- 2x2 usa `EstatisticasService.ordenarPodio2x2` como fonte existente dos totais por equipa; `Pontuacao2x2ViewModel` expõe uma lista de equipas de UI ordenada por vitória/derrota/empate.
+- A pontuação 2x2 exibida é `totalA`/`totalB`, ou seja, a soma final dos dois membros da equipa já calculada pelo serviço existente.
+- Avatares ausentes usam fallback por `AvatarUtils`; nomes longos ficam limitados por `ellipsize`.
+- O botão `Jogar novamente` no 1x1 preserva o fluxo existente de desforra. No 2x2, como não há fluxo seguro de desforra já implementado, o botão usa a navegação segura de retorno ao início, sem criar novo fluxo.
+
+### Regression checks
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK em verificação intermediária.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Remaining risks
+
+- Não foi executada validação manual completa em emuladores para terminar partidas 1x1/2x2 nesta ronda; a validação feita foi por inspeção de dados e build/testes.
+- O CTA `Jogar novamente` de 2x2 não cria uma revanche porque esse fluxo não existia de forma segura; a UI preserva navegação sem alterar matchmaking/convites.
+
+## UI/Fix — Login/Register polish and mode-aware rematch routing - 2026-05-24
+
+### Login UI
+
+- O botão primário usado no login deixou de usar o tom quase preto de `bg_register_primary_button` e passa a usar `@color/bb_luso_navy`.
+- Título/ícones principais do login foram alinhados com navy e foi adicionado o detalhe dourado usado nos ecrãs premium.
+- Não houve alteração de `LoginActivity`, validação, Firebase Auth, estados de erro ou navegação de sucesso.
+
+### Register UI
+
+- O registo mantém as mesmas etapas e campos existentes: email, password, confirmação, nome de utilizador e avatar.
+- O botão primário também passa a navy por recurso partilhado.
+- Título/identidade/ícones principais foram alinhados com navy/gold e tipografia mais próxima dos ecrãs premium.
+- `RegistarActivity` e `RegistarViewModel` mantêm a criação Firebase Auth, perfil UID-first e compatibilidade de nome/avatar.
+
+### Root cause rematch
+
+- A rota genérica `UteisNavegacao.abrirEntradaSalaActivity()` abre `SalaDeEsperaActivity`.
+- `SalaDeEsperaActivity.irParaSalaDeEsperaGrupo()` sempre encaminha para `SalaDeEsperaGrupoActivity`.
+- O rematch 1x1 já tinha caminho próprio para `SalaDeEspera1x1Activity`, mas faltavam extras explícitos de modo/origem.
+- O botão `Jogar novamente` 2x2 não criava sala 2x2 de desforra; agora não usa rota genérica nem retorno ambíguo.
+
+### New routing behavior
+
+- 1x1: `Pontuacao1x1ViewModel.pedirDesforra()` mantém a criação de nova sala 1x1; `Pontuacao1x1Activity.abrirSalaDesforra()` abre `SalaDeEspera1x1Activity` com `MODO_JOGO=1x1`, categoria, UID/playerKey e `ORIGEM_SALA=convite`.
+- 2x2: `Pontuacao2x2ViewModel.pedirDesforra()` marca o jogador em `sala_2x2/{codigo}/jogadores/{playerKey}/desforra`; quando os 4 jogadores aceitam, `PontuacaoRepository.criarOuObterSalaDesforra2x2()` cria nova `sala_2x2`.
+- A nova sala 2x2 copia jogadores, equipas A/B, categoria e permissões de entrada, limpa pontuações/prontos, define `estado=em_espera`, `origem=convite`, `entradaFechada=true` e `lotacaoMaxima=4`.
+- `Pontuacao2x2Activity.abrirSalaDesforra2x2()` abre sempre `SalaDeEspera2x2Activity`.
+- Grupo: não foi alterado; fluxos de grupo continuam a usar a sala de espera de grupo quando acionados pelo próprio fluxo de grupo.
+- Matchmaking 1x1/2x2: a desforra vira uma sala privada por convite com os mesmos jogadores, em vez de voltar automaticamente para a fila. Isto evita rota acidental para grupo e preserva os participantes da partida terminada.
+
+### Validation
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK em verificação intermediária.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Firebase Rules
+
+- Nenhuma alteração feita nas Firebase Rules.
+
+### Remaining risks
+
+- Não foi executado teste manual completo de desforra com 4 dispositivos/emuladores para confirmar a aceitação de todos os jogadores 2x2 e a navegação simultânea.
+- A nova desforra 2x2 exige que os 4 jogadores aceitem; se o produto quiser revanche por convite parcial, isso deve virar uma decisão separada.

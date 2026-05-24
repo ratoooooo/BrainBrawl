@@ -53,7 +53,7 @@
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
                         android:text="@string/brand_pergunta"
-                        android:textColor="@color/bb_text_primary"
+                        android:textColor="@color/bb_luso_navy"
                         android:textSize="25sp"
                         android:textStyle="bold" />
 
@@ -76,9 +76,17 @@
                 android:fontFamily="sans-serif-black"
                 android:gravity="center"
                 android:text="@string/entrar"
-                android:textColor="@color/bb_text_primary"
+                android:textColor="@color/bb_luso_navy"
                 android:textSize="36sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="128dp"
+                android:layout_height="22dp"
+                android:gravity="center"
+                android:text="@string/luso_accent_line"
+                android:textColor="@color/bb_luso_gold"
+                android:textSize="16sp" />
 
             <TextView
                 android:layout_width="match_parent"
@@ -105,7 +113,7 @@
                     android:layout_height="24dp"
                     android:contentDescription="@string/email_ou_nome"
                     android:src="@drawable/ic_mail"
-                    app:tint="@color/bb_text_primary" />
+                    app:tint="@color/bb_luso_navy" />
 
                 <EditText
                     android:id="@+id/edt_nome_jogador"
@@ -140,7 +148,7 @@
                     android:layout_height="24dp"
                     android:contentDescription="@string/insira_password"
                     android:src="@drawable/ic_lock"
-                    app:tint="@color/bb_text_primary" />
+                    app:tint="@color/bb_luso_navy" />
 
                 <EditText
                     android:id="@+id/edt_password_jogador"

@@ -1,26 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="96dp"
     android:layout_marginBottom="10dp"
-    android:background="@drawable/bg_card_surface"
+    android:background="@drawable/bg_ranking_card"
     android:gravity="center_vertical"
     android:orientation="horizontal"
-    android:padding="14dp">
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp">
 
     <TextView
         android:id="@+id/txtPosicaoRanking"
-        android:layout_width="46dp"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-black"
-        android:text="@string/posicao_ranking_format"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="20sp"
-        android:textStyle="bold" />
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:background="@drawable/bg_ranking_rank_default"
+        android:fontFamily="serif"
+        android:gravity="center"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="#1" />
+
+    <FrameLayout
+        android:layout_width="62dp"
+        android:layout_height="62dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/bg_ranking_avatar"
+        android:padding="3dp">
+
+        <ImageView
+            android:id="@+id/imgAvatarRanking"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@string/avatar_do_jogador"
+            android:scaleType="centerCrop"
+            tools:src="@drawable/avatar_1_playstore" />
+    </FrameLayout>
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
         android:layout_weight="1"
         android:orientation="vertical">
 
@@ -29,61 +50,78 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:ellipsize="end"
-            android:fontFamily="sans-serif-black"
+            android:fontFamily="serif"
             android:maxLines="1"
-            android:text="@string/nome_jogador"
-            android:textColor="@color/bb_text_primary"
-            android:textSize="17sp"
-            android:textStyle="bold" />
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="jogador1" />
+
+        <TextView
+            android:id="@+id/txtNivelRanking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:fontFamily="sans-serif"
+            android:textColor="@color/bb_text_secondary"
+            android:textSize="12sp"
+            tools:text="Nv 23" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <TextView
                 android:id="@+id/txtTotalJogosRanking"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
                 android:fontFamily="sans-serif-black"
-                android:singleLine="true"
-                android:text="@string/jogos_format"
                 android:textColor="@color/bb_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="11sp"
+                tools:text="J 152" />
 
             <TextView
                 android:id="@+id/txtTotalVitoriasRanking"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
+                android:layout_marginStart="12dp"
                 android:fontFamily="sans-serif-black"
-                android:singleLine="true"
-                android:text="@string/vitorias_format"
                 android:textColor="@color/bb_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="11sp"
+                tools:text="V 118" />
 
             <TextView
                 android:id="@+id/txtTaxaAcertosRanking"
-                android:layout_width="0dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="center"
+                android:layout_marginStart="12dp"
                 android:fontFamily="sans-serif-black"
-                android:singleLine="true"
-                android:text="@string/acertos_format"
                 android:textColor="@color/bb_text_secondary"
-                android:textSize="11sp" />
+                android:textSize="11sp"
+                tools:text="78%" />
         </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
-        android:layout_width="96dp"
+        android:layout_width="86dp"
         android:layout_height="wrap_content"
+        android:gravity="end"
         android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtPontuacaoRanking"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="serif"
+            android:gravity="end"
+            android:maxLines="1"
+            android:textColor="@color/bb_luso_gold"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="12.540" />
 
         <TextView
             android:id="@+id/txtValorLabelRanking"
@@ -92,21 +130,8 @@
             android:fontFamily="sans-serif-black"
             android:gravity="end"
             android:maxLines="2"
-            android:text="@string/pontos"
-            android:textColor="@color/bb_text_secondary"
-            android:textSize="11sp" />
-
-        <TextView
-            android:id="@+id/txtPontuacaoRanking"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="sans-serif-black"
-            android:gravity="end"
-            android:maxLines="1"
-            android:text="0"
-            android:textColor="@color/bb_text_primary"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="10sp"
+            tools:text="Pontos Totais" />
     </LinearLayout>
 </LinearLayout>

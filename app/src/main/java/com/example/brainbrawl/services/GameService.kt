@@ -4,7 +4,11 @@ import com.example.brainbrawl.config.GameConstants
 
 class GameService {
     fun tempoTotal(modoJogo: String?): Double {
-        return if (modoJogo == GameConstants.MODO_CAOTICO) 10.0 else 20.0
+        return when (modoJogo) {
+            GameConstants.MODO_CAOTICO -> GameConstants.CHAOTIC_QUESTION_TIME_SECONDS
+            GameConstants.MODO_ELIMINATORIAS -> GameConstants.ELIMINATION_QUESTION_TIME_SECONDS
+            else -> GameConstants.CLASSIC_QUESTION_TIME_SECONDS
+        }
     }
 
     fun jogadoresRestantesEliminatorias(

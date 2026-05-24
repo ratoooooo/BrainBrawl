@@ -3,6 +3,9 @@ package com.example.brainbrawl.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import android.os.Handler
+import android.os.Looper
+import android.util.Log
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
@@ -20,6 +23,8 @@ class Jogo2x2ViewModel(
 
     private val _evento = MutableLiveData<Jogo2x2Event?>()
     val evento: LiveData<Jogo2x2Event?> = _evento
+    private val _placar = MutableLiveData<Jogo2x2PlacarUiState>()
+    val placar: LiveData<Jogo2x2PlacarUiState> = _placar
 
     private val perguntas = mutableListOf<Pergunta>()
     private var codigoSala: String = ""
@@ -38,9 +43,12 @@ class Jogo2x2ViewModel(
     private var bonus = 50
     private var serverTimeOffset: Long = 0L
     private var categoriaCompetitiva: Boolean = false
+    private var tempoTotalPergunta = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
+    private val retryHandler = Handler(Looper.getMainLooper())
 
     private var offsetListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var podioListener: JogoCompetitivoRepository.ListenerHandle? = null
+    private var equipasListener: JogoCompetitivoRepository.ListenerHandle? = null
 
     fun iniciar(
         codigoSala: String,
@@ -51,12 +59,14 @@ class Jogo2x2ViewModel(
         tipoJogador: String = "",
         avatar: String = "",
         categoriaPadrao: String,
-        categoriaTodas: String
+        categoriaTodas: String,
+        tempoTotalPergunta: Double = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
     ) {
         this.codigoSala = codigoSala
         this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
+        this.tempoTotalPergunta = tempoTotalPergunta
         this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         this.chaveJogador = jogadorAtual.chaveSala
 
@@ -67,8 +77,22 @@ class Jogo2x2ViewModel(
             categoriaPadrao
         ).addOnSuccessListener { nomeCategoria ->
             categoria = nomeCategoria
+            Log.d(
+                GAME_CATEGORY_TAG,
+                "mode=2x2 room=$codigoSala uid=${uid.maskedLogId()} categoryFromFirebase=$categoria " +
+                    "categoryFallback=$categoriaPadrao"
+            )
             identificarEquipaECarregarPerguntas(categoriaTodas)
         }.addOnFailureListener {
+            Log.w(
+                GAME_CATEGORY_TAG,
+                "mode=2x2 room=$codigoSala uid=${uid.maskedLogId()} failedCategoryLoad fallback=$categoriaPadrao"
+            )
+            Log.w(
+                START_TAG,
+                "mode=2x2 room=$codigoSala errorEvent=ErroLerCategoria reason=category_load_failed " +
+                    "uid=${uid.maskedLogId()} key=${chaveJogador.maskedLogId()}"
+            )
             _evento.value = Jogo2x2Event.ErroLerCategoria
         }
     }
@@ -90,7 +114,8 @@ class Jogo2x2ViewModel(
             val resultadoPontuacao = scoreCompetitivoService.calcularPontuacao(
                 tempoRestante,
                 numeroPerguntasCertas,
-                bonus
+                bonus,
+                tempoTotalPergunta
             )
             bonusAplicado = resultadoPontuacao.bonusAplicado
             totalPontos += resultadoPontuacao.pontos
@@ -103,6 +128,12 @@ class Jogo2x2ViewModel(
             chaveJogador,
             perguntaAtualIndex,
             opcaoEscolhida
+        )
+        jogoCompetitivoRepository.atualizarPontuacaoAoVivo2x2(
+            codigoSala,
+            equipaDoJogador,
+            chaveJogador,
+            totalPontos
         )
 
         return JogoCompetitivoRespostaResultado(acertou, bonusAplicado)
@@ -141,6 +172,9 @@ class Jogo2x2ViewModel(
         offsetListener = null
         jogoCompetitivoRepository.removerListener(podioListener)
         podioListener = null
+        jogoCompetitivoRepository.removerListener(equipasListener)
+        equipasListener = null
+        retryHandler.removeCallbacksAndMessages(null)
     }
 
     fun consumirEvento() {
@@ -152,18 +186,44 @@ class Jogo2x2ViewModel(
         super.onCleared()
     }
 
-    private fun identificarEquipaECarregarPerguntas(categoriaTodas: String) {
+    private fun identificarEquipaECarregarPerguntas(categoriaTodas: String, retryFeito: Boolean = false) {
         jogoCompetitivoRepository.identificarEquipa2x2(codigoSala, jogadorAtual)
             .addOnSuccessListener { equipaJogador ->
                 equipaDoJogador = equipaJogador.equipa
                 chaveJogador = equipaJogador.chaveJogador
+                Log.d(
+                    START_TAG,
+                    "mode=2x2 room=$codigoSala teamResolved equipe=${equipaDoJogador.ifBlank { "<empty>" }} " +
+                        "uid=${uid.maskedLogId()} playerKey=${jogadorAtual.playerKey.maskedLogId()} " +
+                        "resolvedKey=${chaveJogador.maskedLogId()} retry=$retryFeito"
+                )
                 if (equipaDoJogador == GameConstants.EQUIPA_A || equipaDoJogador == GameConstants.EQUIPA_B) {
+                    observarPlacar()
                     verificarCompetitividadeECarregarPerguntas(categoriaTodas)
+                } else if (!retryFeito) {
+                    Log.w(
+                        START_TAG,
+                        "mode=2x2 room=$codigoSala teamMissing retryOnce uid=${uid.maskedLogId()} " +
+                            "resolvedKey=${chaveJogador.maskedLogId()}"
+                    )
+                    retryHandler.postDelayed({
+                        identificarEquipaECarregarPerguntas(categoriaTodas, retryFeito = true)
+                    }, TEAM_RETRY_DELAY_MS)
                 } else {
+                    Log.w(
+                        START_TAG,
+                        "mode=2x2 room=$codigoSala errorEvent=ErroCarregarEquipa reason=team_missing_after_retry " +
+                            "uid=${uid.maskedLogId()} resolvedKey=${chaveJogador.maskedLogId()}"
+                    )
                     _evento.value = Jogo2x2Event.ErroCarregarEquipa
                 }
             }
-            .addOnFailureListener {
+            .addOnFailureListener { error ->
+                Log.w(
+                    START_TAG,
+                    "mode=2x2 room=$codigoSala errorEvent=ErroCarregarEquipa reason=team_lookup_failed " +
+                        "uid=${uid.maskedLogId()} message=${error.message}"
+                )
                 _evento.value = Jogo2x2Event.ErroCarregarEquipa
             }
     }
@@ -198,6 +258,12 @@ class Jogo2x2ViewModel(
             } else {
                 "Erro ao carregar perguntas"
             }
+            Log.w(
+                START_TAG,
+                "mode=2x2 room=$codigoSala errorEvent=ErroPerguntas reason=${erro.message} " +
+                    "category=${categoria.ifBlank { "<empty>" }} uid=${uid.maskedLogId()} " +
+                    "key=${chaveJogador.maskedLogId()} team=${equipaDoJogador.ifBlank { "<empty>" }}"
+            )
             _evento.value = Jogo2x2Event.ErroPerguntas(mensagem)
         }
     }
@@ -211,7 +277,8 @@ class Jogo2x2ViewModel(
         _pergunta.value = JogoCompetitivoPerguntaUiState(
             pergunta = perguntas[perguntaAtualIndex],
             indice = perguntaAtualIndex,
-            totalPerguntas = perguntas.size
+            totalPerguntas = perguntas.size,
+            categoria = categoria
         )
         sincronizarInicioPergunta()
     }
@@ -253,6 +320,47 @@ class Jogo2x2ViewModel(
         )
     }
 
+    private fun observarPlacar() {
+        jogoCompetitivoRepository.removerListener(equipasListener)
+        equipasListener = jogoCompetitivoRepository.escutarEquipas2x2(
+            codigoSala = codigoSala,
+            onEquipasAlteradas = { equipaA, equipaB ->
+                val idsAtuais = jogadorAtual.chavesCompatibilidade + chaveJogador
+                val equipaAUi = equipaA.toEquipaUi("Equipa Lusa", idsAtuais)
+                val equipaBUi = equipaB.toEquipaUi("Os Descobridores", idsAtuais)
+                _placar.value = Jogo2x2PlacarUiState(
+                    equipaA = equipaAUi,
+                    equipaB = equipaBUi
+                )
+            }
+        )
+    }
+
+    private fun List<JogoCompetitivoRepository.JogadorCompetitivo>.toEquipaUi(
+        nome: String,
+        idsAtuais: List<String>
+    ): EquipaCompetitivaUi {
+        val jogadoresUi = filter { it.chave != GameConstants.JOGADOR_ADMIN && it.estado != GameConstants.ESTADO_OFF }
+            .distinctBy { it.chave }
+            .take(2)
+            .map { jogador ->
+                JogadorCompetitivoUi(
+                    chave = jogador.chave,
+                    nome = jogador.nomeDisplay,
+                    avatar = jogador.avatar,
+                    pontuacao = jogador.pontuacao,
+                    atual = jogador.chave in idsAtuais ||
+                        jogador.uid in idsAtuais ||
+                        jogador.playerKey in idsAtuais
+                )
+            }
+        return EquipaCompetitivaUi(
+            nome = nome,
+            jogadores = jogadoresUi,
+            pontuacao = jogadoresUi.sumOf { it.pontuacao }
+        )
+    }
+
     private fun dadosPontuacao(): JogoCompetitivoPontuacaoDados {
         return JogoCompetitivoPontuacaoDados(
             codigoSala = codigoSala,
@@ -277,7 +385,8 @@ class Jogo2x2ViewModel(
 data class JogoCompetitivoPerguntaUiState(
     val pergunta: Pergunta,
     val indice: Int,
-    val totalPerguntas: Int
+    val totalPerguntas: Int,
+    val categoria: String = ""
 )
 
 data class JogoCompetitivoRespostaResultado(
@@ -312,4 +421,13 @@ sealed class Jogo2x2Event {
     data object ErroPodio : Jogo2x2Event()
     data object AguardarJogadores : Jogo2x2Event()
     data object FinalizarJogo : Jogo2x2Event()
+}
+
+private const val GAME_CATEGORY_TAG = "GAME_CATEGORY_DEBUG"
+private const val START_TAG = "INVITE_START_ROOT_CAUSE"
+private const val TEAM_RETRY_DELAY_MS = 250L
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
 }

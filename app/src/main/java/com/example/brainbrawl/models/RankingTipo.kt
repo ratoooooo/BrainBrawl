@@ -8,7 +8,7 @@ enum class RankingTipo(
     val valorLabel: String
 ) {
     GLOBAL(
-        firebaseField = FirebasePaths.PONTUACAO,
+        firebaseField = FirebasePaths.TOTAL_PONTOS_SOMADOS,
         titulo = "Ranking Global",
         valorLabel = "Pontos Totais"
     ),
@@ -17,10 +17,10 @@ enum class RankingTipo(
         titulo = "Ranking de Recordes",
         valorLabel = "Melhor Jogo"
     ),
-    SOLO(
+    GRUPO(
         firebaseField = FirebasePaths.TOTAL_VITORIAS_MODO_SOLO,
-        titulo = "Ranking Solo",
-        valorLabel = "Vitórias Solo"
+        titulo = "Ranking Grupo",
+        valorLabel = "Vitórias Grupo"
     ),
     MODO_1X1(
         firebaseField = FirebasePaths.TOTAL_VITORIAS_MODO_1X1,
@@ -35,9 +35,9 @@ enum class RankingTipo(
 
     fun valorOrdenacao(jogador: RankingJogador): Double {
         return when (this) {
-            GLOBAL -> jogador.pontuacao
+            GLOBAL -> jogador.totalPontosSomados
             RECORDE -> jogador.recordePontuacao
-            SOLO -> jogador.totalVitoriasModoSolo.toDouble()
+            GRUPO -> jogador.totalVitoriasModoSolo.toDouble()
             MODO_1X1 -> jogador.totalVitoriasModo1x1.toDouble()
             MODO_2X2 -> jogador.totalVitoriasModo2x2.toDouble()
         }

@@ -3,6 +3,7 @@ package com.example.brainbrawl.viewmodels
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import android.util.Log
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.models.Pergunta
@@ -20,6 +21,8 @@ class Jogo1x1ViewModel(
 
     private val _evento = MutableLiveData<Jogo1x1Event?>()
     val evento: LiveData<Jogo1x1Event?> = _evento
+    private val _placar = MutableLiveData<Jogo1x1PlacarUiState>()
+    val placar: LiveData<Jogo1x1PlacarUiState> = _placar
 
     private val perguntas = mutableListOf<Pergunta>()
     private var codigoSala: String = ""
@@ -37,9 +40,11 @@ class Jogo1x1ViewModel(
     private var bonus = 50
     private var serverTimeOffset: Long = 0L
     private var categoriaCompetitiva: Boolean = false
+    private var tempoTotalPergunta = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
 
     private var offsetListener: JogoCompetitivoRepository.ListenerHandle? = null
     private var podioListener: JogoCompetitivoRepository.ListenerHandle? = null
+    private var jogadoresListener: JogoCompetitivoRepository.ListenerHandle? = null
 
     fun iniciar(
         codigoSala: String,
@@ -50,12 +55,14 @@ class Jogo1x1ViewModel(
         tipoJogador: String = "",
         avatar: String = "",
         categoriaPadrao: String,
-        categoriaTodas: String
+        categoriaTodas: String,
+        tempoTotalPergunta: Double = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
     ) {
         this.codigoSala = codigoSala
         this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
+        this.tempoTotalPergunta = tempoTotalPergunta
         this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         this.chaveJogador = jogadorAtual.chaveSala
 
@@ -63,9 +70,21 @@ class Jogo1x1ViewModel(
         jogoCompetitivoRepository.resolverJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, jogadorAtual)
             .addOnSuccessListener { jogadorNaSala ->
                 chaveJogador = jogadorNaSala.chave
+                Log.d(
+                    START_TAG,
+                    "mode=1x1 room=$codigoSala playerResolved uid=${uid.maskedLogId()} " +
+                        "playerKey=${jogadorAtual.playerKey.maskedLogId()} resolvedKey=${chaveJogador.maskedLogId()}"
+                )
+                observarPlacar()
                 carregarCategoriaEContinuar(categoriaPadrao, categoriaTodas)
             }
             .addOnFailureListener {
+                Log.w(
+                    START_TAG,
+                    "mode=1x1 room=$codigoSala playerResolveFallback uid=${uid.maskedLogId()} " +
+                        "fallbackKey=${chaveJogador.maskedLogId()}"
+                )
+                observarPlacar()
                 carregarCategoriaEContinuar(categoriaPadrao, categoriaTodas)
             }
     }
@@ -87,7 +106,8 @@ class Jogo1x1ViewModel(
             val resultadoPontuacao = scoreCompetitivoService.calcularPontuacao(
                 tempoRestante,
                 numeroPerguntasCertas,
-                bonus
+                bonus,
+                tempoTotalPergunta
             )
             bonusAplicado = resultadoPontuacao.bonusAplicado
             totalPontos += resultadoPontuacao.pontos
@@ -95,6 +115,7 @@ class Jogo1x1ViewModel(
             numeroPerguntasCertas = 0
         }
 
+        jogoCompetitivoRepository.atualizarPontuacaoAoVivo1x1(codigoSala, chaveJogador, totalPontos)
         return JogoCompetitivoRespostaResultado(acertou, bonusAplicado)
     }
 
@@ -122,6 +143,8 @@ class Jogo1x1ViewModel(
         offsetListener = null
         jogoCompetitivoRepository.removerListener(podioListener)
         podioListener = null
+        jogoCompetitivoRepository.removerListener(jogadoresListener)
+        jogadoresListener = null
     }
 
     fun consumirEvento() {
@@ -151,6 +174,11 @@ class Jogo1x1ViewModel(
             } else {
                 "Erro ao carregar perguntas"
             }
+            Log.w(
+                START_TAG,
+                "mode=1x1 room=$codigoSala errorEvent=ErroPerguntas reason=${erro.message} " +
+                    "category=${categoria.ifBlank { "<empty>" }} uid=${uid.maskedLogId()} key=${chaveJogador.maskedLogId()}"
+            )
             _evento.value = Jogo1x1Event.ErroPerguntas(mensagem)
         }
     }
@@ -162,8 +190,22 @@ class Jogo1x1ViewModel(
             categoriaPadrao
         ).addOnSuccessListener { nomeCategoria ->
             categoria = nomeCategoria
+            Log.d(
+                GAME_CATEGORY_TAG,
+                "mode=1x1 room=$codigoSala uid=${uid.maskedLogId()} categoryFromFirebase=$categoria " +
+                    "categoryFallback=$categoriaPadrao"
+            )
             verificarCompetitividadeECarregarPerguntas(categoriaTodas)
         }.addOnFailureListener {
+            Log.w(
+                GAME_CATEGORY_TAG,
+                "mode=1x1 room=$codigoSala uid=${uid.maskedLogId()} failedCategoryLoad fallback=$categoriaPadrao"
+            )
+            Log.w(
+                START_TAG,
+                "mode=1x1 room=$codigoSala errorEvent=ErroLerCategoria reason=category_load_failed " +
+                    "uid=${uid.maskedLogId()} key=${chaveJogador.maskedLogId()}"
+            )
             _evento.value = Jogo1x1Event.ErroLerCategoria
         }
     }
@@ -189,7 +231,8 @@ class Jogo1x1ViewModel(
         _pergunta.value = JogoCompetitivoPerguntaUiState(
             pergunta = perguntas[perguntaAtualIndex],
             indice = perguntaAtualIndex,
-            totalPerguntas = perguntas.size
+            totalPerguntas = perguntas.size,
+            categoria = categoria
         )
         sincronizarInicioPergunta()
     }
@@ -231,6 +274,36 @@ class Jogo1x1ViewModel(
         )
     }
 
+    private fun observarPlacar() {
+        jogoCompetitivoRepository.removerListener(jogadoresListener)
+        jogadoresListener = jogoCompetitivoRepository.escutarJogadores(
+            modo = ModoCompetitivo.UM_CONTRA_UM,
+            codigoSala = codigoSala,
+            onJogadoresAlterados = { jogadores ->
+                val idsAtuais = jogadorAtual.chavesCompatibilidade + chaveJogador
+                val jogadoresUi = jogadores
+                    .filter { it.chave != GameConstants.JOGADOR_ADMIN && it.estado != GameConstants.ESTADO_OFF }
+                    .distinctBy { it.chave }
+                    .sortedByDescending { jogador ->
+                        jogador.chave in idsAtuais || jogador.uid in idsAtuais || jogador.playerKey in idsAtuais
+                    }
+                    .take(2)
+                    .map { jogador ->
+                        JogadorCompetitivoUi(
+                            chave = jogador.chave,
+                            nome = jogador.nomeDisplay,
+                            avatar = jogador.avatar,
+                            pontuacao = jogador.pontuacao,
+                            atual = jogador.chave in idsAtuais ||
+                                jogador.uid in idsAtuais ||
+                                jogador.playerKey in idsAtuais
+                        )
+                    }
+                _placar.value = Jogo1x1PlacarUiState(jogadoresUi)
+            }
+        )
+    }
+
     private fun dadosPontuacao(): JogoCompetitivoPontuacaoDados {
         return JogoCompetitivoPontuacaoDados(
             codigoSala = codigoSala,
@@ -250,6 +323,11 @@ class Jogo1x1ViewModel(
             categoriaCompetitiva = categoriaCompetitiva
         )
     }
+
+    private companion object {
+        const val GAME_CATEGORY_TAG = "GAME_CATEGORY_DEBUG"
+        const val START_TAG = "INVITE_START_ROOT_CAUSE"
+    }
 }
 
 sealed class Jogo1x1Event {
@@ -261,4 +339,9 @@ sealed class Jogo1x1Event {
     data object ErroPodio : Jogo1x1Event()
     data object AguardarAdversario : Jogo1x1Event()
     data object FinalizarJogo : Jogo1x1Event()
+}
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
 }

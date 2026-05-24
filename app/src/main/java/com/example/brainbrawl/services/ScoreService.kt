@@ -14,16 +14,17 @@ class ScoreService {
         numeroPerguntasCertas: Int,
         bonus: Int
     ): ResultadoPontuacao {
-        val tempoUsado = if (modoJogo == GameConstants.MODO_CAOTICO) {
-            (10 - tempoRestante).toInt()
-        } else {
-            (20 - tempoRestante).toInt()
+        val tempoTotal = when (modoJogo) {
+            GameConstants.MODO_CAOTICO -> GameConstants.CHAOTIC_QUESTION_TIME_SECONDS
+            GameConstants.MODO_ELIMINATORIAS -> GameConstants.ELIMINATION_QUESTION_TIME_SECONDS
+            else -> GameConstants.CLASSIC_QUESTION_TIME_SECONDS
         }
+        val tempoUsado = (tempoTotal - tempoRestante).toInt()
 
         var pontuacao = if (modoJogo == GameConstants.MODO_CAOTICO) {
-            (10 - tempoUsado) * 30
+            (tempoTotal.toInt() - tempoUsado) * 30
         } else {
-            (20 - tempoUsado) * 10
+            (tempoTotal.toInt() - tempoUsado) * 10
         }
 
         val bonusAplicado = when {

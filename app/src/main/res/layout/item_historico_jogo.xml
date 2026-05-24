@@ -1,94 +1,137 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:layout_marginBottom="@dimen/bb_space_sm"
-    android:background="@drawable/bg_card_surface"
-    android:padding="@dimen/bb_space_md">
+    android:layout_height="106dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_ranking_card"
+    android:padding="14dp">
+
+    <FrameLayout
+        android:id="@+id/layoutIconHistorico"
+        android:layout_width="54dp"
+        android:layout_height="54dp"
+        android:background="@drawable/bg_history_icon"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <ImageView
+            android:id="@+id/imgIconHistorico"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:layout_gravity="center"
+            android:contentDescription="@string/modo_generico"
+            android:src="@drawable/ic_sword"
+            app:tint="@color/bb_luso_navy" />
+    </FrameLayout>
 
     <TextView
         android:id="@+id/txtModoHistorico"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp"
         android:ellipsize="end"
+        android:fontFamily="serif"
         android:maxLines="1"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="20sp"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="19sp"
         android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/txtResultadoHistorico"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/txtResultadoHistorico"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/bb_space_sm"
-        android:background="@drawable/bg_segment_selected"
-        android:maxLines="1"
-        android:paddingStart="@dimen/bb_space_md"
-        android:paddingTop="@dimen/bb_space_xs"
-        android:paddingEnd="@dimen/bb_space_md"
-        android:paddingBottom="@dimen/bb_space_xs"
-        android:textColor="@color/bb_primary_text"
-        android:textSize="@dimen/bb_caption_size"
-        android:textStyle="bold"
-        app:layout_constraintBaseline_toBaselineOf="@id/txtModoHistorico"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/txtPontuacaoHistorico"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/bb_space_sm"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="@dimen/bb_body_size"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toStartOf="@id/txtDataHistorico"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtModoHistorico" />
-
-    <TextView
-        android:id="@+id/txtDataHistorico"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/bb_space_sm"
-        android:ellipsize="end"
-        android:gravity="end"
-        android:maxLines="1"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="@dimen/bb_caption_size"
-        app:layout_constraintBaseline_toBaselineOf="@id/txtPontuacaoHistorico"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/txtPontuacaoHistorico" />
+        app:layout_constraintEnd_toStartOf="@id/txtPontuacaoHistorico"
+        app:layout_constraintStart_toEndOf="@id/layoutIconHistorico"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Modo 1x1" />
 
     <TextView
         android:id="@+id/txtCategoriaHistorico"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/bb_space_xs"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp"
         android:ellipsize="end"
         android:maxLines="1"
         android:textColor="@color/bb_text_secondary"
-        android:textSize="@dimen/bb_body_size"
+        android:textSize="13sp"
+        app:layout_constraintEnd_toStartOf="@id/txtPontuacaoHistorico"
+        app:layout_constraintStart_toEndOf="@id/layoutIconHistorico"
+        app:layout_constraintTop_toBottomOf="@id/txtModoHistorico"
+        tools:text="Idade Média" />
+
+    <TextView
+        android:id="@+id/txtDataHistorico"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginEnd="10dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textColor="@color/bb_text_secondary"
+        android:textSize="12sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/txtBadgeHistorico"
+        app:layout_constraintStart_toEndOf="@id/layoutIconHistorico"
+        tools:text="24/05/2025 • 20:47" />
+
+    <TextView
+        android:id="@+id/txtPontuacaoHistorico"
+        android:layout_width="78dp"
+        android:layout_height="wrap_content"
+        android:fontFamily="serif"
+        android:gravity="end"
+        android:textColor="@color/bb_success"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@id/imgHistoricoDetalhe"
+        app:layout_constraintTop_toTopOf="@id/txtModoHistorico"
+        tools:text="3.250" />
+
+    <TextView
+        android:id="@+id/txtResultadoHistorico"
+        android:layout_width="78dp"
+        android:layout_height="22dp"
+        android:layout_marginTop="2dp"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:textColor="@color/bb_success"
+        android:textSize="12sp"
+        app:layout_constraintEnd_toEndOf="@id/txtPontuacaoHistorico"
+        app:layout_constraintTop_toBottomOf="@id/txtPontuacaoHistorico"
+        tools:text="Vitória" />
+
+    <TextView
+        android:id="@+id/txtBadgeHistorico"
+        android:layout_width="wrap_content"
+        android:layout_height="22dp"
+        android:layout_marginEnd="8dp"
+        android:background="@drawable/bg_history_badge_competitive"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:minWidth="86dp"
+        android:paddingHorizontal="8dp"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="11sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/imgHistoricoDetalhe"
+        tools:text="Competitivo" />
+
+    <ImageView
+        android:id="@+id/imgHistoricoDetalhe"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:contentDescription="@string/ver_todas_chevron"
+        android:src="@drawable/ic_chevron_right"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtPontuacaoHistorico" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_navy" />
 
     <TextView
         android:id="@+id/txtJogadoresHistorico"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/bb_space_xs"
-        android:ellipsize="end"
-        android:maxLines="2"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="@dimen/bb_caption_size"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtCategoriaHistorico" />
-
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -43,9 +43,11 @@ class MatchmakingRepository(
 
     fun entrarNaFila(player: MatchmakingPlayer, modo: String): Task<Void> {
         Log.d(
-            TAG,
-            "A escrever fila: modo=$modo player=${player.playerKey.maskedLogId()} " +
-                "tipo=${player.tipoJogador} uidPresente=${player.uid.isNotBlank()} estado=${player.estado}"
+            FLOW_TAG,
+            "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=$modo room=<queue> " +
+                "repository=MatchmakingRepository event=joinQueue playerKey=${player.playerKey.maskedLogId()} " +
+                "tipo=${player.tipoJogador} uidPresente=${player.uid.isNotBlank()} estado=${player.estado} " +
+                "path=${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/${player.playerKey.maskedLogId()}"
         )
         val updates = hashMapOf<String, Any?>(
             "${FirebasePaths.MATCHMAKING}/$modo/${FirebasePaths.FILA}/${player.playerKey}" to player.toFirebaseMap(),
@@ -417,8 +419,9 @@ class MatchmakingRepository(
                 if (currentData.value != null) return Transaction.abort()
                 val payload = salaMap(modo, nomeCategoria, criador, jogadores)
                 Log.d(
-                    TAG,
-                    "A criar sala: node=$salaNode codigo=${codigoSala.maskedLogId()} modo=$modo " +
+                    FLOW_TAG,
+                    "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=$modo room=$codigoSala " +
+                        "repository=MatchmakingRepository event=createMatchRoom path=$salaNode/$codigoSala " +
                         "adminId=${criador.playerKey.maskedLogId()} adminUid=${criador.uid.maskedLogId()} " +
                         "jogadores=${jogadores.maskedPlayerKeys()} quantidade=${jogadores.size} " +
                         "campos=${payload.keys}"
@@ -465,8 +468,9 @@ class MatchmakingRepository(
                     )
                 }
                 Log.d(
-                    TAG,
-                    "A publicar resultados: modo=$modo sala=${codigoSala.maskedLogId()} " +
+                    FLOW_TAG,
+                    "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=$modo room=$codigoSala " +
+                        "repository=MatchmakingRepository event=publishResults " +
                         "match=${matchId.maskedLogId()} jogadores=${jogadores.maskedPlayerKeys()} " +
                         "quantidade=${jogadores.size} updates=${updates.size}"
                 )
@@ -701,6 +705,7 @@ class MatchmakingRepository(
 
     private companion object {
         const val TAG = "MATCHMAKING_DEBUG"
+        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
         const val STALE_MS = 2 * 60 * 1000L
         const val MATCH_CREATION_TIMEOUT_MS = 15 * 1000L
     }

@@ -20,6 +20,7 @@ class SalaRepository(
         val uid: String,
         val nomeUtilizador: String,
         val nomeJogador: String,
+        val avatar: String,
         val estado: String,
         val isHostOnly: Boolean
     )
@@ -240,6 +241,7 @@ class SalaRepository(
                 uid = jogadorSnapshot.valorTexto(FirebasePaths.UID),
                 nomeUtilizador = jogadorSnapshot.valorTexto(FirebasePaths.NOME_UTILIZADOR),
                 nomeJogador = jogadorSnapshot.valorTexto(FirebasePaths.NOME_JOGADOR),
+                avatar = jogadorSnapshot.valorTexto(FirebasePaths.AVATAR),
                 estado = jogadorSnapshot.valorTexto(FirebasePaths.ESTADO).ifBlank { GameConstants.ESTADO_ON },
                 isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
             )

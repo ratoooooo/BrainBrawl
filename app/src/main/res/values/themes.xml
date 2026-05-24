@@ -21,4 +21,295 @@
         <item name="android:textStyle">bold</item>
         <item name="android:textSize">16sp</item>
     </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">72dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingAvatar">
+        <item name="android:layout_width">50dp</item>
+        <item name="android:layout_height">50dp</item>
+        <item name="android:scaleType">centerCrop</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingTextColumn">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">16dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingPlayerName">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingPlayerSub">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">3dp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/bb_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingStatus">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingWaitingDots">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:textColor">@color/bb_luso_gold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_MatchmakingDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">#44D8C49D</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileStat">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">104dp</item>
+        <item name="android:layout_columnWeight">1</item>
+        <item name="android:layout_rowWeight">1</item>
+        <item name="android:background">@drawable/bg_main_mode_card</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">16dp</item>
+        <item name="android:paddingEnd">14dp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileStatIcon">
+        <item name="android:layout_width">42dp</item>
+        <item name="android:layout_height">42dp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileStatValue">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">0dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:gravity">start</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">24sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileStatLabel">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">3dp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:gravity">start</item>
+        <item name="android:textColor">@color/bb_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileMenuCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">82dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:background">@drawable/bg_main_hero_card</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">16dp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileMenuIcon">
+        <item name="android:layout_width">34dp</item>
+        <item name="android:layout_height">34dp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileMenuText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">18dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileMenuTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileMenuSubtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">3dp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textColor">@color/bb_text_secondary</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ProfileChevron">
+        <item name="android:layout_width">24dp</item>
+        <item name="android:layout_height">24dp</item>
+        <item name="tint">@color/bb_luso_navy</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_AchievementTab">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:gravity">center</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_RankingTab">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">38dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/bg_ranking_tab_unselected</item>
+        <item name="android:clickable">true</item>
+        <item name="android:drawablePadding">5dp</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:paddingStart">8dp</item>
+        <item name="android:paddingEnd">8dp</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_PodioStat">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:gravity">center</item>
+        <item name="android:paddingBottom">24dp</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">25sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_PodioStatLabel">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:gravity">center</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">13sp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_PodioDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">70dp</item>
+        <item name="android:background">#33D8C49D</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_HistoryFilter">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">38dp</item>
+        <item name="android:layout_margin">3dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@drawable/bg_luso_segment_unselected</item>
+        <item name="android:clickable">true</item>
+        <item name="android:ellipsize">end</item>
+        <item name="android:focusable">true</item>
+        <item name="android:fontFamily">sans-serif-black</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:paddingHorizontal">8dp</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceCard">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">112dp</item>
+        <item name="android:layout_marginTop">14dp</item>
+        <item name="android:background">@drawable/bg_main_mode_card</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:orientation">horizontal</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">14dp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceIconHost">
+        <item name="android:layout_width">58dp</item>
+        <item name="android:layout_height">58dp</item>
+        <item name="android:background">@drawable/bg_game_type_icon</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceIcon">
+        <item name="android:layout_width">32dp</item>
+        <item name="android:layout_height">32dp</item>
+        <item name="android:layout_gravity">center</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceText">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginStart">18dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceTitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:fontFamily">serif</item>
+        <item name="android:textColor">@color/bb_luso_navy</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceSubtitle">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:lineSpacingExtra">2dp</item>
+        <item name="android:textColor">@color/bb_text_secondary</item>
+        <item name="android:textSize">12sp</item>
+    </style>
+
+    <style name="Widget_BrainBrawl_ModeChoiceChevron">
+        <item name="android:layout_width">26dp</item>
+        <item name="android:layout_height">26dp</item>
+        <item name="tint">@color/bb_luso_navy</item>
+    </style>
 </resources>

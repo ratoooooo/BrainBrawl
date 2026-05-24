@@ -32,6 +32,14 @@ object GameConstants {
     const val ORIGEM_CONVITE = "convite"
     const val ORIGEM_MANUAL = "manual"
 
+    const val MATCHMAKING_QUESTION_TIME_SECONDS = 20.0
+    const val MATCHMAKING_QUESTION_TIME_MS = 20_000L
+    const val COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS = 15.0
+    const val COMPETITIVE_DEFAULT_QUESTION_TIME_MS = 15_000L
+    const val CLASSIC_QUESTION_TIME_SECONDS = 15.0
+    const val CHAOTIC_QUESTION_TIME_SECONDS = 10.0
+    const val ELIMINATION_QUESTION_TIME_SECONDS = 15.0
+
     const val ORIGEM_CATEGORIA_OFICIAL = "oficial"
     const val ORIGEM_CATEGORIA_PERSONALIZADA = "personalizada"
     const val ORIGEM_CATEGORIA_PUBLICA = "publica"

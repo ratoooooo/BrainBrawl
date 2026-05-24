@@ -7,12 +7,14 @@ import com.example.brainbrawl.models.Badge
 import com.example.brainbrawl.models.BadgeProgress
 import com.example.brainbrawl.repositories.BadgesRepository
 import com.example.brainbrawl.repositories.JogadorRepository
+import com.example.brainbrawl.repositories.RankingRepository
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.services.BadgesService
 
 class MeuPerfilViewModel(
     private val jogadorRepository: JogadorRepository = JogadorRepository(),
     private val badgesRepository: BadgesRepository = BadgesRepository(),
+    private val rankingRepository: RankingRepository = RankingRepository(),
     private val badgesService: BadgesService = BadgesService(),
     private val authService: AuthService = AuthService()
 ) : ViewModel() {
@@ -44,6 +46,7 @@ class MeuPerfilViewModel(
                     podePersistirConquistas = podePersistirConquistas
                 )
                 _perfil.value = estadoInicial
+                carregarPosicaoGlobal(perfil.uid, perfil.nomeUtilizador.ifBlank { nomeUtilizador })
 
                 badgesRepository.obterConquistas(authUid, isGuest = !podePersistirConquistas)
                     .addOnSuccessListener { badgesPersistidas ->
@@ -54,7 +57,7 @@ class MeuPerfilViewModel(
                             badgesPersistidas = badgesPersistidas,
                             podePersistirConquistas = podePersistirConquistas
                         )
-                        _perfil.value = estadoAtualizado
+                        _perfil.value = estadoAtualizado.copy(rankingGlobal = _perfil.value?.rankingGlobal)
 
                         val badgesNovas = badgesService.badgesParaGravar(
                             badges = estadoAtualizado.badges,
@@ -68,6 +71,13 @@ class MeuPerfilViewModel(
                     }
             }
         }
+    }
+
+    private fun carregarPosicaoGlobal(uid: String, nomeUtilizador: String) {
+        rankingRepository.obterPosicaoGlobal(uid, nomeUtilizador)
+            .addOnSuccessListener { posicao ->
+                _perfil.value = _perfil.value?.copy(rankingGlobal = posicao)
+            }
     }
 
     private fun criarUiState(
@@ -100,6 +110,7 @@ class MeuPerfilViewModel(
             xpTotal = perfil.estatisticas.xpTotal,
             xpNoNivelAtual = perfil.estatisticas.xpNoNivelAtual,
             xpNecessarioProximoNivel = perfil.estatisticas.xpNecessarioProximoNivel,
+            rankingGlobal = null,
             badges = badgesService.calcularBadges(
                 progress = progress,
                 badgesPersistidas = badgesPersistidas,
@@ -129,6 +140,7 @@ data class MeuPerfilUiState(
     val xpTotal: Int,
     val xpNoNivelAtual: Int,
     val xpNecessarioProximoNivel: Int,
+    val rankingGlobal: Int?,
     val badges: List<Badge>,
     val conquistasPersistentesAtivas: Boolean
 )

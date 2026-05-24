@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.view.Gravity
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.FrameLayout
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Space
 import android.widget.TextView
@@ -19,6 +21,7 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityExplorarCategoriasBinding
 import com.example.brainbrawl.repositories.CategoriaRepository
+import com.example.brainbrawl.routes.BottomNavHelper
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.CodigoSalaUtils.gerarCodigoSala
 import com.example.brainbrawl.viewmodels.ExplorarCategoriasEvent
@@ -42,16 +45,9 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR)
         nomeJogador = intent.getStringExtra(IntentExtras.NOME_JOGADOR)
         uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid
+        BottomNavHelper.instalar(this, BottomNavHelper.Item.MAIN, uid, nomeUtilizador, nomeJogador)
 
-        binding.btnVoltar.setOnClickListener {
-            val intent = Intent(this, MainActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
-            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
-            uid?.let { intent.putExtra(IntentExtras.UID, it) }
-            startActivity(intent)
-            finish()
-        }
-
+        binding.btnMinhasCategorias.setOnClickListener { abrirMinhasCategorias() }
         binding.btnCriarCategoria.setOnClickListener { abrirCriacaoCategoria() }
 
         configurarObservers()
@@ -129,15 +125,17 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
             adicionarCardPublico(categoria)
         }
 
-        adicionarTituloSecao(getString(R.string.minhas_categorias))
+        adicionarTituloSecao(getString(R.string.minhas_categorias), mostrarVerTodas = true) {
+            abrirMinhasCategorias()
+        }
         if (uid.isNullOrBlank() && nomeUtilizador.isNullOrBlank()) {
-            adicionarTextoSecao("Inicia sessão para criar e editar as tuas categorias.")
+            adicionarTextoSecao(getString(R.string.login_minhas_categorias))
         } else if (estado.minhasCategorias.isEmpty()) {
-            adicionarTextoSecao("Ainda não tens categorias personalizadas.")
+            adicionarTextoSecao(getString(R.string.sem_categorias_personalizadas))
         }
 
         val publicasIds = estado.categoriasPublicas.map { it.id }.toSet()
-        estado.minhasCategorias.forEach { categoria ->
+        estado.minhasCategorias.take(1).forEach { categoria ->
             val idCompatibilidade = categoriaPublicaId(categoria.chaveDono.ifBlank { donoAtual() }, categoria.nome)
             val jaPublica = !categoria.categoriaPublicaId.isNullOrBlank() || idCompatibilidade in publicasIds
             adicionarCardMinhaCategoria(categoria, jaPublica)
@@ -146,34 +144,29 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
 
     private fun adicionarCardPublico(categoria: CategoriaRepository.CategoriaPublica) {
         val card = criarCardBase()
-        card.addView(TextView(this).apply {
-            text = categoria.nome
-            textSize = 20f
-            setTextColor(getColor(R.color.bb_text_primary))
-            setTypeface(typeface, Typeface.BOLD)
+        val linha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        linha.addView(criarIconeCategoria(categoria.nome, categoria.iconeCategoria))
+        linha.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = dp(14)
+            }
+            addView(criarTextoTitulo(categoria.nome))
+            addView(criarTextoSecundario(getString(R.string.categoria_criador_format, categoria.criador)))
+            addView(criarTextoCorpo(categoria.descricaoCurta()))
+            addView(criarTextoSecundario(
+                getString(
+                    R.string.categoria_metricas_format,
+                    categoria.totalPerguntas,
+                    categoria.usos,
+                    categoria.ratingTexto()
+                )
+            ))
         })
-        card.addView(TextView(this).apply {
-            text = getString(R.string.categoria_criador_format, categoria.criador)
-            textSize = 14f
-            setTextColor(getColor(R.color.bb_text_secondary))
-            setPadding(0, dp(4), 0, dp(6))
-        })
-        card.addView(TextView(this).apply {
-            text = categoria.descricaoCurta()
-            textSize = 15f
-            setTextColor(getColor(R.color.bb_text_primary))
-        })
-        card.addView(TextView(this).apply {
-            text = getString(
-                R.string.categoria_metricas_format,
-                categoria.totalPerguntas,
-                categoria.usos,
-                categoria.ratingTexto()
-            )
-            textSize = 14f
-            setTextColor(getColor(R.color.bb_text_secondary))
-            setPadding(0, dp(8), 0, dp(10))
-        })
+        card.addView(linha)
 
         adicionarGrupoBotoes(
             card,
@@ -191,18 +184,23 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         jaPublica: Boolean
     ) {
         val card = criarCardBase()
-        card.addView(TextView(this).apply {
-            text = categoria.nome
-            textSize = 20f
-            setTextColor(getColor(R.color.bb_text_primary))
-            setTypeface(typeface, Typeface.BOLD)
+        val linha = LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+        }
+        linha.addView(criarIconeCategoria(categoria.nome, categoria.iconeCategoria))
+        linha.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.VERTICAL
+            layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                marginStart = dp(14)
+            }
+            addView(criarTextoTitulo(categoria.nome))
+            addView(criarTextoSecundario(getString(R.string.criada_por_ti)))
+            addView(criarTextoCorpo(categoria.descricao.ifBlank { getString(R.string.sem_descricao_curta) }))
+            addView(criarTextoSecundario(getString(R.string.categoria_minha_metricas_format, categoria.totalPerguntas, categoria.usos)))
         })
-        card.addView(TextView(this).apply {
-            text = if (jaPublica) getString(R.string.estado_publica) else getString(R.string.estado_privada)
-            textSize = 14f
-            setTextColor(getColor(R.color.bb_text_secondary))
-            setPadding(0, dp(4), 0, dp(10))
-        })
+        linha.addView(criarBadgeEstado(jaPublica))
+        card.addView(linha)
 
         val botoesCategoria = mutableListOf(
             criarBotao(getString(R.string.jogar), destaque = true) { mostrarEscolhaModo(CategoriaExploravel.Personalizada(categoria)) },
@@ -226,22 +224,36 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
     private fun criarCardBase(): LinearLayout {
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
-            setPadding(dp(18), dp(16), dp(18), dp(16))
-            background = getDrawable(R.drawable.bg_card_surface)
+            setPadding(dp(14), dp(12), dp(14), dp(12))
+            background = getDrawable(R.drawable.bg_ranking_card)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply { setMargins(0, 0, 0, dp(16)) }
+            ).apply { setMargins(0, 0, 0, dp(12)) }
         }
     }
 
-    private fun adicionarTituloSecao(texto: String) {
-        binding.layoutCategoriasPublicas.addView(TextView(this).apply {
-            text = texto
-            textSize = 20f
-            setTextColor(getColor(R.color.bb_text_primary))
-            setTypeface(typeface, Typeface.BOLD)
-            setPadding(0, dp(10), 0, dp(10))
+    private fun adicionarTituloSecao(texto: String, mostrarVerTodas: Boolean = false, onVerTodas: (() -> Unit)? = null) {
+        binding.layoutCategoriasPublicas.addView(LinearLayout(this).apply {
+            orientation = LinearLayout.HORIZONTAL
+            gravity = Gravity.CENTER_VERTICAL
+            setPadding(0, dp(18), 0, dp(12))
+            addView(TextView(this@ExplorarCategoriasActivity).apply {
+                text = getString(R.string.section_title_diamond_format, texto)
+                textSize = 16f
+                setTextColor(getColor(R.color.bb_luso_navy))
+                setTypeface(typeface, Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
+            })
+            if (mostrarVerTodas) {
+                addView(TextView(this@ExplorarCategoriasActivity).apply {
+                    text = getString(R.string.ver_todas_chevron)
+                    textSize = 13f
+                    setTextColor(getColor(R.color.bb_luso_navy))
+                    setTypeface(typeface, Typeface.BOLD)
+                    setOnClickListener { onVerTodas?.invoke() }
+                })
+            }
         })
     }
 
@@ -255,7 +267,8 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
     }
 
     private fun adicionarGrupoBotoes(card: LinearLayout, botoes: List<Button>) {
-        botoes.chunked(2).forEach { linhaBotoes ->
+        val grupos = if (botoes.size <= 3) listOf(botoes) else botoes.chunked(2)
+        grupos.forEach { linhaBotoes ->
             val linha = LinearLayout(this).apply {
                 orientation = LinearLayout.HORIZONTAL
                 gravity = Gravity.CENTER
@@ -265,7 +278,7 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
                 ).apply { topMargin = dp(8) }
             }
             linhaBotoes.forEachIndexed { index, botao ->
-                botao.layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f).apply {
+                botao.layoutParams = LinearLayout.LayoutParams(0, dp(38), 1f).apply {
                     marginEnd = if (index < linhaBotoes.lastIndex) dp(8) else 0
                 }
                 linha.addView(botao)
@@ -283,17 +296,17 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         return Button(this).apply {
             text = texto
             isAllCaps = false
-            minHeight = dp(44)
+            minHeight = dp(38)
             minWidth = 0
-            textSize = 13f
+            textSize = 12f
             typeface = Typeface.DEFAULT_BOLD
             includeFontPadding = false
-            setTextColor(getColor(if (destaque || perigo) R.color.bb_primary_text else R.color.bb_secondary_text))
+            setTextColor(getColor(if (destaque) R.color.bb_primary_text else if (perigo) R.color.bb_danger else R.color.bb_luso_navy))
             background = getDrawable(
                 when {
-                    perigo -> R.drawable.bg_button_danger
-                    destaque -> R.drawable.bg_button_primary
-                    else -> R.drawable.bg_button_secondary
+                    perigo -> R.drawable.bg_category_action_danger
+                    destaque -> R.drawable.bg_category_action_primary
+                    else -> R.drawable.bg_category_action
                 }
             )
             maxLines = 2
@@ -306,28 +319,116 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         }
     }
 
+    private fun criarIconeCategoria(nome: String, chave: String = ""): FrameLayout {
+        return FrameLayout(this).apply {
+            layoutParams = LinearLayout.LayoutParams(dp(72), dp(72))
+            background = getDrawable(R.drawable.bg_category_symbol)
+            addView(ImageView(this@ExplorarCategoriasActivity).apply {
+                setImageResource(iconeCategoria(nome, chave))
+                setColorFilter(getColor(R.color.bb_luso_navy))
+            }, FrameLayout.LayoutParams(dp(42), dp(42), Gravity.CENTER))
+        }
+    }
+
+    private fun criarTextoTitulo(texto: String): TextView {
+        return TextView(this).apply {
+            text = texto
+            textSize = 18f
+            setTextColor(getColor(R.color.bb_luso_navy))
+            typeface = Typeface.create(Typeface.SERIF, Typeface.BOLD)
+        }
+    }
+
+    private fun criarTextoSecundario(texto: String): TextView {
+        return TextView(this).apply {
+            this.text = texto
+            textSize = 12f
+            setTextColor(getColor(R.color.bb_text_secondary))
+            setPadding(0, dp(4), 0, 0)
+        }
+    }
+
+    private fun criarTextoCorpo(texto: String): TextView {
+        return TextView(this).apply {
+            this.text = texto
+            textSize = 13f
+            setTextColor(getColor(R.color.bb_luso_navy))
+            setPadding(0, dp(6), 0, dp(3))
+        }
+    }
+
+    private fun criarBadgeEstado(publica: Boolean): TextView {
+        return TextView(this).apply {
+            text = getString(if (publica) R.string.estado_publica else R.string.estado_privada)
+            textSize = 12f
+            setTextColor(getColor(if (publica) R.color.bb_success else R.color.bb_luso_navy))
+            typeface = Typeface.DEFAULT_BOLD
+            gravity = Gravity.CENTER
+            background = getDrawable(if (publica) R.drawable.bg_category_status_public else R.drawable.bg_category_status_private)
+            setPadding(dp(12), dp(5), dp(12), dp(5))
+        }
+    }
+
+    private fun iconeCategoria(nome: String, chave: String = ""): Int {
+        when (chave) {
+            "history_ship" -> return R.drawable.ill_caravel_quiz
+            "geography_globe" -> return R.drawable.ic_globe
+            "math_board" -> return R.drawable.ic_podium_clean
+            "cinema_clapper" -> return R.drawable.ic_masks
+            "science_atom" -> return R.drawable.ic_chest_clean
+            "sports_ball" -> return R.drawable.ic_ball
+            "culture_masks" -> return R.drawable.ic_masks
+            "portugal_rooster" -> return R.drawable.ic_flag_clean
+            "literature_book" -> return R.drawable.ic_book
+            "music_guitar" -> return R.drawable.ic_star
+            "food_plate" -> return R.drawable.ic_star
+            "technology_chip" -> return R.drawable.ic_chest_clean
+            "default_star" -> return R.drawable.ic_star
+        }
+        val normalizado = nome.lowercase()
+        return when {
+            "hist" in normalizado || "naval" in normalizado -> R.drawable.ill_caravel_quiz
+            "geo" in normalizado || "mundo" in normalizado -> R.drawable.ic_compass_simple
+            "desporto" in normalizado || "sport" in normalizado -> R.drawable.ic_target_clean
+            "cultura" in normalizado || "filme" in normalizado || "série" in normalizado -> R.drawable.ic_masks
+            "mat" in normalizado || "desafio" in normalizado -> R.drawable.ic_podium_clean
+            "ciência" in normalizado || "tecnologia" in normalizado -> R.drawable.ic_chest_clean
+            else -> R.drawable.ic_star
+        }
+    }
+
     private fun mostrarEscolhaModo(categoria: CategoriaExploravel) {
         if (nomeUtilizador.isNullOrBlank() && nomeJogador.isNullOrBlank()) {
             Toast.makeText(this, R.string.indica_nome_antes_jogar, Toast.LENGTH_SHORT).show()
             return
         }
 
-        val opcoes = resources.getStringArray(R.array.opcoes_modo_personalizado)
-        AlertDialog.Builder(this)
-            .setTitle(R.string.escolher_modo)
-            .setItems(opcoes) { _, which ->
-                when (which) {
-                    0 -> iniciarCategoriaSolo(categoria, GameConstants.MODO_CLASSICO)
-                    1 -> iniciarCategoriaSolo(categoria, GameConstants.MODO_CAOTICO)
-                    2 -> iniciarCategoriaSolo(categoria, GameConstants.MODO_ELIMINATORIAS)
-                    3 -> iniciarCategoria(categoria, GameConstants.MODO_CLASSICO)
-                    4 -> abrirConviteCategoria(categoria, GameConstants.MODO_1X1)
-                    5 -> abrirConviteCategoria(categoria, GameConstants.MODO_2X2)
-                    6 -> iniciarCategoria(categoria, GameConstants.MODO_ELIMINATORIAS)
+        CategoriaModoDialog.mostrar(
+            this,
+            listOf(
+                CategoriaModoDialog.Opcao(getString(R.string.modo_solo_classico), getString(R.string.modo_solo_classico_descricao), R.drawable.ic_solo) {
+                    iniciarCategoriaSolo(categoria, GameConstants.MODO_CLASSICO)
+                },
+                CategoriaModoDialog.Opcao(getString(R.string.modo_solo_caotico), getString(R.string.modo_solo_caotico_descricao), R.drawable.ic_bomb) {
+                    iniciarCategoriaSolo(categoria, GameConstants.MODO_CAOTICO)
+                },
+                CategoriaModoDialog.Opcao(getString(R.string.modo_solo_eliminatorias), getString(R.string.modo_solo_eliminatorias_descricao), R.drawable.ic_shield_clean) {
+                    iniciarCategoriaSolo(categoria, GameConstants.MODO_ELIMINATORIAS)
+                },
+                CategoriaModoDialog.Opcao(getString(R.string.modo_classico_grupo), getString(R.string.modo_classico_grupo_descricao), R.drawable.ic_group) {
+                    iniciarCategoria(categoria, GameConstants.MODO_CLASSICO)
+                },
+                CategoriaModoDialog.Opcao(getString(R.string.modo_1x1_convite), getString(R.string.modo_1x1_convite_descricao), R.drawable.ic_sword) {
+                    abrirConviteCategoria(categoria, GameConstants.MODO_1X1)
+                },
+                CategoriaModoDialog.Opcao(getString(R.string.modo_2x2_convite), getString(R.string.modo_2x2_convite_descricao), R.drawable.ic_duo) {
+                    abrirConviteCategoria(categoria, GameConstants.MODO_2X2)
+                },
+                CategoriaModoDialog.Opcao(getString(R.string.modo_eliminatorias_grupo), getString(R.string.modo_eliminatorias_grupo_descricao), R.drawable.ic_trophy) {
+                    iniciarCategoria(categoria, GameConstants.MODO_ELIMINATORIAS)
                 }
-            }
-            .setNegativeButton(R.string.cancelar, null)
-            .show()
+            )
+        )
     }
 
     private fun iniciarCategoria(categoria: CategoriaExploravel, modo: String) {
@@ -433,6 +534,14 @@ class ExplorarCategoriasActivity : AppCompatActivity() {
         uid?.let { intent.putExtra(IntentExtras.UID, it) }
         intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_CLASSICO)
         intent.putExtra(IntentExtras.ADMIN, true)
+        startActivity(intent)
+    }
+
+    private fun abrirMinhasCategorias() {
+        val intent = Intent(this, MinhasCategoriasActivity::class.java)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
         startActivity(intent)
     }
 

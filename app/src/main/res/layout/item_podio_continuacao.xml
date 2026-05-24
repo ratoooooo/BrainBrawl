@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="58dp"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingHorizontal="10dp">
+
+    <TextView
+        android:id="@+id/txtPosicaoPodioContinua"
+        android:layout_width="42dp"
+        android:layout_height="34dp"
+        android:background="@drawable/bg_ranking_rank_default"
+        android:fontFamily="sans-serif-black"
+        android:gravity="center"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        tools:text="#4" />
+
+    <ImageView
+        android:id="@+id/imgAvatarPodioContinua"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="10dp"
+        android:background="@drawable/bg_ranking_avatar"
+        android:contentDescription="@string/avatar_do_jogador"
+        android:padding="2dp"
+        tools:src="@drawable/avatar_1_playstore" />
+
+    <TextView
+        android:id="@+id/txtNomePodioContinua"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:fontFamily="sans-serif-black"
+        android:maxLines="1"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        tools:text="Jogador com nome grande" />
+
+    <TextView
+        android:id="@+id/txtPontosPodioContinua"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-black"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        tools:text="2.150" />
+</LinearLayout>

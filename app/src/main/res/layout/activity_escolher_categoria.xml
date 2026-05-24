@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
@@ -9,268 +8,391 @@
     android:background="@drawable/bg_main_premium"
     tools:context=".EscolherCategoriaActivity">
 
-    <!-- Guideline para centralização vertical -->
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/gl_center"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5" />
-
-    <!-- Título -->
-    <TextView
-        android:id="@+id/txt_categoria"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="48dp"
-        android:text="@string/escolha_categoria"
-        android:textAllCaps="true"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="36sp"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"
-        android:gravity="center"
-        app:layout_constraintBottom_toTopOf="@id/layout_categoria_1"
+    <ImageButton
+        android:id="@+id/btn_back_header"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
+        android:contentDescription="@string/voltar"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
 
-    <!-- Categoria 1 -->
-    <LinearLayout
-        android:id="@+id/layout_categoria_1"
+    <ScrollView
+        android:id="@+id/scroll_conteudo"
         android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_secondary"
-        android:gravity="center"
-        android:layout_marginBottom="24dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintBottom_toTopOf="@id/layout_categoria_2"
-        app:layout_constraintStart_toStartOf="parent"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.85">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_book"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_categoria_1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/categoria1"
-            android:textSize="18sp"
-            android:textColor="@color/bb_text_primary"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
-
-    <!-- Categoria 2 -->
-    <LinearLayout
-        android:id="@+id/layout_categoria_2"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_secondary"
-        android:gravity="center"
-        android:layout_marginBottom="24dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintBottom_toTopOf="@id/layout_categoria_3"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.85">
+        app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_globe"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_categoria_2"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layout_conteudo"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/categoria2"
-            android:textSize="18sp"
-            android:textColor="@color/bb_text_primary"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="88dp"
+            android:paddingBottom="36dp">
 
-    <!-- Categoria 3 -->
-    <LinearLayout
-        android:id="@+id/layout_categoria_3"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_secondary"
-        android:gravity="center"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintTop_toTopOf="@id/gl_center"
-        app:layout_constraintBottom_toBottomOf="@id/gl_center"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.85">
+            <TextView
+                android:id="@+id/txt_categoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/escolha_categoria"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="29sp"
+                android:textStyle="bold" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_ball"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_categoria_3"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/categoria3"
-            android:textSize="18sp"
-            android:textColor="@color/bb_text_primary"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:orientation="horizontal">
 
-    <!-- Categoria 4 -->
-    <LinearLayout
-        android:id="@+id/layout_categoria_4"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_secondary"
-        android:gravity="center"
-        android:layout_marginTop="24dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintTop_toBottomOf="@id/layout_categoria_3"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.85">
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_star"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_categoria_4"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/categoria4"
-            android:textSize="18sp"
-            android:textColor="@color/bb_text_primary"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:contentDescription="@string/escolha_categoria"
+                    android:src="@drawable/ic_accent_diamond" />
 
-    <!-- Categoria 5 -->
-    <LinearLayout
-        android:id="@+id/layout_categoria_5"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_secondary"
-        android:gravity="center"
-        android:layout_marginTop="24dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintTop_toBottomOf="@id/layout_categoria_4"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintWidth_percent="0.85">
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_map"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_categoria_5"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/categoria6"
-            android:textSize="18sp"
-            android:textColor="@color/bb_text_primary"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
+            <LinearLayout
+                android:id="@+id/btn_categoria_1"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginTop="26dp"
+                android:background="@drawable/bg_main_mode_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="14dp">
 
-    <!-- Botão Explorar Categorias -->
-    <LinearLayout
-        android:id="@+id/layout_criar_categoria"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_primary"
-        android:gravity="center"
-        android:layout_marginTop="32dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_categoria_5"
-        app:layout_constraintWidth_percent="0.85">
+                <FrameLayout
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_game_type_icon">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_add"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_criar_categoria"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/explorar_categorias"
-            android:textSize="18sp"
-            android:textColor="@color/bb_primary_text"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
+                    <ImageView
+                        android:layout_width="29dp"
+                        android:layout_height="29dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/categoria1"
+                        android:src="@drawable/ic_landmark"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="@string/categoria1"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
 
-    <LinearLayout
-        android:id="@+id/layout_voltar"
-        android:layout_width="0dp"
-        android:layout_height="56dp"
-        android:orientation="horizontal"
-        android:background="@drawable/bg_button_danger"
-        android:gravity="center"
-        android:layout_marginTop="32dp"
-        android:clickable="true"
-        android:focusable="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/layout_criar_categoria"
-        app:layout_constraintWidth_percent="0.85">
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/categoria1"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/bb_luso_navy" />
+            </LinearLayout>
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_back"
-            android:layout_marginEnd="12dp" />
-        <TextView
-            android:id="@+id/btn_voltar"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/voltar"
-            android:textSize="18sp"
-            android:textColor="@color/bb_primary_text"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"/>
-    </LinearLayout>
+            <LinearLayout
+                android:id="@+id/btn_categoria_2"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_main_mode_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="14dp">
+
+                <FrameLayout
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_game_type_icon">
+
+                    <ImageView
+                        android:layout_width="29dp"
+                        android:layout_height="29dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/categoria2"
+                        android:src="@drawable/ic_globe"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="@string/categoria2"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/categoria2"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/bb_luso_navy" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_categoria_3"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_main_mode_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="14dp">
+
+                <FrameLayout
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_game_type_icon">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/categoria3"
+                        android:src="@drawable/ic_ball"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="@string/categoria3"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/categoria3"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/bb_luso_navy" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_categoria_4"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_main_mode_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="14dp">
+
+                <FrameLayout
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_game_type_icon">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/categoria4"
+                        android:src="@drawable/ic_masks"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="@string/categoria4"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/categoria4"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/bb_luso_navy" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_categoria_5"
+                android:layout_width="match_parent"
+                android:layout_height="78dp"
+                android:layout_marginTop="14dp"
+                android:background="@drawable/bg_main_mode_card"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="14dp">
+
+                <FrameLayout
+                    android:layout_width="52dp"
+                    android:layout_height="52dp"
+                    android:background="@drawable/bg_game_type_icon">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:contentDescription="@string/categoria6"
+                        android:src="@drawable/ic_flag_clean"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="24dp"
+                    android:layout_weight="1"
+                    android:fontFamily="serif"
+                    android:text="@string/categoria6"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="22sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="28dp"
+                    android:layout_height="28dp"
+                    android:contentDescription="@string/categoria6"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/bb_luso_navy" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_criar_categoria"
+                android:layout_width="match_parent"
+                android:layout_height="62dp"
+                android:layout_marginTop="28dp"
+                android:background="@drawable/bg_main_black_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="20dp"
+                    android:contentDescription="@string/explorar_categorias"
+                    android:src="@drawable/ic_compass_simple" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:text="@string/explorar_categorias_caps"
+                    android:textColor="@color/bb_primary_text"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginStart="20dp"
+                    android:contentDescription="@string/explorar_categorias"
+                    android:src="@drawable/ic_chevron_right"
+                    app:tint="@color/bb_luso_gold" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_voltar"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_button_secondary"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp">
+
+                <ImageView
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
+                    android:layout_marginEnd="12dp"
+                    android:contentDescription="@string/voltar"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/bb_luso_navy" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/voltar"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+        </LinearLayout>
+    </ScrollView>
 
     <ImageButton
         android:id="@+id/info_categorias"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_eye"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
         android:contentDescription="@string/info_categorias"
-        android:padding="8dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="28dp"
-        android:layout_marginEnd="24dp" />
-
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

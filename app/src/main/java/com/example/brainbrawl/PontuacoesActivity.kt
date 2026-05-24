@@ -1,11 +1,8 @@
 package com.example.brainbrawl
 
-import android.graphics.Color
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.widget.TextView
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.graphics.toColorInt
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
@@ -28,6 +25,9 @@ class PontuacoesActivity : AppCompatActivity() {
     private lateinit var nomeUtilizador: String
     private lateinit var nomeJogador: String
     private var uid: String = ""
+    private var totalPerguntas: Int = 1
+    private var totalRespostasCertas: Int = 0
+    private var podioRenderer: PodioUiRenderer? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,10 +38,10 @@ class PontuacoesActivity : AppCompatActivity() {
         uid = intent.getStringExtra(IntentExtras.UID) ?: authService.utilizadorAtual()?.uid ?: ""
         val nomeCategoria = intent.getStringExtra(IntentExtras.NOME_CATEGORIA) ?: ""
         nomeUtilizador = intent.getStringExtra(IntentExtras.NOME_UTILIZADOR) ?: ""
-        val totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
+        totalPerguntas = intent.getIntExtra(IntentExtras.TOTAL_PERGUNTAS, 1)
         val modoJogo = intent.getStringExtra(IntentExtras.MODO_JOGO) ?: ""
         val totalPontos = intent.getDoubleExtra(IntentExtras.TOTAL_PONTOS, 0.0)
-        val totalRespostasCertas = intent.getIntExtra(
+        totalRespostasCertas = intent.getIntExtra(
             IntentExtras.TOTAL_PERGUNTAS_CERTAS_LEGACY,
             intent.getIntExtra(IntentExtras.RESPOSTAS_CERTAS, 0)
         )
@@ -54,7 +54,9 @@ class PontuacoesActivity : AppCompatActivity() {
             IntentExtras.IS_GUEST,
             tipoJogador == GameConstants.TIPO_JOGADOR_GUEST
         )
+        val avatar = intent.getStringExtra(IntentExtras.AVATAR).orEmpty()
 
+        podioRenderer = PodioUiRenderer(binding.root)
         configurarObservers()
         viewModel.iniciar(
             PontuacoesInput(
@@ -72,7 +74,8 @@ class PontuacoesActivity : AppCompatActivity() {
                 categoriaCompetitiva = categoriaCompetitiva,
                 tipoJogador = tipoJogador,
                 isGuest = isGuest,
-                isHostOnly = isAdmin
+                isHostOnly = isAdmin,
+                avatar = avatar
             )
         )
 
@@ -84,30 +87,29 @@ class PontuacoesActivity : AppCompatActivity() {
 
     private fun configurarObservers() {
         viewModel.uiState.observe(this) { state ->
-            binding.layoutPodio.removeAllViews()
-            if (state.mensagem.isNotBlank()) {
-                mostrarMensagemPodio(state.mensagem)
-            }
-            val inflater = LayoutInflater.from(this)
-            state.podio.forEach { item ->
-                val view = inflater.inflate(R.layout.item_podio, binding.layoutPodio, false)
-                val txtMedalha = view.findViewById<TextView>(R.id.txt_medalha)
-                val txtNome = view.findViewById<TextView>(R.id.txt_nome_jogador)
-                val txtPontos = view.findViewById<TextView>(R.id.txt_pontos)
-                txtMedalha.text = item.medalha
-                txtMedalha.setTextColor(item.corMedalha.toColorInt())
-                txtNome.text = item.nome
-                txtPontos.text = item.pontos
-                binding.layoutPodio.addView(view)
-            }
+            binding.txtEstadoPodio.text = state.mensagem
+            binding.txtEstadoPodio.visibility = if (state.mensagem.isBlank()) View.GONE else View.VISIBLE
+            podioRenderer?.render(
+                jogadores = state.podio.mapIndexed { index, item ->
+                    PodioPlayerUi(
+                        position = index + 1,
+                        nome = item.nome,
+                        pontos = item.pontos,
+                        avatar = item.avatar
+                    )
+                },
+                stats = criarStats()
+            )
         }
     }
 
-    private fun mostrarMensagemPodio(mensagem: String) {
-        val textView = TextView(this)
-        textView.text = mensagem
-        textView.textSize = 16f
-        textView.setTextColor(Color.BLACK)
-        binding.layoutPodio.addView(textView)
+    private fun criarStats(): PodioStatsUi {
+        val total = totalPerguntas.coerceAtLeast(1)
+        val precisao = (totalRespostasCertas * 100 / total).coerceIn(0, 100)
+        return PodioStatsUi(
+            rodadas = total.toString(),
+            precisao = "$precisao%",
+            acertos = totalRespostasCertas.toString()
+        )
     }
 }

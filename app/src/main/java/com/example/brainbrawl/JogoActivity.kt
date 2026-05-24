@@ -71,6 +71,7 @@ class JogoActivity : AppCompatActivity() {
         val donoUid = intent.getStringExtra(IntentExtras.DONO_UID).orEmpty()
         val donoCategoria = intent.getStringExtra(IntentExtras.DONO_CATEGORIA).orEmpty()
 
+        binding.txtCategoriaJogo.text = nomeCategoria.ifBlank { getString(R.string.categoria5) }
         configurarObservers()
         configurarBackBloqueado()
         viewModel.iniciar(
@@ -144,10 +145,10 @@ class JogoActivity : AppCompatActivity() {
         binding.btnOpcao3.text = opcoesAtuais[2]
         binding.btnOpcao4.text = opcoesAtuais[3]
 
-        definirCorBotao(binding.btnOpcao1, "#E0E0E0")
-        definirCorBotao(binding.btnOpcao2, "#E0E0E0")
-        definirCorBotao(binding.btnOpcao3, "#E0E0E0")
-        definirCorBotao(binding.btnOpcao4, "#E0E0E0")
+        definirCorBotao(binding.btnOpcao1, "#FFFDF7")
+        definirCorBotao(binding.btnOpcao2, "#FFFDF7")
+        definirCorBotao(binding.btnOpcao3, "#FFFDF7")
+        definirCorBotao(binding.btnOpcao4, "#FFFDF7")
 
         desbloquearOpcoes()
         tempoDecorrido = true

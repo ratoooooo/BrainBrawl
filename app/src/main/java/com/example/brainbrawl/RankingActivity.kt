@@ -3,6 +3,8 @@ package com.example.brainbrawl
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
+import androidx.core.widget.TextViewCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.brainbrawl.config.IntentExtras
@@ -42,16 +44,12 @@ class RankingActivity : AppCompatActivity() {
             finish()
         }
 
-        binding.btnRankingGlobal.setOnClickListener {
-            viewModel.carregarRanking(RankingTipo.GLOBAL)
-        }
-
         binding.btnRankingRecorde.setOnClickListener {
             viewModel.carregarRanking(RankingTipo.RECORDE)
         }
 
         binding.btnRankingSolo.setOnClickListener {
-            viewModel.carregarRanking(RankingTipo.SOLO)
+            viewModel.carregarRanking(RankingTipo.GRUPO)
         }
 
         binding.btnRanking1x1.setOnClickListener {
@@ -66,7 +64,7 @@ class RankingActivity : AppCompatActivity() {
             atualizarEstado(estado)
         }
 
-        viewModel.carregarRanking(RankingTipo.GLOBAL)
+        viewModel.carregarRanking(RankingTipo.GRUPO)
     }
 
     private fun atualizarEstado(estado: RankingUiState) {
@@ -82,44 +80,44 @@ class RankingActivity : AppCompatActivity() {
         when (estado) {
             is RankingUiState.Loading -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
             }
 
             is RankingUiState.Empty -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
                 binding.txtEstadoRanking.text = getString(R.string.ainda_sem_ranking)
             }
 
             is RankingUiState.Error -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
                 binding.txtEstadoRanking.text = getString(R.string.erro_carregar_ranking)
             }
 
             is RankingUiState.Content -> {
                 atualizarTipoSelecionado(estado.tipo)
-                binding.txtTituloRanking.text = tituloRanking(estado.tipo)
                 rankingAdapter.atualizar(estado.tipo, estado.jogadores)
             }
         }
     }
 
-    private fun tituloRanking(tipo: RankingTipo): String {
-        return when (tipo) {
-            RankingTipo.GLOBAL -> getString(R.string.ranking_global_titulo)
-            RankingTipo.RECORDE -> getString(R.string.ranking_recordes_titulo)
-            RankingTipo.SOLO -> getString(R.string.ranking_solo_titulo)
-            RankingTipo.MODO_1X1 -> getString(R.string.ranking_1x1_titulo)
-            RankingTipo.MODO_2X2 -> getString(R.string.ranking_2x2_titulo)
-        }
-    }
-
     private fun atualizarTipoSelecionado(tipo: RankingTipo) {
-        binding.btnRankingGlobal.alpha = if (tipo == RankingTipo.GLOBAL) 1.0f else 0.6f
-        binding.btnRankingRecorde.alpha = if (tipo == RankingTipo.RECORDE) 1.0f else 0.6f
-        binding.btnRankingSolo.alpha = if (tipo == RankingTipo.SOLO) 1.0f else 0.6f
-        binding.btnRanking1x1.alpha = if (tipo == RankingTipo.MODO_1X1) 1.0f else 0.6f
-        binding.btnRanking2x2.alpha = if (tipo == RankingTipo.MODO_2X2) 1.0f else 0.6f
+        listOf(
+            binding.btnRankingSolo to RankingTipo.GRUPO,
+            binding.btnRanking1x1 to RankingTipo.MODO_1X1,
+            binding.btnRanking2x2 to RankingTipo.MODO_2X2,
+            binding.btnRankingRecorde to RankingTipo.RECORDE
+        ).forEach { (tab, tabTipo) ->
+            val selecionado = tipo == tabTipo
+            tab.background = ContextCompat.getDrawable(
+                this,
+                if (selecionado) R.drawable.bg_ranking_tab_selected else R.drawable.bg_ranking_tab_unselected
+            )
+            tab.setTextColor(
+                ContextCompat.getColor(this, if (selecionado) R.color.bb_primary_text else R.color.bb_luso_navy)
+            )
+            TextViewCompat.setCompoundDrawableTintList(tab, ContextCompat.getColorStateList(
+                this,
+                if (selecionado) R.color.bb_luso_gold else R.color.bb_luso_navy
+            ))
+        }
     }
 }

@@ -1,72 +1,227 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_app_gradient"
-    android:padding="@dimen/bb_space_lg">
+    android:background="@drawable/bg_main_premium"
+    tools:context=".ConquistasActivity">
 
-    <TextView
-        android:id="@+id/txtTituloConquistas"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-black"
-        android:gravity="center"
-        android:text="@string/conquistas"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="@dimen/bb_title_size"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageButton
+        android:id="@+id/btnVoltarConquistas"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
+        android:contentDescription="@string/voltar"
+        android:elevation="8dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/txtSubtituloConquistas"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
-        android:gravity="center"
-        android:text="@string/conquistas_todas_subtitulo"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="14sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloConquistas" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
 
     <ScrollView
         android:id="@+id/scrollConquistas"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="@dimen/bb_space_lg"
-        android:background="@drawable/bg_card_surface"
-        android:fillViewport="false"
-        android:padding="@dimen/bb_space_md"
-        app:layout_constraintBottom_toTopOf="@id/btnVoltarConquistas"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtSubtituloConquistas">
-
-        <GridLayout
-            android:id="@+id/gridConquistas"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:columnCount="3"
-            android:padding="@dimen/bb_space_sm"
-            android:useDefaultMargins="false" />
-    </ScrollView>
-
-    <Button
-        android:id="@+id/btnVoltarConquistas"
-        style="@style/BrainBrawlButton"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/bb_button_height"
-        android:layout_marginTop="@dimen/bb_space_md"
-        android:background="@drawable/bg_button_danger"
-        android:text="@string/voltar"
-        android:textAllCaps="false"
-        android:textColor="@color/bb_primary_text"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scrollConquistas" />
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="88dp"
+            android:paddingBottom="34dp">
+
+            <TextView
+                android:id="@+id/txtTituloConquistas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/conquistas"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="34sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_accent_diamond" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="26dp"
+                android:background="@drawable/bg_luso_segment_container"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:padding="4dp">
+
+                <TextView
+                    android:id="@+id/tabTodas"
+                    style="@style/Widget_BrainBrawl_AchievementTab"
+                    android:text="@string/conquistas_todas" />
+
+                <TextView
+                    android:id="@+id/tabCombate"
+                    style="@style/Widget_BrainBrawl_AchievementTab"
+                    android:text="@string/conquistas_combate" />
+
+                <TextView
+                    android:id="@+id/tabExploracao"
+                    style="@style/Widget_BrainBrawl_AchievementTab"
+                    android:text="@string/conquistas_exploracao" />
+
+                <TextView
+                    android:id="@+id/tabSocial"
+                    style="@style/Widget_BrainBrawl_AchievementTab"
+                    android:text="@string/conquistas_social" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="118dp"
+                android:layout_marginTop="20dp"
+                android:background="@drawable/bg_main_hero_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="22dp"
+                android:paddingEnd="18dp">
+
+                <ImageView
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:src="@drawable/ic_shield_clean"
+                    app:tint="@color/bb_luso_gold" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="18dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/txtResumoConquistas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:textColor="@color/bb_luso_navy"
+                        android:textSize="24sp"
+                        android:textStyle="bold"
+                        tools:text="6 / 24" />
+
+                    <TextView
+                        android:id="@+id/txtSubtituloConquistas"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="2dp"
+                        android:fontFamily="sans-serif"
+                        android:text="@string/conquistas_desbloqueadas_subtitulo"
+                        android:textColor="@color/bb_text_secondary"
+                        android:textSize="13sp" />
+
+                    <ProgressBar
+                        android:id="@+id/progressConquistas"
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:layout_marginTop="12dp"
+                        android:max="100"
+                        android:progress="25"
+                        android:progressDrawable="@drawable/bg_xp_progress_premium" />
+                </LinearLayout>
+
+                <ImageView
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_marginStart="14dp"
+                    android:src="@drawable/ic_chest_clean" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="serif"
+                android:text="@string/conquistas_desbloqueadas"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <GridLayout
+                android:id="@+id/gridConquistas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:columnCount="3"
+                android:useDefaultMargins="false" />
+
+            <TextView
+                android:id="@+id/txtTituloBloqueadas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:fontFamily="serif"
+                android:text="@string/conquistas_bloqueadas"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="23sp"
+                android:textStyle="bold" />
+
+            <GridLayout
+                android:id="@+id/gridConquistasBloqueadas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:columnCount="3"
+                android:useDefaultMargins="false" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_hint_luso"
+                android:drawableStart="@drawable/ic_star"
+                android:drawablePadding="12dp"
+                android:fontFamily="sans-serif"
+                android:gravity="center_vertical"
+                android:padding="18dp"
+                android:text="@string/conquistas_footer_hint"
+                android:textColor="@color/bb_text_secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

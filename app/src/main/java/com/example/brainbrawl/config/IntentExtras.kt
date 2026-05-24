@@ -14,6 +14,7 @@ object IntentExtras {
     const val DONO_UID = "donoUid"
     const val DONO_CATEGORIA = "donoCategoria"
     const val ORIGEM_CATEGORIA = "origemCategoria"
+    const val ORIGEM_SALA = "origemSala"
     const val CATEGORIA_COMPETITIVA = "categoriaCompetitiva"
     const val MODO_JOGO = "modoJogo"
     const val MODO_SOLO = "modoSolo"

@@ -1,5 +1,7 @@
 package com.example.brainbrawl.services
 
+import com.example.brainbrawl.config.GameConstants
+
 class ScoreCompetitivoService {
     data class ResultadoPontuacao(
         val pontos: Int,
@@ -9,9 +11,10 @@ class ScoreCompetitivoService {
     fun calcularPontuacao(
         tempoRestante: Double,
         numeroPerguntasCertas: Int,
-        bonus: Int
+        bonus: Int,
+        tempoTotalPergunta: Double = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
     ): ResultadoPontuacao {
-        val tempoUsado = (15 - tempoRestante).toInt()
+        val tempoUsado = (tempoTotalPergunta - tempoRestante).toInt()
         val bonusAplicado = when {
             numeroPerguntasCertas == 2 -> bonus
             numeroPerguntasCertas == 3 -> bonus + 25
@@ -20,7 +23,7 @@ class ScoreCompetitivoService {
         }
 
         return ResultadoPontuacao(
-            pontos = ((15 - tempoUsado) * 10) + bonusAplicado,
+            pontos = ((tempoTotalPergunta - tempoUsado).toInt() * 10) + bonusAplicado,
             bonusAplicado = bonusAplicado
         )
     }

@@ -1,23 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_main_premium"
-    android:padding="@dimen/bb_space_lg">
+    android:paddingStart="20dp"
+    android:paddingTop="24dp"
+    android:paddingEnd="20dp">
+
+    <ImageButton
+        android:id="@+id/btnVoltarHistorico"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:background="@drawable/bg_button_secondary"
+        android:contentDescription="@string/voltar"
+        android:padding="11dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
 
     <TextView
         android:id="@+id/txtTituloHistorico"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:fontFamily="serif"
+        android:gravity="center"
         android:text="@string/historico"
-        android:textAlignment="center"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="@dimen/bb_title_size"
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="34sp"
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/txtHistoricoAccent"
+        android:layout_width="120dp"
+        android:layout_height="24dp"
+        android:gravity="center"
+        android:text="@string/luso_accent_line"
+        android:textColor="@color/bb_luso_gold"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="@id/txtTituloHistorico"
+        app:layout_constraintStart_toStartOf="@id/txtTituloHistorico"
+        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
+
+    <LinearLayout
+        android:id="@+id/layoutFiltrosHistorico"
+        android:layout_width="0dp"
+        android:layout_height="44dp"
+        android:layout_marginTop="18dp"
+        android:background="@drawable/bg_history_filter_bar"
+        android:gravity="center"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/txtHistoricoAccent">
+
+        <TextView
+            android:id="@+id/btnFiltroTodos"
+            style="@style/Widget_BrainBrawl_HistoryFilter"
+            android:text="@string/historico_todos" />
+
+        <TextView
+            android:id="@+id/btnFiltroOficial"
+            style="@style/Widget_BrainBrawl_HistoryFilter"
+            android:text="@string/historico_oficial" />
+
+        <TextView
+            android:id="@+id/btnFiltroPersonalizadas"
+            style="@style/Widget_BrainBrawl_HistoryFilter"
+            android:text="@string/historico_personalizadas" />
+    </LinearLayout>
 
     <ProgressBar
         android:id="@+id/progressHistorico"
@@ -25,10 +81,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/bb_space_lg"
-        android:indeterminateTint="@color/bb_primary"
+        android:indeterminateTint="@color/bb_luso_gold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
+        app:layout_constraintTop_toBottomOf="@id/layoutFiltrosHistorico" />
 
     <TextView
         android:id="@+id/txtMensagemHistorico"
@@ -36,38 +92,29 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="@dimen/bb_space_lg"
         android:background="@drawable/bg_empty_state_card"
+        android:fontFamily="sans-serif-medium"
+        android:gravity="center"
         android:padding="@dimen/bb_space_lg"
-        android:textAlignment="center"
         android:textColor="@color/bb_text_secondary"
         android:textSize="@dimen/bb_body_size"
         android:visibility="gone"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
+        app:layout_constraintTop_toBottomOf="@id/layoutFiltrosHistorico"
+        tools:text="Ainda não há jogos no histórico." />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerHistorico"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="@dimen/bb_space_md"
+        android:layout_marginTop="18dp"
         android:clipToPadding="false"
-        android:paddingBottom="@dimen/bb_space_sm"
-        app:layout_constraintBottom_toTopOf="@id/btnVoltarHistorico"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloHistorico" />
-
-    <Button
-        android:id="@+id/btnVoltarHistorico"
-        style="@style/BrainBrawlButton"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/bb_button_height"
-        android:layout_marginTop="@dimen/bb_space_md"
-        android:background="@drawable/bg_button_primary"
-        android:text="@string/voltar"
-        android:textColor="@color/bb_primary_text"
+        android:paddingBottom="12dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/layoutFiltrosHistorico"
+        tools:itemCount="6"
+        tools:listitem="@layout/item_historico_jogo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

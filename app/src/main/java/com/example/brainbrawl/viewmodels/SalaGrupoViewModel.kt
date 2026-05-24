@@ -1,5 +1,6 @@
 package com.example.brainbrawl.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -104,6 +105,19 @@ class SalaGrupoViewModel(
                 val podeIniciar = admin && emFalta == 0
                 _jogadores.value = SalaGrupoJogadoresUiState(
                     nomes = nomes,
+                    jogadores = participantes.map { jogador ->
+                        Log.d(
+                            WAITING_ROOM_AVATAR_TAG,
+                            "bind roomGroup playerKey=${jogador.chave.maskedLogId()} uid=${jogador.uid.maskedLogId()} " +
+                                "username=${jogador.nome} avatar=${jogador.avatar.ifBlank { "<empty>" }} " +
+                                "source=salas/$codigoSala/jogadores/${jogador.chave}/avatar"
+                        )
+                        SalaGrupoJogadorUiState(
+                            nome = jogador.nome,
+                            avatar = jogador.avatar.ifBlank { AVATAR_PADRAO },
+                            estado = jogador.estado
+                        )
+                    },
                     podeIniciar = podeIniciar,
                     jogadoresMinimosAtuais = participantes.size,
                     jogadoresMinimosNecessarios = MINIMO_JOGADORES_GRUPO,
@@ -236,15 +250,23 @@ class SalaGrupoViewModel(
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
         const val MINIMO_JOGADORES_GRUPO = 2
+        const val WAITING_ROOM_AVATAR_TAG = "WAITING_ROOM_AVATAR_DEBUG"
     }
 }
 
 data class SalaGrupoJogadoresUiState(
     val nomes: List<String>,
+    val jogadores: List<SalaGrupoJogadorUiState> = emptyList(),
     val podeIniciar: Boolean,
     val jogadoresMinimosAtuais: Int = 0,
     val jogadoresMinimosNecessarios: Int = 2,
     val jogadoresEmFalta: Int = 2
+)
+
+data class SalaGrupoJogadorUiState(
+    val nome: String,
+    val avatar: String,
+    val estado: String
 )
 
 sealed class SalaEntradaEvent {
@@ -268,4 +290,9 @@ sealed class SalaGrupoEvent {
     data object JogadoresInsuficientes : SalaGrupoEvent()
     data object JogoIniciado : SalaGrupoEvent()
     data object SalaEncerrada : SalaGrupoEvent()
+}
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
 }

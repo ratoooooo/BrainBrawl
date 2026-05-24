@@ -27,6 +27,7 @@ class JogoRepository(
         val nome: String,
         val estado: String,
         val isHostOnly: Boolean,
+        val avatar: String = "",
         val pontos: Double = 0.0,
         val respostasCertas: Int = 0,
         val perguntasRespondidas: Int = 0
@@ -183,6 +184,7 @@ class JogoRepository(
                     nome = jogadorSnapshot.nomeDisplay().ifBlank { chave },
                     estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty(),
                     isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true,
+                    avatar = jogadorSnapshot.child(FirebasePaths.AVATAR).texto(),
                     pontos = jogadorSnapshot.child(FirebasePaths.PONTUACAO).doubleValue(),
                     respostasCertas = jogadorSnapshot.respostasCertas(),
                     perguntasRespondidas = jogadorSnapshot.child(FirebasePaths.TOTAL_PERGUNTAS).intValue()
@@ -206,6 +208,7 @@ class JogoRepository(
                         nome = jogadorSnapshot.nomeDisplay().ifBlank { chave },
                         estado = jogadorSnapshot.child(FirebasePaths.ESTADO).getValue(String::class.java).orEmpty(),
                         isHostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true,
+                        avatar = jogadorSnapshot.child(FirebasePaths.AVATAR).texto(),
                         pontos = jogadorSnapshot.child(FirebasePaths.PONTUACAO).doubleValue(),
                         respostasCertas = jogadorSnapshot.respostasCertas(),
                         perguntasRespondidas = jogadorSnapshot.child(FirebasePaths.TOTAL_PERGUNTAS).intValue()

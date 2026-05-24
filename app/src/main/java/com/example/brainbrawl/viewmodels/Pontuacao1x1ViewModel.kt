@@ -175,11 +175,13 @@ class Pontuacao1x1ViewModel(
         val podio = listOf(
             PontuacaoJogadorUi(
                 nome = jogadores.getOrNull(0)?.nome.orEmpty(),
-                pontos = jogadores.getOrNull(0)?.pontos?.toInt()?.toString().orEmpty()
+                pontos = jogadores.getOrNull(0)?.pontos?.toInt()?.toString().orEmpty(),
+                avatar = jogadores.getOrNull(0)?.avatar.orEmpty()
             ),
             PontuacaoJogadorUi(
                 nome = jogadores.getOrNull(1)?.nome ?: "Aguardando adversário...",
-                pontos = jogadores.getOrNull(1)?.pontos?.toInt()?.toString().orEmpty()
+                pontos = jogadores.getOrNull(1)?.pontos?.toInt()?.toString().orEmpty(),
+                avatar = jogadores.getOrNull(1)?.avatar.orEmpty()
             )
         )
 
@@ -341,7 +343,8 @@ data class Pontuacao1x1Input(
 
 data class PontuacaoJogadorUi(
     val nome: String = "",
-    val pontos: String = ""
+    val pontos: String = "",
+    val avatar: String = ""
 )
 
 data class Pontuacao1x1UiState(

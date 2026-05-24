@@ -5,18 +5,23 @@ import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.UteisJogo.definirCorBotao
 import com.example.brainbrawl.UteisJogo.tocarSom
+import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityJogo2x2Binding
 import com.example.brainbrawl.models.Pergunta
 import com.example.brainbrawl.routes.UteisNavegacao.enviarPontuacaoActivity
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.utils.UteisPerguntas.obterOpcoesAleatorias
+import com.example.brainbrawl.viewmodels.EquipaCompetitivaUi
 import com.example.brainbrawl.viewmodels.Jogo2x2Event
 import com.example.brainbrawl.viewmodels.Jogo2x2ViewModel
 import com.example.brainbrawl.viewmodels.JogoCompetitivoPerguntaUiState
@@ -38,10 +43,12 @@ class Jogo2x2Activity : AppCompatActivity() {
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
+    private var tempoTotalPergunta = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
+    private var tempoTotalPerguntaMs = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_MS
 
     private var mediaPlayer: MediaPlayer? = null
     private var somTocar = false
-    private var tempoRestante = 15.0
+    private var tempoRestante = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
     private var tempoDecorrido = false
     private var progressBarAtivo = false
     private var tempoIniciado: Long = 0
@@ -64,7 +71,20 @@ class Jogo2x2Activity : AppCompatActivity() {
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
+        val origemSala = intent.getStringExtra(IntentExtras.ORIGEM_SALA).orEmpty()
+        if (origemSala == GameConstants.ORIGEM_MATCHMAKING) {
+            tempoTotalPergunta = GameConstants.MATCHMAKING_QUESTION_TIME_SECONDS
+            tempoTotalPerguntaMs = GameConstants.MATCHMAKING_QUESTION_TIME_MS
+        }
 
+        binding.txtCategoriaJogo.text = intent.getStringExtra(IntentExtras.NOME_CATEGORIA)
+            ?: getString(R.string.categoria5)
+        Log.d(
+            START_TAG,
+            "mode=2x2 room=$codigoSala gameCreate uid=${uid.maskedLogId()} playerKey=${playerKey.maskedLogId()} " +
+                "categoryIntent=${intent.getStringExtra(IntentExtras.NOME_CATEGORIA).orEmpty().ifBlank { "<empty>" }} " +
+                "origin=${origemSala.ifBlank { "<empty>" }}"
+        )
         configurarObservers()
         configurarBotoes()
         configurarBackBloqueado()
@@ -77,7 +97,8 @@ class Jogo2x2Activity : AppCompatActivity() {
             tipoJogador = tipoJogador,
             avatar = avatar,
             categoriaPadrao = getString(R.string.categoria5),
-            categoriaTodas = getString(R.string.categoria5)
+            categoriaTodas = getString(R.string.categoria5),
+            tempoTotalPergunta = tempoTotalPergunta
         )
     }
 
@@ -101,37 +122,79 @@ class Jogo2x2Activity : AppCompatActivity() {
         viewModel.pergunta.observe(this) { estado ->
             mostrarPergunta(estado)
         }
+        viewModel.placar.observe(this) { estado ->
+            atualizarPlacarEquipa(
+                equipa = estado.equipaA,
+                nome = getString(R.string.equipa_lusa),
+                nomeView = binding.txtNomeEquipaA,
+                pontosView = binding.txtPontosEquipaA,
+                avatar1 = binding.imgEquipaA1,
+                avatar2 = binding.imgEquipaA2
+            )
+            atualizarPlacarEquipa(
+                equipa = estado.equipaB,
+                nome = getString(R.string.os_descobridores),
+                nomeView = binding.txtNomeEquipaB,
+                pontosView = binding.txtPontosEquipaB,
+                avatar1 = binding.imgEquipaB1,
+                avatar2 = binding.imgEquipaB2
+            )
+        }
         viewModel.evento.observe(this) { evento ->
             tratarEvento(evento ?: return@observe)
             viewModel.consumirEvento()
         }
     }
 
+    private fun atualizarPlacarEquipa(
+        equipa: EquipaCompetitivaUi,
+        nome: String,
+        nomeView: android.widget.TextView,
+        pontosView: android.widget.TextView,
+        avatar1: ImageView,
+        avatar2: ImageView
+    ) {
+        nomeView.text = nome
+        pontosView.text = formatarPontos(equipa.pontuacao)
+        avatar1.setImageResource(AvatarUtils.resolverAvatar(this, equipa.jogadores.getOrNull(0)?.avatar))
+        avatar2.setImageResource(AvatarUtils.resolverAvatar(this, equipa.jogadores.getOrNull(1)?.avatar))
+        avatar2.alpha = if (equipa.jogadores.getOrNull(1) == null) 0.42f else 1f
+    }
+
     private fun configurarBotoes() {
-        binding.btnOpcao1.setOnClickListener { verificarResposta(0) }
-        binding.btnOpcao2.setOnClickListener { verificarResposta(1) }
-        binding.btnOpcao3.setOnClickListener { verificarResposta(2) }
-        binding.btnOpcao4.setOnClickListener { verificarResposta(3) }
+        binding.questionAnswers.btnOpcao1.setOnClickListener { verificarResposta(0) }
+        binding.questionAnswers.btnOpcao2.setOnClickListener { verificarResposta(1) }
+        binding.questionAnswers.btnOpcao3.setOnClickListener { verificarResposta(2) }
+        binding.questionAnswers.btnOpcao4.setOnClickListener { verificarResposta(3) }
     }
 
     private fun mostrarPergunta(estado: JogoCompetitivoPerguntaUiState) {
         handler.removeCallbacksAndMessages(null)
         perguntaAtual = estado.pergunta
         binding.txtProgresso.text = getString(R.string.progresso_pergunta, estado.indice + 1, estado.totalPerguntas)
-        binding.txtPergunta.text = perguntaAtual.pergunta
+        if (estado.categoria.isNotBlank()) {
+            binding.txtCategoriaJogo.text = estado.categoria
+        }
+        Log.d(
+            GAME_CATEGORY_TAG,
+            "mode=2x2 room=$codigoSala uid=${uid.maskedLogId()} " +
+                "categoryIntent=${intent.getStringExtra(IntentExtras.NOME_CATEGORIA).orEmpty().ifBlank { "<empty>" }} " +
+                "categoryDisplayed=${binding.txtCategoriaJogo.text} questionIndex=${estado.indice + 1}/${estado.totalPerguntas}"
+        )
+        binding.questionAnswers.txtPergunta.text = perguntaAtual.pergunta
 
         opcoesAtuais = obterOpcoesAleatorias(perguntaAtual)
-        binding.btnOpcao1.text = opcoesAtuais[0]
-        binding.btnOpcao2.text = opcoesAtuais[1]
-        binding.btnOpcao3.text = opcoesAtuais[2]
-        binding.btnOpcao4.text = opcoesAtuais[3]
+        binding.questionAnswers.btnOpcao1.text = opcoesAtuais[0]
+        binding.questionAnswers.btnOpcao2.text = opcoesAtuais[1]
+        binding.questionAnswers.btnOpcao3.text = opcoesAtuais[2]
+        binding.questionAnswers.btnOpcao4.text = opcoesAtuais[3]
 
-        definirCorBotao(binding.btnOpcao1, "#E0E0E0")
-        definirCorBotao(binding.btnOpcao2, "#E0E0E0")
-        definirCorBotao(binding.btnOpcao3, "#E0E0E0")
-        definirCorBotao(binding.btnOpcao4, "#E0E0E0")
+        definirCorBotao(binding.questionAnswers.btnOpcao1, "#FFFDF7")
+        definirCorBotao(binding.questionAnswers.btnOpcao2, "#FFFDF7")
+        definirCorBotao(binding.questionAnswers.btnOpcao3, "#FFFDF7")
+        definirCorBotao(binding.questionAnswers.btnOpcao4, "#FFFDF7")
 
-        tempoRestante = 15.0
+        tempoRestante = tempoTotalPergunta
     }
 
     private fun verificarResposta(numeroOpcao: Int) {
@@ -145,25 +208,25 @@ class Jogo2x2Activity : AppCompatActivity() {
             binding.txtCronometro.text = "0.0"
         }
 
-        binding.btnOpcao1.isEnabled = false
-        binding.btnOpcao2.isEnabled = false
-        binding.btnOpcao3.isEnabled = false
-        binding.btnOpcao4.isEnabled = false
+        binding.questionAnswers.btnOpcao1.isEnabled = false
+        binding.questionAnswers.btnOpcao2.isEnabled = false
+        binding.questionAnswers.btnOpcao3.isEnabled = false
+        binding.questionAnswers.btnOpcao4.isEnabled = false
 
         val botaoSelecionado = when (numeroOpcao) {
-            0 -> binding.btnOpcao1
-            1 -> binding.btnOpcao2
-            2 -> binding.btnOpcao3
-            3 -> binding.btnOpcao4
+            0 -> binding.questionAnswers.btnOpcao1
+            1 -> binding.questionAnswers.btnOpcao2
+            2 -> binding.questionAnswers.btnOpcao3
+            3 -> binding.questionAnswers.btnOpcao4
             else -> null
         }
         val opcaoEscolhida = if (numeroOpcao in 0..3) opcoesAtuais[numeroOpcao] else ""
         val indiceCorreto = opcoesAtuais.indexOf(perguntaAtual.respostaCorreta)
         val botaoCorreto = when (indiceCorreto) {
-            0 -> binding.btnOpcao1
-            1 -> binding.btnOpcao2
-            2 -> binding.btnOpcao3
-            3 -> binding.btnOpcao4
+            0 -> binding.questionAnswers.btnOpcao1
+            1 -> binding.questionAnswers.btnOpcao2
+            2 -> binding.questionAnswers.btnOpcao3
+            3 -> binding.questionAnswers.btnOpcao4
             else -> null
         }
 
@@ -192,7 +255,7 @@ class Jogo2x2Activity : AppCompatActivity() {
             definirCorBotao(botaoSelecionado, "#E57373")
         }
 
-        val tempoAteProxima = ((tempoIniciado + 15000) - viewModel.tempoServidorAtual()).coerceAtLeast(0)
+        val tempoAteProxima = ((tempoIniciado + tempoTotalPerguntaMs) - viewModel.tempoServidorAtual()).coerceAtLeast(0)
         handler.postDelayed({
             viewModel.avancarPergunta()
         }, tempoAteProxima + 1200)
@@ -209,7 +272,7 @@ class Jogo2x2Activity : AppCompatActivity() {
     private fun iniciarCronometro(horaInicioSincronizada: Long) {
         tempoDecorrido = true
         progressBarAtivo = true
-        val tempoTotal = 15.0
+        val tempoTotal = tempoTotalPergunta
         binding.pbTempo.max = tempoTotal.toInt()
         binding.pbTempo.progress = tempoTotal.toInt()
         var primeiraAtualizacao = true
@@ -232,10 +295,10 @@ class Jogo2x2Activity : AppCompatActivity() {
                 }
 
                 if (primeiraAtualizacao) {
-                    binding.btnOpcao1.isEnabled = true
-                    binding.btnOpcao2.isEnabled = true
-                    binding.btnOpcao3.isEnabled = true
-                    binding.btnOpcao4.isEnabled = true
+                    binding.questionAnswers.btnOpcao1.isEnabled = true
+                    binding.questionAnswers.btnOpcao2.isEnabled = true
+                    binding.questionAnswers.btnOpcao3.isEnabled = true
+                    binding.questionAnswers.btnOpcao4.isEnabled = true
                     primeiraAtualizacao = false
                 }
 
@@ -268,14 +331,17 @@ class Jogo2x2Activity : AppCompatActivity() {
                 iniciarCronometro(evento.horaInicio)
             }
             Jogo2x2Event.ErroLerCategoria -> {
+                Log.w(START_TAG, "mode=2x2 room=$codigoSala finishReason=category_error uid=${uid.maskedLogId()} playerKey=${playerKey.maskedLogId()}")
                 Toast.makeText(this, getString(R.string.erro_ler_categoria), Toast.LENGTH_SHORT).show()
                 finish()
             }
             Jogo2x2Event.ErroCarregarEquipa -> {
+                Log.w(START_TAG, "mode=2x2 room=$codigoSala finishReason=team_load_error uid=${uid.maskedLogId()} playerKey=${playerKey.maskedLogId()}")
                 Toast.makeText(this, getString(R.string.erro_carregar_equipa), Toast.LENGTH_SHORT).show()
                 finish()
             }
             is Jogo2x2Event.ErroPerguntas -> {
+                Log.w(START_TAG, "mode=2x2 room=$codigoSala finishReason=questions_error uid=${uid.maskedLogId()} playerKey=${playerKey.maskedLogId()}")
                 Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
                 finish()
             }
@@ -321,4 +387,18 @@ class Jogo2x2Activity : AppCompatActivity() {
             somTocar = false
         }
     }
+
+    private fun formatarPontos(valor: Double): String {
+        return DecimalFormat("#,###").format(valor)
+    }
+
+    private companion object {
+        const val START_TAG = "INVITE_START_ROOT_CAUSE"
+        const val GAME_CATEGORY_TAG = "GAME_CATEGORY_DEBUG"
+    }
+}
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
 }

@@ -21,6 +21,9 @@
         "descricao": {
           ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || (newData.val().length <= 300 && (!data.exists() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())))"
         },
+        "iconeCategoria": {
+          ".validate": "newData.isString() && (newData.val() == '' || newData.val() == 'history_ship' || newData.val() == 'geography_globe' || newData.val() == 'math_board' || newData.val() == 'cinema_clapper' || newData.val() == 'science_atom' || newData.val() == 'sports_ball' || newData.val() == 'culture_masks' || newData.val() == 'portugal_rooster' || newData.val() == 'literature_book' || newData.val() == 'music_guitar' || newData.val() == 'food_plate' || newData.val() == 'technology_chip' || newData.val() == 'default_star') && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
+        },
         "criador": {
           ".validate": "newData.isString() && (!data.exists() || newData.val() == data.val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorUid').val() || auth.uid == root.child('categoriasPublicas').child($categoriaId).child('criadorId').val())"
         },
@@ -104,7 +107,7 @@
 
     "jogadores": {
       ".read": true,
-      ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao", "recordePontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"],
+      ".indexOn": ["uid", "nomeUtilizador", "email", "pontuacao", "totalPontosSomados", "recordePontuacao", "totalVitoriasModoSolo", "totalVitoriasModo1x1", "totalVitoriasModo2x2"],
       "$jogadorId": {
         ".write": "!$jogadorId.matches(/^guest_/) && ((auth != null && auth.uid == $jogadorId) || (auth == null && (!data.exists() || (data.exists() && newData.exists() && data.child('password').exists() && newData.child('password').val() == data.child('password').val()))))",
         ".validate": "!$jogadorId.matches(/^guest_/) && newData.hasChildren(['avatar']) && ((newData.hasChildren(['uid', 'nomeUtilizador', 'email', 'estado', 'pontuacao', 'taxaAcertos', 'totalJogos', 'totalRespostasCertas', 'totalVitorias', 'totalVitoriasModo1x1', 'totalVitoriasModo2x2', 'totalVitoriasModoSolo']) && newData.child('uid').val() == $jogadorId) || newData.hasChildren(['password']))",
@@ -127,6 +130,9 @@
           ".validate": "newData.isString() && (newData.val() == 'on' || newData.val() == 'off')"
         },
         "pontuacao": {
+          ".validate": "newData.isNumber() && newData.val() >= 0"
+        },
+        "totalPontosSomados": {
           ".validate": "newData.isNumber() && newData.val() >= 0"
         },
         "recordePontuacao": {
@@ -266,6 +272,9 @@
             },
             "descricao": {
               ".validate": "newData.isString() && ((data.exists() && newData.val() == data.val()) || newData.val().length <= 300)"
+            },
+            "iconeCategoria": {
+              ".validate": "newData.isString() && (newData.val() == '' || newData.val() == 'history_ship' || newData.val() == 'geography_globe' || newData.val() == 'math_board' || newData.val() == 'cinema_clapper' || newData.val() == 'science_atom' || newData.val() == 'sports_ball' || newData.val() == 'culture_masks' || newData.val() == 'portugal_rooster' || newData.val() == 'literature_book' || newData.val() == 'music_guitar' || newData.val() == 'food_plate' || newData.val() == 'technology_chip' || newData.val() == 'default_star')"
             },
             "categoriaPublicaId": {
               ".validate": "newData.isString()"

@@ -5,6 +5,7 @@ import android.graphics.Typeface
 import android.graphics.drawable.GradientDrawable
 import android.os.Bundle
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -14,6 +15,7 @@ import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.databinding.ActivityEsperaEliminadoBinding
 import com.example.brainbrawl.services.AuthService
+import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.viewmodels.EsperaEliminadoEvent
 import com.example.brainbrawl.viewmodels.EsperaEliminadoViewModel
 import com.example.brainbrawl.viewmodels.RankingParcialEliminadoUi
@@ -58,7 +60,10 @@ class EsperaEliminadoActivity : AppCompatActivity() {
         categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
         isAdmin = intent.getBooleanExtra(IntentExtras.ADMIN, false)
 
-        binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
+        binding.txtCodigoSala.text = getString(R.string.grupo_eliminacao_contexto)
+        binding.btnBackHeader.setOnClickListener {
+            Toast.makeText(this, R.string.aguardar_fim_partida, Toast.LENGTH_SHORT).show()
+        }
         configurarObservers()
         viewModel.escutarFimJogo(codigoSala)
     }
@@ -92,72 +97,105 @@ class EsperaEliminadoActivity : AppCompatActivity() {
     }
 
     private fun renderizarRankingParcial(ranking: List<RankingParcialEliminadoUi>) {
-        binding.layoutRankingParcialEliminado.removeAllViews()
+        binding.layoutAindaJogar.removeAllViews()
+        binding.layoutEliminados.removeAllViews()
+        binding.txtTotalJogadoresHeader.text = ranking.size.toString()
+
         if (ranking.isEmpty()) {
-            binding.layoutRankingParcialEliminado.addView(TextView(this).apply {
-                text = getString(R.string.a_carregar_jogadores)
-                textSize = 15f
-                setTextColor(getColor(R.color.bb_text_secondary))
-                gravity = android.view.Gravity.CENTER
-                setPadding(dp(16), dp(16), dp(16), dp(16))
-            })
+            binding.txtAindaJogarTitulo.text = getString(R.string.ainda_a_jogar_count, 0)
+            binding.txtEliminadosTitulo.text = getString(R.string.eliminados_count, 0)
+            binding.layoutAindaJogar.addView(criarEstadoVazio(getString(R.string.a_carregar_jogadores)))
             return
         }
 
-        ranking.forEach { item ->
-            binding.layoutRankingParcialEliminado.addView(criarCardRanking(item))
+        val ativos = ranking.filter { it.ativo }
+        val eliminados = ranking.filterNot { it.ativo }
+
+        binding.txtAindaJogarTitulo.text = getString(R.string.ainda_a_jogar_count, ativos.size)
+        binding.txtEliminadosTitulo.text = getString(R.string.eliminados_count, eliminados.size)
+
+        if (ativos.isEmpty()) {
+            binding.layoutAindaJogar.addView(criarEstadoVazio(getString(R.string.sem_jogadores_ativos)))
+        } else {
+            ativos.forEach { item ->
+                binding.layoutAindaJogar.addView(criarLinhaJogador(item, ativo = true))
+            }
+        }
+
+        if (eliminados.isEmpty()) {
+            binding.layoutEliminados.addView(criarEstadoVazio(getString(R.string.sem_eliminados_ainda)))
+        } else {
+            eliminados.forEach { item ->
+                binding.layoutEliminados.addView(criarLinhaJogador(item, ativo = false))
+            }
         }
     }
 
-    private fun criarCardRanking(item: RankingParcialEliminadoUi): LinearLayout {
+    private fun criarEstadoVazio(texto: String): TextView {
+        return TextView(this).apply {
+            text = texto
+            textSize = 14f
+            setTextColor(getColor(R.color.bb_text_secondary))
+            gravity = android.view.Gravity.CENTER
+            setPadding(dp(14), dp(14), dp(14), dp(14))
+            background = GradientDrawable().apply {
+                setColor(getColor(R.color.bb_luso_surface))
+                cornerRadius = dp(14).toFloat()
+                setStroke(dp(1), getColor(R.color.bb_luso_border))
+            }
+        }
+    }
+
+    private fun criarLinhaJogador(item: RankingParcialEliminadoUi, ativo: Boolean): LinearLayout {
         val card = LinearLayout(this).apply {
             orientation = LinearLayout.HORIZONTAL
             gravity = android.view.Gravity.CENTER_VERTICAL
-            setPadding(dp(14), dp(12), dp(14), dp(12))
-            background = GradientDrawable().apply {
-                setColor(getColor(if (item.destaque) R.color.bb_surface_strong else R.color.bb_surface))
-                cornerRadius = dp(18).toFloat()
-                setStroke(dp(1), getColor(if (item.destaque) R.color.bb_accent else R.color.bb_outline))
-            }
+            setPadding(dp(12), dp(8), dp(12), dp(8))
+            background = getDrawable(R.drawable.bg_spectator_player_row)
             layoutParams = LinearLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
             ).apply { setMargins(0, 0, 0, dp(10)) }
         }
 
-        card.addView(TextView(this).apply {
-            text = when (item.posicao) {
-                1 -> "1"
-                2 -> "2"
-                3 -> "3"
-                else -> item.posicao.toString()
-            }
-            textSize = if (item.destaque) 22f else 18f
-            setTypeface(typeface, Typeface.BOLD)
-            setTextColor(getColor(if (item.destaque) R.color.bb_accent else R.color.bb_text_primary))
-            gravity = android.view.Gravity.CENTER
+        card.addView(ImageView(this).apply {
+            setImageResource(AvatarUtils.resolverAvatar(this@EsperaEliminadoActivity, item.avatar))
+            background = getDrawable(R.drawable.bg_game_avatar)
+            setPadding(dp(1), dp(1), dp(1), dp(1))
+            alpha = if (ativo) 1f else 0.62f
             layoutParams = LinearLayout.LayoutParams(dp(42), dp(42))
         })
 
         val textos = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             layoutParams = LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f)
-                .apply { marginStart = dp(10) }
+                .apply { marginStart = dp(10); marginEnd = dp(8) }
         }
         textos.addView(TextView(this).apply {
-            text = item.nome
-            textSize = 17f
+            text = if (!ativo && item.nome == nomeJogador) {
+                getString(R.string.jogador_tu_format, item.nome)
+            } else {
+                item.nome
+            }
+            textSize = 14f
             setTypeface(typeface, Typeface.BOLD)
-            setTextColor(getColor(R.color.bb_text_primary))
+            setTextColor(getColor(R.color.bb_luso_navy))
             maxLines = 1
             ellipsize = android.text.TextUtils.TruncateAt.END
         })
         textos.addView(TextView(this).apply {
-            text = "${item.estado} · ${item.detalhe}"
-            textSize = 14f
+            text = if (ativo) getString(R.string.ainda_a_jogar_estado) else item.detalhe
+            textSize = 12f
             setTextColor(getColor(if (item.ativo) R.color.bb_success else R.color.bb_text_secondary))
         })
         card.addView(textos)
+
+        card.addView(ImageView(this).apply {
+            setImageResource(R.drawable.ic_shield_clean)
+            alpha = if (ativo) 1f else 0.35f
+            setColorFilter(getColor(if (ativo) R.color.bb_luso_navy else R.color.bb_text_secondary))
+            layoutParams = LinearLayout.LayoutParams(dp(24), dp(24))
+        })
 
         return card
     }

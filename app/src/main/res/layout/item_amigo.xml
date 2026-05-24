@@ -1,38 +1,67 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="10dp"
-    android:gravity="center_vertical"
-    android:background="@drawable/bg_card_surface">
+    android:layout_height="96dp"
+    android:layout_marginBottom="12dp"
+    android:background="@drawable/bg_main_mode_card"
+    android:clickable="true"
+    android:focusable="true"
+    android:paddingStart="18dp"
+    android:paddingEnd="18dp">
 
-    <!-- Avatar -->
-    <ImageView
-        android:id="@+id/imgAvatarAmigo"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginEnd="10dp"
-        android:scaleType="centerCrop"/>
+    <FrameLayout
+        android:id="@+id/avatarHost"
+        android:layout_width="58dp"
+        android:layout_height="58dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-    <!-- Estado -->
-    <View
-        android:id="@+id/viewEstadoAmigo"
-        android:layout_width="12dp"
-        android:layout_height="12dp"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/bg_estado_circle"/>
+        <ImageView
+            android:id="@+id/imgAvatarAmigo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/avatar_1_playstore" />
 
-    <!-- Nome -->
+        <View
+            android:id="@+id/viewEstadoAmigo"
+            android:layout_width="16dp"
+            android:layout_height="16dp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_status_online" />
+    </FrameLayout>
+
     <TextView
         android:id="@+id/txtNomeAmigo"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_weight="1"
+        android:layout_marginStart="20dp"
         android:ellipsize="end"
+        android:fontFamily="serif"
         android:maxLines="1"
         android:text="@string/nome_amigo"
-        android:textSize="17sp"
-        android:textColor="#000"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"/>
-</LinearLayout>
+        android:textColor="@color/bb_luso_navy"
+        android:textSize="22sp"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@id/txtEstadoAmigo"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/avatarHost"
+        app:layout_constraintTop_toTopOf="@id/avatarHost"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <TextView
+        android:id="@+id/txtEstadoAmigo"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="20dp"
+        android:layout_marginTop="5dp"
+        android:fontFamily="sans-serif"
+        android:text="@string/online_status"
+        android:textColor="#1A9E4A"
+        android:textSize="15sp"
+        app:layout_constraintEnd_toEndOf="@id/txtNomeAmigo"
+        app:layout_constraintStart_toEndOf="@id/avatarHost"
+        app:layout_constraintTop_toBottomOf="@id/txtNomeAmigo" />
+</androidx.constraintlayout.widget.ConstraintLayout>

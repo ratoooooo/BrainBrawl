@@ -89,7 +89,7 @@ class MainActivity : AppCompatActivity() {
             modoJogo = state.modoJogo.ifBlank { null }
 
             binding.txtBoasVindas.text = state.boasVindas
-            binding.btnAddAmigo.visibility = if (state.amigosVisivel) View.VISIBLE else View.GONE
+            binding.btnAddAmigo.visibility = View.VISIBLE
             binding.txtNivel.text = getString(R.string.nivel_format, state.nivel)
             binding.txtLevelBadge.text = state.nivel.toString()
             binding.txtXp.text = getString(
@@ -224,10 +224,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun atualizarBotoesMatchmaking() {
-        val matchmakingVisivel = !uid.isNullOrBlank()
-        val enabled = matchmakingVisivel && !matchmakingAberturaEmCurso
-        binding.btnMatchmaking1x1.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
-        binding.btnMatchmaking2x2.visibility = if (matchmakingVisivel) View.VISIBLE else View.GONE
+        val enabled = !matchmakingAberturaEmCurso
+        binding.btnMatchmaking1x1.visibility = View.VISIBLE
+        binding.btnMatchmaking2x2.visibility = View.VISIBLE
         binding.btnMatchmaking1x1.isEnabled = enabled
         binding.btnMatchmaking2x2.isEnabled = enabled
         binding.btnMatchmaking1x1.alpha = if (enabled) 1f else 0.64f

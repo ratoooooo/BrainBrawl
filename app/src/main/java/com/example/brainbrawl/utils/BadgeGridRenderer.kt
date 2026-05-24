@@ -53,6 +53,22 @@ object BadgeGridRenderer {
         }
     }
 
+    fun renderPlain(
+        context: Context,
+        inflater: LayoutInflater,
+        grid: GridLayout,
+        badges: List<Badge>
+    ) {
+        val colunas = if (context.resources.configuration.screenWidthDp >= 360) 3 else 2
+        grid.columnCount = colunas
+        grid.removeAllViews()
+        badges.forEach { badge ->
+            val itemBinding = ItemBadgeBinding.inflate(inflater, grid, false)
+            configurarItem(context, itemBinding, badge)
+            grid.addView(itemBinding.root, criarParamsItem(context.dp(4)))
+        }
+    }
+
     private fun configurarItem(context: Context, itemBinding: ItemBadgeBinding, badge: Badge) {
         itemBinding.imgBadge.setImageResource(resolverBadgeDrawable(context, badge))
         itemBinding.imgBadge.imageAlpha = if (badge.desbloqueada) 255 else 90
@@ -60,16 +76,12 @@ object BadgeGridRenderer {
         itemBinding.imgBadge.scaleY = if (badge.desbloqueada) 1f else 0.92f
         itemBinding.imgBadge.contentDescription = badge.descricao
         itemBinding.txtBadgeNome.text = badge.nome
-        itemBinding.txtBadgeEstado.text = if (badge.desbloqueada) {
+        itemBinding.txtBadgeEstado.text = badge.descricao
+        itemBinding.txtBadgeProgresso.text = if (badge.desbloqueada) {
             context.getString(R.string.conquista_desbloqueada)
         } else {
-            context.getString(R.string.conquista_bloqueada)
+            context.getString(R.string.badge_progresso_format, badge.progressoAtual, badge.objetivo)
         }
-        itemBinding.txtBadgeProgresso.text = context.getString(
-            R.string.badge_progresso_format,
-            badge.progressoAtual,
-            badge.objetivo
-        )
         itemBinding.root.alpha = if (badge.desbloqueada) 1f else 0.68f
     }
 

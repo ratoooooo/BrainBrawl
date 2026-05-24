@@ -1,67 +1,203 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_app_gradient"
-    android:padding="@dimen/bb_space_lg">
+    android:background="@drawable/bg_main_premium"
+    tools:context=".ConvidarAmigo1x1Activity">
 
-    <TextView
-        android:id="@+id/txtTituloConvidar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:fontFamily="sans-serif-black"
-        android:text="@string/convidar_amigo"
-        android:textAlignment="center"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="@dimen/bb_title_size"
-        android:textStyle="bold"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageButton
+        android:id="@+id/btnBackHeader"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
+        android:contentDescription="@string/voltar"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerConvidarAmigos"
+    <ScrollView
+        android:id="@+id/scrollConvidar"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginTop="@dimen/bb_space_lg"
-        android:background="@drawable/bg_card_surface"
         android:clipToPadding="false"
-        android:padding="@dimen/bb_space_md"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloConvidar"
-        app:layout_constraintBottom_toTopOf="@id/btnVoltarConvidar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
-
-    <TextView
-        android:id="@+id/txtEstadoConvidar"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_empty_state_card"
-        android:gravity="center"
-        android:padding="@dimen/bb_space_lg"
-        android:text="@string/sem_amigos_para_convidar"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="15sp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/recyclerConvidarAmigos"
-        app:layout_constraintEnd_toEndOf="@id/recyclerConvidarAmigos"
-        app:layout_constraintStart_toStartOf="@id/recyclerConvidarAmigos"
-        app:layout_constraintTop_toTopOf="@id/recyclerConvidarAmigos" />
-
-    <Button
-        android:id="@+id/btnVoltarConvidar"
-        style="@style/BrainBrawlButton"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/bb_button_height"
-        android:layout_marginTop="@dimen/bb_space_md"
-        android:background="@drawable/bg_button_danger"
-        android:text="@string/voltar"
-        android:textAllCaps="false"
-        android:textColor="@color/bb_primary_text"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/recyclerConvidarAmigos" />
+        app:layout_constraintTop_toTopOf="parent">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="88dp"
+            android:paddingBottom="36dp">
+
+            <TextView
+                android:id="@+id/txtTituloConvidar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/convidar_amigo"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_accent_diamond" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cardResumoConvite"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:background="@drawable/bg_main_mode_card"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <FrameLayout
+                    android:layout_width="54dp"
+                    android:layout_height="54dp"
+                    android:background="@drawable/bg_game_type_icon">
+
+                    <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/ic_sword"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/txtResumoModo"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:fontFamily="serif"
+                        android:textColor="@color/bb_luso_navy"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:text="Modo: 1x1" />
+
+                    <TextView
+                        android:id="@+id/txtResumoCategoria"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="5dp"
+                        android:fontFamily="sans-serif"
+                        android:textColor="@color/bb_text_secondary"
+                        android:textSize="14sp"
+                        tools:text="Categoria: História" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/escolher_amigo"
+                android:textColor="@color/bb_text_secondary"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerConvidarAmigos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="never" />
+
+            <TextView
+                android:id="@+id/txtEstadoConvidar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/bg_hint_luso"
+                android:gravity="center"
+                android:padding="@dimen/bb_space_lg"
+                android:text="@string/sem_amigos_para_convidar"
+                android:textColor="@color/bb_text_secondary"
+                android:textSize="15sp"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/btnEnviarConvite"
+                android:layout_width="match_parent"
+                android:layout_height="62dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/bg_main_black_button"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    android:layout_marginEnd="18dp"
+                    android:contentDescription="@string/enviar_convite"
+                    android:src="@drawable/ic_send"
+                    app:tint="@color/bb_luso_gold" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:text="@string/enviar_convite"
+                    android:textColor="@color/bb_primary_text"
+                    android:textSize="19sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnVoltarConvidar"
+                android:layout_width="1dp"
+                android:layout_height="1dp"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

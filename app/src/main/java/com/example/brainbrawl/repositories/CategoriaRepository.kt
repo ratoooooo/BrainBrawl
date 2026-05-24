@@ -43,7 +43,11 @@ class CategoriaRepository(
         val estadoPublicacao: String?,
         val chaveDono: String = "",
         val uid: String = "",
-        val nomeUtilizador: String = ""
+        val nomeUtilizador: String = "",
+        val totalPerguntas: Int = 0,
+        val usos: Int = 0,
+        val dataAtualizacao: Long? = null,
+        val iconeCategoria: String = ""
     )
 
     data class CategoriaPublica(
@@ -55,7 +59,8 @@ class CategoriaRepository(
         val totalPerguntas: Int,
         val usos: Int,
         val ratingMedio: Double,
-        val totalAvaliacoes: Int
+        val totalAvaliacoes: Int,
+        val iconeCategoria: String = ""
     ) {
         fun descricaoCurta(): String {
             val texto = descricao.ifBlank { "Sem descrição." }
@@ -170,10 +175,17 @@ class CategoriaRepository(
         }
     }
 
-    fun criarCategoriaPersonalizada(uid: String, nomeUtilizador: String, nomeCategoria: String): Task<Void> {
+    fun criarCategoriaPersonalizada(
+        uid: String,
+        nomeUtilizador: String,
+        nomeCategoria: String,
+        iconeCategoria: String = "",
+        descricao: String = ""
+    ): Task<Void> {
         val dono = donoCategoria(uid, nomeUtilizador, nomeUtilizador)
         if (dono.chavePrincipal.isBlank()) return failedTask("Inicia sessão para criar categorias personalizadas.")
-        return categoriasPersonalizadasRef(dono.chavePrincipal).child(nomeCategoria).updateChildren(dadosCategoriaPersonalizada(dono, nomeCategoria))
+        return categoriasPersonalizadasRef(dono.chavePrincipal).child(nomeCategoria)
+            .updateChildren(dadosCategoriaPersonalizada(dono, nomeCategoria, iconeCategoria, descricao))
     }
 
     fun editarCategoria(uid: String, nomeUtilizador: String, nomeCategoria: String, dados: Map<String, Any?>): Task<Void> {
@@ -195,7 +207,9 @@ class CategoriaRepository(
         nomeUtilizador: String,
         nomeCategoria: String,
         perguntaId: String?,
-        pergunta: PerguntaCategoria
+        pergunta: PerguntaCategoria,
+        iconeCategoria: String = "",
+        descricao: String = ""
     ): Task<Void> {
         val dono = donoCategoria(uid, nomeUtilizador, nomeUtilizador)
         return resolverCategoriaPersonalizadaRef(dono, nomeCategoria).continueWithTask { task ->
@@ -203,7 +217,7 @@ class CategoriaRepository(
             val categoriaRef = task.result
             val perguntaKey = perguntaId ?: categoriaRef.child(FirebasePaths.PERGUNTAS).push().key
                 ?: throw IllegalStateException("Erro ao gerar identificador da pergunta.")
-            categoriaRef.updateChildren(dadosCategoriaPersonalizada(dono, nomeCategoria)).continueWithTask { metaTask ->
+            categoriaRef.updateChildren(dadosCategoriaPersonalizada(dono, nomeCategoria, iconeCategoria, descricao)).continueWithTask { metaTask ->
                 if (!metaTask.isSuccessful) throw metaTask.exception ?: IllegalStateException("Erro ao preparar categoria.")
                 categoriaRef.child(FirebasePaths.PERGUNTAS).child(perguntaKey).setValue(pergunta.toMap())
             }
@@ -299,6 +313,7 @@ class CategoriaRepository(
                                 FirebasePaths.ID to categoriaPublicaId,
                                 FirebasePaths.NOME to nomeCategoria,
                                 FirebasePaths.DESCRICAO to (snapshot.child(FirebasePaths.DESCRICAO).getValue(String::class.java) ?: ""),
+                                FirebasePaths.ICONE_CATEGORIA to snapshot.child(FirebasePaths.ICONE_CATEGORIA).getValue(String::class.java).orEmpty(),
                                 FirebasePaths.CRIADOR to dono.nomeDisplay,
                                 FirebasePaths.CRIADOR_ID to dono.chavePrincipal,
                                 FirebasePaths.CRIADOR_UID to dono.uid,
@@ -387,6 +402,7 @@ class CategoriaRepository(
                     FirebasePaths.ORIGEM_CATEGORIA_PUBLICA to categoria.id,
                     FirebasePaths.CRIADOR_ORIGINAL to categoria.criador,
                     FirebasePaths.CRIADOR_ORIGINAL_ID to categoria.criadorId,
+                    FirebasePaths.ICONE_CATEGORIA to categoria.iconeCategoria,
                     FirebasePaths.DONO_UID to dono.uid,
                     FirebasePaths.NOME_UTILIZADOR to dono.nomeUtilizador,
                     FirebasePaths.DATA_CRIACAO to ServerValue.TIMESTAMP,
@@ -641,12 +657,19 @@ class CategoriaRepository(
         )
     }
 
-    private fun dadosCategoriaPersonalizada(dono: DonoCategoria, nomeCategoria: String): Map<String, Any> {
+    private fun dadosCategoriaPersonalizada(
+        dono: DonoCategoria,
+        nomeCategoria: String,
+        iconeCategoria: String = "",
+        descricao: String = ""
+    ): Map<String, Any> {
         val dados = linkedMapOf<String, Any>(
             FirebasePaths.NOME to nomeCategoria,
             FirebasePaths.NOME_UTILIZADOR to dono.nomeUtilizador
         )
         if (dono.uid.isNotBlank()) dados[FirebasePaths.DONO_UID] = dono.uid
+        if (iconeCategoria.isNotBlank()) dados[FirebasePaths.ICONE_CATEGORIA] = iconeCategoria
+        if (descricao.isNotBlank()) dados[FirebasePaths.DESCRICAO] = descricao
         return dados
     }
 
@@ -696,7 +719,12 @@ class CategoriaRepository(
             chaveDono = chaveDono,
             uid = child(FirebasePaths.DONO_UID).getValue(String::class.java)
                 ?: child(FirebasePaths.UID).getValue(String::class.java).orEmpty(),
-            nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).getValue(String::class.java).orEmpty()
+            nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).getValue(String::class.java).orEmpty(),
+            totalPerguntas = child(FirebasePaths.PERGUNTAS).childrenCount.toInt(),
+            usos = child(FirebasePaths.USOS).getValue(Int::class.java) ?: 0,
+            dataAtualizacao = child(FirebasePaths.DATA_PUBLICACAO).getValue(Long::class.java)
+                ?: child(FirebasePaths.DATA_CRIACAO).getValue(Long::class.java),
+            iconeCategoria = child(FirebasePaths.ICONE_CATEGORIA).getValue(String::class.java).orEmpty()
         )
     }
 
@@ -748,7 +776,8 @@ class CategoriaRepository(
             totalPerguntas = child(FirebasePaths.PERGUNTAS).childrenCount.toInt(),
             usos = child(FirebasePaths.USOS).getValue(Int::class.java) ?: 0,
             ratingMedio = child(FirebasePaths.RATING_MEDIO).getValue(Double::class.java) ?: 0.0,
-            totalAvaliacoes = child(FirebasePaths.TOTAL_AVALIACOES).getValue(Int::class.java) ?: 0
+            totalAvaliacoes = child(FirebasePaths.TOTAL_AVALIACOES).getValue(Int::class.java) ?: 0,
+            iconeCategoria = child(FirebasePaths.ICONE_CATEGORIA).getValue(String::class.java).orEmpty()
         )
     }
 

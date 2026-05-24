@@ -13,6 +13,8 @@ import com.example.brainbrawl.utils.AvatarUtils
 import com.example.brainbrawl.utils.BadgeGridRenderer
 import com.example.brainbrawl.viewmodels.MeuPerfilUiState
 import com.example.brainbrawl.viewmodels.MeuPerfilViewModel
+import java.text.NumberFormat
+import java.util.Locale
 
 class MeuPerfilActivity : AppCompatActivity() {
 
@@ -39,9 +41,6 @@ class MeuPerfilActivity : AppCompatActivity() {
         val email = intent.getStringExtra(IntentExtras.EMAIL) ?: authService.utilizadorAtual()?.email ?: ""
         BottomNavHelper.instalar(this, BottomNavHelper.Item.PERFIL, uid, nomeUtilizador, nomeJogador, email)
 
-        binding.btnVoltarPerfil.setOnClickListener {
-            finish()
-        }
         binding.btnVerConquistas.setOnClickListener {
             startActivity(Intent(this, ConquistasActivity::class.java).apply {
                 putExtra(IntentExtras.UID, uidAtual)
@@ -49,8 +48,17 @@ class MeuPerfilActivity : AppCompatActivity() {
                 putExtra(IntentExtras.NOME_JOGADOR, nomeJogadorAtual)
             })
         }
-        binding.btnEditarPerfil.setOnClickListener {
+        val abrirEditorPerfil = {
             startActivity(Intent(this, EditarPerfilActivity::class.java).apply {
+                putExtra(IntentExtras.UID, uidAtual)
+                putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizadorAtual)
+                putExtra(IntentExtras.NOME_JOGADOR, nomeJogadorAtual)
+            })
+        }
+        binding.btnEditarPerfil.setOnClickListener { abrirEditorPerfil() }
+        binding.cardEditarAvatar.setOnClickListener { abrirEditorPerfil() }
+        binding.cardHistorico.setOnClickListener {
+            startActivity(Intent(this, HistoricoActivity::class.java).apply {
                 putExtra(IntentExtras.UID, uidAtual)
                 putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizadorAtual)
                 putExtra(IntentExtras.NOME_JOGADOR, nomeJogadorAtual)
@@ -73,19 +81,20 @@ class MeuPerfilActivity : AppCompatActivity() {
         binding.imgAvatarAmigo.setImageResource(AvatarUtils.resolverAvatar(this, perfil.avatar))
 
         binding.txtNomeAmigo.text = perfil.nome
-        binding.txtPontuacao.text = getString(R.string.pontuacao_format, perfil.pontuacao.toInt())
-        binding.txtRecordePontuacao.text = getString(
-            R.string.recorde_pontuacao_format,
-            perfil.recordePontuacao.toInt()
-        )
-        binding.txtNivel.text = getString(R.string.nivel_format, perfil.nivel)
+        binding.txtPontuacao.text = perfil.rankingGlobal?.let {
+            getString(R.string.ranking_global_posicao_format, it)
+        } ?: getString(R.string.ranking_global_indisponivel)
+        binding.txtRecordePontuacao.text = formatarNumero(perfil.recordePontuacao.toInt())
+        binding.txtNivel.text = getString(R.string.perfil_nivel_titulo_format, perfil.nivel)
         binding.txtXpProgress.text = getString(
             R.string.xp_progress_format,
             perfil.xpNoNivelAtual,
             perfil.xpNecessarioProximoNivel
         )
-        binding.txtTotalJogos.text = getString(R.string.total_de_jogos_format, perfil.totalJogos)
-        binding.txtTotalVitorias.text = getString(R.string.total_de_vitorias_format, perfil.totalVitorias)
+        binding.progressXp.max = perfil.xpNecessarioProximoNivel.coerceAtLeast(1)
+        binding.progressXp.progress = perfil.xpNoNivelAtual.coerceAtLeast(0)
+        binding.txtTotalJogos.text = formatarNumero(perfil.totalJogos)
+        binding.txtTotalVitorias.text = formatarNumero(perfil.totalVitorias)
         binding.txtTotalDerrotas.text = getString(R.string.total_de_derrotas_format, perfil.totalDerrotas)
         binding.txtTotalRespostasCertas.text = getString(
             R.string.total_de_respostas_certas_format,
@@ -96,5 +105,9 @@ class MeuPerfilActivity : AppCompatActivity() {
         binding.txtXpTotal.text = getString(R.string.xp_total_format, perfil.xpTotal)
         binding.txtConquistasEstado.text = getString(R.string.melhores_conquistas_resumo)
         BadgeGridRenderer.renderMelhores(this, layoutInflater, binding.gridConquistas, perfil.badges)
+    }
+
+    private fun formatarNumero(valor: Int): String {
+        return NumberFormat.getIntegerInstance(Locale("pt", "PT")).format(valor)
     }
 }

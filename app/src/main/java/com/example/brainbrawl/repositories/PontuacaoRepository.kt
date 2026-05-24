@@ -288,6 +288,14 @@ class PontuacaoRepository(
             .setValue(true)
     }
 
+    fun marcarDesforra2x2(codigoSala: String, chaveJogador: String): Task<Void> {
+        return salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSala)
+            .child(FirebasePaths.JOGADORES)
+            .child(chaveJogador)
+            .child(FirebasePaths.DESFORRA)
+            .setValue(true)
+    }
+
     fun escutarDesforra1x1(
         codigoSala: String,
         chaveJogadorAtual: String,
@@ -334,6 +342,66 @@ class PontuacaoRepository(
             override fun onDataChange(snapshot: DataSnapshot) {
                 val novaSala = snapshot.getValue(String::class.java)?.takeIf { it.isNotBlank() } ?: return
                 emitirQuandoSalaExistir(novaSala, onNovaSala)
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
+    }
+
+    fun escutarDesforra2x2(
+        codigoSala: String,
+        chaveJogadorAtual: String,
+        onTodosAceitaram: () -> Unit,
+        onAguardar: (Int, Int) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.JOGADORES)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val jogadores = snapshot.children.filter { child ->
+                    val chave = child.key.orEmpty()
+                    chave.isNotBlank() &&
+                        chave != GameConstants.JOGADOR_ADMIN &&
+                        child.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) != true
+                }
+                val atualAceitou = snapshot.child(chaveJogadorAtual)
+                    .child(FirebasePaths.DESFORRA)
+                    .getValue(Boolean::class.java) == true
+                if (!atualAceitou) return
+
+                val total = jogadores.size
+                val aceites = jogadores.count { child ->
+                    child.child(FirebasePaths.DESFORRA).getValue(Boolean::class.java) == true
+                }
+                if (total >= 4 && aceites >= total) {
+                    onTodosAceitaram()
+                } else {
+                    onAguardar(aceites, total.coerceAtLeast(4))
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+                onErro()
+            }
+        }
+        reference.addValueEventListener(listener)
+        return ListenerHandle { reference.removeEventListener(listener) }
+    }
+
+    fun escutarNovaSalaDesforra2x2(
+        codigoSala: String,
+        onNovaSala: (String) -> Unit,
+        onErro: () -> Unit = {}
+    ): ListenerHandle {
+        val reference = salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.NOVA_SALA_DESFORRA)
+        val listener = object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                val novaSala = snapshot.getValue(String::class.java)?.takeIf { it.isNotBlank() } ?: return
+                emitirQuandoSala2x2Existir(novaSala, onNovaSala)
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -395,6 +463,55 @@ class PontuacaoRepository(
         return result.task
     }
 
+    fun criarOuObterSalaDesforra2x2(
+        codigoSalaAtual: String,
+        nomeCategoria: String,
+        categoriaOrigem: String = GameConstants.ORIGEM_CATEGORIA_OFICIAL
+    ): Task<String> {
+        val result = TaskCompletionSource<String>()
+        val novaSalaRef = salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSalaAtual).child(FirebasePaths.NOVA_SALA_DESFORRA)
+        var codigoCriado = ""
+
+        novaSalaRef.runTransaction(object : Transaction.Handler {
+            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                val existente = currentData.getValue(String::class.java)
+                if (!existente.isNullOrBlank()) {
+                    return Transaction.abort()
+                }
+                codigoCriado = gerarCodigoSala()
+                currentData.value = codigoCriado
+                return Transaction.success(currentData)
+            }
+
+            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                if (error != null) {
+                    result.setException(error.toException())
+                    return
+                }
+
+                val codigoFinal = if (committed) {
+                    codigoCriado
+                } else {
+                    snapshot?.getValue(String::class.java).orEmpty()
+                }
+
+                if (codigoFinal.isBlank()) {
+                    result.setException(IllegalStateException("Não foi possível criar desforra 2x2."))
+                    return
+                }
+
+                criarSalaDesforra2x2SeNecessario(codigoSalaAtual, codigoFinal, nomeCategoria, categoriaOrigem)
+                    .addOnSuccessListener {
+                        limparFlagsDesforra2x2(codigoSalaAtual)
+                        result.setResult(codigoFinal)
+                    }
+                    .addOnFailureListener { result.setException(it) }
+            }
+        })
+
+        return result.task
+    }
+
     private fun criarSalaDesforraSeNecessario(
         codigoNovaSala: String,
         jogadorAtual: JogadorDesforra,
@@ -443,6 +560,66 @@ class PontuacaoRepository(
         return result.task
     }
 
+    private fun criarSalaDesforra2x2SeNecessario(
+        codigoSalaAtual: String,
+        codigoNovaSala: String,
+        nomeCategoria: String,
+        categoriaOrigem: String
+    ): Task<Void> {
+        val result = TaskCompletionSource<Void>()
+        salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSalaAtual).get()
+            .addOnSuccessListener { salaAtual ->
+                val jogadores = salaAtual.child(FirebasePaths.JOGADORES).jogadoresDesforraReais()
+                val equipaA = salaAtual.child(FirebasePaths.EQUIPA_A).jogadoresDesforraReais()
+                val equipaB = salaAtual.child(FirebasePaths.EQUIPA_B).jogadoresDesforraReais()
+                if (jogadores.size < 4 || equipaA.isEmpty() || equipaB.isEmpty()) {
+                    result.setException(IllegalStateException("Dados insuficientes para criar desforra 2x2."))
+                    return@addOnSuccessListener
+                }
+
+                val admin = jogadores.first()
+                val salaNovaRef = salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoNovaSala)
+                salaNovaRef.runTransaction(object : Transaction.Handler {
+                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                        if (currentData.value != null) return Transaction.success(currentData)
+
+                        val sala = linkedMapOf<String, Any>(
+                            FirebasePaths.JOGADORES to jogadores.associate { it.chave to it.toFirebaseMap() },
+                            FirebasePaths.EQUIPA_A to equipaA.associate { it.chave to it.toFirebaseMap() },
+                            FirebasePaths.EQUIPA_B to equipaB.associate { it.chave to it.toFirebaseMap() },
+                            FirebasePaths.JOGADORES_PERMITIDOS to jogadores.associate { it.chave to true },
+                            FirebasePaths.PRONTOS to jogadores.associate { it.chave to false },
+                            FirebasePaths.ADMIN to admin.nomeDisplay,
+                            FirebasePaths.ADMIN_ID to admin.chave,
+                            FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
+                            FirebasePaths.NOME_CATEGORIA to nomeCategoria.ifBlank {
+                                salaAtual.child(FirebasePaths.NOME_CATEGORIA).getValue(String::class.java).orEmpty()
+                            },
+                            FirebasePaths.CATEGORIA_ORIGEM to categoriaOrigem,
+                            FirebasePaths.ORIGEM to GameConstants.ORIGEM_CONVITE,
+                            FirebasePaths.ENTRADA_FECHADA to true,
+                            FirebasePaths.LOTACAO_MAXIMA to 4
+                        )
+                        if (admin.uid.isNotBlank()) {
+                            sala[FirebasePaths.ADMIN_UID] = admin.uid
+                        }
+                        currentData.value = sala
+                        return Transaction.success(currentData)
+                    }
+
+                    override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                        if (error != null) {
+                            result.setException(error.toException())
+                        } else {
+                            result.setResult(null)
+                        }
+                    }
+                })
+            }
+            .addOnFailureListener { result.setException(it) }
+        return result.task
+    }
+
     private fun limparFlagsDesforra1x1(codigoSala: String, chaveA: String, chaveB: String): Task<Void> {
         return salaRef(TipoSala.UM_CONTRA_UM, codigoSala).updateChildren(
             mapOf(
@@ -452,8 +629,43 @@ class PontuacaoRepository(
         )
     }
 
+    private fun limparFlagsDesforra2x2(codigoSala: String): Task<Void> {
+        return salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSala).child(FirebasePaths.JOGADORES).get()
+            .continueWithTask { task ->
+                if (!task.isSuccessful) throw task.exception ?: IllegalStateException("Erro ao limpar desforra 2x2.")
+                val updates = task.result.children.mapNotNull { child ->
+                    val chave = child.key ?: return@mapNotNull null
+                    "$chave/${FirebasePaths.DESFORRA}" to null
+                }.toMap()
+                salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSala)
+                    .child(FirebasePaths.JOGADORES)
+                    .updateChildren(updates)
+            }
+    }
+
     private fun emitirQuandoSalaExistir(codigoSala: String, onNovaSala: (String) -> Unit) {
         val reference = salaRef(TipoSala.UM_CONTRA_UM, codigoSala)
+        reference.get().addOnSuccessListener { snapshot ->
+            if (snapshot.exists()) {
+                onNovaSala(codigoSala)
+                return@addOnSuccessListener
+            }
+            val listener = object : ValueEventListener {
+                override fun onDataChange(salaSnapshot: DataSnapshot) {
+                    if (salaSnapshot.exists()) {
+                        reference.removeEventListener(this)
+                        onNovaSala(codigoSala)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) = Unit
+            }
+            reference.addValueEventListener(listener)
+        }
+    }
+
+    private fun emitirQuandoSala2x2Existir(codigoSala: String, onNovaSala: (String) -> Unit) {
+        val reference = salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoSala)
         reference.get().addOnSuccessListener { snapshot ->
             if (snapshot.exists()) {
                 onNovaSala(codigoSala)
@@ -732,6 +944,7 @@ class PontuacaoRepository(
             chave = chave,
             nomeUtilizador = child(FirebasePaths.NOME_UTILIZADOR).texto(),
             nomeJogador = child(FirebasePaths.NOME_JOGADOR).texto(),
+            avatar = child(FirebasePaths.AVATAR).texto(),
             estadoPartida = estadoPartida
         )
     }
@@ -755,6 +968,18 @@ class PontuacaoRepository(
         )
     }
 
+    private fun DataSnapshot.jogadoresDesforraReais(): List<JogadorDesforra> {
+        return children.mapNotNull { jogadorSnapshot ->
+            val chave = jogadorSnapshot.key.orEmpty()
+            val hostOnly = jogadorSnapshot.child(FirebasePaths.IS_HOST_ONLY).getValue(Boolean::class.java) == true
+            if (chave.isBlank() || chave == GameConstants.JOGADOR_ADMIN || hostOnly) {
+                null
+            } else {
+                jogadorSnapshot.toJogadorDesforra()
+            }
+        }
+    }
+
     private fun DataSnapshot.toEstatisticasAtuais(): EstatisticasService.EstatisticasAtuais {
         return EstatisticasService.EstatisticasAtuais(
             pontuacao = child(FirebasePaths.PONTUACAO).doubleValue(),
@@ -766,7 +991,10 @@ class PontuacaoRepository(
             totalVitoriasModo1x1 = child(FirebasePaths.TOTAL_VITORIAS_MODO_1X1).intValue(),
             totalVitoriasModo2x2 = child(FirebasePaths.TOTAL_VITORIAS_MODO_2X2).intValue(),
             totalVitoriasModoSolo = child(FirebasePaths.TOTAL_VITORIAS_MODO_SOLO).intValue(),
-            xpTotal = child(FirebasePaths.XP_TOTAL).intValue()
+            xpTotal = child(FirebasePaths.XP_TOTAL).intValue(),
+            totalPontosSomados = child(FirebasePaths.TOTAL_PONTOS_SOMADOS).doubleValue()
+                .takeIf { it > 0.0 }
+                ?: child(FirebasePaths.PONTUACAO).doubleValue()
         )
     }
 

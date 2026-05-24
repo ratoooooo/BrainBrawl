@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/bg_main_premium"
+    tools:context=".MinhasCategoriasActivity">
+
+    <ImageButton
+        android:id="@+id/btn_voltar"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
+        android:contentDescription="@string/voltar"
+        android:elevation="8dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
+
+    <ScrollView
+        android:id="@+id/scroll_minhas"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="88dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/minhas_categorias"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="14dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_accent_diamond" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="20dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tab_minhas"
+                    style="@style/Widget_BrainBrawl_AchievementTab"
+                    android:text="@string/minhas_categorias" />
+
+                <TextView
+                    android:id="@+id/tab_aguardando"
+                    style="@style/Widget_BrainBrawl_AchievementTab"
+                    android:text="@string/aguardando_publicacao" />
+            </LinearLayout>
+
+            <View
+                android:id="@+id/linha_tabs"
+                android:layout_width="match_parent"
+                android:layout_height="2dp"
+                android:background="#33D8C49D" />
+
+            <TextView
+                android:id="@+id/txt_estado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:fontFamily="sans-serif"
+                android:gravity="center"
+                android:textColor="@color/bb_text_secondary"
+                android:textSize="14sp" />
+
+            <LinearLayout
+                android:id="@+id/layout_minhas_categorias"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="vertical" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

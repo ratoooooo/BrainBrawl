@@ -13,7 +13,6 @@ import androidx.annotation.DrawableRes
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.brainbrawl.AmigosActivity
-import com.example.brainbrawl.HistoricoActivity
 import com.example.brainbrawl.MainActivity
 import com.example.brainbrawl.MeuPerfilActivity
 import com.example.brainbrawl.R
@@ -52,7 +51,6 @@ object BottomNavHelper {
         listOf(
             NavDestino(Item.MAIN, "Início", R.drawable.ic_home, MainActivity::class.java),
             NavDestino(Item.RANKING, "Ranking", R.drawable.ic_trophy, RankingActivity::class.java),
-            NavDestino(Item.HISTORICO, "Histórico", R.drawable.ic_history, HistoricoActivity::class.java),
             NavDestino(Item.AMIGOS, "Amigos", R.drawable.ic_group, AmigosActivity::class.java, requerConta = true),
             NavDestino(Item.PERFIL, "Perfil", R.drawable.ic_person, MeuPerfilActivity::class.java, requerConta = true)
         ).forEach { destino ->

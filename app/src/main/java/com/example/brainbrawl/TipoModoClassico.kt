@@ -33,6 +33,7 @@ class TipoModoClassico : AppCompatActivity() {
         val modoCompetitivoDiretoDisponivel = modoJogo == GameConstants.MODO_CLASSICO
         binding.btnModo1x1.visibility = if (modoCompetitivoDiretoDisponivel) View.VISIBLE else View.GONE
         binding.btnModo2x2.visibility = if (modoCompetitivoDiretoDisponivel) View.VISIBLE else View.GONE
+        configurarCopyModo(modoJogo)
 
         // Configurar o botao para o modo 1x1, modo 2x2 e modo de todos contra todos
         binding.btnModo1x1.setOnClickListener {
@@ -58,10 +59,35 @@ class TipoModoClassico : AppCompatActivity() {
             startActivity(intent)
             finish()
         }
+        binding.btnBackHeader.setOnClickListener {
+            binding.btnVoltar.performClick()
+        }
 
         // Configurar o botão de informação sobre todos os modos de jogo
         binding.infoTodos.setOnClickListener {
             mostrarExplicacaoTodosModos(modoJogo, modoCompetitivoDiretoDisponivel)
+        }
+    }
+
+    private fun configurarCopyModo(modoJogo: String) {
+        when (modoJogo) {
+            GameConstants.MODO_CAOTICO -> {
+                binding.txtModoBase.setText(R.string.modo_caotico_subtitulo_curto)
+                binding.txtModoSoloSubtitle.setText(R.string.modo_solo_caotico_subtitulo)
+                binding.txtModoGrupoSubtitle.setText(R.string.modo_grupo_caotico_subtitulo)
+            }
+
+            GameConstants.MODO_ELIMINATORIAS -> {
+                binding.txtModoBase.setText(R.string.modo_eliminatorias_subtitulo_curto)
+                binding.txtModoSoloSubtitle.setText(R.string.modo_solo_eliminatorias_subtitulo)
+                binding.txtModoGrupoSubtitle.setText(R.string.modo_grupo_eliminatorias_subtitulo)
+            }
+
+            else -> {
+                binding.txtModoBase.setText(R.string.modo_classico_subtitulo_curto)
+                binding.txtModoSoloSubtitle.setText(R.string.modo_solo_subtitulo)
+                binding.txtModoGrupoSubtitle.setText(R.string.modo_todos_subtitulo)
+            }
         }
     }
 
@@ -102,12 +128,13 @@ class TipoModoClassico : AppCompatActivity() {
         if (nomeUtilizador.isNullOrEmpty()) {
             mostrarMensagemLoginObrigatorio()
         } else {
-            val intent = Intent(this, EscolhaCategoriaModosActivity::class.java)
+            val intent = Intent(this, EscolherCategoriaActivity::class.java)
             intent.putExtra(IntentExtras.MODO_JOGO, modo)
             intent.putExtra(IntentExtras.NOME_UTILIZADOR, nomeUtilizador)
             nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
             uid?.let { intent.putExtra(IntentExtras.UID, it) }
             intent.putExtra(IntentExtras.ADMIN, true)
+            intent.putExtra(IntentExtras.MODO_SOLO, false)
             startActivity(intent)
         }
     }

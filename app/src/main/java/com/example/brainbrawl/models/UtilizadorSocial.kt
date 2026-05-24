@@ -4,7 +4,9 @@ data class UtilizadorSocial(
     val uid: String = "",
     val nomeUtilizador: String = "",
     val chavePerfil: String = "",
-    val chaveOrigem: String = ""
+    val chaveOrigem: String = "",
+    val avatar: String = "",
+    val estado: String = ""
 ) {
     val chavePrimaria: String
         get() = uid.ifBlank { chavePerfil.ifBlank { nomeUtilizador.ifBlank { chaveOrigem } } }
@@ -30,6 +32,9 @@ data class UtilizadorSocial(
 
     val chaveDedupe: String
         get() = uid.ifBlank { nomeUtilizador.ifBlank { chavePrimaria } }
+
+    val online: Boolean
+        get() = estado != "off"
 
     fun corresponde(outro: UtilizadorSocial): Boolean {
         return chaveDedupe.isNotBlank() && chaveDedupe == outro.chaveDedupe ||

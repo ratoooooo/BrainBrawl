@@ -5,6 +5,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.brainbrawl.config.GameConstants
+import com.example.brainbrawl.config.RoomFlowType
 import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository
 import com.example.brainbrawl.repositories.JogoCompetitivoRepository.ModoCompetitivo
@@ -31,10 +32,17 @@ class Sala1x1ViewModel(
     private var saidaManual = false
     private var salaConfirmada = false
     private var salaMatchmaking = false
+    private var origemSala = ""
     private var codigoSalaVisivel = false
     private var textoCodigoSalaPrivado = "A carregar sala..."
+    private var nomeCategoriaSala = ""
+    private var categoriaTodasLabel = "Todas as Categorias"
     private var picoJogadoresPresentes = 0
     private var aVerificarProntos = false
+    private var inicioJogoEmCurso = false
+    private var jogoIniciado = false
+    private val fluxoSala: RoomFlowType
+        get() = RoomFlowType.fromOrigin(origemSala)
 
     fun iniciar(
         codigoSala: String,
@@ -43,21 +51,31 @@ class Sala1x1ViewModel(
         nomeJogador: String,
         playerKey: String = "",
         tipoJogador: String = "",
-        avatar: String = ""
+        avatar: String = "",
+        categoriaTodas: String = categoriaTodasLabel
     ) {
         jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         chaveJogador = jogadorAtual.chaveSala
+        categoriaTodasLabel = categoriaTodas.ifBlank { categoriaTodasLabel }
         Log.d(
-            TAG,
-            "Sala1x1 iniciar: codigo=$codigoSala uid=$uid playerKey=$playerKey " +
-                "chaveInicial=$chaveJogador tipo=$tipoJogador"
+            START_TAG,
+            "mode=1x1 room=$codigoSala uid=${uid.maskedLogId()} playerKey=${playerKey.maskedLogId()} " +
+                "keyInitial=${chaveJogador.maskedLogId()} type=$tipoJogador avatar=${avatar.ifBlank { "<empty>" }}"
         )
         saidaManual = false
         picoJogadoresPresentes = 0
         salaConfirmada = false
+        inicioJogoEmCurso = false
+        jogoIniciado = false
         jogoCompetitivoRepository.adicionarJogador(ModoCompetitivo.UM_CONTRA_UM, codigoSala, jogadorAtual)
             .addOnSuccessListener { jogadorNaSala ->
                 chaveJogador = jogadorNaSala.chave
+                Log.d(
+                    START_TAG,
+                    "mode=1x1 room=$codigoSala joined key=${chaveJogador.maskedLogId()} " +
+                        "uid=${jogadorNaSala.uid.maskedLogId()} username=${jogadorNaSala.nomeDisplay} " +
+                        "avatar=${jogadorNaSala.avatar.ifBlank { "<empty>" }}"
+                )
                 carregarInfoSala(codigoSala) {
                     if (salaMatchmaking) {
                         jogoCompetitivoRepository.marcarPronto1x1(codigoSala, chaveJogador, pronto = false)
@@ -81,18 +99,50 @@ class Sala1x1ViewModel(
     private fun carregarInfoSala(codigoSala: String, onComplete: () -> Unit = {}) {
         jogoCompetitivoRepository.obterCodigoSalaInfo(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
             .addOnSuccessListener { info ->
-                salaMatchmaking = info.origem == GameConstants.ORIGEM_MATCHMAKING
+                origemSala = info.origem
+                salaMatchmaking = fluxoSala.isMatchmaking
                 codigoSalaVisivel = info.codigoVisivel
                 textoCodigoSalaPrivado = info.textoPrivado
-                publicarEstado()
-                onComplete()
+                Log.d(
+                    FLOW_TAG,
+                    "mode=1x1 room=$codigoSala roomInfo origem=${origemSala.ifBlank { "<empty>" }} " +
+                        "flow=${fluxoSala.firebaseValue} matchmaking=$salaMatchmaking entradaFechada=${info.entradaFechada} " +
+                        "uid=${jogadorAtual.uid.maskedLogId()} key=${chaveJogador.maskedLogId()}"
+                )
+                carregarCategoriaSala(codigoSala, onComplete)
             }
-            .addOnFailureListener {
+            .addOnFailureListener { error ->
+                Log.w(
+                    FLOW_TAG,
+                    "mode=1x1 room=$codigoSala roomInfoFailed=${error.message} " +
+                        "fallbackFlow=${RoomFlowType.PRIVATE.firebaseValue} fallbackMatchmaking=false " +
+                        "uid=${jogadorAtual.uid.maskedLogId()} key=${chaveJogador.maskedLogId()}"
+                )
+                origemSala = ""
+                salaMatchmaking = false
                 codigoSalaVisivel = true
                 textoCodigoSalaPrivado = ""
-                publicarEstado()
-                onComplete()
+                carregarCategoriaSala(codigoSala, onComplete)
             }
+    }
+
+    private fun carregarCategoriaSala(codigoSala: String, onComplete: () -> Unit = {}) {
+        jogoCompetitivoRepository.carregarNomeCategoria(
+            ModoCompetitivo.UM_CONTRA_UM,
+            codigoSala,
+            nomeCategoriaSala
+        ).addOnSuccessListener { categoria ->
+            nomeCategoriaSala = categoria
+            Log.d(
+                START_TAG,
+                "mode=1x1 room=$codigoSala categoryFromRoom=${nomeCategoriaSala.ifBlank { "<empty>" }}"
+            )
+            publicarEstado()
+            onComplete()
+        }.addOnFailureListener {
+            publicarEstado()
+            onComplete()
+        }
     }
 
     fun observarJogadores(codigoSala: String) {
@@ -113,13 +163,18 @@ class Sala1x1ViewModel(
                     picoJogadoresPresentes = presentes.size
                 }
                 if (picoJogadoresPresentes >= 2 && presentes.size < picoJogadoresPresentes) {
+                    val ignorarQueda = inicioJogoEmCurso || jogoIniciado
                     Log.d(
-                        TAG,
-                        "Sala1x1 queda de presenca: codigo=$codigoSala matchmaking=$salaMatchmaking " +
+                        FLOW_TAG,
+                        "mode=1x1 room=$codigoSala presenceDrop origem=${origemSala.ifBlank { "<empty>" }} " +
+                            "flow=${fluxoSala.firebaseValue} matchmaking=$salaMatchmaking " +
                             "presentes=${presentes.size} pico=$picoJogadoresPresentes " +
-                            "cleanupIntentional=false"
+                            "startInProgress=$inicioJogoEmCurso gameStarted=$jogoIniciado " +
+                            "eventEmitted=${!ignorarQueda} cleanupIntentional=false"
                     )
-                    _evento.value = Sala1x1Event.OponenteSaiu
+                    if (!ignorarQueda) {
+                        _evento.value = Sala1x1Event.OponenteSaiu
+                    }
                     picoJogadoresPresentes = presentes.size
                 }
                 atualizarAdmin(codigoSala)
@@ -134,7 +189,7 @@ class Sala1x1ViewModel(
             ModoCompetitivo.UM_CONTRA_UM,
             codigoSala,
             onProntosAlterados = { prontosAtualizados ->
-                Log.d(TAG, "Sala1x1 prontos: codigo=$codigoSala valores=$prontosAtualizados")
+                Log.d(START_TAG, "mode=1x1 room=$codigoSala ready=$prontosAtualizados key=${chaveJogador.maskedLogId()}")
                 prontos = prontosAtualizados
                 publicarEstado()
                 tentarIniciarMatchmakingSePronto(codigoSala)
@@ -148,7 +203,14 @@ class Sala1x1ViewModel(
             ModoCompetitivo.UM_CONTRA_UM,
             codigoSala,
             onEstadoAlterado = { estado ->
+                Log.d(
+                    START_TAG,
+                    "mode=1x1 room=$codigoSala stateChanged=$estado uid=${jogadorAtual.uid.maskedLogId()} " +
+                        "key=${chaveJogador.maskedLogId()} category=${nomeCategoriaSala.ifBlank { "<empty>" }}"
+                )
                 if (estado == GameConstants.ESTADO_EM_JOGO) {
+                    jogoIniciado = true
+                    inicioJogoEmCurso = true
                     _evento.value = Sala1x1Event.JogoIniciado
                 }
             }
@@ -163,18 +225,29 @@ class Sala1x1ViewModel(
             onSalaExisteAlterada = { existe ->
                 if (existe) {
                     salaConfirmada = true
-                } else if (salaConfirmada && !saidaManual) {
+                } else if (salaConfirmada && !saidaManual && !inicioJogoEmCurso && !jogoIniciado) {
+                    Log.w(
+                        START_TAG,
+                        "mode=1x1 room=$codigoSala navigatingMainReason=room_deleted uid=${jogadorAtual.uid.maskedLogId()} " +
+                            "key=${chaveJogador.maskedLogId()} manualExit=$saidaManual"
+                    )
                     _evento.value = Sala1x1Event.SalaEncerrada
+                } else if (salaConfirmada) {
+                    Log.d(
+                        FLOW_TAG,
+                        "mode=1x1 room=$codigoSala roomDeletedIgnored flow=${fluxoSala.firebaseValue} manualExit=$saidaManual " +
+                            "startInProgress=$inicioJogoEmCurso gameStarted=$jogoIniciado"
+                    )
                 }
             }
         )
     }
 
     fun acaoPrincipal(codigoSala: String) {
-        if (salaMatchmaking) {
-            marcarProntoMatchmaking(codigoSala)
-        } else {
-            verificarProntosEAvancar(codigoSala)
+        when (fluxoSala) {
+            RoomFlowType.MATCHMAKING -> marcarProntoMatchmaking(codigoSala)
+            RoomFlowType.INVITE,
+            RoomFlowType.PRIVATE -> verificarProntosEAvancar(codigoSala)
         }
     }
 
@@ -194,25 +267,57 @@ class Sala1x1ViewModel(
     private fun verificarProntosEAvancar(codigoSala: String) {
         if (aVerificarProntos) return
         if (!(admin && jogadoresNaSala.size == 2)) {
+            Log.d(
+                START_TAG,
+                "mode=1x1 room=$codigoSala startBlocked admin=$admin players=${jogadoresNaSala.size} " +
+                    "key=${chaveJogador.maskedLogId()}"
+            )
             _evento.value = Sala1x1Event.AguardarAdversario
             return
         }
 
         aVerificarProntos = true
+        inicioJogoEmCurso = true
+        publicarEstado()
         jogoCompetitivoRepository.obterProntos1x1(codigoSala)
             .addOnCompleteListener { aVerificarProntos = false }
             .addOnSuccessListener { prontos ->
                 val chavesPresentes = jogadoresNaSala.map { it.chave }.toSet()
                 val prontosValidos = prontos.filter { it in chavesPresentes }
                 if (prontosValidos.size == 2 && jogadoresNaSala.size == 2) {
-                    jogoCompetitivoRepository.atualizarEstadoSala(
-                        ModoCompetitivo.UM_CONTRA_UM,
-                        codigoSala,
-                        GameConstants.ESTADO_EM_JOGO
+                    Log.d(
+                        HOST_REMOVAL_TAG,
+                        "mode=1x1 room=$codigoSala startGame admin=$admin players=${jogadoresNaSala.map { it.chave.maskedLogId() }} " +
+                            "flow=${fluxoSala.firebaseValue} roomType=${origemSala.ifBlank { "<empty>" }} matchmaking=$salaMatchmaking " +
+                            "category=${nomeCategoriaSala.ifBlank { "<empty>" }} statusBefore=${GameConstants.ESTADO_EM_ESPERA} " +
+                            "cleanupBlocked=true method=iniciarJogo1x1"
                     )
+                    jogoCompetitivoRepository.iniciarJogo1x1(
+                        codigoSala,
+                        nomeCategoriaSala,
+                        categoriaTodasLabel
+                    ).addOnSuccessListener {
+                        Log.d(HOST_REMOVAL_TAG, "mode=1x1 room=$codigoSala statusAfter=${GameConstants.ESTADO_EM_JOGO}")
+                    }.addOnFailureListener { error ->
+                        inicioJogoEmCurso = false
+                        Log.w(HOST_REMOVAL_TAG, "mode=1x1 room=$codigoSala startFailed=${error.message}")
+                        _evento.value = Sala1x1Event.JogadoresNaoProntos
+                    }
                 } else {
+                    inicioJogoEmCurso = false
+                    publicarEstado()
+                    Log.d(
+                        START_TAG,
+                        "mode=1x1 room=$codigoSala startBlocked ready=${prontosValidos.size} players=${jogadoresNaSala.size}"
+                    )
                     _evento.value = Sala1x1Event.JogadoresNaoProntos
                 }
+            }
+            .addOnFailureListener { error ->
+                inicioJogoEmCurso = false
+                publicarEstado()
+                Log.w(HOST_REMOVAL_TAG, "mode=1x1 room=$codigoSala readyReadFailed=${error.message}")
+                _evento.value = Sala1x1Event.JogadoresNaoProntos
             }
     }
 
@@ -223,25 +328,60 @@ class Sala1x1ViewModel(
         if (prontosValidos.size != 2) return
 
         aVerificarProntos = true
-        jogoCompetitivoRepository.atualizarEstadoSala(
-            ModoCompetitivo.UM_CONTRA_UM,
+        inicioJogoEmCurso = true
+        jogoCompetitivoRepository.iniciarJogo1x1(
             codigoSala,
-            GameConstants.ESTADO_EM_JOGO
+            nomeCategoriaSala,
+            categoriaTodasLabel
         ).addOnCompleteListener {
             aVerificarProntos = false
+        }.addOnFailureListener { error ->
+            inicioJogoEmCurso = false
+            Log.w(HOST_REMOVAL_TAG, "mode=1x1 room=$codigoSala matchmakingStartFailed=${error.message}")
+            _evento.value = Sala1x1Event.JogadoresNaoProntos
         }
     }
 
-    fun sairDaSala(codigoSala: String) {
+    fun sairDaSala(codigoSala: String, reason: String = "explicit_leave") {
+        if (inicioJogoEmCurso) {
+            Log.d(
+                HOST_REMOVAL_TAG,
+                "mode=1x1 room=$codigoSala sairDaSala skipped cleanupTriggered=false reason=start_in_progress " +
+                    "admin=$admin key=${chaveJogador.maskedLogId()}"
+            )
+            return
+        }
         saidaManual = true
         Log.d(
-            TAG,
-            "Sala1x1 sairDaSala: codigo=$codigoSala matchmaking=$salaMatchmaking " +
-                "admin=$admin chave=$chaveJogador cleanupIntentional=true"
+            FLOW_TAG,
+            "mode=1x1 room=$codigoSala cleanupRequested flow=${fluxoSala.firebaseValue} " +
+                "matchmaking=$salaMatchmaking roomType=${origemSala.ifBlank { "<empty>" }} admin=$admin " +
+                "chave=${chaveJogador.maskedLogId()} cleanupIntentional=true reason=$reason"
         )
-        if (salaMatchmaking) {
-            jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
-        } else if (admin) {
+        when (fluxoSala) {
+            RoomFlowType.MATCHMAKING -> sairDaSalaMatchmaking(codigoSala)
+            RoomFlowType.INVITE,
+            RoomFlowType.PRIVATE -> sairDaSalaPrivada(codigoSala)
+        }
+    }
+
+    private fun sairDaSalaMatchmaking(codigoSala: String) {
+        Log.d(
+            FLOW_TAG,
+            "mode=1x1 room=$codigoSala cleanupPath=matchmaking action=delete_room " +
+                "key=${chaveJogador.maskedLogId()}"
+        )
+        jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
+    }
+
+    private fun sairDaSalaPrivada(codigoSala: String) {
+        val action = if (admin) "delete_room" else "remove_player"
+        Log.d(
+            FLOW_TAG,
+            "mode=1x1 room=$codigoSala cleanupPath=invite_private action=$action " +
+                "key=${chaveJogador.maskedLogId()}"
+        )
+        if (admin) {
             jogoCompetitivoRepository.apagarSala(ModoCompetitivo.UM_CONTRA_UM, codigoSala)
         } else {
             jogoCompetitivoRepository.removerJogador1x1(codigoSala, jogadorAtual, chaveJogador)
@@ -267,6 +407,9 @@ class Sala1x1ViewModel(
     private fun publicarEstado() {
         val jogadorPronto = chaveJogador.isNotBlank() && chaveJogador in prontos
         val jogadorPresente = jogadoresNaSala.any { it.chave == chaveJogador }
+        val jogadoresDetalhe = jogadoresNaSala.map { jogador ->
+            jogador.toSalaJogadorUiState(pronto = jogador.chave in prontos)
+        }
         _estado.value = SalaCompetitivaUiState(
             jogadores = jogadoresNaSala.map { jogador ->
                 if (salaMatchmaking) {
@@ -275,16 +418,36 @@ class Sala1x1ViewModel(
                     jogador.nomeDisplay
                 }
             },
+            jogadoresDetalhe = jogadoresDetalhe,
             admin = admin,
             podeIniciar = if (salaMatchmaking) {
                 jogadorPresente && !jogadorPronto
             } else {
-                admin && jogadoresNaSala.size == 2
+                admin && jogadoresNaSala.size == 2 && !inicioJogoEmCurso && !jogoIniciado
             },
             codigoSalaVisivel = codigoSalaVisivel,
             textoCodigoSalaPrivado = textoCodigoSalaPrivado,
             matchmaking = salaMatchmaking,
-            jogadorPronto = jogadorPronto
+            origemSala = origemSala,
+            jogadorPronto = jogadorPronto,
+            chaveJogadorAtual = chaveJogador,
+            avatarJogadorAtual = jogadoresNaSala.firstOrNull { it.chave == chaveJogador }?.avatar.orEmpty(),
+            nomeCategoria = nomeCategoriaSala
+        )
+    }
+
+    private fun JogoCompetitivoRepository.JogadorCompetitivo.toSalaJogadorUiState(
+        pronto: Boolean
+    ): SalaJogadorUiState {
+        return SalaJogadorUiState(
+            chave = chave,
+            nomeDisplay = nomeDisplay,
+            uid = uid,
+            playerKey = playerKey,
+            tipoJogador = tipoJogador,
+            avatar = avatar,
+            estado = estado,
+            pronto = pronto
         )
     }
 
@@ -334,17 +497,36 @@ class Sala1x1ViewModel(
 
     private companion object {
         const val TAG = "MATCHMAKING_DEBUG"
+        const val START_TAG = "INVITE_START_ROOT_CAUSE"
+        const val HOST_REMOVAL_TAG = "HOST_REMOVAL_DEBUG"
+        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
     }
 }
 
 data class SalaCompetitivaUiState(
     val jogadores: List<String>,
+    val jogadoresDetalhe: List<SalaJogadorUiState> = emptyList(),
     val admin: Boolean,
     val podeIniciar: Boolean,
     val codigoSalaVisivel: Boolean = true,
     val textoCodigoSalaPrivado: String = "",
     val matchmaking: Boolean = false,
-    val jogadorPronto: Boolean = false
+    val origemSala: String = "",
+    val jogadorPronto: Boolean = false,
+    val chaveJogadorAtual: String = "",
+    val avatarJogadorAtual: String = "",
+    val nomeCategoria: String = ""
+)
+
+data class SalaJogadorUiState(
+    val chave: String,
+    val nomeDisplay: String,
+    val uid: String,
+    val playerKey: String,
+    val tipoJogador: String,
+    val avatar: String,
+    val estado: String,
+    val pronto: Boolean
 )
 
 sealed class Sala1x1Event {
@@ -355,4 +537,9 @@ sealed class Sala1x1Event {
     data object EntradaBloqueada : Sala1x1Event()
     /** Contagem de jogadores activos desceu (ex.: adversário saiu ou ficou off). */
     data object OponenteSaiu : Sala1x1Event()
+}
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
 }

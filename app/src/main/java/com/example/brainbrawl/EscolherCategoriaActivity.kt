@@ -61,13 +61,15 @@ class EscolherCategoriaActivity : AppCompatActivity() {
             getString(R.string.categoria2) to "Geografia",
             getString(R.string.categoria3) to "Desporto",
             getString(R.string.categoria4) to "Cultura Geral",
-            getString(R.string.categoria5) to "Gentílicos"
+            getString(R.string.categoria6) to "Gentílicos"
         )
 
         // Função lambda para criar uma sala com a categoria escolhida e entrar nela
         val criarSala = { categoriaEscolhida: String ->
             if (modoSolo) {
                 abrirJogoSolo(modoJogo, categoriaEscolhida, nomeUtilizador, nomeJogador, uid)
+            } else if (modoJogo == GameConstants.MODO_1X1 || modoJogo == GameConstants.MODO_2X2) {
+                abrirConviteCategoriaOficial(modoJogo, categoriaEscolhida, nomeUtilizador, nomeJogador, uid)
             } else {
                 criarSalaComCategoriaEEntrar(
                     this, codigoSala, nomeUtilizador, nomeJogador, categoriaEscolhida, admin, modoJogo, uid
@@ -94,7 +96,7 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         }
         binding.btnCategoria5.setOnClickListener {
             binding.btnCategoria5.isEnabled = false
-            criarSala(categoriaFirebase[getString(R.string.categoria5)] ?: "Gentílicos")
+            criarSala(categoriaFirebase[getString(R.string.categoria6)] ?: "Gentílicos")
         }
         binding.btnCriarCategoria.setOnClickListener {
             val intent = Intent(this, ExplorarCategoriasActivity::class.java)
@@ -106,15 +108,56 @@ class EscolherCategoriaActivity : AppCompatActivity() {
         binding.infoCategorias.setOnClickListener {
             mostrarDicasCategorias()
         }
-        binding.btnVoltar.setOnClickListener {
-            val intent = Intent(this, EscolherModoActivity::class.java)
-            nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
-            nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
-            uid?.let { intent.putExtra(IntentExtras.UID, it) }
-            admin.let { intent.putExtra(IntentExtras.ADMIN, it) }
-            startActivity(intent)
-            finish()
+        binding.btnBackHeader.setOnClickListener {
+            voltarParaEscolherModo(nomeUtilizador, nomeJogador, uid, admin)
         }
+        binding.btnVoltar.setOnClickListener {
+            voltarParaEscolherModo(nomeUtilizador, nomeJogador, uid, admin)
+        }
+    }
+
+    private fun voltarParaEscolherModo(
+        nomeUtilizador: String?,
+        nomeJogador: String?,
+        uid: String?,
+        admin: Boolean
+    ) {
+        val intent = Intent(this, EscolherModoActivity::class.java)
+        nomeUtilizador?.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
+        admin.let { intent.putExtra(IntentExtras.ADMIN, it) }
+        startActivity(intent)
+        finish()
+    }
+
+    private fun abrirConviteCategoriaOficial(
+        modoJogo: String,
+        categoria: String,
+        nomeUtilizador: String?,
+        nomeJogador: String?,
+        uid: String?
+    ) {
+        if (nomeUtilizador.isNullOrBlank()) {
+            Toast.makeText(this, R.string.convites_precisam_conta, Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val destino = if (modoJogo == GameConstants.MODO_2X2) {
+            ConvidarAmigo2x2Activity::class.java
+        } else {
+            ConvidarAmigo1x1Activity::class.java
+        }
+        val intent = Intent(this, destino)
+        intent.putExtra(IntentExtras.MODO_JOGO, modoJogo)
+        intent.putExtra(IntentExtras.NOME_CATEGORIA, categoria)
+        intent.putExtra(IntentExtras.ORIGEM_CATEGORIA, GameConstants.ORIGEM_CATEGORIA_OFICIAL)
+        intent.putExtra(IntentExtras.ADMIN, true)
+        nomeUtilizador.let { intent.putExtra(IntentExtras.NOME_UTILIZADOR, it) }
+        nomeJogador?.let { intent.putExtra(IntentExtras.NOME_JOGADOR, it) }
+        uid?.let { intent.putExtra(IntentExtras.UID, it) }
+        startActivity(intent)
+        finish()
     }
 
     private fun abrirJogoSolo(

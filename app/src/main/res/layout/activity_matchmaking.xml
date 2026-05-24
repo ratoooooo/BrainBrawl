@@ -1,106 +1,351 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_main_premium"
-    android:padding="@dimen/bb_space_lg">
+    tools:context=".MatchmakingActivity">
 
-    <TextView
-        android:id="@+id/txtTituloMatchmaking"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="@string/matchmaking_1x1_titulo"
-        android:textAlignment="center"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="@dimen/bb_title_size"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toTopOf="@id/cardMatchmaking"
-        app:layout_constraintEnd_toEndOf="parent"
+    <ImageButton
+        android:id="@+id/btnBackHeader"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
+        android:contentDescription="@string/voltar"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_chainStyle="packed" />
+        app:tint="@color/bb_luso_gold" />
 
-    <LinearLayout
-        android:id="@+id/cardMatchmaking"
+    <ScrollView
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="@dimen/bb_space_lg"
-        android:background="@drawable/bg_card_surface"
-        android:gravity="center"
-        android:orientation="vertical"
-        android:padding="@dimen/bb_space_xl"
-        app:layout_constraintBottom_toTopOf="@id/btnCancelarMatchmaking"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txtTituloMatchmaking">
-
-        <ProgressBar
-            android:id="@+id/progressMatchmaking"
-            style="?android:attr/progressBarStyle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:indeterminateTint="@color/bb_primary" />
-
-        <TextView
-            android:id="@+id/txtEstadoMatchmaking"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/bb_space_lg"
-            android:text="@string/matchmaking_estado_default"
-            android:textAlignment="center"
-            android:textColor="@color/bb_text_secondary"
-            android:textSize="@dimen/bb_body_size" />
-
-        <TextView
-            android:id="@+id/txtContadorMatchmaking"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/bb_space_md"
-            android:fontFamily="sans-serif-black"
-            android:text="@string/matchmaking_contador_inicial"
-            android:textAlignment="center"
-            android:textColor="@color/bb_text_primary"
-            android:textSize="17sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/txtTempoMatchmaking"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:text="@string/matchmaking_tempo_inicial"
-            android:textAlignment="center"
-            android:textColor="@color/bb_text_secondary"
-            android:textSize="13sp" />
-
-        <TextView
-            android:id="@+id/txtJogadoresMatchmaking"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/bb_space_md"
-            android:background="@drawable/bg_input_surface"
-            android:lineSpacingExtra="4dp"
-            android:minHeight="88dp"
-            android:padding="@dimen/bb_space_md"
-            android:text="@string/matchmaking_aguardando"
-            android:textColor="@color/bb_text_secondary"
-            android:textSize="15sp" />
-
-    </LinearLayout>
-
-    <Button
-        android:id="@+id/btnCancelarMatchmaking"
-        style="@style/BrainBrawlButton"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/bb_button_height"
-        android:layout_marginTop="@dimen/bb_space_lg"
-        android:background="@drawable/bg_button_danger"
-        android:text="@string/cancelar"
-        android:textColor="@color/bb_primary_text"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/cardMatchmaking" />
+        app:layout_constraintTop_toTopOf="parent">
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="88dp"
+            android:paddingBottom="36dp">
+
+            <ImageView
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:src="@drawable/ic_sword"
+                app:tint="@color/bb_luso_navy" />
+
+            <TextView
+                android:id="@+id/txtTituloMatchmaking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/matchmaking_1x1_titulo"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="31sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="18dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_accent_diamond" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:id="@+id/cardMatchmaking"
+                android:layout_width="118dp"
+                android:layout_height="118dp"
+                android:layout_marginTop="30dp">
+
+                <ProgressBar
+                    android:id="@+id/progressMatchmaking"
+                    style="?android:attr/progressBarStyleLarge"
+                    android:layout_width="104dp"
+                    android:layout_height="104dp"
+                    android:layout_gravity="center"
+                    android:indeterminateTint="@color/bb_luso_gold" />
+
+                <ImageView
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:layout_gravity="center"
+                    android:src="@drawable/ic_shield_clean"
+                    app:tint="@color/bb_luso_navy" />
+            </FrameLayout>
+
+            <TextView
+                android:id="@+id/txtEstadoMatchmaking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/matchmaking_estado_default"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtContadorMatchmaking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/matchmaking_contador_curto_inicial"
+                android:textColor="@color/bb_luso_gold"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtTempoMatchmaking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:drawableStart="@drawable/ic_clock"
+                android:drawablePadding="8dp"
+                android:fontFamily="sans-serif-black"
+                android:gravity="center"
+                android:text="@string/matchmaking_tempo_curto_inicial"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/layoutMatchmakingPlayers"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:background="@drawable/bg_main_hero_card"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/txtMatchmakingListaTitulo"
+                    android:layout_width="match_parent"
+                    android:layout_height="52dp"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center_vertical"
+                    android:paddingStart="18dp"
+                    android:paddingEnd="18dp"
+                    android:text="@string/matchmaking_jogadores_encontrados"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="#55D8C49D" />
+
+                <LinearLayout
+                    android:id="@+id/rowMatchPlayer1"
+                    style="@style/Widget_BrainBrawl_MatchmakingRow">
+
+                    <ImageView
+                        android:id="@+id/imgMatchAvatar1"
+                        style="@style/Widget_BrainBrawl_MatchmakingAvatar"
+                        android:src="@drawable/avatar_1_playstore" />
+
+                    <LinearLayout style="@style/Widget_BrainBrawl_MatchmakingTextColumn">
+
+                        <TextView
+                            android:id="@+id/txtMatchNome1"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerName"
+                            tools:text="jogador1" />
+
+                        <TextView
+                            android:id="@+id/txtMatchSub1"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerSub"
+                            tools:text="Você" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txtMatchStatus1"
+                        style="@style/Widget_BrainBrawl_MatchmakingStatus"
+                        tools:text="•  Pronto" />
+                </LinearLayout>
+
+                <View style="@style/Widget_BrainBrawl_MatchmakingDivider" />
+
+                <LinearLayout
+                    android:id="@+id/rowMatchPlayer2"
+                    style="@style/Widget_BrainBrawl_MatchmakingRow">
+
+                    <ImageView
+                        android:id="@+id/imgMatchAvatar2"
+                        style="@style/Widget_BrainBrawl_MatchmakingAvatar"
+                        android:background="@drawable/bg_game_type_icon"
+                        android:padding="13dp"
+                        android:src="@drawable/ic_person"
+                        app:tint="@color/bb_text_secondary" />
+
+                    <LinearLayout style="@style/Widget_BrainBrawl_MatchmakingTextColumn">
+
+                        <TextView
+                            android:id="@+id/txtMatchNome2"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerName"
+                            android:text="@string/a_procurar" />
+
+                        <TextView
+                            android:id="@+id/txtMatchSub2"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerSub"
+                            android:text="@string/aguardando_estado" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txtMatchStatus2"
+                        style="@style/Widget_BrainBrawl_MatchmakingWaitingDots"
+                        android:text="@string/matchmaking_waiting_dots" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/dividerMatch3"
+                    style="@style/Widget_BrainBrawl_MatchmakingDivider" />
+
+                <LinearLayout
+                    android:id="@+id/rowMatchPlayer3"
+                    style="@style/Widget_BrainBrawl_MatchmakingRow">
+
+                    <ImageView
+                        android:id="@+id/imgMatchAvatar3"
+                        style="@style/Widget_BrainBrawl_MatchmakingAvatar"
+                        android:background="@drawable/bg_game_type_icon"
+                        android:padding="13dp"
+                        android:src="@drawable/ic_person"
+                        app:tint="@color/bb_text_secondary" />
+
+                    <LinearLayout style="@style/Widget_BrainBrawl_MatchmakingTextColumn">
+
+                        <TextView
+                            android:id="@+id/txtMatchNome3"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerName"
+                            android:text="@string/a_procurar" />
+
+                        <TextView
+                            android:id="@+id/txtMatchSub3"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerSub"
+                            android:text="@string/aguardando_estado" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txtMatchStatus3"
+                        style="@style/Widget_BrainBrawl_MatchmakingWaitingDots"
+                        android:text="@string/matchmaking_waiting_dots" />
+                </LinearLayout>
+
+                <View
+                    android:id="@+id/dividerMatch4"
+                    style="@style/Widget_BrainBrawl_MatchmakingDivider" />
+
+                <LinearLayout
+                    android:id="@+id/rowMatchPlayer4"
+                    style="@style/Widget_BrainBrawl_MatchmakingRow">
+
+                    <ImageView
+                        android:id="@+id/imgMatchAvatar4"
+                        style="@style/Widget_BrainBrawl_MatchmakingAvatar"
+                        android:background="@drawable/bg_game_type_icon"
+                        android:padding="13dp"
+                        android:src="@drawable/ic_person"
+                        app:tint="@color/bb_text_secondary" />
+
+                    <LinearLayout style="@style/Widget_BrainBrawl_MatchmakingTextColumn">
+
+                        <TextView
+                            android:id="@+id/txtMatchNome4"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerName"
+                            android:text="@string/a_procurar" />
+
+                        <TextView
+                            android:id="@+id/txtMatchSub4"
+                            style="@style/Widget_BrainBrawl_MatchmakingPlayerSub"
+                            android:text="@string/aguardando_estado" />
+                    </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/txtMatchStatus4"
+                        style="@style/Widget_BrainBrawl_MatchmakingWaitingDots"
+                        android:text="@string/matchmaking_waiting_dots" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="26dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="38dp"
+                android:paddingEnd="28dp">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:layout_marginEnd="14dp"
+                    android:src="@drawable/ic_shield_clean"
+                    app:tint="@color/bb_luso_navy" />
+
+                <TextView
+                    android:id="@+id/txtMatchmakingNote"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:fontFamily="sans-serif"
+                    android:text="@string/matchmaking_footer_1x1"
+                    android:textColor="@color/bb_text_secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+
+            <Button
+                android:id="@+id/btnCancelarMatchmaking"
+                android:layout_width="match_parent"
+                android:layout_height="62dp"
+                android:layout_marginTop="38dp"
+                android:background="@drawable/bg_button_cancel_red"
+                android:drawableStart="@drawable/ic_close_simple"
+                android:drawablePadding="12dp"
+                android:fontFamily="sans-serif-black"
+                android:text="@string/cancelar"
+                android:textAllCaps="false"
+                android:textColor="@color/bb_primary_text"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

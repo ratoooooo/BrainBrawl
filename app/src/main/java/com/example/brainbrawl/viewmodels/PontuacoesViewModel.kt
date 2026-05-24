@@ -71,7 +71,7 @@ class PontuacoesViewModel(
                             tipoSala = PontuacaoRepository.TipoSala.GRUPO,
                             codigoSala = input.codigoSala,
                             resultados = jogadores,
-                            modo = EstatisticasService.Modo.SOLO,
+                            modo = EstatisticasService.Modo.GRUPO,
                             totalPerguntas = input.totalPerguntas,
                             jogadoresParaAtualizar = input.identificadoresJogadorAtual().toSet()
                         ).addOnFailureListener {
@@ -117,7 +117,8 @@ class PontuacoesViewModel(
                 medalha = medalha,
                 corMedalha = corMedalha,
                 nome = jogador.nome + if (mvps.contains(jogador.nome)) " 🏆 MVP" else "",
-                pontos = jogador.pontos.toInt().toString()
+                pontos = jogador.pontos.toInt().toString(),
+                avatar = jogador.avatar
             )
         }
     }
@@ -129,7 +130,8 @@ class PontuacoesViewModel(
             respostasCertas = input.totalRespostasCertas,
             uid = input.uid,
             nomeUtilizador = input.nomeUtilizador,
-            nomeJogador = input.nomeJogador
+            nomeJogador = input.nomeJogador,
+            avatar = input.avatar
         )
         _uiState.value = PontuacoesUiState(
             mensagem = if (input.categoriaCompetitiva) "" else "Categoria não competitiva: não conta para ranking, recordes ou vitórias.",
@@ -258,7 +260,8 @@ data class PontuacoesInput(
     val categoriaCompetitiva: Boolean = true,
     val tipoJogador: String = "",
     val isGuest: Boolean = false,
-    val isHostOnly: Boolean = false
+    val isHostOnly: Boolean = false,
+    val avatar: String = ""
 ) {
     fun podeGravarPersistente(): Boolean {
         return uid.isNotBlank() &&
@@ -302,7 +305,8 @@ data class PontuacoesPodioItemUi(
     val medalha: String,
     val corMedalha: String,
     val nome: String,
-    val pontos: String
+    val pontos: String,
+    val avatar: String = ""
 )
 
 private const val HISTORY_DEBUG_TAG = "HISTORY_DEBUG"

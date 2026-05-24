@@ -502,3 +502,22 @@ Limites:
 - O campo `competitivo` não torna ranking/XP autoritativos; apenas permite persistir no histórico se a partida conta ou não para estatística competitiva.
 - A correção é local em `firebase-rules.json` até ser publicada no projeto Firebase.
 - `python3 -m json.tool firebase-rules.json` validou o JSON local.
+
+## Categorias: símbolos e total acumulado do ranking - 2026-05-21
+
+Alterações locais mínimas em `firebase-rules.json`:
+
+- `jogadores/{jogadorId}/totalPontosSomados` passou a ser validado como número >= 0.
+- O índice de `jogadores` passou a incluir `totalPontosSomados`.
+- `categoriasPublicas/{categoriaId}/iconeCategoria` e `jogadores/{jogadorId}/categoriasPersonalizadas/{nomeCategoria}/iconeCategoria` passaram a aceitar apenas chaves predefinidas de ícone.
+
+Motivo:
+
+- O ranking global precisa ler/ordenar pelo total acumulado real `totalPontosSomados`.
+- A criação de categorias passou a guardar apenas uma chave local segura de símbolo, não imagem arbitrária.
+
+Limites:
+
+- As regras continuam client-authoritative para pontuação/ranking até existir backend autoritativo.
+- A alteração não permite editar categorias de outros utilizadores e não abre writes genéricos em categorias públicas/personalizadas.
+- `python3 -m json.tool firebase-rules.json` validou o JSON local.

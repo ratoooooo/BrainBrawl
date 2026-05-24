@@ -94,6 +94,12 @@ class MatchmakingViewModel(
         }
 
         aCancelar = true
+        Log.d(
+            FLOW_TAG,
+            "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=$modo room=<queue> " +
+                "viewModel=MatchmakingViewModel event=cleanup cleanupReason=manual_cancel " +
+                "playerKey=${jogador.playerKey.maskedLogId()} navigating=$navegacaoIniciada"
+        )
         _estado.value = _estado.value?.copy(
             status = MatchmakingStatus.CANCELLING,
             estadoTexto = "A cancelar procura...",
@@ -153,6 +159,12 @@ class MatchmakingViewModel(
         if (navegacaoIniciada || aCancelar) return
 
         aCancelar = true
+        Log.d(
+            FLOW_TAG,
+            "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=$modo room=<queue> " +
+                "viewModel=MatchmakingViewModel event=cleanup cleanupReason=background " +
+                "playerKey=${jogador.playerKey.maskedLogId()} navigating=$navegacaoIniciada"
+        )
         _estado.value = _estado.value?.copy(
             status = MatchmakingStatus.CANCELLING,
             estadoTexto = "A limpar procura...",
@@ -299,6 +311,12 @@ class MatchmakingViewModel(
         matchmakingRepository.entrarNaFila(jogador, modo)
             .addOnSuccessListener {
                 Log.d(TAG, "Entrou na fila: modo=$modo player=${jogador.playerKey.maskedLogId()} tipo=${jogador.tipoJogador}")
+                Log.d(
+                    FLOW_TAG,
+                    "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=$modo room=<queue> " +
+                        "viewModel=MatchmakingViewModel event=joinedQueue playerKey=${jogador.playerKey.maskedLogId()} " +
+                        "category=$nomeCategoria"
+                )
                 iniciarTimer()
                 observarFila()
                 observarResultado()
@@ -450,9 +468,10 @@ class MatchmakingViewModel(
                     podeCancelar = false
                 )
                 Log.d(
-                    TAG,
-                    "A navegar para sala: modo=${resultado.modo} sala=${resultado.codigoSala.maskedLogId()} " +
-                        "player=${jogador.playerKey.maskedLogId()}"
+                    FLOW_TAG,
+                    "flow=${GameConstants.ORIGEM_MATCHMAKING} mode=${resultado.modo} room=${resultado.codigoSala} " +
+                        "viewModel=MatchmakingViewModel event=navigateWaitingRoom playerKey=${jogador.playerKey.maskedLogId()} " +
+                        "category=${resultado.nomeCategoria}"
                 )
                 val dados = MatchmakingNavegacaoDados(
                     codigoSala = resultado.codigoSala,
@@ -580,6 +599,7 @@ class MatchmakingViewModel(
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
         const val TAG = "MATCHMAKING_DEBUG"
+        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
         const val TIMER_INTERVAL_MS = 1000L
         const val TIMEOUT_PROCURA_SEGUNDOS = 90
         const val EVENTO_VOLTA_DELAY_MS = 250L

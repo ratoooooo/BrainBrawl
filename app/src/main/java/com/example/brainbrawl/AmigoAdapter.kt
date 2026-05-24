@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.brainbrawl.config.IntentExtras
 import com.example.brainbrawl.models.UtilizadorSocial
@@ -23,6 +24,7 @@ class AmigoAdapter(
     inner class AmigoViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val imgAvatarAmigo: ImageView = view.findViewById(R.id.imgAvatarAmigo)
         val txtNomeAmigo: TextView = view.findViewById(R.id.txtNomeAmigo)
+        val txtEstadoAmigo: TextView = view.findViewById(R.id.txtEstadoAmigo)
         val viewEstadoAmigo: View = view.findViewById(R.id.viewEstadoAmigo)
     }
 
@@ -45,8 +47,15 @@ class AmigoAdapter(
 
         // Estado (verde se "on", cinza se "off" ou outro)
         val estado = estados.getOrNull(position) ?: "off"
-        val cor = if (estado == "on") 0xFF43A047.toInt() else 0xFFBDBDBD.toInt() // verde ou cinza
-        holder.viewEstadoAmigo.background.setTint(cor)
+        val online = estado == "on"
+        holder.viewEstadoAmigo.background = ContextCompat.getDrawable(
+            context,
+            if (online) R.drawable.bg_status_online else R.drawable.bg_status_offline
+        )
+        holder.txtEstadoAmigo.text = context.getString(if (online) R.string.online_status else R.string.offline_status)
+        holder.txtEstadoAmigo.setTextColor(
+            ContextCompat.getColor(context, if (online) R.color.bb_success else R.color.bb_text_secondary)
+        )
 
         // Se o amigo for o próprio utilizador, abre o perfil pessoal
         if (amigo.corresponde(uidUtilizador, nomeUtilizador)) {

@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <ImageView
+        android:id="@+id/img_pergunta"
+        android:layout_width="match_parent"
+        android:layout_height="160dp"
+        android:layout_marginBottom="10dp"
+        android:adjustViewBounds="true"
+        android:background="@drawable/bg_game_question_card"
+        android:scaleType="centerInside"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_game_question_card"
+        android:gravity="center_horizontal"
+        android:minHeight="500dp"
+        android:orientation="vertical"
+        android:padding="22dp">
+
+        <TextView
+            android:id="@+id/txt_pergunta"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="serif"
+            android:gravity="center"
+            android:minHeight="120dp"
+            android:text="@string/carregar_perguntas"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            tools:text="Em que ano os portugueses chegaram ao Brasil?" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/luso_accent_line"
+            android:textColor="@color/bb_luso_gold"
+            android:textSize="16sp" />
+
+        <Button
+            android:id="@+id/btn_opcao_1"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="24dp"
+            android:background="@drawable/bg_game_answer"
+            android:paddingHorizontal="16dp"
+            android:stateListAnimator="@null"
+            android:text="@string/opcao_a"
+            android:textAllCaps="false"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btn_opcao_2"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_game_answer"
+            android:paddingHorizontal="16dp"
+            android:stateListAnimator="@null"
+            android:text="@string/opcao_b"
+            android:textAllCaps="false"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btn_opcao_3"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_game_answer"
+            android:paddingHorizontal="16dp"
+            android:stateListAnimator="@null"
+            android:text="@string/opcao_c"
+            android:textAllCaps="false"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="15sp" />
+
+        <Button
+            android:id="@+id/btn_opcao_4"
+            style="@style/BrainBrawlButton"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_marginTop="12dp"
+            android:background="@drawable/bg_game_answer"
+            android:paddingHorizontal="16dp"
+            android:stateListAnimator="@null"
+            android:text="@string/opcao_d"
+            android:textAllCaps="false"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="15sp" />
+    </LinearLayout>
+</LinearLayout>

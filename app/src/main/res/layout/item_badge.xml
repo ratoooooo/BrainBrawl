@@ -3,22 +3,23 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="0dp"
     android:layout_height="wrap_content"
-    app:cardBackgroundColor="@color/bb_surface_strong"
-    app:cardCornerRadius="8dp"
+    app:cardBackgroundColor="@color/bb_luso_surface"
+    app:cardCornerRadius="14dp"
     app:cardElevation="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:minHeight="136dp"
+        android:background="@drawable/bg_main_mode_card"
+        android:minHeight="146dp"
         android:orientation="vertical"
         android:padding="10dp">
 
         <ImageView
             android:id="@+id/imgBadge"
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="58dp"
+            android:layout_height="58dp"
             android:contentDescription="@string/conquista"
             android:scaleType="fitCenter" />
 
@@ -28,11 +29,12 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
             android:ellipsize="end"
-            android:fontFamily="sans-serif-black"
+            android:fontFamily="serif"
             android:gravity="center"
             android:maxLines="2"
             android:textColor="@color/bb_text_primary"
-            android:textSize="12sp" />
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
         <TextView
             android:id="@+id/txtBadgeEstado"
@@ -41,9 +43,9 @@
             android:layout_marginTop="2dp"
             android:ellipsize="end"
             android:gravity="center"
-            android:maxLines="1"
+            android:maxLines="2"
             android:textColor="@color/bb_text_secondary"
-            android:textSize="11sp" />
+            android:textSize="10sp" />
 
         <TextView
             android:id="@+id/txtBadgeProgresso"

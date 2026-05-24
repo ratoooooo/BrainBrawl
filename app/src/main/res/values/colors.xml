@@ -21,6 +21,11 @@
     <color name="bb_shadow">#22000000</color>
     <color name="bb_info_dark">#12324A</color>
     <color name="bb_info_gold">#D6A832</color>
+    <color name="bb_luso_background">#F7F2E9</color>
+    <color name="bb_luso_surface">#FFFDF7</color>
+    <color name="bb_luso_navy">#081B33</color>
+    <color name="bb_luso_gold">#D8A42F</color>
+    <color name="bb_luso_border">#D8C49D</color>
 
     <color name="red">#FF0000</color>
     <color name="vermelho">#F44336</color>

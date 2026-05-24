@@ -1,23 +1,74 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="horizontal"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:padding="10dp"
+    android:layout_height="76dp"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/bg_ranking_card"
     android:gravity="center_vertical"
-    android:background="@drawable/bg_card_surface">
+    android:orientation="horizontal"
+    android:paddingStart="14dp"
+    android:paddingEnd="14dp">
 
-    <TextView
-        android:id="@+id/txtNomeAmigo"
+    <FrameLayout
+        android:layout_width="48dp"
+        android:layout_height="48dp">
+
+        <ImageView
+            android:id="@+id/imgAvatarAmigo"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:src="@drawable/avatar_1_playstore" />
+
+        <View
+            android:id="@+id/dotEstadoAmigo"
+            android:layout_width="13dp"
+            android:layout_height="13dp"
+            android:layout_gravity="bottom|end"
+            android:background="@drawable/bg_status_online" />
+    </FrameLayout>
+
+    <LinearLayout
         android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
         android:layout_weight="1"
-        android:text="@string/nome_amigo"
-        android:textSize="18sp"
-        android:textColor="#000000"
-        android:fontFamily="sans-serif-black"
-        android:textStyle="bold"/>
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/txtNomeAmigo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:fontFamily="serif"
+            android:maxLines="1"
+            android:text="@string/nome_amigo"
+            android:textColor="@color/bb_luso_navy"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/txtEstadoAmigo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:fontFamily="sans-serif"
+            android:text="@string/online_status"
+            android:textColor="@color/bb_success"
+            android:textSize="13sp" />
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/imgCheckSelecionado"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_marginEnd="8dp"
+        android:src="@drawable/ic_check_gold"
+        android:visibility="gone" />
+
     <CheckBox
         android:id="@+id/checkBoxSelecionarAmigo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"/>
+        android:layout_width="44dp"
+        android:layout_height="44dp"
+        android:buttonTint="@color/bb_luso_gold" />
 </LinearLayout>

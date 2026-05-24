@@ -61,6 +61,7 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         }
 
         configurarObservers()
+        configurarSeletorIcone()
 
         if (!categoriaInicial.isNullOrBlank()) {
             categoriaEmEdicao = categoriaInicial
@@ -82,6 +83,8 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             val opcaoD = binding.edtOpcaoD.text.toString().trim()
             val imagem = binding.edtImagem.text.toString().trim()
             val dificuldade = dificuldadeSelecionada()
+            val iconeCategoria = iconeCategoriaSelecionado()
+            val descricaoCategoria = binding.edtDescricaoCategoria.text.toString().trim()
 
             // Obter a resposta correta
             val respostaCorreta = when (binding.rgOpcoes.checkedRadioButtonId) {
@@ -105,6 +108,8 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
                 respostaCorreta,
                 imagem,
                 dificuldade,
+                iconeCategoria,
+                descricaoCategoria,
                 categoriasReservadas()
             )
         }
@@ -113,6 +118,10 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             confirmarDescartarSeNecessario {
                 voltarParaCategorias()
             }
+        }
+
+        binding.btnBackHeader.setOnClickListener {
+            binding.layoutBtnVoltar.performClick()
         }
 
         binding.btnNovaPergunta.setOnClickListener {
@@ -292,6 +301,38 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         }
     }
 
+    private fun iconeCategoriaSelecionado(): String {
+        val selecionado = binding.rgIconeCategoriaLinha2.checkedRadioButtonId
+            .takeIf { it != -1 }
+            ?: binding.rgIconeCategoria.checkedRadioButtonId
+        return when (selecionado) {
+            binding.rbIconHistory.id -> "history_ship"
+            binding.rbIconGeo.id -> "geography_globe"
+            binding.rbIconMath.id -> "math_board"
+            binding.rbIconCulture.id -> "culture_masks"
+            binding.rbIconScience.id -> "science_atom"
+            else -> "default_star"
+        }
+    }
+
+    private fun configurarSeletorIcone() {
+        var atualizando = false
+        binding.rgIconeCategoria.setOnCheckedChangeListener { _, checkedId ->
+            if (!atualizando && checkedId != -1) {
+                atualizando = true
+                binding.rgIconeCategoriaLinha2.clearCheck()
+                atualizando = false
+            }
+        }
+        binding.rgIconeCategoriaLinha2.setOnCheckedChangeListener { _, checkedId ->
+            if (!atualizando && checkedId != -1) {
+                atualizando = true
+                binding.rgIconeCategoria.clearCheck()
+                atualizando = false
+            }
+        }
+    }
+
     private fun aplicarDificuldade(dificuldade: String?) {
         binding.rgDificuldade.clearCheck()
         when (dificuldade) {
@@ -336,6 +377,8 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
             opcaoC = binding.edtOpcaoC.text.toString(),
             opcaoD = binding.edtOpcaoD.text.toString(),
             imagem = binding.edtImagem.text.toString(),
+            descricaoCategoria = binding.edtDescricaoCategoria.text.toString(),
+            iconeCategoria = iconeCategoriaSelecionado(),
             respostaSelecionadaId = binding.rgOpcoes.checkedRadioButtonId,
             dificuldade = dificuldadeSelecionada()
         )
@@ -350,6 +393,8 @@ class AdicionarPerguntaActivity : AppCompatActivity() {
         val opcaoC: String = "",
         val opcaoD: String = "",
         val imagem: String = "",
+        val descricaoCategoria: String = "",
+        val iconeCategoria: String = "default_star",
         val respostaSelecionadaId: Int = -1,
         val dificuldade: String? = "media"
     )

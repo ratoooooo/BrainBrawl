@@ -3,10 +3,15 @@ package com.example.brainbrawl
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.brainbrawl.models.RankingJogador
 import com.example.brainbrawl.models.RankingTipo
+import com.example.brainbrawl.utils.AvatarUtils
+import java.text.NumberFormat
+import java.util.Locale
 
 class RankingAdapter(
     private val jogadores: MutableList<RankingJogador> = mutableListOf()
@@ -15,7 +20,9 @@ class RankingAdapter(
 
     inner class RankingViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val txtPosicao: TextView = view.findViewById(R.id.txtPosicaoRanking)
+        val imgAvatar: ImageView = view.findViewById(R.id.imgAvatarRanking)
         val txtNome: TextView = view.findViewById(R.id.txtNomeRanking)
+        val txtNivel: TextView = view.findViewById(R.id.txtNivelRanking)
         val txtPontuacao: TextView = view.findViewById(R.id.txtPontuacaoRanking)
         val txtValorLabel: TextView = view.findViewById(R.id.txtValorLabelRanking)
         val txtTotalJogos: TextView = view.findViewById(R.id.txtTotalJogosRanking)
@@ -33,7 +40,10 @@ class RankingAdapter(
         val jogador = jogadores[position]
         val context = holder.itemView.context
         holder.txtPosicao.text = context.getString(R.string.posicao_ranking_format, jogador.posicao)
-        holder.txtNome.text = context.getString(R.string.nome_nivel_format, jogador.nomeDisplay, jogador.nivel)
+        holder.txtPosicao.background = ContextCompat.getDrawable(context, jogador.posicao.rankBackground())
+        holder.txtNome.text = jogador.nomeDisplay
+        holder.txtNivel.text = context.getString(R.string.nivel_curto_format, jogador.nivel)
+        holder.imgAvatar.setImageResource(AvatarUtils.resolverAvatar(context, jogador.avatar))
         holder.txtValorLabel.text = rankingTipo.valorLabel(context)
         holder.txtPontuacao.text = rankingTipo.valorOrdenacao(jogador).formatarNumero()
         holder.txtTotalJogos.text = context.getString(R.string.jogos_curto_format, jogador.totalJogos)
@@ -52,7 +62,7 @@ class RankingAdapter(
 
     private fun Double.formatarNumero(): String {
         return if (this % 1.0 == 0.0) {
-            toInt().toString()
+            NumberFormat.getIntegerInstance(Locale("pt", "PT")).format(toInt())
         } else {
             String.format("%.1f", this)
         }
@@ -70,9 +80,18 @@ class RankingAdapter(
         return when (this) {
             RankingTipo.GLOBAL -> context.getString(R.string.pontos_totais)
             RankingTipo.RECORDE -> context.getString(R.string.melhor_jogo)
-            RankingTipo.SOLO -> context.getString(R.string.vitorias_solo)
+            RankingTipo.GRUPO -> context.getString(R.string.vitorias_grupo)
             RankingTipo.MODO_1X1 -> context.getString(R.string.vitorias_1x1)
             RankingTipo.MODO_2X2 -> context.getString(R.string.vitorias_2x2)
+        }
+    }
+
+    private fun Int.rankBackground(): Int {
+        return when (this) {
+            1 -> R.drawable.bg_ranking_rank_gold
+            2 -> R.drawable.bg_ranking_rank_silver
+            3 -> R.drawable.bg_ranking_rank_bronze
+            else -> R.drawable.bg_ranking_rank_default
         }
     }
 }

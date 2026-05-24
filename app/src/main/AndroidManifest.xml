@@ -35,6 +35,10 @@
             android:exported="false"
             android:screenOrientation="portrait" />
         <activity
+            android:name=".MinhasCategoriasActivity"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+        <activity
             android:name=".SalaDeEsperaGrupoActivity"
             android:exported="false" />
         <activity

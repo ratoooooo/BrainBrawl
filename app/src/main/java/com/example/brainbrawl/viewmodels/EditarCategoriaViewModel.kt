@@ -37,6 +37,8 @@ class EditarCategoriaViewModel(
         respostaCorreta: String,
         imagem: String,
         dificuldade: String?,
+        iconeCategoria: String,
+        descricaoCategoria: String,
         categoriasReservadas: Set<String>
     ) {
         val validacao = validarPergunta(
@@ -65,7 +67,9 @@ class EditarCategoriaViewModel(
                 opcoes = listOf(opcaoA, opcaoB, opcaoC, opcaoD),
                 imagem = imagem,
                 dificuldade = dificuldade
-            )
+            ),
+            iconeCategoria = iconeCategoria,
+            descricao = descricaoCategoria
         )
             .addOnSuccessListener {
                 _evento.value = EditarCategoriaEvent.PerguntaGuardada

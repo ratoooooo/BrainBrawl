@@ -1,171 +1,176 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_main_premium"
-    android:padding="20dp">
+    tools:context=".RankingActivity">
 
-    <LinearLayout
+    <ImageButton
         android:id="@+id/btn_voltar"
-        android:layout_width="52dp"
-        android:layout_height="52dp"
-        android:background="@drawable/bg_register_icon_button"
-        android:clickable="true"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
         android:contentDescription="@string/voltar"
-        android:elevation="3dp"
-        android:focusable="true"
-        android:gravity="center"
+        android:elevation="8dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
+
+    <ScrollView
+        android:id="@+id/scroll_ranking"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="false"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:contentDescription="@string/voltar"
-            android:src="@drawable/ic_back"
-            app:tint="@color/bb_text_primary" />
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/txt_titulo_ranking"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="14dp"
-        android:fontFamily="sans-serif-black"
-        android:text="@string/ranking"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="31sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="@id/btn_voltar"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btn_voltar"
-        app:layout_constraintTop_toTopOf="@id/btn_voltar" />
-
-    <TextView
-        android:id="@+id/txt_subtitulo_ranking"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:text="@string/top_10_arena"
-        android:textColor="@color/bb_text_secondary"
-        android:textSize="16sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/btn_voltar" />
-
-    <HorizontalScrollView
-        android:id="@+id/scroll_tipos_ranking"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="18dp"
-        android:fillViewport="false"
-        android:scrollbars="none"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/txt_subtitulo_ranking">
-
         <LinearLayout
-            android:id="@+id/layout_tipos_ranking"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="82dp">
 
-            <Button
-                android:id="@+id/btnRankingSolo"
-                android:layout_width="92dp"
-                android:layout_height="42dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_segment_unselected"
-                android:text="@string/ranking_solo"
-                android:textAllCaps="false"
-                android:textColor="@color/bb_secondary_text"
-                android:textSize="13sp" />
+            <TextView
+                android:id="@+id/txt_titulo_ranking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/ranking_global_titulo"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="31sp"
+                android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnRanking1x1"
-                android:layout_width="92dp"
-                android:layout_height="42dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_segment_unselected"
-                android:text="@string/ranking_1x1"
-                android:textAllCaps="false"
-                android:textColor="@color/bb_secondary_text"
-                android:textSize="13sp" />
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="14dp"
+                android:gravity="center"
+                android:orientation="horizontal">
 
-            <Button
-                android:id="@+id/btnRanking2x2"
-                android:layout_width="92dp"
-                android:layout_height="42dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_segment_unselected"
-                android:text="@string/ranking_2x2"
-                android:textAllCaps="false"
-                android:textColor="@color/bb_secondary_text"
-                android:textSize="13sp" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
 
-            <Button
-                android:id="@+id/btnRankingRecorde"
-                android:layout_width="98dp"
-                android:layout_height="42dp"
-                android:layout_marginEnd="8dp"
-                android:background="@drawable/bg_segment_unselected"
-                android:text="@string/ranking_recorde"
-                android:textAllCaps="false"
-                android:textColor="@color/bb_secondary_text"
-                android:textSize="13sp" />
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:contentDescription="@string/ranking_global_titulo"
+                    android:src="@drawable/ic_accent_diamond" />
 
-            <Button
-                android:id="@+id/btnRankingGlobal"
-                android:layout_width="98dp"
-                android:layout_height="42dp"
-                android:background="@drawable/bg_segment_unselected"
-                android:text="@string/ranking_global"
-                android:textAllCaps="false"
-                android:textColor="@color/bb_secondary_text"
-                android:textSize="13sp" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txt_subtitulo_ranking"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="7dp"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/top_10_arena"
+                android:textColor="@color/bb_luso_gold"
+                android:textSize="14sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:id="@+id/layout_tipos_ranking"
+                android:layout_width="match_parent"
+                android:layout_height="46dp"
+                android:layout_marginTop="24dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/btnRankingSolo"
+                    style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_marginEnd="7dp"
+                    android:drawableStart="@drawable/ic_person"
+                    android:text="@string/ranking_solo" />
+
+                <TextView
+                    android:id="@+id/btnRanking1x1"
+                    style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_marginEnd="7dp"
+                    android:drawableStart="@drawable/ic_sword"
+                    android:text="@string/ranking_1x1" />
+
+                <TextView
+                    android:id="@+id/btnRanking2x2"
+                    style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_marginEnd="7dp"
+                    android:drawableStart="@drawable/ic_shield_clean"
+                    android:text="@string/ranking_2x2" />
+
+                <TextView
+                    android:id="@+id/btnRankingRecorde"
+                    style="@style/Widget_BrainBrawl_RankingTab"
+                    android:drawableStart="@drawable/ic_target_clean"
+                    android:text="@string/ranking_recorde" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:minHeight="360dp">
+
+                <ProgressBar
+                    android:id="@+id/progress_ranking"
+                    android:layout_width="48dp"
+                    android:layout_height="48dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="100dp"
+                    android:indeterminateTint="@color/bb_luso_gold" />
+
+                <TextView
+                    android:id="@+id/txt_estado_ranking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="42dp"
+                    android:background="@drawable/bg_main_hero_card"
+                    android:fontFamily="sans-serif-black"
+                    android:gravity="center"
+                    android:padding="22dp"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:text="@string/ainda_sem_ranking" />
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_ranking"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:clipToPadding="false"
+                    android:nestedScrollingEnabled="false"
+                    android:paddingBottom="8dp"
+                    android:visibility="gone"
+                    tools:itemCount="4"
+                    tools:listitem="@layout/item_ranking_jogador" />
+            </FrameLayout>
         </LinearLayout>
-    </HorizontalScrollView>
-
-    <ProgressBar
-        android:id="@+id/progress_ranking"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:indeterminateTint="@color/bb_accent"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/txt_estado_ranking"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="@drawable/bg_empty_state_card"
-        android:fontFamily="sans-serif-black"
-        android:gravity="center"
-        android:padding="22dp"
-        android:textColor="@color/bb_text_primary"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recycler_ranking"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:layout_marginTop="18dp"
-        android:clipToPadding="false"
-        android:paddingBottom="10dp"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/scroll_tipos_ranking" />
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

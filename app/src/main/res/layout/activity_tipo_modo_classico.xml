@@ -8,195 +8,252 @@
     android:background="@drawable/bg_main_premium"
     tools:context=".TipoModoClassico">
 
-    <LinearLayout
-        android:id="@+id/layout_conteudo"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingHorizontal="32dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+    <ImageButton
+        android:id="@+id/btn_back_header"
+        android:layout_width="42dp"
+        android:layout_height="42dp"
+        android:layout_marginStart="24dp"
+        android:layout_marginTop="42dp"
+        android:background="@drawable/bg_choose_back_button"
+        android:contentDescription="@string/voltar"
+        android:elevation="8dp"
+        android:padding="10dp"
+        android:src="@drawable/ic_back"
         app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/bb_luso_gold" />
+
+    <ScrollView
+        android:id="@+id/scroll_conteudo"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:clipToPadding="false"
+        android:fillViewport="true"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:gravity="center_horizontal">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <!-- Título -->
-        <TextView
-            android:id="@+id/txt_titulo"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:id="@+id/layout_conteudo"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="48dp"
-            android:letterSpacing="0.05"
-            android:text="@string/escolher_tipo_modo_classico"
-            android:textAllCaps="true"
-            android:textColor="@color/bb_text_primary"
-            android:textSize="36sp"
-            android:fontFamily="sans-serif-black"
-            android:textStyle="bold"
-            android:gravity="center"/>
-
-        <!-- Botão Solo -->
-        <LinearLayout
-            android:id="@+id/btn_modo_solo"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginHorizontal="8dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_solo"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="@string/modo_solo"/>
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="88dp"
+            android:paddingBottom="36dp">
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/txt_titulo"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/modo_solo"
-                android:textSize="18sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <!-- Botão 1x1 -->
-        <LinearLayout
-            android:id="@+id/btn_modo_1x1"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginHorizontal="8dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_solo"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="@string/modo_1x1"/>
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/escolher_tipo_modo_classico"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="31sp"
+                android:textStyle="bold" />
 
             <TextView
-                android:layout_width="wrap_content"
+                android:id="@+id/txt_modo_base"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="@string/modo_1x1"
-                android:textSize="18sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"/>
+                android:layout_marginTop="10dp"
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:textColor="@color/bb_luso_gold"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                tools:text="Modo clássico" />
+
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+
+                <ImageView
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:contentDescription="@string/escolher_modo"
+                    android:src="@drawable/ic_accent_diamond" />
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_modo_solo"
+                style="@style/Widget_BrainBrawl_ModeChoiceCard">
+
+                <FrameLayout style="@style/Widget_BrainBrawl_ModeChoiceIconHost">
+                    <ImageView
+                        style="@style/Widget_BrainBrawl_ModeChoiceIcon"
+                        android:contentDescription="@string/modo_solo"
+                        android:src="@drawable/ic_person"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ModeChoiceText">
+                    <TextView
+                        style="@style/Widget_BrainBrawl_ModeChoiceTitle"
+                        android:text="@string/modo_solo" />
+
+                    <TextView
+                        android:id="@+id/txt_modo_solo_subtitle"
+                        style="@style/Widget_BrainBrawl_ModeChoiceSubtitle"
+                        android:text="@string/modo_solo_subtitulo" />
+                </LinearLayout>
+
+                <ImageView
+                    style="@style/Widget_BrainBrawl_ModeChoiceChevron"
+                    android:contentDescription="@string/modo_solo"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_modo_1x1"
+                style="@style/Widget_BrainBrawl_ModeChoiceCard">
+
+                <FrameLayout style="@style/Widget_BrainBrawl_ModeChoiceIconHost">
+                    <ImageView
+                        style="@style/Widget_BrainBrawl_ModeChoiceIcon"
+                        android:contentDescription="@string/modo_1x1"
+                        android:src="@drawable/ic_sword"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ModeChoiceText">
+                    <TextView
+                        style="@style/Widget_BrainBrawl_ModeChoiceTitle"
+                        android:text="@string/modo_1x1" />
+
+                    <TextView
+                        style="@style/Widget_BrainBrawl_ModeChoiceSubtitle"
+                        android:text="@string/modo_1x1_subtitulo" />
+                </LinearLayout>
+
+                <ImageView
+                    style="@style/Widget_BrainBrawl_ModeChoiceChevron"
+                    android:contentDescription="@string/modo_1x1"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_modo_2x2"
+                style="@style/Widget_BrainBrawl_ModeChoiceCard">
+
+                <FrameLayout style="@style/Widget_BrainBrawl_ModeChoiceIconHost">
+                    <ImageView
+                        style="@style/Widget_BrainBrawl_ModeChoiceIcon"
+                        android:contentDescription="@string/modo_2x2"
+                        android:src="@drawable/ic_shield_clean"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ModeChoiceText">
+                    <TextView
+                        style="@style/Widget_BrainBrawl_ModeChoiceTitle"
+                        android:text="@string/modo_2x2" />
+
+                    <TextView
+                        style="@style/Widget_BrainBrawl_ModeChoiceSubtitle"
+                        android:text="@string/modo_2x2_subtitulo" />
+                </LinearLayout>
+
+                <ImageView
+                    style="@style/Widget_BrainBrawl_ModeChoiceChevron"
+                    android:contentDescription="@string/modo_2x2"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btn_modo_grupo"
+                style="@style/Widget_BrainBrawl_ModeChoiceCard">
+
+                <FrameLayout style="@style/Widget_BrainBrawl_ModeChoiceIconHost">
+                    <ImageView
+                        style="@style/Widget_BrainBrawl_ModeChoiceIcon"
+                        android:contentDescription="@string/modo_grupo"
+                        android:src="@drawable/ic_group"
+                        app:tint="@color/bb_luso_navy" />
+                </FrameLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ModeChoiceText">
+                    <TextView
+                        style="@style/Widget_BrainBrawl_ModeChoiceTitle"
+                        android:text="@string/modo_grupo" />
+
+                    <TextView
+                        android:id="@+id/txt_modo_grupo_subtitle"
+                        style="@style/Widget_BrainBrawl_ModeChoiceSubtitle"
+                        android:text="@string/modo_todos_subtitulo" />
+                </LinearLayout>
+
+                <ImageView
+                    style="@style/Widget_BrainBrawl_ModeChoiceChevron"
+                    android:contentDescription="@string/modo_grupo"
+                    android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <Space
+                android:layout_width="match_parent"
+                android:layout_height="34dp" />
+
+            <LinearLayout
+                android:id="@+id/btn_voltar"
+                android:layout_width="match_parent"
+                android:layout_height="58dp"
+                android:background="@drawable/bg_button_secondary"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingStart="18dp"
+                android:paddingEnd="18dp">
+
+                <ImageView
+                    android:layout_width="23dp"
+                    android:layout_height="23dp"
+                    android:layout_marginEnd="12dp"
+                    android:contentDescription="@string/voltar"
+                    android:src="@drawable/ic_back"
+                    app:tint="@color/bb_luso_navy" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-black"
+                    android:text="@string/voltar"
+                    android:textColor="@color/bb_luso_navy"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+            </LinearLayout>
         </LinearLayout>
+    </ScrollView>
 
-        <!-- Botão 2x2 -->
-        <LinearLayout
-            android:id="@+id/btn_modo_2x2"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginHorizontal="8dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_duo"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="@string/modo_2x2"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/modo_2x2"
-                android:textSize="18sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <!-- Botão Grupo (Todos) -->
-        <LinearLayout
-            android:id="@+id/btn_modo_grupo"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:layout_marginBottom="24dp"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginHorizontal="8dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_group"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="@string/modo_todos"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/modo_todos"
-                android:textSize="18sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-        <!-- Botão Voltar -->
-        <LinearLayout
-            android:id="@+id/btn_voltar"
-            android:layout_width="match_parent"
-            android:layout_height="56dp"
-            android:orientation="horizontal"
-            android:background="@drawable/bg_button_secondary"
-            android:gravity="center"
-            android:clickable="true"
-            android:focusable="true"
-            android:layout_marginHorizontal="8dp">
-
-            <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_back"
-                android:layout_marginEnd="12dp"
-                android:contentDescription="@string/voltar"/>
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/voltar"
-                android:textSize="18sp"
-                android:textColor="@color/bb_text_primary"
-                android:fontFamily="sans-serif-black"
-                android:textStyle="bold"/>
-        </LinearLayout>
-
-    </LinearLayout>
-
-    <!-- Botão olho: canto inferior direito, alinhado com o botão voltar -->
     <ImageButton
         android:id="@+id/info_todos"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_eye"
+        android:layout_width="1dp"
+        android:layout_height="1dp"
+        android:alpha="0"
         android:contentDescription="@string/info_todos_modos_classico"
-        android:padding="8dp"
+        android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="28dp"
-        android:layout_marginEnd="24dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

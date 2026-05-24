@@ -1,252 +1,311 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/clPerfilAmigo"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/bg_main_premium">
+    android:background="@drawable/bg_main_premium"
+    tools:context=".MeuPerfilActivity">
 
-    <androidx.cardview.widget.CardView
-        android:id="@+id/cardPerfil"
+    <ScrollView
+        android:id="@+id/scrollPerfil"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        android:layout_marginStart="@dimen/bb_space_lg"
-        android:layout_marginTop="@dimen/bb_space_lg"
-        android:layout_marginEnd="@dimen/bb_space_lg"
-        android:layout_marginBottom="@dimen/bb_space_md"
-        app:cardBackgroundColor="@color/bb_surface"
-        app:cardCornerRadius="@dimen/bb_radius_lg"
-        app:cardElevation="10dp"
-        app:layout_constraintBottom_toTopOf="@id/btnVoltarPerfil"
+        android:clipToPadding="false"
+        android:fillViewport="false"
+        android:overScrollMode="never"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingBottom="126dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
-        <ScrollView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:fillViewport="false">
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:paddingTop="58dp"
+            android:paddingBottom="24dp">
 
-            <LinearLayout
+            <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_horizontal"
-                android:orientation="vertical"
-                android:padding="@dimen/bb_space_lg">
+                android:fontFamily="serif"
+                android:gravity="center"
+                android:text="@string/perfil"
+                android:textColor="@color/bb_luso_navy"
+                android:textSize="34sp"
+                android:textStyle="bold" />
+
+            <LinearLayout
+                android:layout_width="126dp"
+                android:layout_height="16dp"
+                android:layout_marginTop="16dp"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
 
                 <ImageView
-                    android:id="@+id/imgAvatarAmigo"
-                    android:layout_width="96dp"
-                    android:layout_height="96dp"
-                    android:layout_marginBottom="10dp"
-                    android:contentDescription="@string/avatar_do_amigo"
-                    android:scaleType="centerCrop" />
+                    android:layout_width="12dp"
+                    android:layout_height="12dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    android:src="@drawable/ic_accent_diamond" />
 
-                <TextView
-                    android:id="@+id/txtNomeAmigo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:ellipsize="end"
-                    android:fontFamily="sans-serif-black"
-                    android:gravity="center"
-                    android:maxLines="2"
-                    android:text="@string/nome_utilizador_exemplo"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="24sp"
-                    android:textStyle="bold" />
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#55D8C49D" />
+            </LinearLayout>
 
-                <TextView
-                    android:id="@+id/txtNivel"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="6dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="@string/nivel_inicial"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/txtXpProgress"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:fontFamily="sans-serif"
-                    android:text="@string/xp_progress_format"
-                    android:textColor="@color/bb_text_secondary"
-                    android:textSize="14sp" />
-
-                <TextView
-                    android:id="@+id/txtResumoCompetitivoTitulo"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="18dp"
-                    android:fontFamily="sans-serif-black"
-                    android:text="@string/resumo_competitivo"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="18sp" />
+            <LinearLayout
+                android:id="@+id/cardPerfil"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="28dp"
+                android:background="@drawable/bg_main_hero_card"
+                android:orientation="vertical"
+                android:padding="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
-                    android:orientation="vertical">
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/txtTotalJogos"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/total_de_jogos"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                    <FrameLayout
+                        android:layout_width="84dp"
+                        android:layout_height="84dp">
 
-                    <TextView
-                        android:id="@+id/txtTotalVitorias"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/total_de_vitorias"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                        <ImageView
+                            android:id="@+id/imgAvatarAmigo"
+                            android:layout_width="78dp"
+                            android:layout_height="78dp"
+                            android:layout_gravity="center"
+                            android:contentDescription="@string/avatar_do_amigo"
+                            android:scaleType="centerCrop"
+                            tools:src="@drawable/avatar_1_playstore" />
 
-                    <TextView
-                        android:id="@+id/txtTotalDerrotas"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/total_de_derrotas"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                        <TextView
+                            android:layout_width="26dp"
+                            android:layout_height="26dp"
+                            android:layout_gravity="bottom|end"
+                            android:background="@drawable/bg_waiting_badge_gold"
+                            android:gravity="center"
+                            android:text="★"
+                            android:textColor="@color/bb_primary_text"
+                            android:textSize="13sp"
+                            android:textStyle="bold" />
+                    </FrameLayout>
 
-                    <TextView
-                        android:id="@+id/txtTotalRespostasCertas"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
+                    <LinearLayout
+                        android:layout_width="0dp"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/total_de_respostas_certas"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                        android:layout_marginStart="16dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
 
-                    <TextView
-                        android:id="@+id/txtTaxaVitoria"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/taxa_de_vit_ria"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/txtNomeAmigo"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:ellipsize="end"
+                            android:fontFamily="serif"
+                            android:maxLines="1"
+                            android:textColor="@color/bb_luso_navy"
+                            android:textSize="24sp"
+                            android:textStyle="bold"
+                            tools:text="jogador1" />
 
-                    <TextView
-                        android:id="@+id/txtTaxaAcertos"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/taxa_de_acertos"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                        <TextView
+                            android:id="@+id/txtNivel"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="4dp"
+                            android:fontFamily="sans-serif"
+                            android:textColor="@color/bb_text_secondary"
+                            android:textSize="14sp"
+                            tools:text="Nível 3 · Explorador" />
+                    </LinearLayout>
 
-                    <TextView
-                        android:id="@+id/txtPontuacao"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/pontuacao"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/txtRecordePontuacao"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/recorde_pontuacao_format"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:id="@+id/txtXpTotal"
-                        style="@style/TextAppearance.AppCompat.Body1"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="6dp"
-                        android:text="@string/xp_total_format"
-                        android:textColor="@color/bb_text_primary"
-                        android:textSize="16sp" />
+                    <ImageButton
+                        android:id="@+id/btnEditarPerfil"
+                        android:layout_width="44dp"
+                        android:layout_height="44dp"
+                        android:background="@drawable/bg_main_icon_button"
+                        android:contentDescription="@string/editar_perfil"
+                        android:padding="11dp"
+                        android:src="@drawable/ic_edit_pen"
+                        app:tint="@color/bb_luso_navy" />
                 </LinearLayout>
 
+                <ProgressBar
+                    android:id="@+id/progressXp"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="9dp"
+                    android:layout_marginTop="18dp"
+                    android:max="100"
+                    android:progress="42"
+                    android:progressDrawable="@drawable/bg_xp_progress_premium" />
+
                 <TextView
-                    android:id="@+id/txtConquistasTitulo"
+                    android:id="@+id/txtXpProgress"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="8dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="@string/melhores_conquistas"
-                    android:textColor="@color/bb_text_primary"
-                    android:textSize="18sp" />
-
-                <TextView
-                    android:id="@+id/txtConquistasEstado"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="2dp"
-                    android:text="@string/melhores_conquistas_resumo"
+                    android:gravity="end"
                     android:textColor="@color/bb_text_secondary"
-                    android:textSize="12sp" />
-
-                <GridLayout
-                    android:id="@+id/gridConquistas"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="10dp"
-                    android:columnCount="3"
-                    android:useDefaultMargins="false" />
-
-                <Button
-                    android:id="@+id/btnVerConquistas"
-                    style="@style/BrainBrawlButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/bb_button_height"
-                    android:layout_marginTop="14dp"
-                    android:background="@drawable/bg_button_primary"
-                    android:text="@string/ver_conquistas"
-                    android:textAllCaps="false"
-                    android:textColor="@color/bb_primary_text" />
-
-                <Button
-                    android:id="@+id/btnEditarPerfil"
-                    style="@style/BrainBrawlButton"
-                    android:layout_width="match_parent"
-                    android:layout_height="@dimen/bb_button_height"
-                    android:layout_marginTop="10dp"
-                    android:background="@drawable/bg_button_secondary"
-                    android:text="@string/editar_perfil"
-                    android:textAllCaps="false"
-                    android:textColor="@color/bb_secondary_text" />
-
+                    android:textSize="13sp"
+                    tools:text="260 / 600 XP" />
             </LinearLayout>
-        </ScrollView>
-    </androidx.cardview.widget.CardView>
 
-    <Button
-        android:id="@+id/btnVoltarPerfil"
-        style="@style/BrainBrawlButton"
-        android:layout_width="0dp"
-        android:layout_height="@dimen/bb_button_height"
-        android:layout_marginBottom="32dp"
-        android:background="@drawable/bg_button_primary"
-        android:text="@string/voltar"
-        android:textAllCaps="false"
-        android:textColor="@color/bb_primary_text"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintWidth_percent="0.85" />
+            <GridLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:columnCount="2"
+                android:rowCount="2"
+                android:useDefaultMargins="true">
 
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
+                    <ImageView style="@style/Widget_BrainBrawl_ProfileStatIcon" android:src="@drawable/ic_trophy" app:tint="@color/bb_luso_gold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/txtTotalVitorias" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="24" />
+                        <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/vitorias_label" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
+                    <ImageView style="@style/Widget_BrainBrawl_ProfileStatIcon" android:src="@drawable/ic_sword" app:tint="@color/bb_luso_gold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/txtTotalJogos" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="68" />
+                        <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/jogos_label" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
+                    <ImageView style="@style/Widget_BrainBrawl_ProfileStatIcon" android:src="@drawable/ic_target_clean" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/txtRecordePontuacao" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="1.850" />
+                        <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/melhor_pontuacao_label" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
+                    <ImageView style="@style/Widget_BrainBrawl_ProfileStatIcon" android:src="@drawable/ic_podium_clean" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/txtPontuacao" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="#128" />
+                        <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/ranking_global_label" />
+                    </LinearLayout>
+                </LinearLayout>
+            </GridLayout>
+
+            <LinearLayout
+                android:id="@+id/btnVerConquistas"
+                style="@style/Widget_BrainBrawl_ProfileMenuCard">
+                <ImageView style="@style/Widget_BrainBrawl_ProfileMenuIcon" android:src="@drawable/ic_trophy" app:tint="@color/bb_luso_gold" />
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileMenuText">
+                    <TextView style="@style/Widget_BrainBrawl_ProfileMenuTitle" android:text="@string/conquistas" />
+                    <TextView style="@style/Widget_BrainBrawl_ProfileMenuSubtitle" android:text="@string/perfil_conquistas_subtitulo" />
+                </LinearLayout>
+                <ImageView style="@style/Widget_BrainBrawl_ProfileChevron" android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cardEditarAvatar"
+                style="@style/Widget_BrainBrawl_ProfileMenuCard">
+                <ImageView style="@style/Widget_BrainBrawl_ProfileMenuIcon" android:src="@drawable/ic_edit_pen" app:tint="@color/bb_luso_gold" />
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileMenuText">
+                    <TextView style="@style/Widget_BrainBrawl_ProfileMenuTitle" android:text="@string/editar_avatar" />
+                    <TextView style="@style/Widget_BrainBrawl_ProfileMenuSubtitle" android:text="@string/perfil_editar_avatar_subtitulo" />
+                </LinearLayout>
+                <ImageView style="@style/Widget_BrainBrawl_ProfileChevron" android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/cardHistorico"
+                style="@style/Widget_BrainBrawl_ProfileMenuCard">
+                <ImageView style="@style/Widget_BrainBrawl_ProfileMenuIcon" android:src="@drawable/ic_history" app:tint="@color/bb_luso_gold" />
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileMenuText">
+                    <TextView style="@style/Widget_BrainBrawl_ProfileMenuTitle" android:text="@string/historico" />
+                    <TextView style="@style/Widget_BrainBrawl_ProfileMenuSubtitle" android:text="@string/perfil_historico_subtitulo" />
+                </LinearLayout>
+                <ImageView style="@style/Widget_BrainBrawl_ProfileChevron" android:src="@drawable/ic_chevron_right" />
+            </LinearLayout>
+
+            <TextView
+                android:id="@+id/txtConquistasEstado"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <GridLayout
+                android:id="@+id/gridConquistas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtTotalDerrotas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtTotalRespostasCertas"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtTaxaVitoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtTaxaAcertos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txtXpTotal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:visibility="gone" />
+        </LinearLayout>
+    </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>

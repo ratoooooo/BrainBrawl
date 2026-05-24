@@ -5,23 +5,26 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
+import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.ViewModelProvider
 import com.example.brainbrawl.routes.UteisNavegacao.abrirMainActivity
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.config.IntentExtras
-import com.example.brainbrawl.databinding.ActivitySalaDeEspera1x1Binding
+import com.example.brainbrawl.databinding.ActivitySalaDeEsperaGrupoBinding
 import com.example.brainbrawl.models.JogadorSalaIdentidade
 import com.example.brainbrawl.services.AuthService
 import com.example.brainbrawl.utils.CodigoSalaUtils
+import com.example.brainbrawl.utils.AvatarUtils
+import com.example.brainbrawl.viewmodels.SalaGrupoJogadorUiState
 import com.example.brainbrawl.viewmodels.SalaGrupoEvent
 import com.example.brainbrawl.viewmodels.SalaGrupoJogadoresUiState
 import com.example.brainbrawl.viewmodels.SalaGrupoViewModel
 
 class SalaDeEsperaGrupoActivity : AppCompatActivity() {
     private val binding by lazy {
-        ActivitySalaDeEspera1x1Binding.inflate(layoutInflater)
+        ActivitySalaDeEsperaGrupoBinding.inflate(layoutInflater)
     }
 
     private val viewModel by lazy {
@@ -61,9 +64,12 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
         }
 
         binding.txtTituloSala.text = getString(R.string.sala_de_espera)
-        binding.txtCodigoSala.text = getString(R.string.codigo_sala_format, codigoSala)
+        binding.txtCodigoSala.text = codigoSala
         binding.btnCopiarCodigoSala.setOnClickListener {
             copiarCodigoSala()
+        }
+        binding.btnBackHeader.setOnClickListener {
+            sairDaSala()
         }
         binding.btnIniciarJogo.isEnabled = false
 
@@ -107,17 +113,34 @@ class SalaDeEsperaGrupoActivity : AppCompatActivity() {
             estado.jogadoresMinimosAtuais,
             estado.jogadoresMinimosNecessarios
         )
-        val listaJogadores = estado.nomes.joinToString(separator = "\n")
         val estadoMinimo = if (estado.podeIniciar) {
             getString(R.string.sala_grupo_pronta)
         } else {
             getString(R.string.sala_grupo_aguardar_mais_format, estado.jogadoresEmFalta)
         }
-        binding.txtListaJogadores.text = listOf(listaJogadores, estadoMinimo)
-            .filter { it.isNotBlank() }
-            .joinToString(separator = "\n\n")
+        binding.txtListaJogadores.text = estadoMinimo
+        renderizarJogadoresGrupo(estado.jogadores)
         binding.btnIniciarJogo.isEnabled = estado.podeIniciar
         binding.btnIniciarJogo.alpha = if (estado.podeIniciar) 1f else 0.62f
+    }
+
+    private fun renderizarJogadoresGrupo(jogadores: List<SalaGrupoJogadorUiState>) {
+        binding.layoutJogadoresGrupo.removeAllViews()
+        if (jogadores.isEmpty()) {
+            binding.txtListaJogadores.text = getString(R.string.aguardando_jogadores)
+            return
+        }
+        val inflater = LayoutInflater.from(this)
+        jogadores.forEach { jogador ->
+            val row = inflater.inflate(R.layout.item_jogador_sala, binding.layoutJogadoresGrupo, false)
+            row.findViewById<android.widget.TextView>(R.id.txtNomeJogador).text = jogador.nome
+            row.findViewById<android.widget.ImageView>(R.id.imgAvatarJogador)
+                .setImageResource(AvatarUtils.resolverAvatar(this, jogador.avatar))
+            val estadoDot = row.findViewById<android.view.View>(R.id.viewEstadoJogador)
+            val cor = if (jogador.estado == GameConstants.ESTADO_OFF) 0xFFBDBDBD.toInt() else 0xFF43A047.toInt()
+            estadoDot.background.setTint(cor)
+            binding.layoutJogadoresGrupo.addView(row)
+        }
     }
 
     private fun tratarEvento(evento: SalaGrupoEvent) {

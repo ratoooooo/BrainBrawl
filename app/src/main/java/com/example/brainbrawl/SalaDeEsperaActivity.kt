@@ -58,6 +58,9 @@ class SalaDeEsperaActivity : AppCompatActivity() {
         binding.btnVoltar.setOnClickListener {
             finish()
         }
+        binding.btnVoltarHeader.setOnClickListener {
+            finish()
+        }
     }
 
     private fun configurarCampoCodigoSala() {
@@ -81,23 +84,23 @@ class SalaDeEsperaActivity : AppCompatActivity() {
     private fun tratarEntrada(evento: SalaEntradaEvent) {
         when (evento) {
             SalaEntradaEvent.CodigoVazio -> {
-                Toast.makeText(this, R.string.codigo_sala_vazio, Toast.LENGTH_SHORT).show()
+                mostrarErro(getString(R.string.codigo_sala_vazio))
                 binding.btnEntrarSala.isEnabled = true
             }
             is SalaEntradaEvent.ValidacaoFalhou -> {
-                Toast.makeText(this, evento.mensagem, Toast.LENGTH_SHORT).show()
+                mostrarErro(evento.mensagem)
                 binding.btnEntrarSala.isEnabled = true
             }
             SalaEntradaEvent.CodigoInvalido -> {
-                Toast.makeText(this, R.string.codigo_sala_invalido, Toast.LENGTH_SHORT).show()
+                mostrarErro(getString(R.string.codigo_sala_invalido))
                 binding.btnEntrarSala.isEnabled = true
             }
             SalaEntradaEvent.NomeJaExiste -> {
-                Toast.makeText(this, R.string.nome_ja_existe_sala, Toast.LENGTH_SHORT).show()
+                mostrarErro(getString(R.string.nome_ja_existe_sala))
                 binding.btnEntrarSala.isEnabled = true
             }
             is SalaEntradaEvent.ErroVerificarSala -> {
-                Toast.makeText(this, getString(R.string.erro_verificar_sala_format, evento.mensagem), Toast.LENGTH_SHORT).show()
+                mostrarErro(getString(R.string.erro_verificar_sala_format, evento.mensagem))
                 binding.btnEntrarSala.isEnabled = true
             }
             is SalaEntradaEvent.JogadorAdicionado -> {
@@ -108,6 +111,11 @@ class SalaDeEsperaActivity : AppCompatActivity() {
                 irParaSalaDeEsperaGrupo(evento.codigoSala, evento.nomeJogador, evento.nomeUtilizador, evento.uid)
             }
         }
+    }
+
+    private fun mostrarErro(mensagem: String) {
+        binding.txtEstado.text = mensagem
+        Toast.makeText(this, mensagem, Toast.LENGTH_SHORT).show()
     }
 
 // Função para ir para a sala de espera do grupo
