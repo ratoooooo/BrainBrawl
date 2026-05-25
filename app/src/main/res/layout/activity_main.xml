@@ -282,11 +282,12 @@
 
                 <ImageView
                     android:id="@+id/img_hero_brain"
-                    android:layout_width="180dp"
-                    android:layout_height="150dp"
+                    android:layout_width="156dp"
+                    android:layout_height="144dp"
                     android:layout_marginTop="14dp"
                     android:contentDescription="@string/app_name"
-                    android:src="@drawable/ill_caravel_quiz" />
+                    android:scaleType="fitCenter"
+                    android:src="@mipmap/avatar_14_foreground" />
 
                 <LinearLayout
                     android:id="@+id/btn_criar_sala"

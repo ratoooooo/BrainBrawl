@@ -1,0 +1,26 @@
+appId: com.example.brainbrawl
+---
+- launchApp
+- assertVisible: "Jogar Agora"
+
+- tapOn: "Jogar Agora"
+- assertVisible: "Escolher tipo de jogo"
+
+- tapOn: "Caótico"
+- assertVisible: "Escolher modo"
+- assertVisible: "Solo"
+- assertVisible: "Grupo"
+- tapOn: "Voltar"
+
+- assertVisible: "Escolher tipo de jogo"
+
+- tapOn: "Eliminatórias"
+- assertVisible: "Escolher modo"
+- assertVisible: "Solo"
+- assertVisible: "Grupo"
+- tapOn: "Voltar"
+
+- assertVisible: "Escolher tipo de jogo"
+
+- tapOn: "Voltar"
+- assertVisible: "Jogar Agora"

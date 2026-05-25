@@ -704,8 +704,8 @@ class MatchmakingRepository(
     }
 
     private companion object {
-        const val TAG = "MATCHMAKING_DEBUG"
-        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
+        const val TAG = "Matchmaking"
+        const val FLOW_TAG = "RoomFlow"
         const val STALE_MS = 2 * 60 * 1000L
         const val MATCH_CREATION_TIMEOUT_MS = 15 * 1000L
     }

@@ -2,7 +2,6 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -40,6 +39,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
+    private var origemSala: String = ""
     private var isGuest: Boolean = false
     private var navegouParaDesforra = false
     private var totalPerguntas: Int = 8
@@ -60,6 +60,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
+        origemSala = intent.getStringExtra(IntentExtras.ORIGEM_SALA).orEmpty()
         val categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
         isGuest = intent.getBooleanExtra(IntentExtras.IS_GUEST, false) ||
             tipoJogador == GameConstants.TIPO_JOGADOR_GUEST ||
@@ -233,11 +234,6 @@ class Pontuacao2x2Activity : AppCompatActivity() {
     private fun abrirSalaDesforra2x2(novaSala: String) {
         if (navegouParaDesforra) return
         navegouParaDesforra = true
-        Log.d(
-            REMATCH_DEBUG_TAG,
-            "2x2 rematch navigate oldRoom=$codigoSala newRoom=$novaSala category=$nomeCategoria " +
-                "target=SalaDeEspera2x2Activity playerKey=$playerKey team=$equipa"
-        )
         val intent = Intent(this, SalaDeEspera2x2Activity::class.java)
         intent.putExtra(IntentExtras.CODIGO_SALA, novaSala)
         uid.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.UID, it) }
@@ -245,7 +241,7 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
         intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_2X2)
-        intent.putExtra(IntentExtras.ORIGEM_SALA, GameConstants.ORIGEM_CONVITE)
+        intent.putExtra(IntentExtras.ORIGEM_SALA, origemSala.ifBlank { GameConstants.ORIGEM_CONVITE })
         equipa.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.EQUIPA, it) }
         playerKey.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.PLAYER_KEY, it) }
         tipoJogador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.TIPO_JOGADOR, it) }
@@ -261,9 +257,5 @@ class Pontuacao2x2Activity : AppCompatActivity() {
         if (mensagem.startsWith("Erro") || mensagem.startsWith("Não foi possível")) {
             binding.btnJogarNovamente2x2.isEnabled = true
         }
-    }
-
-    private companion object {
-        const val REMATCH_DEBUG_TAG = "REMATCH_FLOW_DEBUG"
     }
 }

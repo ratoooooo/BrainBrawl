@@ -137,11 +137,6 @@ class Pontuacao2x2ViewModel(
             _evento.value = Pontuacao2x2Event.MostrarMensagem("Não foi possível identificar o jogador para a desforra.")
             return
         }
-        Log.d(
-            REMATCH_DEBUG_TAG,
-            "2x2 rematch requested room=${input.codigoSala} key=$chave category=${input.nomeCategoria} " +
-                "flow=private_rematch target=SalaDeEspera2x2Activity"
-        )
         _evento.value = Pontuacao2x2Event.MostrarMensagem("A aguardar restantes jogadores...")
         pontuacaoRepository.marcarDesforra2x2(input.codigoSala, chave)
             .addOnFailureListener {
@@ -211,11 +206,6 @@ class Pontuacao2x2ViewModel(
         } else {
             GameConstants.ORIGEM_CATEGORIA_PUBLICA
         }
-        Log.d(
-            REMATCH_DEBUG_TAG,
-            "2x2 rematch create oldRoom=${input.codigoSala} category=${input.nomeCategoria} " +
-                "categoryOrigin=$origemCategoria target=SalaDeEspera2x2Activity"
-        )
         pontuacaoRepository.criarOuObterSalaDesforra2x2(input.codigoSala, input.nomeCategoria, origemCategoria)
             .addOnSuccessListener { novaSala ->
                 aCriarDesforra = false
@@ -443,4 +433,3 @@ sealed class Pontuacao2x2Event {
 }
 
 private const val HISTORY_DEBUG_TAG = "HISTORY_DEBUG"
-private const val REMATCH_DEBUG_TAG = "REMATCH_FLOW_DEBUG"

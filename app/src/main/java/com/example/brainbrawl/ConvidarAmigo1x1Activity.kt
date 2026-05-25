@@ -206,7 +206,7 @@ class ConvidarAmigo1x1Activity : AppCompatActivity() {
     }
 
     private companion object {
-        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
+        const val FLOW_TAG = "RoomFlow"
     }
 }
 

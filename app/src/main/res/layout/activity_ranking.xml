@@ -95,17 +95,27 @@
                 android:textSize="14sp"
                 android:textStyle="bold" />
 
-            <LinearLayout
-                android:id="@+id/layout_tipos_ranking"
+            <HorizontalScrollView
+                android:id="@+id/scroll_tipos_ranking"
                 android:layout_width="match_parent"
                 android:layout_height="46dp"
                 android:layout_marginTop="24dp"
-                android:gravity="center"
-                android:orientation="horizontal">
+                android:fillViewport="false"
+                android:overScrollMode="never"
+                android:scrollbars="none">
+
+                <LinearLayout
+                    android:id="@+id/layout_tipos_ranking"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:orientation="horizontal">
 
                 <TextView
                     android:id="@+id/btnRankingSolo"
                     style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_width="84dp"
+                    android:layout_weight="0"
                     android:layout_marginEnd="7dp"
                     android:drawableStart="@drawable/ic_person"
                     android:text="@string/ranking_solo" />
@@ -113,6 +123,8 @@
                 <TextView
                     android:id="@+id/btnRanking1x1"
                     style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_width="74dp"
+                    android:layout_weight="0"
                     android:layout_marginEnd="7dp"
                     android:drawableStart="@drawable/ic_sword"
                     android:text="@string/ranking_1x1" />
@@ -120,6 +132,8 @@
                 <TextView
                     android:id="@+id/btnRanking2x2"
                     style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_width="74dp"
+                    android:layout_weight="0"
                     android:layout_marginEnd="7dp"
                     android:drawableStart="@drawable/ic_shield_clean"
                     android:text="@string/ranking_2x2" />
@@ -127,9 +141,21 @@
                 <TextView
                     android:id="@+id/btnRankingRecorde"
                     style="@style/Widget_BrainBrawl_RankingTab"
+                    android:layout_width="96dp"
+                    android:layout_weight="0"
+                    android:layout_marginEnd="7dp"
                     android:drawableStart="@drawable/ic_target_clean"
                     android:text="@string/ranking_recorde" />
-            </LinearLayout>
+
+                    <TextView
+                        android:id="@+id/btnRankingTotal"
+                        style="@style/Widget_BrainBrawl_RankingTab"
+                        android:layout_width="82dp"
+                        android:layout_weight="0"
+                        android:drawableStart="@drawable/ic_star"
+                        android:text="@string/ranking_total" />
+                </LinearLayout>
+            </HorizontalScrollView>
 
             <FrameLayout
                 android:layout_width="match_parent"

@@ -1,0 +1,16 @@
+appId: com.example.brainbrawl
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 10000
+- tapOn:
+    id: "com.example.brainbrawl:id/edt_nome_jogador"
+- inputText: "GuestPlayerQA"
+- tapOn: "Pergunta o Luso" # Tap the logo to dismiss keyboard/ensure focus
+- tapOn: "Entrar sem conta"
+- extendedWaitUntil:
+    visible: "JOGAR AGORA"
+    timeout: 30000
+- assertVisible: "Olá,"

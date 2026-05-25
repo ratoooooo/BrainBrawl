@@ -100,8 +100,8 @@ class MeuPerfilActivity : AppCompatActivity() {
             R.string.total_de_respostas_certas_format,
             perfil.totalRespostasCertas
         )
-        binding.txtTaxaVitoria.text = getString(R.string.taxa_de_vitoria_format, perfil.taxaVitoria)
-        binding.txtTaxaAcertos.text = getString(R.string.taxa_de_acertos_format, perfil.taxaAcertos)
+        binding.txtTaxaVitoria.text = formatarPercentagem(perfil.taxaVitoria)
+        binding.txtTaxaAcertos.text = formatarPercentagem(perfil.taxaAcertos)
         binding.txtXpTotal.text = getString(R.string.xp_total_format, perfil.xpTotal)
         binding.txtConquistasEstado.text = getString(R.string.melhores_conquistas_resumo)
         BadgeGridRenderer.renderMelhores(this, layoutInflater, binding.gridConquistas, perfil.badges)
@@ -109,5 +109,14 @@ class MeuPerfilActivity : AppCompatActivity() {
 
     private fun formatarNumero(valor: Int): String {
         return NumberFormat.getIntegerInstance(Locale("pt", "PT")).format(valor)
+    }
+
+    private fun formatarPercentagem(valor: Double): String {
+        val percentagem = valor.takeIf { it.isFinite() }?.coerceIn(0.0, 100.0) ?: 0.0
+        return if (percentagem % 1.0 == 0.0) {
+            "${percentagem.toInt()}%"
+        } else {
+            String.format(Locale("pt", "PT"), "%.1f%%", percentagem)
+        }
     }
 }

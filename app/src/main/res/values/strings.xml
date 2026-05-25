@@ -494,6 +494,7 @@
     <string name="ranking_1x1">1x1</string>
     <string name="ranking_2x2">2x2</string>
     <string name="ranking_recorde">Recorde</string>
+    <string name="ranking_total" translatable="false">Total</string>
     <string name="ranking_global">Global</string>
     <string name="ranking_global_titulo">Ranking Global</string>
     <string name="ranking_recordes_titulo">Ranking de Recordes</string>
@@ -506,6 +507,11 @@
     <string name="vitorias_grupo">Vitórias Grupo</string>
     <string name="vitorias_1x1">Vitórias 1x1</string>
     <string name="vitorias_2x2">Vitórias 2x2</string>
+    <string name="pedidos_count_zero" translatable="false">Pedidos 0</string>
+    <string name="pedidos_count_format" translatable="false">Pedidos %1$d</string>
+    <string name="convites_count_zero" translatable="false">Convites 0</string>
+    <string name="convites_count_format" translatable="false">Convites %1$d</string>
+    <string name="convites_jogo_recebidos" translatable="false">Convites de jogo</string>
     <string name="ainda_sem_ranking">Ainda não há jogadores no ranking.</string>
     <string name="erro_carregar_ranking">Não foi possível carregar o ranking.</string>
     <string name="nome_jogador">Nome Jogador</string>
@@ -580,6 +586,8 @@
     <string name="taxa_de_acertos">Taxa de Acertos</string>
     <string name="taxa_de_acertos_format">Taxa de Acertos: %1$.1f%%</string>
     <string name="taxa_de_vitoria_format">Taxa de Vitória: %1$.1f%%</string>
+    <string name="taxa_vitoria_label" translatable="false">Vitória</string>
+    <string name="taxa_acerto_label" translatable="false">Acerto</string>
     <string name="xp_total_format">XP total: %1$d</string>
     <string name="resumo_competitivo">Resumo competitivo</string>
     <string name="conquista">Conquista</string>

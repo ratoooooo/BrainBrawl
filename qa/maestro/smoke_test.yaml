@@ -1,0 +1,5 @@
+appId: com.example.brainbrawl
+---
+- runFlow: guest_login.yaml
+- assertVisible: "Olá,"
+- stopApp

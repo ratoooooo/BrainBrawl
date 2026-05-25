@@ -43,6 +43,7 @@ class Jogo1x1Activity : AppCompatActivity() {
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
+    private var origemSala: String = ""
     private var tempoTotalPergunta = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
     private var tempoTotalPerguntaMs = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_MS
 
@@ -71,7 +72,7 @@ class Jogo1x1Activity : AppCompatActivity() {
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
-        val origemSala = intent.getStringExtra(IntentExtras.ORIGEM_SALA).orEmpty()
+        origemSala = intent.getStringExtra(IntentExtras.ORIGEM_SALA).orEmpty()
         if (origemSala == GameConstants.ORIGEM_MATCHMAKING) {
             tempoTotalPergunta = GameConstants.MATCHMAKING_QUESTION_TIME_SECONDS
             tempoTotalPerguntaMs = GameConstants.MATCHMAKING_QUESTION_TIME_MS
@@ -96,6 +97,7 @@ class Jogo1x1Activity : AppCompatActivity() {
             playerKey = playerKey,
             tipoJogador = tipoJogador,
             avatar = avatar,
+            origemSala = origemSala,
             categoriaPadrao = getString(R.string.categoria5),
             categoriaTodas = getString(R.string.categoria5),
             tempoTotalPergunta = tempoTotalPergunta
@@ -374,7 +376,8 @@ class Jogo1x1Activity : AppCompatActivity() {
             playerKey = dados.playerKey,
             tipoJogador = dados.tipoJogador,
             avatar = dados.avatar,
-            categoriaCompetitiva = dados.categoriaCompetitiva
+            categoriaCompetitiva = dados.categoriaCompetitiva,
+            origemSala = dados.origemSala
         )
     }
 
@@ -392,8 +395,8 @@ class Jogo1x1Activity : AppCompatActivity() {
     }
 
     private companion object {
-        const val START_TAG = "INVITE_START_ROOT_CAUSE"
-        const val GAME_CATEGORY_TAG = "GAME_CATEGORY_DEBUG"
+        const val START_TAG = "GameStart"
+        const val GAME_CATEGORY_TAG = "GameCategory"
     }
 }
 

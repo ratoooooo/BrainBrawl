@@ -2,7 +2,6 @@ package com.example.brainbrawl
 
 import android.content.Intent
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
@@ -37,6 +36,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
     private var playerKey: String = ""
     private var tipoJogador: String = ""
     private var avatar: String = ""
+    private var origemSala: String = ""
     private var isGuest: Boolean = false
     private var navegouParaDesforra = false
     private var totalPerguntas: Int = 8
@@ -56,6 +56,7 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         playerKey = intent.getStringExtra(IntentExtras.PLAYER_KEY) ?: ""
         tipoJogador = intent.getStringExtra(IntentExtras.TIPO_JOGADOR) ?: ""
         avatar = intent.getStringExtra(IntentExtras.AVATAR) ?: ""
+        origemSala = intent.getStringExtra(IntentExtras.ORIGEM_SALA).orEmpty()
         val categoriaCompetitiva = intent.getBooleanExtra(IntentExtras.CATEGORIA_COMPETITIVA, true)
         isGuest = intent.getBooleanExtra(IntentExtras.IS_GUEST, false) ||
             tipoJogador == GameConstants.TIPO_JOGADOR_GUEST ||
@@ -205,13 +206,8 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         intent.putExtra(IntentExtras.NOME_JOGADOR, nomeJogador)
         intent.putExtra(IntentExtras.NOME_CATEGORIA, nomeCategoria)
         intent.putExtra(IntentExtras.MODO_JOGO, GameConstants.MODO_1X1)
-        intent.putExtra(IntentExtras.ORIGEM_SALA, GameConstants.ORIGEM_CONVITE)
+        intent.putExtra(IntentExtras.ORIGEM_SALA, origemSala.ifBlank { GameConstants.ORIGEM_CONVITE })
         adicionarExtrasMatchmaking(intent)
-        Log.d(
-            REMATCH_DEBUG_TAG,
-            "1x1 rematch navigate oldRoom=$codigoSala newRoom=$novaSala category=$nomeCategoria " +
-                "target=SalaDeEspera1x1Activity playerKey=$playerKey"
-        )
         startActivity(intent)
         finish()
     }
@@ -221,9 +217,5 @@ class Pontuacao1x1Activity : AppCompatActivity() {
         tipoJogador.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.TIPO_JOGADOR, it) }
         avatar.takeIf { it.isNotBlank() }?.let { intent.putExtra(IntentExtras.AVATAR, it) }
         intent.putExtra(IntentExtras.IS_GUEST, isGuest)
-    }
-
-    private companion object {
-        const val REMATCH_DEBUG_TAG = "REMATCH_FLOW_DEBUG"
     }
 }

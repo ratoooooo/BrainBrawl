@@ -250,7 +250,7 @@ class SalaGrupoViewModel(
     private companion object {
         const val AVATAR_PADRAO = "avatar_1_playstore"
         const val MINIMO_JOGADORES_GRUPO = 2
-        const val WAITING_ROOM_AVATAR_TAG = "WAITING_ROOM_AVATAR_DEBUG"
+        const val WAITING_ROOM_AVATAR_TAG = "WaitingRoomAvatar"
     }
 }
 

@@ -315,9 +315,9 @@ class MatchmakingActivity : AppCompatActivity() {
     }
 
     private companion object {
-        const val TAG = "MATCHMAKING_DEBUG"
-        const val AVATAR_TAG = "MATCHMAKING_AVATAR_DEBUG"
-        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
+        const val TAG = "Matchmaking"
+        const val AVATAR_TAG = "MatchmakingAvatar"
+        const val FLOW_TAG = "RoomFlow"
     }
 }
 

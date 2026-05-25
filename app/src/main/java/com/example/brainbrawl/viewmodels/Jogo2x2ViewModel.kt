@@ -34,6 +34,7 @@ class Jogo2x2ViewModel(
     private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var chaveJogador: String = ""
     private var categoria: String = ""
+    private var origemSala: String = ""
     private var equipaDoJogador: String = ""
     private var perguntaAtualIndex = 0
     private var totalPontos = 0.0
@@ -58,6 +59,7 @@ class Jogo2x2ViewModel(
         playerKey: String = "",
         tipoJogador: String = "",
         avatar: String = "",
+        origemSala: String = "",
         categoriaPadrao: String,
         categoriaTodas: String,
         tempoTotalPergunta: Double = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
@@ -66,6 +68,7 @@ class Jogo2x2ViewModel(
         this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
+        this.origemSala = origemSala
         this.tempoTotalPergunta = tempoTotalPergunta
         this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         this.chaveJogador = jogadorAtual.chaveSala
@@ -377,6 +380,7 @@ class Jogo2x2ViewModel(
             numeroPerguntasCertas = numeroPerguntasCertas,
             totalPerguntas = perguntas.size,
             equipa = equipaDoJogador,
+            origemSala = origemSala,
             categoriaCompetitiva = categoriaCompetitiva
         )
     }
@@ -409,6 +413,7 @@ data class JogoCompetitivoPontuacaoDados(
     val numeroPerguntasCertas: Int,
     val totalPerguntas: Int,
     val equipa: String?,
+    val origemSala: String = "",
     val categoriaCompetitiva: Boolean = true
 )
 
@@ -423,8 +428,8 @@ sealed class Jogo2x2Event {
     data object FinalizarJogo : Jogo2x2Event()
 }
 
-private const val GAME_CATEGORY_TAG = "GAME_CATEGORY_DEBUG"
-private const val START_TAG = "INVITE_START_ROOT_CAUSE"
+private const val GAME_CATEGORY_TAG = "GameCategory"
+private const val START_TAG = "GameStart"
 private const val TEAM_RETRY_DELAY_MS = 250L
 
 private fun String.maskedLogId(): String {

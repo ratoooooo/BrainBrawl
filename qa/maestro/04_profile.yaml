@@ -1,0 +1,24 @@
+appId: com.example.brainbrawl
+---
+- launchApp
+- assertVisible: "Jogar Agora"
+
+- tapOn: "Perfil"
+- assertVisible: "Perfil"
+
+- assertVisible: "Vitórias"
+- assertVisible: "Jogos"
+
+- scroll
+- assertVisible: "Conquistas"
+- assertVisible: "Editar avatar"
+- assertVisible: "Histórico"
+
+- tapOn: "Conquistas"
+- assertVisible: "Conquistas"
+
+- pressKey: BACK
+- assertVisible: "Perfil"
+
+- tapOn: "Início"
+- assertVisible: "Jogar Agora"

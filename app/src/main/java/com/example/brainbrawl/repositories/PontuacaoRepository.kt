@@ -1,5 +1,6 @@
 package com.example.brainbrawl.repositories
 
+import android.util.Log
 import com.example.brainbrawl.config.FirebasePaths
 import com.example.brainbrawl.config.GameConstants
 import com.example.brainbrawl.services.EstatisticasService
@@ -451,7 +452,14 @@ class PontuacaoRepository(
                     return
                 }
 
-                criarSalaDesforraSeNecessario(codigoFinal, jogadorAtual, adversario, nomeCategoria, categoriaOrigem)
+                criarSalaDesforraSeNecessario(
+                    codigoSalaAtual,
+                    codigoFinal,
+                    jogadorAtual,
+                    adversario,
+                    nomeCategoria,
+                    categoriaOrigem
+                )
                     .addOnSuccessListener {
                         limparFlagsDesforra1x1(codigoSalaAtual, jogadorAtual.chave, adversario.chave)
                         result.setResult(codigoFinal)
@@ -513,6 +521,7 @@ class PontuacaoRepository(
     }
 
     private fun criarSalaDesforraSeNecessario(
+        codigoSalaAtual: String,
         codigoNovaSala: String,
         jogadorAtual: JogadorDesforra,
         adversario: JogadorDesforra,
@@ -520,42 +529,57 @@ class PontuacaoRepository(
         categoriaOrigem: String
     ): Task<Void> {
         val result = TaskCompletionSource<Void>()
-        val salaRef = salaRef(TipoSala.UM_CONTRA_UM, codigoNovaSala)
+        val salaAtualRef = salaRef(TipoSala.UM_CONTRA_UM, codigoSalaAtual)
+        val salaNovaRef = salaRef(TipoSala.UM_CONTRA_UM, codigoNovaSala)
 
-        salaRef.runTransaction(object : Transaction.Handler {
-            override fun doTransaction(currentData: MutableData): Transaction.Result {
-                if (currentData.value != null) return Transaction.success(currentData)
-
-                val sala = linkedMapOf<String, Any>(
-                    FirebasePaths.JOGADORES to mapOf(
-                        jogadorAtual.chave to jogadorAtual.toFirebaseMap(),
-                        adversario.chave to adversario.toFirebaseMap()
-                    ),
-                    FirebasePaths.ADMIN to jogadorAtual.nomeDisplay,
-                    FirebasePaths.ADMIN_ID to jogadorAtual.chave,
-                    FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
-                    FirebasePaths.NOME_CATEGORIA to nomeCategoria,
-                    FirebasePaths.CATEGORIA_ORIGEM to categoriaOrigem,
-                    FirebasePaths.PRONTOS to mapOf(
-                        jogadorAtual.chave to true,
-                        adversario.chave to false
-                    )
+        salaAtualRef.get()
+            .addOnSuccessListener { salaAtual ->
+                val jogadores = listOf(jogadorAtual, adversario)
+                val metadata = salaAtual.metadataDesforra(
+                    categoriaOrigemFallback = categoriaOrigem,
+                    origemFallback = GameConstants.ORIGEM_CONVITE,
+                    modo = GameConstants.MODO_1X1,
+                    codigoSalaAtual = codigoSalaAtual
                 )
-                if (jogadorAtual.uid.isNotBlank()) {
-                    sala[FirebasePaths.ADMIN_UID] = jogadorAtual.uid
-                }
-                currentData.value = sala
-                return Transaction.success(currentData)
-            }
 
-            override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
-                if (error != null) {
-                    result.setException(error.toException())
-                } else {
-                    result.setResult(null)
-                }
+                salaNovaRef.runTransaction(object : Transaction.Handler {
+                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                        if (currentData.value != null) return Transaction.success(currentData)
+
+                        val sala = linkedMapOf<String, Any>(
+                            FirebasePaths.JOGADORES to jogadores.associate { it.chave to it.toFirebaseMap() },
+                            FirebasePaths.JOGADORES_PERMITIDOS to jogadores.associate { it.chave to true },
+                            FirebasePaths.ADMIN to jogadorAtual.nomeDisplay,
+                            FirebasePaths.ADMIN_ID to jogadorAtual.chave,
+                            FirebasePaths.ESTADO to GameConstants.ESTADO_EM_ESPERA,
+                            FirebasePaths.NOME_CATEGORIA to nomeCategoria.ifBlank {
+                                salaAtual.child(FirebasePaths.NOME_CATEGORIA).texto()
+                            },
+                            FirebasePaths.LOTACAO_MAXIMA to 2,
+                            FirebasePaths.ENTRADA_FECHADA to metadata.entradaFechada,
+                            FirebasePaths.PRONTOS to mapOf(
+                                jogadorAtual.chave to true,
+                                adversario.chave to false
+                            )
+                        )
+                        sala.putAll(metadata.dadosCategoria)
+                        if (jogadorAtual.uid.isNotBlank()) {
+                            sala[FirebasePaths.ADMIN_UID] = jogadorAtual.uid
+                        }
+                        currentData.value = sala
+                        return Transaction.success(currentData)
+                    }
+
+                    override fun onComplete(error: DatabaseError?, committed: Boolean, snapshot: DataSnapshot?) {
+                        if (error != null) {
+                            result.setException(error.toException())
+                        } else {
+                            result.setResult(null)
+                        }
+                    }
+                })
             }
-        })
+            .addOnFailureListener { result.setException(it) }
 
         return result.task
     }
@@ -578,6 +602,12 @@ class PontuacaoRepository(
                 }
 
                 val admin = jogadores.first()
+                val metadata = salaAtual.metadataDesforra(
+                    categoriaOrigemFallback = categoriaOrigem,
+                    origemFallback = GameConstants.ORIGEM_CONVITE,
+                    modo = GameConstants.MODO_2X2,
+                    codigoSalaAtual = codigoSalaAtual
+                )
                 val salaNovaRef = salaRef(TipoSala.DOIS_CONTRA_DOIS, codigoNovaSala)
                 salaNovaRef.runTransaction(object : Transaction.Handler {
                     override fun doTransaction(currentData: MutableData): Transaction.Result {
@@ -595,11 +625,10 @@ class PontuacaoRepository(
                             FirebasePaths.NOME_CATEGORIA to nomeCategoria.ifBlank {
                                 salaAtual.child(FirebasePaths.NOME_CATEGORIA).getValue(String::class.java).orEmpty()
                             },
-                            FirebasePaths.CATEGORIA_ORIGEM to categoriaOrigem,
-                            FirebasePaths.ORIGEM to GameConstants.ORIGEM_CONVITE,
-                            FirebasePaths.ENTRADA_FECHADA to true,
+                            FirebasePaths.ENTRADA_FECHADA to metadata.entradaFechada,
                             FirebasePaths.LOTACAO_MAXIMA to 4
                         )
+                        sala.putAll(metadata.dadosCategoria)
                         if (admin.uid.isNotBlank()) {
                             sala[FirebasePaths.ADMIN_UID] = admin.uid
                         }
@@ -683,6 +712,56 @@ class PontuacaoRepository(
             }
             reference.addValueEventListener(listener)
         }
+    }
+
+    private data class MetadataDesforra(
+        val entradaFechada: Boolean,
+        val dadosCategoria: Map<String, Any>
+    )
+
+    private fun DataSnapshot.metadataDesforra(
+        categoriaOrigemFallback: String,
+        origemFallback: String,
+        modo: String,
+        codigoSalaAtual: String
+    ): MetadataDesforra {
+        val origem = child(FirebasePaths.ORIGEM).texto().ifBlank {
+            Log.w(
+                TAG,
+                "Rematch sem origem na sala original: modo=$modo codigo=${codigoSalaAtual.maskedLogId()}. " +
+                    "A usar fluxo privado por convite."
+            )
+            origemFallback
+        }
+        val categoriaOrigem = child(FirebasePaths.CATEGORIA_ORIGEM).texto()
+            .ifBlank { categoriaOrigemFallback }
+            .ifBlank { GameConstants.ORIGEM_CATEGORIA_OFICIAL }
+        val entradaFechada = child(FirebasePaths.ENTRADA_FECHADA).getValue(Boolean::class.java) == true ||
+            origem == GameConstants.ORIGEM_MATCHMAKING ||
+            origem == GameConstants.ORIGEM_CONVITE
+        val dados = linkedMapOf<String, Any>(
+            FirebasePaths.CATEGORIA_ORIGEM to categoriaOrigem,
+            FirebasePaths.ORIGEM to origem
+        )
+        child(FirebasePaths.CATEGORIA_PUBLICA_ID).texto()
+            .takeIf { it.isNotBlank() }
+            ?.let {
+                dados[FirebasePaths.CATEGORIA_PUBLICA_ID] = it
+                dados["categoriaPublica"] = true
+            }
+        child(FirebasePaths.DONO_UID).texto()
+            .takeIf { it.isNotBlank() }
+            ?.let { dados[FirebasePaths.DONO_UID] = it }
+        child("donoCategoria").texto()
+            .takeIf { it.isNotBlank() }
+            ?.let { dados["donoCategoria"] = it }
+        if (child("categoriaPersonalizada").getValue(Boolean::class.java) == true) {
+            dados["categoriaPersonalizada"] = true
+        }
+        child(FirebasePaths.ORIGEM_CATEGORIA_PUBLICA).texto()
+            .takeIf { it.isNotBlank() }
+            ?.let { dados[FirebasePaths.ORIGEM_CATEGORIA_PUBLICA] = it }
+        return MetadataDesforra(entradaFechada = entradaFechada, dadosCategoria = dados)
     }
 
     private fun atualizarProximoJogador(
@@ -1103,4 +1182,13 @@ class PontuacaoRepository(
     private fun salaRef(tipoSala: TipoSala, codigoSala: String): DatabaseReference {
         return database.child(tipoSala.node).child(codigoSala)
     }
+
+    private companion object {
+        const val TAG = "PontuacaoRepository"
+    }
+}
+
+private fun String.maskedLogId(): String {
+    if (isBlank()) return ""
+    return if (length <= 6) "***" else "${take(3)}...${takeLast(2)}"
 }

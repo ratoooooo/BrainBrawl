@@ -1,0 +1,19 @@
+appId: com.example.brainbrawl
+---
+- launchApp
+- assertVisible: "Jogar Agora"
+
+- tapOn: "Explorar Categorias"
+- assertVisible: "Explorar Categorias"
+
+- tapOn: "Criar categoria"
+- assertVisible: "Criar categoria"
+
+- assertVisible: "Nome"
+- assertVisible: "Descrição"
+
+- pressKey: BACK
+- assertVisible: "Explorar Categorias"
+
+- pressKey: BACK
+- assertVisible: "Jogar Agora"

@@ -32,6 +32,7 @@ class Jogo1x1ViewModel(
     private var jogadorAtual: JogadorSalaIdentidade = JogadorSalaIdentidade()
     private var chaveJogador: String = ""
     private var categoria: String = ""
+    private var origemSala: String = ""
     private var perguntaAtualIndex = 0
     private var totalPontos = 0.0
     private var numeroPerguntasCertas = 0
@@ -54,6 +55,7 @@ class Jogo1x1ViewModel(
         playerKey: String = "",
         tipoJogador: String = "",
         avatar: String = "",
+        origemSala: String = "",
         categoriaPadrao: String,
         categoriaTodas: String,
         tempoTotalPergunta: Double = GameConstants.COMPETITIVE_DEFAULT_QUESTION_TIME_SECONDS
@@ -62,6 +64,7 @@ class Jogo1x1ViewModel(
         this.uid = uid
         this.nomeUtilizador = nomeUtilizador
         this.nomeJogador = nomeJogador
+        this.origemSala = origemSala
         this.tempoTotalPergunta = tempoTotalPergunta
         this.jogadorAtual = JogadorSalaIdentidade.from(uid, nomeUtilizador, nomeJogador, playerKey, tipoJogador, avatar)
         this.chaveJogador = jogadorAtual.chaveSala
@@ -320,13 +323,14 @@ class Jogo1x1ViewModel(
             numeroPerguntasCertas = numeroPerguntasCertas,
             totalPerguntas = perguntas.size,
             equipa = null,
+            origemSala = origemSala,
             categoriaCompetitiva = categoriaCompetitiva
         )
     }
 
     private companion object {
-        const val GAME_CATEGORY_TAG = "GAME_CATEGORY_DEBUG"
-        const val START_TAG = "INVITE_START_ROOT_CAUSE"
+        const val GAME_CATEGORY_TAG = "GameCategory"
+        const val START_TAG = "GameStart"
     }
 }
 

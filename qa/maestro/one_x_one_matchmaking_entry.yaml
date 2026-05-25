@@ -1,0 +1,11 @@
+appId: com.example.brainbrawl
+---
+- runFlow: guest_login.yaml
+- tapOn: "1x1\nAleatório"
+- extendedWaitUntil:
+    visible: "À procura de adversário..."
+    timeout: 10000
+- tapOn: "Cancelar"
+- extendedWaitUntil:
+    visible: "JOGAR AGORA"
+    timeout: 10000

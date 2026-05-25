@@ -125,7 +125,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="@string/pedidos"
+                        android:text="@string/pedidos_count_zero"
                         android:textColor="@color/bb_luso_navy"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -155,7 +155,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:fontFamily="sans-serif-black"
-                        android:text="@string/convites"
+                        android:text="@string/convites_count_zero"
                         android:textColor="@color/bb_luso_navy"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -367,7 +367,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="22dp"
                     android:fontFamily="sans-serif-black"
-                    android:text="@string/convites_recebidos"
+                    android:text="@string/convites_jogo_recebidos"
                     android:textColor="@color/bb_text_secondary"
                     android:textSize="15sp"
                     android:textStyle="bold" />

@@ -1,0 +1,12 @@
+appId: com.example.brainbrawl
+---
+- launchApp
+- assertVisible: "Jogar Agora"
+
+- tapOn: "2x2 Aleatório"
+- assertVisible: "2x2"
+
+- assertVisible: "À procura"
+
+- tapOn: "Cancelar"
+- assertVisible: "Jogar Agora"

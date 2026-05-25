@@ -220,6 +220,7 @@ class AmigosActivity : AppCompatActivity() {
         convitesRecebidos.addAll(convites)
         binding.txtConvites.visibility = if (convitesRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         binding.recyclerConvites.visibility = if (convitesRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        atualizarContadoresTabs()
         // Notifica o adaptador que os dados foram alterados
         conviteAdapter.notifyDataSetChanged()
     }
@@ -231,6 +232,7 @@ class AmigosActivity : AppCompatActivity() {
         pedidosAmizadeRecebidos.addAll(pedidos)
         binding.txtPedidosAmizade.visibility = if (pedidosAmizadeRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
         binding.recyclerPedidosAmizade.visibility = if (pedidosAmizadeRecebidos.isNotEmpty()) android.view.View.VISIBLE else android.view.View.GONE
+        atualizarContadoresTabs()
         pedidoAdapter.notifyDataSetChanged()
     }
 
@@ -238,7 +240,13 @@ class AmigosActivity : AppCompatActivity() {
         binding.tabAmigos.setOnClickListener { mostrarAba(AbaAmigos.AMIGOS) }
         binding.tabPedidos.setOnClickListener { mostrarAba(AbaAmigos.PEDIDOS) }
         binding.tabConvites.setOnClickListener { mostrarAba(AbaAmigos.CONVITES) }
+        atualizarContadoresTabs()
         mostrarAba(AbaAmigos.AMIGOS)
+    }
+
+    private fun atualizarContadoresTabs() {
+        binding.txtTabPedidos.text = getString(R.string.pedidos_count_format, pedidosAmizadeRecebidos.size)
+        binding.txtTabConvites.text = getString(R.string.convites_count_format, convitesRecebidos.size)
     }
 
     private fun mostrarAba(aba: AbaAmigos) {

@@ -496,10 +496,10 @@ class Sala1x1ViewModel(
     }
 
     private companion object {
-        const val TAG = "MATCHMAKING_DEBUG"
-        const val START_TAG = "INVITE_START_ROOT_CAUSE"
-        const val HOST_REMOVAL_TAG = "HOST_REMOVAL_DEBUG"
-        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
+        const val TAG = "Matchmaking"
+        const val START_TAG = "GameStart"
+        const val HOST_REMOVAL_TAG = "RoomLifecycle"
+        const val FLOW_TAG = "RoomFlow"
     }
 }
 

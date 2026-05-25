@@ -416,11 +416,11 @@ class SalaDeEspera1x1Activity : AppCompatActivity() {
     }
 
     private companion object {
-        const val TAG = "MATCHMAKING_DEBUG"
-        const val START_TAG = "INVITE_START_ROOT_CAUSE"
-        const val HOST_REMOVAL_TAG = "HOST_REMOVAL_DEBUG"
-        const val AVATAR_TAG = "WAITING_ROOM_AVATAR_DEBUG"
-        const val FLOW_TAG = "FLOW_SEPARATION_DEBUG"
+        const val TAG = "Matchmaking"
+        const val START_TAG = "GameStart"
+        const val HOST_REMOVAL_TAG = "RoomLifecycle"
+        const val AVATAR_TAG = "WaitingRoomAvatar"
+        const val FLOW_TAG = "RoomFlow"
     }
 }
 

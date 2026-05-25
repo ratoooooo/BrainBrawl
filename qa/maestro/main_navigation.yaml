@@ -1,0 +1,10 @@
+appId: com.example.brainbrawl
+---
+- runFlow: guest_login.yaml
+- assertVisible: "JOGAR AGORA"
+- tapOn: "Explorar\nCategorias"
+- extendedWaitUntil:
+    visible: "Explorar"
+    timeout: 10000
+- back
+- assertVisible: "JOGAR AGORA"

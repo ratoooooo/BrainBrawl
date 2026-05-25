@@ -1,0 +1,28 @@
+appId: com.example.brainbrawl
+---
+- runFlow: guest_login.yaml
+- assertVisible: "JOGAR AGORA"
+# Navigation Bar
+- tapOn: "Ranking"
+- extendedWaitUntil:
+    visible: "TOP 10"
+    timeout: 10000
+- tapOn: "Início"
+- tapOn: "Amigos"
+- extendedWaitUntil:
+    visible: "Os meus Amigos"
+    timeout: 10000
+- tapOn: "Início"
+- tapOn: "Perfil"
+- extendedWaitUntil:
+    visible: "O MEU PERFIL"
+    timeout: 10000
+- back
+# Header Actions
+- tapOn:
+    id: "com.example.brainbrawl:id/btn_historico"
+- extendedWaitUntil:
+    visible: "Histórico de Jogos"
+    timeout: 10000
+- back
+- assertVisible: "JOGAR AGORA"

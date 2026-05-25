@@ -176,7 +176,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="20dp"
                 android:columnCount="2"
-                android:rowCount="2"
+                android:rowCount="3"
                 android:useDefaultMargins="true">
 
                 <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
@@ -228,6 +228,32 @@
                         android:orientation="vertical">
                         <TextView android:id="@+id/txtPontuacao" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="#128" />
                         <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/ranking_global_label" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
+                    <ImageView style="@style/Widget_BrainBrawl_ProfileStatIcon" android:src="@drawable/ic_percent" app:tint="@color/bb_luso_gold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/txtTaxaVitoria" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="64%" />
+                        <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/taxa_vitoria_label" />
+                    </LinearLayout>
+                </LinearLayout>
+
+                <LinearLayout style="@style/Widget_BrainBrawl_ProfileStat">
+                    <ImageView style="@style/Widget_BrainBrawl_ProfileStatIcon" android:src="@drawable/ic_check_gold" />
+                    <LinearLayout
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="14dp"
+                        android:layout_weight="1"
+                        android:orientation="vertical">
+                        <TextView android:id="@+id/txtTaxaAcertos" style="@style/Widget_BrainBrawl_ProfileStatValue" tools:text="82%" />
+                        <TextView style="@style/Widget_BrainBrawl_ProfileStatLabel" android:text="@string/taxa_acerto_label" />
                     </LinearLayout>
                 </LinearLayout>
             </GridLayout>
@@ -285,18 +311,6 @@
 
             <TextView
                 android:id="@+id/txtTotalRespostasCertas"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/txtTaxaVitoria"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:visibility="gone" />
-
-            <TextView
-                android:id="@+id/txtTaxaAcertos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone" />

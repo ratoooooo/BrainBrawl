@@ -60,6 +60,10 @@ class RankingActivity : AppCompatActivity() {
             viewModel.carregarRanking(RankingTipo.MODO_2X2)
         }
 
+        binding.btnRankingTotal.setOnClickListener {
+            viewModel.carregarRanking(RankingTipo.GLOBAL)
+        }
+
         viewModel.estado.observe(this) { estado ->
             atualizarEstado(estado)
         }
@@ -104,7 +108,8 @@ class RankingActivity : AppCompatActivity() {
             binding.btnRankingSolo to RankingTipo.GRUPO,
             binding.btnRanking1x1 to RankingTipo.MODO_1X1,
             binding.btnRanking2x2 to RankingTipo.MODO_2X2,
-            binding.btnRankingRecorde to RankingTipo.RECORDE
+            binding.btnRankingRecorde to RankingTipo.RECORDE,
+            binding.btnRankingTotal to RankingTipo.GLOBAL
         ).forEach { (tab, tabTipo) ->
             val selecionado = tipo == tabTipo
             tab.background = ContextCompat.getDrawable(

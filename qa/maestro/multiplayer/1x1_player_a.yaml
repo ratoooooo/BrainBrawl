@@ -1,0 +1,35 @@
+appId: com.example.brainbrawl
+---
+- launchApp:
+    clearState: true
+- extendedWaitUntil:
+    visible: "Entrar"
+    timeout: 15000
+- tapOn:
+    id: "com.example.brainbrawl:id/edt_nome_jogador"
+- inputText: "GuestA"
+- tapOn: "Pergunta o Luso"
+- tapOn: "Entrar sem conta"
+- extendedWaitUntil:
+    visible: "JOGAR AGORA"
+    timeout: 20000
+- tapOn: "1x1\nAleatório"
+- extendedWaitUntil:
+    visible: "À procura de adversário..."
+    timeout: 10000
+# Wait for the game to start (transition from matchmaking to game screen)
+- extendedWaitUntil:
+    visible:
+        id: "com.example.brainbrawl:id/txt_pergunta"
+    timeout: 60000
+# Play a few rounds by tapping options if visible
+- tapOn:
+    id: "com.example.brainbrawl:id/card_opcao_1"
+- tapOn:
+    id: "com.example.brainbrawl:id/card_opcao_2"
+- extendedWaitUntil:
+    visible:
+      id: "com.example.brainbrawl:id/btn_voltar_menu"
+    timeout: 60000
+- tapOn:
+    id: "com.example.brainbrawl:id/btn_voltar_menu"

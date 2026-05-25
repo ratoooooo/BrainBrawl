@@ -4447,6 +4447,7 @@ Observacoes:
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
 - `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+- Runtime smoke em `emulator-5554`: Main abriu com `img_hero_brain`, Ranking abriu com aba `Total`, a aba `Total` mostrou `Pontos Totais`, Friends mostrou `Pedidos 0` e `Convites 0`, Profile mostrou cards `Vitória` e `Acerto`.
 
 Observacoes:
 
@@ -6740,3 +6741,132 @@ Depois:
 
 - Não foi executado teste manual completo de desforra com 4 dispositivos/emuladores para confirmar a aceitação de todos os jogadores 2x2 e a navegação simultânea.
 - A nova desforra 2x2 exige que os 4 jogadores aceitem; se o produto quiser revanche por convite parcial, isso deve virar uma decisão separada.
+
+## Polish — Main image, TotalPontos ranking, friends tabs, profile stats and 1x1 podium - 2026-05-24
+
+### Main image
+
+- O card principal do Main deixou de usar a ilustração `ill_caravel_quiz`.
+- A imagem passa a usar o asset de marca existente `ic_brain_bolt`, com `fitCenter` para evitar corte, distorção ou blur.
+- O restante layout do Main foi preservado.
+
+### Ranking TotalPontos
+
+- Foi exposta uma nova aba `Total` no Ranking.
+- A aba usa o tipo existente `RankingTipo.GLOBAL`, sem criar persistência nova.
+- Campo usado por `Total`: `totalPontosSomados`, com fallback legado para `pontuacao` quando `totalPontosSomados` está ausente ou zero.
+- Campos usados pelas restantes abas:
+  - `Grupo`: `totalVitoriasModoSolo`, que neste app representa as vitórias agregadas de grupo.
+  - `1x1`: `totalVitoriasModo1x1`.
+  - `2x2`: `totalVitoriasModo2x2`.
+  - `Recorde`: `recordePontuacao`.
+- Todas as abas continuam a ordenar de forma descendente pelo respetivo valor e por nome como desempate determinístico.
+- A antiga aba `Solo` não foi reintroduzida.
+
+### Friends tabs
+
+- A aba `Amigos` continua a apresentar apenas amigos reais carregados pelo listener de amigos.
+- A aba `Pedidos` é alimentada apenas por `observarPedidosRecebidos` / `carregarPedidosRecebidos`.
+- A aba `Convites` é alimentada apenas por `observarConvitesRecebidos` / `carregarConvitesRecebidos`.
+- Foram adicionados contadores discretos nos rótulos `Pedidos N` e `Convites N` para tornar a separação mais clara.
+- O título da secção de convites passou para `Convites de jogo`.
+- Não houve alteração aos fluxos de aceitar/recusar pedidos ou convites.
+
+### Friend detail
+
+- O botão `Voltar` no detalhe de amigo deixou de usar `bg_button_danger`.
+- `Voltar` agora usa `bg_button_secondary`; `Remover Amigo` permanece com estilo destrutivo.
+
+### Profile stats
+
+- Foram adicionados cards visíveis para:
+  - Percentagem de vitória.
+  - Taxa de acerto em perguntas.
+- Os valores continuam a vir dos campos existentes do perfil: `taxaVitoria` e `taxaAcertos`.
+- A formatação agora mostra apenas o valor percentual no card e faz clamp seguro entre `0%` e `100%`.
+- Campos ausentes/legados continuam a cair para `0%` pela leitura atual do modelo.
+
+### 1x1 matchmaking podium
+
+- Foi removido o `TextView` solto com `1` acima do avatar vencedor.
+- O medalhão inferior de primeiro lugar foi preservado.
+- A pontuação do vencedor ganhou maior tamanho e sombra dourada suave para reforçar a hierarquia.
+- Não houve alteração em ordenação, score, desforra, 2x2 podium ou group podium.
+
+### Validation
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK em verificação intermediária.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Remaining risks
+
+- Confirmar visualmente em dispositivo pequeno que as cinco abas do Ranking ficam confortáveis no scroll horizontal.
+- Confirmar manualmente com dados reais que pedidos de amizade e convites de jogo aparecem nos contadores esperados.
+- Confirmar o pódio 1x1 matchmaking no fim de uma partida real; a alteração é apenas visual e não toca dados.
+
+## Final QA — Rematch routing, debug logs and image-question readiness - 2026-05-25
+
+### Rematch routing found
+
+- `Pontuacao1x1Activity.btnDesforra` chama `Pontuacao1x1ViewModel.pedirDesforra()` e, no evento `AbrirNovaSalaDesforra`, abre `SalaDeEspera1x1Activity`.
+- `Pontuacao2x2Activity.btnJogarNovamente2x2` chama `Pontuacao2x2ViewModel.pedirDesforra()` e, no evento `AbrirNovaSalaDesforra`, abre `SalaDeEspera2x2Activity`.
+- `PontuacoesActivity` não tem botão de desforra/jogar novamente no fluxo de grupo/solo atual; apenas apresenta pontuação e volta ao início.
+- Não foi encontrado fallback de 1x1/2x2 para `SalaDeEsperaGrupoActivity` nos result screens atuais.
+
+### Fixes made
+
+- A origem da sala (`origemSala`) agora é transportada de `Jogo1x1Activity`/`Jogo2x2Activity` para o respetivo ecrã de pontuação via `UteisNavegacao.enviarPontuacaoActivity`.
+- A navegação de desforra 1x1 continua a abrir `SalaDeEspera1x1Activity`, mas agora passa `origemSala` preservada quando existe; se estiver ausente, usa fallback seguro de convite privado.
+- A navegação de desforra 2x2 continua a abrir `SalaDeEspera2x2Activity`, preservando `equipa`, `playerKey`, identidade, categoria e `origemSala`.
+- `PontuacaoRepository` passou a criar salas de desforra copiando metadados da sala original: `origem`, `entradaFechada`, `categoriaOrigem`, `categoriaPublicaId`, `categoriaPublica`, `categoriaPersonalizada`, `donoUid`, `donoCategoria`, `origemCategoriaPublica`, `jogadoresPermitidos` e lotação.
+- 1x1 passou a gravar `jogadoresPermitidos`, `lotacaoMaxima = 2`, `origem` e `entradaFechada` na sala nova de desforra.
+- 2x2 deixou de forçar `origem = convite` na sala nova e agora preserva a origem original quando disponível.
+- Se a sala antiga não tiver `origem`, fica um `Log.w` claro e o fallback é convite privado, nunca grupo.
+
+### Debug logs
+
+- Removidos os logs temporários `REMATCH_FLOW_DEBUG` dos ecrãs de pontuação e do ViewModel 2x2.
+- Os tags temporários de investigação em código (`MATCHMAKING_DEBUG`, `MATCHMAKING_AVATAR_DEBUG`, `FLOW_SEPARATION_DEBUG`, `HOST_REMOVAL_DEBUG`, `INVITE_START_ROOT_CAUSE`, `WAITING_ROOM_AVATAR_DEBUG`, `GAME_CATEGORY_DEBUG`) foram substituídos por tags estáveis de componente.
+- Mantidos warnings/errors úteis (`Log.w`) para falhas reais de sala, categoria, perguntas, equipa e fallback de metadata.
+- Pesquisa em `app/src/main/java` pelos tags temporários listados: sem ocorrências.
+
+### Image-question readiness
+
+- Resultado: parcialmente preparado.
+- O modelo `Pergunta` já tem `imagem: String?`.
+- Categorias personalizadas e públicas já guardam/carregam `imagem`; as rules atuais validam `imagem` como string em categorias e perguntas de sala.
+- O ecrã de adicionar/editar pergunta tem campo `edtImagem` para URL ou referência.
+- Os layouts de gameplay já têm `ImageView` oculto (`img_pergunta`) em `layout_game_question_answers.xml` e no layout legado de jogo em grupo.
+- O carregamento de perguntas preserva o campo `imagem` em grupo, 1x1 e 2x2.
+- Falta renderizar `pergunta.imagem` nos ecrãs `JogoActivity`, `Jogo1x1Activity` e `Jogo2x2Activity`.
+- Falta política de formato segura: URL HTTPS, path de Storage, ou drawable interno.
+- Falta integração explícita com Firebase Storage para upload/seleção, embora Glide já exista como dependência.
+- Falta fallback visual testado quando não há imagem ou quando o carregamento falha.
+- Falta decisão de Firebase Storage Rules se forem permitidos uploads de imagens pelo utilizador.
+
+### Commands executed
+
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew clean`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew assembleDebug`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew testDebugUnitTest`: OK.
+- `JAVA_HOME="/Applications/Android Studio.app/Contents/jbr/Contents/Home" ./gradlew build`: OK.
+
+### Manual tests performed
+
+- Inspeção de `Pontuacao1x1Activity`, `Pontuacao2x2Activity`, `PontuacoesActivity`, respetivos ViewModels, salas de espera 1x1/2x2/grupo, `SalaRepository`, `JogoCompetitivoRepository`, `RoomFlowType`, `IntentExtras`, `GameConstants` e `FirebasePaths`.
+- Inspeção dos caminhos de criação de desforra em `PontuacaoRepository`.
+- Inspeção de modelo/schema/UI para perguntas com imagem.
+- Não foram executados testes manuais em dispositivo/emulador com múltiplos jogadores.
+
+### Remaining risks
+
+- Validar em Firebase real que uma desforra de matchmaking preservada como `origem=matchmaking` é o comportamento de produto desejado; tecnicamente agora fica consistente com a sala original.
+- Validar manualmente 2x2 com quatro clientes, porque a criação da desforra depende de todos aceitarem e de as equipas existirem completas.
+- Imagens em perguntas ainda não estão prontas para release funcional: o campo existe, mas a gameplay não renderiza a imagem nem há fluxo seguro de upload/storage.
+
+### Firebase Rules
+
+- Nenhuma alteração feita nas Firebase Rules.
